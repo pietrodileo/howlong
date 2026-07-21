@@ -1,0 +1,38 @@
+{
+  "name": "howlong",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "smoke": "tsx scripts/smoke-contingency.ts"
+  },
+  "dependencies": {
+    "@fontsource/literata": "^5.3.0",
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-fs": "^2",
+    "exceljs": "^4.4.0",
+    "fflate": "^0.8.3",
+    "papaparse": "^5.5.2",
+    "pinia": "^3.0.1",
+    "vue": "^3.5.13",
+    "yaml": "^2.7.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/papaparse": "^5.3.15",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/typescript-plugin": "^3.3.7",
+    "tsx": "^4.23.1",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3",
+    "vue-tsc": "^2.1.10"
+  }
+}

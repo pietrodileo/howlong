@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HowLong?">
+  <rect width="64" height="64" rx="14" fill="#2b3d55"/>
+  <path
+    fill="#f4f1ea"
+    d="M22 14h20c1.1 0 2 .9 2 2v3.2c0 .8-.3 1.5-.9 2L33.5 32l9.6 10.8c.6.5.9 1.2.9 2V49c0 1.1-.9 2-2 2H22c-1.1 0-2-.9-2-2v-4.2c0-.8.3-1.5.9-2L30.5 32 20.9 21.2c-.6-.5-.9-1.2-.9-2V16c0-1.1.9-2 2-2z"
+  />
+  <path
+    fill="#c4a35a"
+    d="M28.2 34.5c1.6 1.8 3.5 3.5 3.8 3.8.3-.3 2.2-2 3.8-3.8-1.5.4-3.8.9-7.6 0z"
+  />
+  <circle cx="46" cy="18" r="7" fill="#e9eef5"/>
+  <text
+    x="46"
+    y="22"
+    text-anchor="middle"
+    font-family="Georgia, serif"
+    font-size="11"
+    font-weight="700"
+    fill="#2b3d55"
+  >?</text>
+</svg>

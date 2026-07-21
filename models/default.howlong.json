@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "modello-standard",
+  "name": "Modello standard",
+  "macroActivities": [
+    { "id": "1", "name": "Analisi e documentazione", "category": "Analisi", "defaultHours": 0, "kind": "operational" },
+    { "id": "2", "name": "Sviluppo", "category": "Sviluppo", "defaultHours": 0, "kind": "operational" },
+    { "id": "3", "name": "Test", "category": "Test", "defaultHours": 0, "kind": "operational" },
+    { "id": "4", "name": "Collaudo", "category": "Collaudo", "defaultHours": 0, "kind": "operational" },
+    { "id": "5", "name": "Rilascio e monitoraggio", "category": "Rilascio", "defaultHours": 0, "kind": "operational" }
+  ],
+  "categories": ["Analisi", "Sviluppo", "Test", "Collaudo", "Rilascio"],
+  "contingency": {
+    "defaultPercent": 20,
+    "mode": "project",
+    "targetCategories": [],
+    "placement": "both"
+  }
+}
