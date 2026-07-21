@@ -12,6 +12,10 @@ import { computeTotals, type EstimateTotals } from './contingency';
 export type EstimateExportFormat = 'json' | 'yaml' | 'xlsx';
 export type ExportFormat = EstimateExportFormat;
 
+function presentationHours(line: { hoursWithContingency: number; hoursPresented?: number }): number {
+  return line.hoursPresented ?? line.hoursWithContingency;
+}
+
 function visibleLines(estimate: Estimate, clientOnly: boolean) {
   if (clientOnly) {
     const lines = buildClientPresentedLines(estimate);
@@ -21,6 +25,7 @@ function visibleLines(estimate: Estimate, clientOnly: boolean) {
       totalBase: totals.totalBase,
       totalContingency: totals.totalContingency,
       totalWithContingency: totals.totalWithContingency,
+      totalPresented: totals.totalPresented,
       title: estimate.clientView.titleOverride || estimate.meta.title,
     };
   }
@@ -38,6 +43,7 @@ function visibleLines(estimate: Estimate, clientOnly: boolean) {
     totalBase,
     totalContingency,
     totalWithContingency: totalBase + totalContingency,
+    totalPresented: totalBase + totalContingency,
     title: estimate.meta.title,
   };
 }
@@ -58,6 +64,7 @@ export async function estimateToAiYaml(estimate: Estimate, clientOnly = false): 
   const hpd = estimate.meta.hoursPerDay || 8;
 
   const items = v.lines.map((line) => {
+    const presented = presentationHours(line);
     const base: Record<string, unknown> = {
       name: line.item.name,
       category: line.item.category,
@@ -67,6 +74,8 @@ export async function estimateToAiYaml(estimate: Estimate, clientOnly = false): 
       contingencyDays: hoursToDays(line.hoursContingency, hpd),
       withContingency: line.hoursWithContingency,
       withContingencyDays: hoursToDays(line.hoursWithContingency, hpd),
+      presented,
+      presentedDays: hoursToDays(presented, hpd),
     };
     if (line.depth) base.level = 'sub';
     if (line.isFormula || line.item.kind === 'formula') {
@@ -97,6 +106,8 @@ export async function estimateToAiYaml(estimate: Estimate, clientOnly = false): 
       contingencyDays: hoursToDays(v.totalContingency, hpd),
       withContingency: v.totalWithContingency,
       withContingencyDays: hoursToDays(v.totalWithContingency, hpd),
+      presented: v.totalPresented,
+      presentedDays: hoursToDays(v.totalPresented, hpd),
     },
     items,
   };
@@ -136,10 +147,13 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
     'CTG (D)',
     'With CTG (h)',
     'With CTG (D)',
+    'Presented (h)',
+    'Presented (D)',
     'Notes',
   ]);
 
   for (const line of v.lines) {
+    const presented = presentationHours(line);
     const notes =
       clientOnly && estimate.clientView.hideInternalNotes ? '' : line.item.notes;
     const indent = line.depth ? '  ' : '';
@@ -152,6 +166,8 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
       hoursToDays(line.hoursContingency, hpd),
       line.hoursWithContingency,
       hoursToDays(line.hoursWithContingency, hpd),
+      presented,
+      hoursToDays(presented, hpd),
       notes,
     ]);
   }
@@ -169,6 +185,12 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
     v.totalWithContingency,
     'Total with CTG (D)',
     hoursToDays(v.totalWithContingency, hpd),
+  ]);
+  sheet.addRow([
+    'Total presented (h)',
+    v.totalPresented,
+    'Total presented (D)',
+    hoursToDays(v.totalPresented, hpd),
   ]);
 
   return workbookToBuffer(workbook);

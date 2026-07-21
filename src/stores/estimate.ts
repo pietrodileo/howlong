@@ -72,7 +72,9 @@ export const useEstimateStore = defineStore('estimate', () => {
   );
 
   const hasClientOverrides = computed(
-    () => Object.keys(estimate.value.clientView.lineOverrides ?? {}).length > 0,
+    () =>
+      Object.keys(estimate.value.clientView.lineOverrides ?? {}).length > 0 ||
+      estimate.value.items.some((item) => !item.clientVisible),
   );
 
   const clientTitle = computed(
@@ -135,23 +137,10 @@ export const useEstimateStore = defineStore('estimate', () => {
     touch();
   }
 
-  type ClientEffortField = 'hoursBase' | 'hoursContingency' | 'hoursWithContingency';
-
-  function setClientLineEffort(id: string, field: ClientEffortField, hours: number) {
+  function setClientPresentedEffort(id: string, hours: number) {
     const safe = Math.max(0, Number.isFinite(hours) ? hours : 0);
     const current = estimate.value.clientView.lineOverrides?.[id] ?? {};
-    const line = clientLines.value.find((l) => l.item.id === id);
-    const next: ClientLineOverride = { ...current, [field]: safe };
-
-    // Se ritocchi base o CTG, ricalcola il con-CTG (salvo override esplicito solo su with).
-    if (field === 'hoursBase' || field === 'hoursContingency') {
-      const base = field === 'hoursBase' ? safe : (next.hoursBase ?? line?.hoursBase ?? 0);
-      const ctg =
-        field === 'hoursContingency' ? safe : (next.hoursContingency ?? line?.hoursContingency ?? 0);
-      next.hoursBase = base;
-      next.hoursContingency = ctg;
-      next.hoursWithContingency = base + ctg;
-    }
+    const next: ClientLineOverride = { ...current, hoursPresented: safe };
 
     estimate.value.clientView = {
       ...estimate.value.clientView,
@@ -164,11 +153,14 @@ export const useEstimateStore = defineStore('estimate', () => {
   }
 
   function resetClientOverrides() {
-    if (!Object.keys(estimate.value.clientView.lineOverrides ?? {}).length) return;
+    const hasOverrides = Object.keys(estimate.value.clientView.lineOverrides ?? {}).length > 0;
+    const hasHiddenItems = estimate.value.items.some((item) => !item.clientVisible);
+    if (!hasOverrides && !hasHiddenItems) return;
     estimate.value.clientView = {
       ...estimate.value.clientView,
       lineOverrides: {},
     };
+    estimate.value.items = estimate.value.items.map((item) => ({ ...item, clientVisible: true }));
     touch();
   }
 
@@ -186,14 +178,12 @@ export const useEstimateStore = defineStore('estimate', () => {
     );
     const hideIds = new Set<string>([id, ...childIds]);
 
-    let moveBase = 0;
-    let moveCtg = 0;
+    let movePresented = 0;
     for (const l of lines) {
       if (!hideIds.has(l.item.id)) continue;
       if (!l.item.clientVisible) continue;
       if (!l.contributesToTotals) continue;
-      moveBase += l.hoursBase;
-      moveCtg += l.hoursContingency;
+      movePresented += l.hoursPresented;
     }
 
     const targets = lines.filter(
@@ -204,13 +194,9 @@ export const useEstimateStore = defineStore('estimate', () => {
     );
     if (targets.length === 0) return false;
 
-    const addBase = splitProportionally(
-      moveBase,
-      targets.map((t) => t.hoursBase),
-    );
-    const addCtg = splitProportionally(
-      moveCtg,
-      targets.map((t) => t.hoursContingency),
+    const additions = splitProportionally(
+      movePresented,
+      targets.map((t) => t.hoursPresented),
     );
 
     const overrides: Record<string, ClientLineOverride> = {
@@ -219,21 +205,15 @@ export const useEstimateStore = defineStore('estimate', () => {
 
     for (let i = 0; i < targets.length; i++) {
       const t = targets[i];
-      const hoursBase = t.hoursBase + addBase[i];
-      const hoursContingency = t.hoursContingency + addCtg[i];
       overrides[t.item.id] = {
-        hoursBase,
-        hoursContingency,
-        hoursWithContingency: hoursBase + hoursContingency,
+        hoursPresented: t.hoursPresented + additions[i],
       };
     }
 
     // Azzera le ore presentate delle righe nascoste (se ri-mostrate non si doppiano).
     for (const hid of hideIds) {
       overrides[hid] = {
-        hoursBase: 0,
-        hoursContingency: 0,
-        hoursWithContingency: 0,
+        hoursPresented: 0,
       };
     }
 
@@ -527,7 +507,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     updateContingency,
     updateClientView,
     setClientVisible,
-    setClientLineEffort,
+    setClientPresentedEffort,
     resetClientOverrides,
     redistributeClientLine,
     updateItem,

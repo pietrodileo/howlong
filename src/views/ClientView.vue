@@ -57,15 +57,11 @@ function effortInputValue(hours: number): number {
   return Math.round(v * 1000) / 1000;
 }
 
-function onLineEffort(
-  id: string,
-  field: 'hoursBase' | 'hoursContingency' | 'hoursWithContingency',
-  raw: string,
-) {
+function onPresentedEffort(id: string, raw: string) {
   const n = Number(raw);
   if (!Number.isFinite(n) || n < 0) return;
   const hours = inputUnitToHours(n, effortUnit.value, hoursPerDay.value);
-  estimate.setClientLineEffort(id, field, hours);
+  estimate.setClientPresentedEffort(id, hours);
 }
 
 function previewNotes(notes: string): string {
@@ -216,8 +212,8 @@ async function onExport(format: EstimateExportFormat) {
       <div class="stat accent">
         <span>{{ t('client.presented') }}</span>
         <strong>
-          <span>{{ formatHours(estimate.clientTotals.totalWithContingency) }} h</span>
-          <span class="stat-days">{{ formatDays(estimate.clientTotals.totalWithContingency, hoursPerDay) }} D</span>
+          <span>{{ formatHours(estimate.clientTotals.totalPresented) }} h</span>
+          <span class="stat-days">{{ formatDays(estimate.clientTotals.totalPresented, hoursPerDay) }} D</span>
         </strong>
       </div>
     </div>
@@ -232,6 +228,7 @@ async function onExport(format: EstimateExportFormat) {
             <th>{{ t('common.base') }} ({{ effortUnitShort }})</th>
             <th>{{ t('common.ctg') }} ({{ effortUnitShort }})</th>
             <th>{{ t('common.withCtg') }} ({{ effortUnitShort }})</th>
+            <th>{{ t('client.presented') }} ({{ effortUnitShort }})</th>
             <th v-if="!estimate.estimate.clientView.hideInternalNotes">{{ t('common.notes') }}</th>
             <th class="actions-th" />
           </tr>
@@ -266,28 +263,13 @@ async function onExport(format: EstimateExportFormat) {
             </td>
             <td class="pad muted">{{ line.item.category }}</td>
             <td class="pad num-cell">
-              <input
-                class="num"
-                type="number"
-                min="0"
-                step="any"
-                :disabled="!line.item.clientVisible"
-                :value="effortInputValue(line.hoursBase)"
-                :aria-label="`${line.item.name} ${t('common.base')}`"
-                @change="onLineEffort(line.item.id, 'hoursBase', ($event.target as HTMLInputElement).value)"
-              />
+              {{ effortInputValue(line.hoursBase) }}
             </td>
             <td class="pad num-cell">
-              <input
-                class="num"
-                type="number"
-                min="0"
-                step="any"
-                :disabled="!line.item.clientVisible"
-                :value="effortInputValue(line.hoursContingency)"
-                :aria-label="`${line.item.name} ${t('common.ctg')}`"
-                @change="onLineEffort(line.item.id, 'hoursContingency', ($event.target as HTMLInputElement).value)"
-              />
+              {{ effortInputValue(line.hoursContingency) }}
+            </td>
+            <td class="pad num-cell emph">
+              {{ effortInputValue(line.hoursWithContingency) }}
             </td>
             <td class="pad num-cell emph">
               <input
@@ -296,9 +278,9 @@ async function onExport(format: EstimateExportFormat) {
                 min="0"
                 step="any"
                 :disabled="!line.item.clientVisible"
-                :value="effortInputValue(line.hoursWithContingency)"
-                :aria-label="`${line.item.name} ${t('common.withCtg')}`"
-                @change="onLineEffort(line.item.id, 'hoursWithContingency', ($event.target as HTMLInputElement).value)"
+                :value="effortInputValue(line.hoursPresented)"
+                :aria-label="`${line.item.name} ${t('client.presented')}`"
+                @change="onPresentedEffort(line.item.id, ($event.target as HTMLInputElement).value)"
               />
             </td>
             <td
@@ -530,6 +512,8 @@ tr.hidden .num {
 
 .num-cell {
   width: 6.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .num {
@@ -552,7 +536,7 @@ tr.hidden .num {
   outline: none;
 }
 
-.num-cell.emph .num {
+.num-cell.emph {
   font-weight: 600;
 }
 

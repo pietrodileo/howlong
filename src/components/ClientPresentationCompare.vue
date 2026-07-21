@@ -68,7 +68,7 @@ const rows = computed((): RowCompare[] => {
       beforeWith,
       afterBase: after.hoursBase,
       afterCtg: after.hoursContingency,
-      afterWith: after.hoursWithContingency,
+      afterWith: after.hoursPresented,
       deltaWith,
       changed: hoursChanged || !after.item.clientVisible,
     };
@@ -84,8 +84,8 @@ const totals = computed(() => {
     beforeWith: b.totalWithContingency,
     afterBase: a.totalBase,
     afterCtg: a.totalContingency,
-    afterWith: a.totalWithContingency,
-    deltaWith: a.totalWithContingency - b.totalWithContingency,
+    afterWith: a.totalPresented,
+    deltaWith: a.totalPresented - b.totalWithContingency,
   };
 });
 
@@ -145,7 +145,7 @@ function deltaLabel(delta: number): string {
             <th scope="col">{{ t('common.withCtg') }}</th>
             <th scope="col">{{ t('common.base') }}</th>
             <th scope="col">{{ t('common.ctg') }}</th>
-            <th scope="col">{{ t('common.withCtg') }}</th>
+            <th scope="col">{{ t('client.presented') }}</th>
             <th scope="col">{{ t('common.withCtg') }}</th>
           </tr>
         </thead>

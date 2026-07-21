@@ -31,9 +31,8 @@ export const EstimateContingencySchema = z.object({
 });
 
 export const ClientLineOverrideSchema = z.object({
-  hoursBase: z.number().min(0).optional(),
-  hoursContingency: z.number().min(0).optional(),
-  hoursWithContingency: z.number().min(0).optional(),
+  /** Valore liberamente presentabile al cliente; di default coincide con Con CTG. */
+  hoursPresented: z.number().min(0).optional(),
 });
 
 export const ClientViewSchema = z.object({

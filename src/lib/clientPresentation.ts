@@ -3,6 +3,7 @@ import { computeTotals, type ComputedLineHours } from './contingency';
 import { applyRounding } from './rounding';
 
 export type ClientPresentedLine = ComputedLineHours & {
+  hoursPresented: number;
   overridden: boolean;
 };
 
@@ -19,22 +20,16 @@ export function buildClientPresentedLines(
     .filter((l) => l.contributesToTotals || (l.isMacro && l.hasChildren))
     .map((l) => {
       const ov = overrides[l.item.id];
-      const hoursBase = ov?.hoursBase ?? applyRounding(l.hoursBase, mode);
-      const hoursContingency = ov?.hoursContingency ?? applyRounding(l.hoursContingency, mode);
-      const hoursWithContingency =
-        ov?.hoursWithContingency ?? applyRounding(l.hoursWithContingency, mode);
+      const hoursBase = applyRounding(l.hoursBase, mode);
+      const hoursContingency = applyRounding(l.hoursContingency, mode);
+      const hoursWithContingency = applyRounding(l.hoursWithContingency, mode);
       return {
         ...l,
         hoursBase,
         hoursContingency,
         hoursWithContingency,
-        overridden: Boolean(
-          !opts?.ignoreOverrides &&
-            ov &&
-            (ov.hoursBase != null ||
-              ov.hoursContingency != null ||
-              ov.hoursWithContingency != null),
-        ),
+        hoursPresented: ov?.hoursPresented ?? hoursWithContingency,
+        overridden: Boolean(!opts?.ignoreOverrides && ov?.hoursPresented != null),
       };
     });
 }
@@ -75,10 +70,12 @@ export function buildClientPresentedTotals(lines: ClientPresentedLine[]) {
   const base = contributing.reduce((s, l) => s + l.hoursBase, 0);
   const ctg = contributing.reduce((s, l) => s + l.hoursContingency, 0);
   const withCtg = contributing.reduce((s, l) => s + l.hoursWithContingency, 0);
+  const presented = contributing.reduce((s, l) => s + l.hoursPresented, 0);
   return {
     totalBase: base,
     totalContingency: ctg,
     totalWithContingency: withCtg,
+    totalPresented: presented,
   };
 }
 
