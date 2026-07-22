@@ -35,6 +35,7 @@ import {
   TOGGLEABLE_COLUMNS,
   type ColumnKey,
 } from '../lib/useResizableColumns';
+import { useRowDragReorder } from '../lib/useRowDragReorder';
 import type { EstimateExportFormat } from '../lib/export';
 import type { ComputedLineHours } from '../lib/contingency';
 import { formulaLabel, isFormulaItem } from '../lib/formulas';
@@ -50,6 +51,19 @@ const library = useLibraryStore();
 const ui = useUiStore();
 const cols = useResizableColumns();
 const { t } = useI18n();
+
+const rowDrag = useRowDragReorder({
+  getItems: () => estimate.estimate.items,
+  onReorder: (dragId, targetId) => estimate.reorderItem(dragId, targetId),
+});
+
+const tableColumnKeys = computed(() =>
+  cols.orderedKeys.value.filter((key) => {
+    if (!cols.isVisible(key)) return false;
+    if ((key === 'ctg' || key === 'withCtg') && !estimate.showInlineCtg) return false;
+    return true;
+  }),
+);
 const columnsMenuOpen = ref(false);
 const ctgCompareOpen = ref(false);
 const exportMenuOpen = ref(false);
@@ -167,7 +181,40 @@ function onCreateTagOption(label: string) {
 }
 
 function columnLabel(key: ColumnKey): string {
+  if (key === 'base') return effortUnitLabel.value;
   return t(`columns.${key}`);
+}
+
+function columnAbbr(key: ColumnKey): string {
+  switch (key) {
+    case 'name':
+      return 'N';
+    case 'category':
+      return 'C';
+    case 'base':
+      return effortUnitShort.value;
+    case 'applyCtg':
+      return '±';
+    case 'ctg':
+      return '+';
+    case 'withCtg':
+      return 'Σ';
+    case 'override':
+      return '%';
+    case 'tags':
+      return 'T';
+    case 'notes':
+      return '…';
+    case 'actions':
+      return '';
+    default:
+      return '';
+  }
+}
+
+function headerTitle(key: ColumnKey): string {
+  if (key === 'applyCtg') return t('models.ctgColTitle');
+  return t('common.expandCol');
 }
 
 function formulaErrorTitle(err?: string): string {
@@ -707,14 +754,22 @@ function onHeaderDblClick(key: ColumnKey) {
         <thead>
           <tr>
             <th
+              v-for="key in tableColumnKeys"
+              :key="key"
               class="resizable"
-              :class="{ collapsed: cols.collapsed.name }"
-              :style="cols.styleFor('name')"
-              :title="t('common.expandCol')"
-              @dblclick="onHeaderDblClick('name')"
+              :class="{ collapsed: cols.collapsed[key] }"
+              :style="cols.styleFor(key)"
+              :title="headerTitle(key)"
+              draggable="true"
+              @dblclick="onHeaderDblClick(key)"
+              @dragstart="cols.onColDragStart(key, $event)"
+              @dragover="cols.onColDragOver(key, $event)"
+              @drop="cols.onColDrop(key, $event)"
+              @dragend="cols.onColDragEnd"
             >
-              <div class="th-inner">
+              <div class="th-inner th-drag">
                 <button
+                  v-if="key === 'name'"
                   type="button"
                   class="collapse all"
                   :aria-label="allMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
@@ -722,333 +777,256 @@ function onHeaderDblClick(key: ColumnKey) {
                 >
                   {{ allMacrosExpanded ? '▾' : '▸' }}
                 </button>
-                <span v-if="!cols.collapsed.name">{{ t('columns.name') }}</span>
-                <span v-else class="abbr">N</span>
+                <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
+                <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
               </div>
-              <span class="col-resizer" @mousedown="cols.startResize('name', $event)" />
+              <span
+                class="col-resizer"
+                draggable="false"
+                @mousedown="cols.startResize(key, $event)"
+                @dragstart.stop.prevent
+              />
             </th>
-            <th
-              v-if="cols.isVisible('category')"
-              class="resizable"
-              :class="{ collapsed: cols.collapsed.category }"
-              :style="cols.styleFor('category')"
-              :title="t('common.expandCol')"
-              @dblclick="onHeaderDblClick('category')"
-            >
-              <span v-if="!cols.collapsed.category">{{ t('columns.category') }}</span>
-              <span v-else class="abbr">C</span>
-              <span class="col-resizer" @mousedown="cols.startResize('category', $event)" />
-            </th>
-            <th
-              v-if="cols.isVisible('base')"
-              class="resizable"
-              :class="{ collapsed: cols.collapsed.base }"
-              :style="cols.styleFor('base')"
-              :title="t('common.expandCol')"
-              @dblclick="onHeaderDblClick('base')"
-            >
-              <span v-if="!cols.collapsed.base">{{ effortUnitLabel }}</span>
-              <span v-else class="abbr">{{ effortUnitShort }}</span>
-              <span class="col-resizer" @mousedown="cols.startResize('base', $event)" />
-            </th>
-            <th
-              v-if="cols.isVisible('applyCtg')"
-              class="resizable"
-              :class="{ collapsed: cols.collapsed.applyCtg }"
-              :style="cols.styleFor('applyCtg')"
-              :title="t('models.ctgColTitle')"
-              @dblclick="onHeaderDblClick('applyCtg')"
-            >
-              <span v-if="!cols.collapsed.applyCtg">{{ t('columns.applyCtg') }}</span>
-              <span v-else class="abbr">±</span>
-              <span class="col-resizer" @mousedown="cols.startResize('applyCtg', $event)" />
-            </th>
-            <th
-              v-if="estimate.showInlineCtg && cols.isVisible('ctg')"
-              class="resizable"
-              :class="{ collapsed: cols.collapsed.ctg }"
-              :style="cols.styleFor('ctg')"
-              :title="t('common.expandCol')"
-              @dblclick="onHeaderDblClick('ctg')"
-            >
-              <span v-if="!cols.collapsed.ctg">{{ t('columns.ctg') }}</span>
-              <span v-else class="abbr">+</span>
-              <span class="col-resizer" @mousedown="cols.startResize('ctg', $event)" />
-            </th>
-            <th
-              v-if="estimate.showInlineCtg && cols.isVisible('withCtg')"
-              class="resizable"
-              :class="{ collapsed: cols.collapsed.withCtg }"
-              :style="cols.styleFor('withCtg')"
-              :title="t('common.expandCol')"
-              @dblclick="onHeaderDblClick('withCtg')"
-            >
-              <span v-if="!cols.collapsed.withCtg">{{ t('columns.withCtg') }}</span>
-              <span v-else class="abbr">Σ</span>
-              <span class="col-resizer" @mousedown="cols.startResize('withCtg', $event)" />
-            </th>
-            <th
-              v-if="cols.isVisible('override')"
-              class="resizable"
-              :class="{ collapsed: cols.collapsed.override }"
-              :style="cols.styleFor('override')"
-              :title="t('common.expandCol')"
-              @dblclick="onHeaderDblClick('override')"
-            >
-              <span v-if="!cols.collapsed.override">{{ t('columns.override') }}</span>
-              <span v-else class="abbr">%</span>
-              <span class="col-resizer" @mousedown="cols.startResize('override', $event)" />
-            </th>
-            <th
-              v-if="cols.isVisible('tags')"
-              class="resizable"
-              :class="{ collapsed: cols.collapsed.tags }"
-              :style="cols.styleFor('tags')"
-              :title="t('common.expandCol')"
-              @dblclick="onHeaderDblClick('tags')"
-            >
-              <span v-if="!cols.collapsed.tags">{{ t('columns.tags') }}</span>
-              <span v-else class="abbr">T</span>
-              <span class="col-resizer" @mousedown="cols.startResize('tags', $event)" />
-            </th>
-              <th
-                v-if="cols.isVisible('notes')"
-                class="resizable"
-                :class="{ collapsed: cols.collapsed.notes }"
-                :style="cols.styleFor('notes')"
-                :title="t('common.expandCol')"
-                @dblclick="onHeaderDblClick('notes')"
-              >
-                <span v-if="!cols.collapsed.notes">{{ t('columns.notes') }}</span>
-                <span v-else class="abbr">…</span>
-                <span class="col-resizer" @mousedown="cols.startResize('notes', $event)" />
-              </th>
-              <th
-                v-if="cols.isVisible('actions')"
-                class="resizable"
-                :class="{ collapsed: cols.collapsed.actions }"
-                :style="cols.styleFor('actions')"
-                :title="t('common.expandCol')"
-                @dblclick="onHeaderDblClick('actions')"
-              >
-                <span class="col-resizer" @mousedown="cols.startResize('actions', $event)" />
-              </th>
           </tr>
         </thead>
         <tbody>
           <template v-for="line in estimate.visibleLines" :key="line.item.id">
             <tr
-              :class="{
-                macro: line.isMacro && !line.isFormula,
-                task: !line.isMacro,
-                summary: line.item.kind === 'summary',
-                formula: line.isFormula || isFormulaItem(line.item),
-              }"
+              :class="[
+                {
+                  macro: line.isMacro && !line.isFormula,
+                  task: !line.isMacro,
+                  summary: line.item.kind === 'summary',
+                  formula: line.isFormula || isFormulaItem(line.item),
+                },
+                rowDrag.rowClass(line.item.id),
+              ]"
+              @dragover="rowDrag.onDragOver(line.item.id, $event)"
+              @dragleave="rowDrag.onDragLeave(line.item.id)"
+              @drop="rowDrag.onDrop(line.item.id, $event)"
             >
-              <td :style="cols.styleFor('name')" :class="{ collapsed: cols.collapsed.name }">
-                <div
-                  v-if="!cols.collapsed.name"
-                  class="name-cell"
-                  :style="{ paddingLeft: line.depth ? '1.35rem' : '0' }"
+              <template v-for="key in tableColumnKeys" :key="key">
+                <td
+                  v-if="key === 'name'"
+                  :style="cols.styleFor('name')"
+                  :class="{ collapsed: cols.collapsed.name }"
                 >
-                  <button
-                    v-if="line.isMacro && line.hasChildren"
-                    type="button"
-                    class="collapse"
-                    :aria-expanded="!estimate.isCollapsed(line.item.id)"
-                    :aria-label="estimate.isCollapsed(line.item.id) ? t('common.expand') : t('common.collapse')"
-                    @click="estimate.toggleMacro(line.item.id)"
+                  <div
+                    v-if="!cols.collapsed.name"
+                    class="name-cell"
+                    :style="{ paddingLeft: line.depth ? '1.35rem' : '0' }"
                   >
-                    {{ estimate.isCollapsed(line.item.id) ? '▸' : '▾' }}
-                  </button>
-                  <span
-                    v-else-if="line.isFormula || isFormulaItem(line.item)"
-                    class="formula-mark"
-                    aria-hidden="true"
-                    :title="t('working.formulaMark')"
-                  >=</span>
-                  <span v-else-if="!line.isMacro" class="task-mark" aria-hidden="true">·</span>
-                  <span v-else class="collapse-spacer" aria-hidden="true" />
-                  <input
-                    :value="line.item.name"
-                    :class="{ 'macro-name': line.isMacro || line.isFormula }"
-                    @input="estimate.updateItem(line.item.id, { name: ($event.target as HTMLInputElement).value })"
-                  />
-                  <button
-                    v-if="line.isFormula || isFormulaItem(line.item)"
-                    type="button"
-                    class="ghost formula-edit"
-                    :title="formulaHint(line.item)"
-                    @click="openFormulaEditor(line.item.id)"
-                  >
-                    {{ line.item.formula ? formulaLabel(line.item.formula) : 'Σ' }}
-                  </button>
-                  <span
-                    v-if="line.formulaError"
-                    class="formula-err"
-                    :title="formulaErrorTitle(line.formulaError)"
-                  >!</span>
-                </div>
-              </td>
-              <td
-                v-if="cols.isVisible('category')"
-                :style="cols.styleFor('category')"
-                :class="{ collapsed: cols.collapsed.category }"
-              >
-                <template v-if="!cols.collapsed.category">
-                  <select
-                    v-if="line.isMacro || line.isFormula || isFormulaItem(line.item)"
-                    :value="line.item.category"
-                    @change="estimate.updateItem(line.item.id, { category: ($event.target as HTMLSelectElement).value })"
-                  >
-                    <option
-                      v-for="c in categoryOptions"
-                      :key="c"
-                      :value="c"
+                    <span
+                      class="drag-handle"
+                      draggable="true"
+                      :title="t('common.dragRow')"
+                      :aria-label="t('common.dragRow')"
+                      @dragstart="rowDrag.onDragStart(line.item.id, $event)"
+                      @dragend="rowDrag.onDragEnd"
+                    >⋮⋮</span>
+                    <button
+                      v-if="line.isMacro && line.hasChildren"
+                      type="button"
+                      class="collapse"
+                      :aria-expanded="!estimate.isCollapsed(line.item.id)"
+                      :aria-label="estimate.isCollapsed(line.item.id) ? t('common.expand') : t('common.collapse')"
+                      @click="estimate.toggleMacro(line.item.id)"
                     >
-                      {{ c }}
-                    </option>
-                  </select>
-                  <span v-else class="muted cat">{{ line.item.category }}</span>
-                </template>
-              </td>
-              <td
-                v-if="cols.isVisible('base')"
-                :style="cols.styleFor('base')"
-                :class="{ collapsed: cols.collapsed.base }"
-              >
-                <template v-if="!cols.collapsed.base">
+                      {{ estimate.isCollapsed(line.item.id) ? '▸' : '▾' }}
+                    </button>
+                    <span
+                      v-else-if="line.isFormula || isFormulaItem(line.item)"
+                      class="formula-mark"
+                      aria-hidden="true"
+                      :title="t('working.formulaMark')"
+                    >=</span>
+                    <span v-else-if="!line.isMacro" class="task-mark" aria-hidden="true">·</span>
+                    <span v-else class="collapse-spacer" aria-hidden="true" />
+                    <textarea
+                      class="name-input"
+                      rows="1"
+                      :value="line.item.name"
+                      :class="{ 'macro-name': line.isMacro || line.isFormula }"
+                      @input="estimate.updateItem(line.item.id, { name: ($event.target as HTMLTextAreaElement).value })"
+                    />
+                    <button
+                      v-if="line.isFormula || isFormulaItem(line.item)"
+                      type="button"
+                      class="ghost formula-edit"
+                      :title="formulaHint(line.item)"
+                      @click="openFormulaEditor(line.item.id)"
+                    >
+                      {{ line.item.formula ? formulaLabel(line.item.formula) : 'Σ' }}
+                    </button>
+                    <span
+                      v-if="line.formulaError"
+                      class="formula-err"
+                      :title="formulaErrorTitle(line.formulaError)"
+                    >!</span>
+                  </div>
+                </td>
+                <td
+                  v-else-if="key === 'category'"
+                  :style="cols.styleFor('category')"
+                  :class="{ collapsed: cols.collapsed.category }"
+                >
+                  <template v-if="!cols.collapsed.category">
+                    <select
+                      v-if="line.isMacro || line.isFormula || isFormulaItem(line.item)"
+                      :value="line.item.category"
+                      @change="estimate.updateItem(line.item.id, { category: ($event.target as HTMLSelectElement).value })"
+                    >
+                      <option
+                        v-for="c in categoryOptions"
+                        :key="c"
+                        :value="c"
+                      >
+                        {{ c }}
+                      </option>
+                    </select>
+                    <span v-else class="muted cat">{{ line.item.category }}</span>
+                  </template>
+                </td>
+                <td
+                  v-else-if="key === 'base'"
+                  class="num-cell"
+                  :style="cols.styleFor('base')"
+                  :class="{ collapsed: cols.collapsed.base }"
+                >
+                  <template v-if="!cols.collapsed.base">
+                    <input
+                      v-if="hoursEditable(line)"
+                      class="num"
+                      type="number"
+                      min="0"
+                      step="any"
+                      :value="effortInputValue(line.item.hours)"
+                      @input="onEffortInput(line.item.id, ($event.target as HTMLInputElement).value)"
+                    />
+                    <span
+                      v-else
+                      class="readonly emph"
+                      :title="line.isFormula ? formulaHint(line.item) : undefined"
+                    >{{ displayEffort(line.hoursBase) }}</span>
+                  </template>
+                </td>
+                <td
+                  v-else-if="key === 'applyCtg'"
+                  class="center"
+                  :style="cols.styleFor('applyCtg')"
+                  :class="{ collapsed: cols.collapsed.applyCtg }"
+                >
                   <input
-                    v-if="hoursEditable(line)"
-                    class="num"
-                    type="number"
-                    min="0"
-                    step="any"
-                    :value="effortInputValue(line.item.hours)"
-                    @input="onEffortInput(line.item.id, ($event.target as HTMLInputElement).value)"
+                    v-if="!cols.collapsed.applyCtg && line.item.kind !== 'summary'"
+                    type="checkbox"
+                    :checked="itemAppliesContingency(line.item)"
+                    :title="itemAppliesContingency(line.item) ? t('models.ctgOn') : t('models.ctgOff')"
+                    :aria-label="`Contingency su ${line.item.name}`"
+                    @change="setApplyContingency(line.item.id, ($event.target as HTMLInputElement).checked)"
                   />
-                  <span
-                    v-else
-                    class="readonly emph"
-                    :title="line.isFormula ? formulaHint(line.item) : undefined"
-                  >{{ displayEffort(line.hoursBase) }}</span>
-                </template>
-              </td>
-              <td
-                v-if="cols.isVisible('applyCtg')"
-                class="center"
-                :style="cols.styleFor('applyCtg')"
-                :class="{ collapsed: cols.collapsed.applyCtg }"
-              >
-                <input
-                  v-if="!cols.collapsed.applyCtg && line.item.kind !== 'summary'"
-                  type="checkbox"
-                  :checked="itemAppliesContingency(line.item)"
-                  :title="itemAppliesContingency(line.item) ? t('models.ctgOn') : t('models.ctgOff')"
-                  :aria-label="`Contingency su ${line.item.name}`"
-                  @change="setApplyContingency(line.item.id, ($event.target as HTMLInputElement).checked)"
-                />
-              </td>
-              <td
-                v-if="estimate.showInlineCtg && cols.isVisible('ctg')"
-                class="readonly"
-                :style="cols.styleFor('ctg')"
-                :class="{ collapsed: cols.collapsed.ctg }"
-              >
-                <template v-if="!cols.collapsed.ctg">{{ displayEffort(line.hoursContingency) }}</template>
-              </td>
-              <td
-                v-if="estimate.showInlineCtg && cols.isVisible('withCtg')"
-                class="readonly emph"
-                :style="cols.styleFor('withCtg')"
-                :class="{ collapsed: cols.collapsed.withCtg }"
-              >
-                <template v-if="!cols.collapsed.withCtg">{{ displayEffort(line.hoursWithContingency) }}</template>
-              </td>
-              <td
-                v-if="cols.isVisible('override')"
-                :style="cols.styleFor('override')"
-                :class="{ collapsed: cols.collapsed.override }"
-              >
-                <template v-if="!cols.collapsed.override">
-                  <input
-                    v-if="overrideEditable(line)"
-                    class="num"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="1"
-                    :placeholder="String(line.contingencyPercentApplied)"
-                    :value="line.item.contingencyPercentOverride ?? ''"
-                    @input="onOverride(line.item.id, ($event.target as HTMLInputElement).value)"
+                </td>
+                <td
+                  v-else-if="key === 'ctg'"
+                  class="readonly num-cell"
+                  :style="cols.styleFor('ctg')"
+                  :class="{ collapsed: cols.collapsed.ctg }"
+                >
+                  <template v-if="!cols.collapsed.ctg">{{ displayEffort(line.hoursContingency) }}</template>
+                </td>
+                <td
+                  v-else-if="key === 'withCtg'"
+                  class="readonly emph num-cell"
+                  :style="cols.styleFor('withCtg')"
+                  :class="{ collapsed: cols.collapsed.withCtg }"
+                >
+                  <template v-if="!cols.collapsed.withCtg">{{ displayEffort(line.hoursWithContingency) }}</template>
+                </td>
+                <td
+                  v-else-if="key === 'override'"
+                  class="num-cell"
+                  :style="cols.styleFor('override')"
+                  :class="{ collapsed: cols.collapsed.override }"
+                >
+                  <template v-if="!cols.collapsed.override">
+                    <input
+                      v-if="overrideEditable(line)"
+                      class="num"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      :placeholder="String(line.contingencyPercentApplied)"
+                      :value="line.item.contingencyPercentOverride ?? ''"
+                      @input="onOverride(line.item.id, ($event.target as HTMLInputElement).value)"
+                    />
+                    <span v-else class="readonly muted">—</span>
+                  </template>
+                </td>
+                <td
+                  v-else-if="key === 'tags'"
+                  :style="cols.styleFor('tags')"
+                  :class="{ collapsed: cols.collapsed.tags }"
+                >
+                  <TagPicker
+                    v-if="!cols.collapsed.tags"
+                    :model-value="line.item.tags ?? []"
+                    :options="tagOptions"
+                    :aria-label="`${t('columns.tags')}: ${line.item.name}`"
+                    @update:model-value="onItemTagsChange(line.item.id, $event)"
+                    @create-option="onCreateTagOption"
                   />
-                  <span v-else class="readonly muted">—</span>
-                </template>
-              </td>
-              <td
-                v-if="cols.isVisible('tags')"
-                :style="cols.styleFor('tags')"
-                :class="{ collapsed: cols.collapsed.tags }"
-              >
-                <TagPicker
-                  v-if="!cols.collapsed.tags"
-                  :model-value="line.item.tags ?? []"
-                  :options="tagOptions"
-                  :aria-label="`${t('columns.tags')}: ${line.item.name}`"
-                  @update:model-value="onItemTagsChange(line.item.id, $event)"
-                  @create-option="onCreateTagOption"
-                />
-              </td>
-              <td
-                v-if="cols.isVisible('notes')"
-                :style="cols.styleFor('notes')"
-                :class="{ collapsed: cols.collapsed.notes }"
-              >
-                <div v-if="!cols.collapsed.notes" class="notes-cell">
-                  <textarea
-                    class="notes-input"
-                    rows="2"
-                    :value="line.item.notes"
-                    :placeholder="t('working.notesPh')"
-                    :title="t('working.notesExpand')"
-                    @input="estimate.updateItem(line.item.id, { notes: ($event.target as HTMLTextAreaElement).value })"
-                    @dblclick="openNotesEditor(line.item.id)"
-                  />
-                </div>
-              </td>
-              <td
-                v-if="cols.isVisible('actions')"
-                class="row-actions"
-                :style="cols.styleFor('actions')"
-                :class="{ collapsed: cols.collapsed.actions }"
-              >
-                <template v-if="!cols.collapsed.actions">
-                  <button
-                    v-if="line.isMacro && !line.isFormula && line.item.kind !== 'formula'"
-                    type="button"
-                    class="ghost"
-                    @click="estimate.addSubtask(line.item.id)"
-                  >
-                    {{ t('working.addTask') }}
-                  </button>
-                  <IconBtn
-                    v-if="line.isFormula || isFormulaItem(line.item)"
-                    kind="edit"
-                    :label="t('working.editFormula')"
-                    @click="openFormulaEditor(line.item.id)"
-                  />
-                  <IconBtn
-                    kind="duplicate"
-                    :label="t('working.duplicateItem')"
-                    @click="estimate.duplicateItem(line.item.id, settings.settings.locale === 'en' ? 'en' : 'it')"
-                  />
-                  <IconBtn
-                    kind="delete"
-                    :label="t('working.deleteItem')"
-                    @click="onDeleteItem(line.item.id)"
-                  />
-                </template>
-              </td>
+                </td>
+                <td
+                  v-else-if="key === 'notes'"
+                  :style="cols.styleFor('notes')"
+                  :class="{ collapsed: cols.collapsed.notes }"
+                >
+                  <div v-if="!cols.collapsed.notes" class="notes-cell">
+                    <textarea
+                      class="notes-input"
+                      rows="2"
+                      :value="line.item.notes"
+                      :placeholder="t('working.notesPh')"
+                      :title="t('working.notesExpand')"
+                      @input="estimate.updateItem(line.item.id, { notes: ($event.target as HTMLTextAreaElement).value })"
+                      @dblclick="openNotesEditor(line.item.id)"
+                    />
+                  </div>
+                </td>
+                <td
+                  v-else-if="key === 'actions'"
+                  class="row-actions"
+                  :style="cols.styleFor('actions')"
+                  :class="{ collapsed: cols.collapsed.actions }"
+                >
+                  <template v-if="!cols.collapsed.actions">
+                    <button
+                      v-if="line.isMacro && !line.isFormula && line.item.kind !== 'formula'"
+                      type="button"
+                      class="ghost"
+                      @click="estimate.addSubtask(line.item.id)"
+                    >
+                      {{ t('working.addTask') }}
+                    </button>
+                    <IconBtn
+                      v-if="line.isFormula || isFormulaItem(line.item)"
+                      kind="edit"
+                      :label="t('working.editFormula')"
+                      @click="openFormulaEditor(line.item.id)"
+                    />
+                    <IconBtn
+                      kind="duplicate"
+                      :label="t('working.duplicateItem')"
+                      @click="estimate.duplicateItem(line.item.id, settings.settings.locale === 'en' ? 'en' : 'it')"
+                    />
+                    <IconBtn
+                      kind="delete"
+                      :label="t('working.deleteItem')"
+                      @click="onDeleteItem(line.item.id)"
+                    />
+                  </template>
+                </td>
+              </template>
             </tr>
           </template>
 
@@ -1057,69 +1035,50 @@ function onHeaderDblClick(key: ColumnKey) {
             :key="'sep-' + i"
             class="sep-ctg"
           >
-            <td :style="cols.styleFor('name')" :class="{ collapsed: cols.collapsed.name }">
-              <div v-if="!cols.collapsed.name" class="name-cell sep-label">
-                <span class="sep-mark" aria-hidden="true">+</span>
-                <span>{{ separateRowLabel(row.category) }}</span>
-              </div>
-            </td>
-            <td
-              v-if="cols.isVisible('category')"
-              :style="cols.styleFor('category')"
-              :class="{ collapsed: cols.collapsed.category }"
-            />
-            <td
-              v-if="cols.isVisible('base')"
-              class="readonly"
-              :style="cols.styleFor('base')"
-              :class="{ collapsed: cols.collapsed.base }"
-            >
-              <template v-if="!cols.collapsed.base">
-                <span v-if="!estimate.showInlineCtg" class="emph">{{ displayEffort(row.hours) }}</span>
-                <span v-else>—</span>
-              </template>
-            </td>
-            <td
-              v-if="cols.isVisible('applyCtg')"
-              :style="cols.styleFor('applyCtg')"
-              :class="{ collapsed: cols.collapsed.applyCtg }"
-            />
-            <td
-              v-if="estimate.showInlineCtg && cols.isVisible('ctg')"
-              class="readonly emph"
-              :style="cols.styleFor('ctg')"
-              :class="{ collapsed: cols.collapsed.ctg }"
-            >
-              <template v-if="!cols.collapsed.ctg">{{ displayEffort(row.hours) }}</template>
-            </td>
-            <td
-              v-if="estimate.showInlineCtg && cols.isVisible('withCtg')"
-              class="readonly"
-              :style="cols.styleFor('withCtg')"
-              :class="{ collapsed: cols.collapsed.withCtg }"
-            >
-              <template v-if="!cols.collapsed.withCtg">—</template>
-            </td>
-            <td
-              v-if="cols.isVisible('override')"
-              :style="cols.styleFor('override')"
-              :class="{ collapsed: cols.collapsed.override }"
-            />
-            <td
-              v-if="cols.isVisible('tags')"
-              :style="cols.styleFor('tags')"
-              :class="{ collapsed: cols.collapsed.tags }"
-            />
-            <td
-              v-if="cols.isVisible('notes')"
-              :style="cols.styleFor('notes')"
-              :class="{ collapsed: cols.collapsed.notes }"
-            />
-            <td
-              v-if="cols.isVisible('actions')"
-              :style="cols.styleFor('actions')"
-              :class="{ collapsed: cols.collapsed.actions }"
-            />
+            <template v-for="key in tableColumnKeys" :key="key">
+              <td
+                v-if="key === 'name'"
+                :style="cols.styleFor('name')"
+                :class="{ collapsed: cols.collapsed.name }"
+              >
+                <div v-if="!cols.collapsed.name" class="name-cell sep-label">
+                  <span class="sep-mark" aria-hidden="true">+</span>
+                  <span>{{ separateRowLabel(row.category) }}</span>
+                </div>
+              </td>
+              <td
+                v-else-if="key === 'base'"
+                class="readonly num-cell"
+                :style="cols.styleFor('base')"
+                :class="{ collapsed: cols.collapsed.base }"
+              >
+                <template v-if="!cols.collapsed.base">
+                  <span v-if="!estimate.showInlineCtg" class="emph">{{ displayEffort(row.hours) }}</span>
+                  <span v-else>—</span>
+                </template>
+              </td>
+              <td
+                v-else-if="key === 'ctg'"
+                class="readonly emph num-cell"
+                :style="cols.styleFor('ctg')"
+                :class="{ collapsed: cols.collapsed.ctg }"
+              >
+                <template v-if="!cols.collapsed.ctg">{{ displayEffort(row.hours) }}</template>
+              </td>
+              <td
+                v-else-if="key === 'withCtg'"
+                class="readonly num-cell"
+                :style="cols.styleFor('withCtg')"
+                :class="{ collapsed: cols.collapsed.withCtg }"
+              >
+                <template v-if="!cols.collapsed.withCtg">—</template>
+              </td>
+              <td
+                v-else
+                :style="cols.styleFor(key)"
+                :class="{ collapsed: cols.collapsed[key] }"
+              />
+            </template>
           </tr>
         </tbody>
       </table>
@@ -1750,9 +1709,18 @@ th.collapsed {
 
 .name-cell {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.25rem;
   min-width: 0;
+}
+
+.name-cell .name-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.name-cell .macro-name {
+  font-weight: 600;
 }
 
 .collapse {

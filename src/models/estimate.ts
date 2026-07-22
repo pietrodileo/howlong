@@ -38,6 +38,8 @@ export const ClientLineOverrideSchema = z.object({
   hoursPresented: z.number().min(0).optional(),
 });
 
+export const MacroClientPresentationModeSchema = z.enum(['rollup', 'detail']);
+
 export const ClientViewSchema = z.object({
   roundingMode: RoundingModeSchema.default('none'),
   hideManagerNotes: z.boolean().default(false),
@@ -47,6 +49,10 @@ export const ClientViewSchema = z.object({
   titleOverride: z.string().default(''),
   /** Ritocchi presentazione in vista cliente (ore canoniche). */
   lineOverrides: z.record(z.string(), ClientLineOverrideSchema).default({}),
+  /** Per macro id: rollup = solo riga macro con somma; detail = solo sotto-task. */
+  macroPresentation: z
+    .record(z.string(), MacroClientPresentationModeSchema)
+    .default({}),
 });
 
 export const EstimateMetaSchema = z.object({
@@ -78,6 +84,7 @@ export const EstimateSchema = z.object({
     hideClientTags: false,
     titleOverride: '',
     lineOverrides: {},
+    macroPresentation: {},
   }),
 });
 
@@ -86,6 +93,7 @@ export type Estimate = z.infer<typeof EstimateSchema>;
 export type EstimateContingency = z.infer<typeof EstimateContingencySchema>;
 export type ClientViewConfig = z.infer<typeof ClientViewSchema>;
 export type ClientLineOverride = z.infer<typeof ClientLineOverrideSchema>;
+export type MacroClientPresentationMode = z.infer<typeof MacroClientPresentationModeSchema>;
 
 export function parseEstimate(data: unknown): { ok: true; data: Estimate } | { ok: false; error: string } {
   const result = EstimateSchema.safeParse(normalizeEstimateInput(data));

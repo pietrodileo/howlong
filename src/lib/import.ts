@@ -169,6 +169,7 @@ async function importEstimateCsv(
       hideClientTags: false,
       titleOverride: '',
       lineOverrides: {},
+      macroPresentation: {},
     },
   };
   return parseEstimate(estimate);

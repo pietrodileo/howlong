@@ -81,6 +81,7 @@ export function createEstimateFromModel(model: Model, settings?: Settings): Esti
       hideClientTags: s.defaultClientHideTags,
       titleOverride: '',
       lineOverrides: {},
+      macroPresentation: {},
     },
   };
 }
@@ -115,6 +116,7 @@ export function createEmptyEstimate(settings: Settings): Estimate {
       hideClientTags: settings.defaultClientHideTags,
       titleOverride: '',
       lineOverrides: {},
+      macroPresentation: {},
     },
   };
 }

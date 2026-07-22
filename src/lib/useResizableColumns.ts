@@ -1,4 +1,4 @@
-import { reactive, onUnmounted, watch } from 'vue';
+import { reactive, ref, computed, onUnmounted, watch } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import {
   ESTIMATE_COLUMNS_STORAGE_KEY,
@@ -18,6 +18,21 @@ export type ColumnKey =
   | 'actions';
 
 export type ModelColumnKey = 'name' | 'category' | 'hours' | 'ctg' | 'tags' | 'actions';
+
+export type ManagerColumnKey =
+  | 'show'
+  | 'name'
+  | 'category'
+  | 'tags'
+  | 'base'
+  | 'ctg'
+  | 'withCtg'
+  | 'presented'
+  | 'delta'
+  | 'notes'
+  | 'actions';
+
+export type ClientOutputColumnKey = 'name' | 'tags' | 'notes' | 'hours' | 'days';
 
 /** Colonne selezionabili (Nome resta sempre visibile). */
 export const TOGGLEABLE_COLUMNS: ColumnKey[] = [
@@ -66,6 +81,19 @@ const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = {
   actions: true,
 };
 
+const DEFAULT_ORDER: ColumnKey[] = [
+  'name',
+  'category',
+  'base',
+  'applyCtg',
+  'ctg',
+  'withCtg',
+  'override',
+  'tags',
+  'notes',
+  'actions',
+];
+
 const MODEL_DEFAULT_WIDTHS: Record<ModelColumnKey, number> = {
   name: 240,
   category: 160,
@@ -84,8 +112,89 @@ const MODEL_DEFAULT_VISIBLE: Record<ModelColumnKey, boolean> = {
   actions: true,
 };
 
+const MODEL_DEFAULT_ORDER: ModelColumnKey[] = [
+  'name',
+  'category',
+  'hours',
+  'ctg',
+  'tags',
+  'actions',
+];
+
+const MANAGER_DEFAULT_WIDTHS: Record<ManagerColumnKey, number> = {
+  show: 52,
+  name: 220,
+  category: 120,
+  tags: 150,
+  base: 80,
+  ctg: 72,
+  withCtg: 88,
+  presented: 96,
+  delta: 80,
+  notes: 140,
+  actions: 110,
+};
+
+const MANAGER_DEFAULT_VISIBLE: Record<ManagerColumnKey, boolean> = {
+  show: true,
+  name: true,
+  category: true,
+  tags: true,
+  base: true,
+  ctg: true,
+  withCtg: true,
+  presented: true,
+  delta: true,
+  notes: true,
+  actions: true,
+};
+
+const MANAGER_DEFAULT_ORDER: ManagerColumnKey[] = [
+  'show',
+  'name',
+  'category',
+  'tags',
+  'base',
+  'ctg',
+  'withCtg',
+  'presented',
+  'delta',
+  'notes',
+  'actions',
+];
+
+const CLIENT_OUTPUT_DEFAULT_WIDTHS: Record<ClientOutputColumnKey, number> = {
+  name: 280,
+  tags: 160,
+  notes: 200,
+  hours: 72,
+  days: 72,
+};
+
+const CLIENT_OUTPUT_DEFAULT_VISIBLE: Record<ClientOutputColumnKey, boolean> = {
+  name: true,
+  tags: true,
+  notes: true,
+  hours: true,
+  days: true,
+};
+
+const CLIENT_OUTPUT_DEFAULT_ORDER: ClientOutputColumnKey[] = [
+  'name',
+  'tags',
+  'notes',
+  'hours',
+  'days',
+];
+
 const STORAGE_KEY = ESTIMATE_COLUMNS_STORAGE_KEY;
 const MODEL_STORAGE_KEY = 'howlong.modelVisibleColumns';
+const MANAGER_STORAGE_KEY = 'howlong.managerVisibleColumns';
+const ORDER_STORAGE_KEY = 'howlong.columnOrder';
+const MODEL_ORDER_STORAGE_KEY = 'howlong.modelColumnOrder';
+const MANAGER_ORDER_STORAGE_KEY = 'howlong.managerColumnOrder';
+const CLIENT_OUTPUT_STORAGE_KEY = 'howlong.clientOutputVisibleColumns';
+const CLIENT_OUTPUT_ORDER_STORAGE_KEY = 'howlong.clientOutputColumnOrder';
 const COLLAPSED_WIDTH = 28;
 const MIN_WIDTH = 48;
 
@@ -124,6 +233,28 @@ function loadVisibleMap<K extends string>(
   }
 }
 
+function loadOrder<K extends string>(storageKey: string, defaults: K[]): K[] {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return [...defaults];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [...defaults];
+    const allowed = new Set(defaults);
+    const next: K[] = [];
+    for (const key of parsed) {
+      if (typeof key === 'string' && allowed.has(key as K) && !next.includes(key as K)) {
+        next.push(key as K);
+      }
+    }
+    for (const key of defaults) {
+      if (!next.includes(key)) next.push(key);
+    }
+    return next;
+  } catch {
+    return [...defaults];
+  }
+}
+
 /** Scrive in localStorage le colonne Stima dai settings (effetto al prossimo caricamento vista). */
 export function syncEstimateColumnsFromSettings(): void {
   const vis = settingsColumnBaseline();
@@ -137,10 +268,19 @@ export function syncEstimateColumnsFromSettings(): void {
 function useColumnLayout<K extends string>(options: {
   defaultWidths: Record<K, number>;
   defaultVisible: Record<K, boolean>;
+  defaultOrder: K[];
   storageKey: string;
+  orderStorageKey: string;
   lockedKey: K;
 }) {
-  const { defaultWidths, defaultVisible, storageKey, lockedKey } = options;
+  const {
+    defaultWidths,
+    defaultVisible,
+    defaultOrder,
+    storageKey,
+    orderStorageKey,
+    lockedKey,
+  } = options;
   const keys = Object.keys(defaultWidths) as K[];
 
   const widths = reactive({ ...defaultWidths }) as Record<K, number>;
@@ -158,10 +298,12 @@ function useColumnLayout<K extends string>(options: {
         : undefined,
     ),
   ) as Record<K, boolean>;
+  const order = ref<K[]>(loadOrder(orderStorageKey, defaultOrder));
 
-  let dragKey: K | null = null;
+  let resizeKey: K | null = null;
   let startX = 0;
   let startW = 0;
+  let colDragKey: K | null = null;
 
   watch(
     visible,
@@ -174,6 +316,20 @@ function useColumnLayout<K extends string>(options: {
     },
     { deep: true },
   );
+
+  watch(
+    order,
+    (next) => {
+      try {
+        localStorage.setItem(orderStorageKey, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+    },
+    { deep: true },
+  );
+
+  const orderedKeys = computed(() => order.value);
 
   function isVisible(key: K): boolean {
     return visible[key] !== false;
@@ -212,16 +368,58 @@ function useColumnLayout<K extends string>(options: {
     }
   }
 
+  function reorderColumn(dragKey: K, targetKey: K) {
+    if (dragKey === targetKey) return;
+    const current = order.value as K[];
+    const next = [...current];
+    const from = next.indexOf(dragKey);
+    const to = next.indexOf(targetKey);
+    if (from < 0 || to < 0) return;
+    next.splice(from, 1);
+    const insertAt = next.indexOf(targetKey);
+    if (insertAt < 0) return;
+    next.splice(insertAt, 0, dragKey);
+    order.value = next as typeof order.value;
+  }
+
+  function onColDragStart(key: K, e: DragEvent) {
+    colDragKey = key;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', key);
+    }
+  }
+
+  function onColDragOver(targetKey: K, e: DragEvent) {
+    if (!colDragKey || colDragKey === targetKey) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  }
+
+  function onColDrop(targetKey: K, e: DragEvent) {
+    e.preventDefault();
+    const dragKey =
+      colDragKey ?? ((e.dataTransfer?.getData('text/plain') as K | undefined) || null);
+    colDragKey = null;
+    if (!dragKey || dragKey === targetKey) return;
+    if (!keys.includes(dragKey)) return;
+    reorderColumn(dragKey, targetKey);
+  }
+
+  function onColDragEnd() {
+    colDragKey = null;
+  }
+
   function onMove(e: MouseEvent) {
-    if (!dragKey) return;
+    if (!resizeKey) return;
     const delta = e.clientX - startX;
     const next = Math.max(MIN_WIDTH, startW + delta);
-    widths[dragKey] = next;
-    collapsed[dragKey] = false;
+    widths[resizeKey] = next;
+    collapsed[resizeKey] = false;
   }
 
   function onUp() {
-    dragKey = null;
+    resizeKey = null;
     document.body.classList.remove('col-resizing');
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup', onUp);
@@ -234,7 +432,7 @@ function useColumnLayout<K extends string>(options: {
       collapsed[key] = false;
       widths[key] = savedWidths[key] || defaultWidths[key];
     }
-    dragKey = key;
+    resizeKey = key;
     startX = e.clientX;
     startW = widths[key];
     document.body.classList.add('col-resizing');
@@ -252,6 +450,8 @@ function useColumnLayout<K extends string>(options: {
     widths,
     collapsed,
     visible,
+    order,
+    orderedKeys,
     displayWidth,
     styleFor,
     toggleCollapse,
@@ -259,6 +459,11 @@ function useColumnLayout<K extends string>(options: {
     isVisible,
     setVisible,
     toggleVisible,
+    reorderColumn,
+    onColDragStart,
+    onColDragOver,
+    onColDrop,
+    onColDragEnd,
   };
 }
 
@@ -266,7 +471,9 @@ export function useResizableColumns() {
   return useColumnLayout<ColumnKey>({
     defaultWidths: DEFAULT_WIDTHS,
     defaultVisible: DEFAULT_VISIBLE,
+    defaultOrder: DEFAULT_ORDER,
     storageKey: STORAGE_KEY,
+    orderStorageKey: ORDER_STORAGE_KEY,
     lockedKey: 'name',
   });
 }
@@ -275,7 +482,31 @@ export function useModelResizableColumns() {
   return useColumnLayout<ModelColumnKey>({
     defaultWidths: MODEL_DEFAULT_WIDTHS,
     defaultVisible: MODEL_DEFAULT_VISIBLE,
+    defaultOrder: MODEL_DEFAULT_ORDER,
     storageKey: MODEL_STORAGE_KEY,
+    orderStorageKey: MODEL_ORDER_STORAGE_KEY,
+    lockedKey: 'name',
+  });
+}
+
+export function useManagerResizableColumns() {
+  return useColumnLayout<ManagerColumnKey>({
+    defaultWidths: MANAGER_DEFAULT_WIDTHS,
+    defaultVisible: MANAGER_DEFAULT_VISIBLE,
+    defaultOrder: MANAGER_DEFAULT_ORDER,
+    storageKey: MANAGER_STORAGE_KEY,
+    orderStorageKey: MANAGER_ORDER_STORAGE_KEY,
+    lockedKey: 'name',
+  });
+}
+
+export function useClientOutputResizableColumns() {
+  return useColumnLayout<ClientOutputColumnKey>({
+    defaultWidths: CLIENT_OUTPUT_DEFAULT_WIDTHS,
+    defaultVisible: CLIENT_OUTPUT_DEFAULT_VISIBLE,
+    defaultOrder: CLIENT_OUTPUT_DEFAULT_ORDER,
+    storageKey: CLIENT_OUTPUT_STORAGE_KEY,
+    orderStorageKey: CLIENT_OUTPUT_ORDER_STORAGE_KEY,
     lockedKey: 'name',
   });
 }

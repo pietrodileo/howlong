@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Estimate, LineItem } from '../models/estimate';
+import type { Estimate, LineItem, MacroClientPresentationMode } from '../models/estimate';
 import { parseEstimate } from '../models/estimate';
 import type { Model } from '../models/model';
 import type { FormulaAggregate } from '../models/model';
@@ -14,6 +14,7 @@ import {
 } from '../lib/clientPresentation';
 import { nowIso, newId } from '../lib/ids';
 import { nextCopyName } from '../lib/copyName';
+import { reorderHierarchical } from '../lib/reorderHierarchical';
 import { useSettingsStore } from './settings';
 import type { ClientLineOverride } from '../models/estimate';
 
@@ -121,6 +122,12 @@ export const useEstimateStore = defineStore('estimate', () => {
   function updateClientView(patch: Partial<Estimate['clientView']>) {
     estimate.value.clientView = { ...estimate.value.clientView, ...patch };
     touch();
+  }
+
+  function setMacroClientPresentation(macroId: string, mode: MacroClientPresentationMode) {
+    const next = { ...(estimate.value.clientView.macroPresentation ?? {}) };
+    next[macroId] = mode;
+    updateClientView({ macroPresentation: next });
   }
 
   function setClientVisible(id: string, value: boolean) {
@@ -470,6 +477,13 @@ export const useEstimateStore = defineStore('estimate', () => {
     touch();
   }
 
+  function reorderItem(dragId: string, targetId: string) {
+    const next = reorderHierarchical(estimate.value.items, dragId, targetId);
+    if (!next) return;
+    estimate.value.items = next;
+    touch();
+  }
+
   function toggleMacro(id: string) {
     const next = new Set(collapsedMacros.value);
     if (next.has(id)) next.delete(id);
@@ -518,6 +532,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     updateMeta,
     updateContingency,
     updateClientView,
+    setMacroClientPresentation,
     setClientVisible,
     setClientPresentedEffort,
     resetClientOverrides,
@@ -530,6 +545,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     addSubtask,
     duplicateItem,
     removeItem,
+    reorderItem,
     toggleMacro,
     isCollapsed,
     applySessionPercentAsDefault,

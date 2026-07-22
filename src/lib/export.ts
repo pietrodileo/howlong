@@ -6,6 +6,8 @@ import { hoursToDays } from './rounding';
 import {
   buildClientPresentedLines,
   buildClientPresentedTotals,
+  filterLinesForClientOutput,
+  sumClientOutputPresented,
 } from './clientPresentation';
 import { computeTotals, type EstimateTotals } from './contingency';
 
@@ -19,14 +21,16 @@ function presentationHours(line: { hoursWithContingency: number; hoursPresented?
 
 function visibleLines(estimate: Estimate, clientOnly: boolean) {
   if (clientOnly) {
-    const lines = buildClientPresentedLines(estimate);
-    const totals = buildClientPresentedTotals(lines);
+    const all = buildClientPresentedLines(estimate);
+    const lines = filterLinesForClientOutput(all, estimate);
+    const totals = buildClientPresentedTotals(all);
+    const totalPresented = sumClientOutputPresented(lines);
     return {
       lines,
       totalBase: totals.totalBase,
       totalContingency: totals.totalContingency,
       totalWithContingency: totals.totalWithContingency,
-      totalPresented: totals.totalPresented,
+      totalPresented,
       title: estimate.clientView.titleOverride || estimate.meta.title,
     };
   }
@@ -120,14 +124,15 @@ export async function estimateToAiYaml(estimate: Estimate, clientOnly = false): 
 
 /** YAML essenziale, pronto da condividere con il cliente. */
 export async function estimateToClientYaml(estimate: Estimate): Promise<string> {
-  const lines = buildClientPresentedLines(estimate).filter((line) => line.item.clientVisible);
-  const totals = buildClientPresentedTotals(lines);
+  const all = buildClientPresentedLines(estimate);
+  const lines = filterLinesForClientOutput(all, estimate);
+  const totalPresented = sumClientOutputPresented(lines);
   const hpd = estimate.meta.hoursPerDay || 8;
   const { stringify } = await import('yaml');
   return stringify({
     title: estimate.clientView.titleOverride || estimate.meta.title,
     client: estimate.meta.clientLabel || null,
-    total: { hours: totals.totalPresented, days: hoursToDays(totals.totalPresented, hpd) },
+    total: { hours: totalPresented, days: hoursToDays(totalPresented, hpd) },
     activities: lines.map((line) => ({
       activity: line.item.name,
       ...(estimate.clientView.hideClientTags ? {} : { tags: line.item.tags?.length ? line.item.tags : undefined }),
@@ -222,8 +227,9 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
 /** Excel essenziale, pronto da condividere con il cliente. */
 export async function estimateToClientXlsx(estimate: Estimate): Promise<Uint8Array> {
   const ExcelJS = await import('exceljs');
-  const lines = buildClientPresentedLines(estimate).filter((line) => line.item.clientVisible);
-  const totals = buildClientPresentedTotals(lines);
+  const all = buildClientPresentedLines(estimate);
+  const lines = filterLinesForClientOutput(all, estimate);
+  const totalPresented = sumClientOutputPresented(lines);
   const hpd = estimate.meta.hoursPerDay || 8;
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'HowLong?';
@@ -248,7 +254,7 @@ export async function estimateToClientXlsx(estimate: Estimate): Promise<Uint8Arr
     ]);
   }
   sheet.addRow([]);
-  sheet.addRow(['Total', ...(!estimate.clientView.hideClientTags ? [''] : []), ...(!estimate.clientView.hideClientNotes ? [''] : []), totals.totalPresented, hoursToDays(totals.totalPresented, hpd)]);
+  sheet.addRow(['Total', ...(!estimate.clientView.hideClientTags ? [''] : []), ...(!estimate.clientView.hideClientNotes ? [''] : []), totalPresented, hoursToDays(totalPresented, hpd)]);
   return workbookToBuffer(workbook);
 }
 

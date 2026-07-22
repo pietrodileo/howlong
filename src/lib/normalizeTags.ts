@@ -52,5 +52,8 @@ function migrateClientView(cv: Record<string, unknown>): Record<string, unknown>
   if (next.hideClientTags === undefined) next.hideClientTags = false;
   if (next.hideManagerNotes === undefined) next.hideManagerNotes = false;
   if (next.hideClientNotes === undefined) next.hideClientNotes = true;
+  if (!next.macroPresentation || typeof next.macroPresentation !== 'object') {
+    next.macroPresentation = {};
+  }
   return next;
 }

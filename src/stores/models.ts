@@ -15,6 +15,7 @@ import {
 import { importModelText } from '../lib/import';
 import { modelToJson } from '../lib/export';
 import { toErrorMessage } from '../lib/errors';
+import { reorderHierarchical } from '../lib/reorderHierarchical';
 import { useSettingsStore } from './settings';
 
 export const useModelsStore = defineStore('models', () => {
@@ -176,6 +177,14 @@ export const useModelsStore = defineStore('models', () => {
       })),
       categories: cats,
     });
+  }
+
+  function reorderMacroActivity(dragId: string, targetId: string) {
+    const m = selected();
+    if (!m) return;
+    const next = reorderHierarchical(m.macroActivities, dragId, targetId);
+    if (!next) return;
+    setMacroActivities(next);
   }
 
   function setCategories(next: string[]) {
@@ -348,6 +357,7 @@ export const useModelsStore = defineStore('models', () => {
     duplicateSelected,
     updateSelected,
     setMacroActivities,
+    reorderMacroActivity,
     setCategories,
     addCategory,
     removeCategory,

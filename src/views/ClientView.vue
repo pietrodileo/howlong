@@ -18,6 +18,19 @@ import {
 import { exportEstimate } from '../lib/io';
 import type { EstimateExportFormat } from '../lib/export';
 import type { RoundingMode } from '../models/settings';
+import {
+  useManagerResizableColumns,
+  useClientOutputResizableColumns,
+  type ManagerColumnKey,
+  type ClientOutputColumnKey,
+} from '../lib/useResizableColumns';
+import { useRowDragReorder } from '../lib/useRowDragReorder';
+import {
+  filterLinesForClientOutput,
+  getMacroClientPresentation,
+  sumClientOutputPresented,
+} from '../lib/clientPresentation';
+import type { MacroClientPresentationMode } from '../models/estimate';
 import { useI18n } from '../i18n/useI18n';
 import { toErrorMessage } from '../lib/errors';
 
@@ -29,6 +42,13 @@ const settings = useSettingsStore();
 const modelsStore = useModelsStore();
 const { models: modelList } = storeToRefs(modelsStore);
 const { t } = useI18n();
+const cols = useManagerResizableColumns();
+const clientCols = useClientOutputResizableColumns();
+
+const rowDrag = useRowDragReorder({
+  getItems: () => estimate.estimate.items,
+  onReorder: (dragId, targetId) => estimate.reorderItem(dragId, targetId),
+});
 
 const emit = defineEmits<{ back: [] }>();
 
@@ -37,6 +57,7 @@ const managerExportMenuOpen = ref(false);
 const clientExportMenuOpen = ref(false);
 const showChangeConfirmOpen = ref(false);
 const pendingShowChange = ref<{ id: string; visible: boolean } | null>(null);
+const clientPreviewCollapsed = ref<Set<string>>(new Set());
 
 function needsConfirmForShowChange(): boolean {
   return estimate.hasClientOverrides;
@@ -193,8 +214,205 @@ function onRedistribute(id: string) {
 }
 
 const visibleClientLines = computed(() =>
-  estimate.clientLines.filter((line) => line.item.clientVisible && line.contributesToTotals),
+  filterLinesForClientOutput(estimate.clientLines, estimate.estimate, {
+    hideCollapsedSubs: true,
+    isMacroCollapsed: (id) => clientPreviewCollapsed.value.has(id),
+  }),
 );
+
+const clientOutputTotalPresented = computed(() =>
+  sumClientOutputPresented(visibleClientLines.value),
+);
+
+const clientOutputColumnKeys = computed(() =>
+  clientCols.orderedKeys.value.filter((key) => {
+    if (key === 'tags' && estimate.estimate.clientView.hideClientTags) return false;
+    if (key === 'notes' && estimate.estimate.clientView.hideClientNotes) return false;
+    return clientCols.isVisible(key);
+  }),
+);
+
+const clientOutputFootLabelColspan = computed(() => {
+  const keys = clientOutputColumnKeys.value;
+  const hoursIdx = keys.indexOf('hours');
+  if (hoursIdx < 0) return Math.max(1, keys.length - 1);
+  return hoursIdx;
+});
+
+const visibleManagerLines = computed(() =>
+  estimate.clientLines.filter((line) => {
+    if (line.isMacro) return true;
+    const parentId = line.item.parentId;
+    if (!parentId) return true;
+    return !estimate.isCollapsed(parentId);
+  }),
+);
+
+const tableColumnKeys = computed(() =>
+  cols.orderedKeys.value.filter((key) => {
+    if (key === 'tags' && estimate.estimate.clientView.hideManagerTags) return false;
+    if (key === 'notes' && estimate.estimate.clientView.hideManagerNotes) return false;
+    return cols.isVisible(key);
+  }),
+);
+
+const allMacrosExpanded = computed(() => {
+  const macros = estimate.clientLines.filter((l) => l.isMacro && l.hasChildren);
+  if (macros.length === 0) return true;
+  return macros.every((m) => !estimate.isCollapsed(m.item.id));
+});
+
+function toggleAllMacros() {
+  const macros = estimate.clientLines.filter((l) => l.isMacro && l.hasChildren);
+  const expand = !allMacrosExpanded.value;
+  for (const m of macros) {
+    const collapsed = estimate.isCollapsed(m.item.id);
+    if (expand && collapsed) estimate.toggleMacro(m.item.id);
+    if (!expand && !collapsed) estimate.toggleMacro(m.item.id);
+  }
+}
+
+const allClientPreviewMacrosExpanded = computed(() => {
+  const macros = estimate.clientLines.filter(
+    (l) => l.isMacro && l.hasChildren && l.item.clientVisible,
+  );
+  if (macros.length === 0) return true;
+  return macros.every((m) => !clientPreviewCollapsed.value.has(m.item.id));
+});
+
+function toggleAllClientPreviewMacros() {
+  const macros = estimate.clientLines.filter(
+    (l) => l.isMacro && l.hasChildren && l.item.clientVisible,
+  );
+  const expand = !allClientPreviewMacrosExpanded.value;
+  const next = new Set(clientPreviewCollapsed.value);
+  for (const m of macros) {
+    if (expand) next.delete(m.item.id);
+    else next.add(m.item.id);
+  }
+  clientPreviewCollapsed.value = next;
+}
+
+function macroPresentationFor(id: string): MacroClientPresentationMode {
+  return getMacroClientPresentation(estimate.estimate, id);
+}
+
+function onMacroPresentationChange(macroId: string, raw: string) {
+  const mode = raw as MacroClientPresentationMode;
+  if (mode !== 'rollup' && mode !== 'detail') return;
+  estimate.setMacroClientPresentation(macroId, mode);
+}
+
+function onHeaderDblClick(key: ManagerColumnKey) {
+  cols.toggleCollapse(key);
+}
+
+function onClientOutputHeaderDblClick(key: ClientOutputColumnKey) {
+  clientCols.toggleCollapse(key);
+}
+
+function clientOutputColumnLabel(key: ClientOutputColumnKey): string {
+  switch (key) {
+    case 'name':
+      return t('client.activity');
+    case 'tags':
+      return t('columns.tags');
+    case 'notes':
+      return t('common.notes');
+    case 'hours':
+      return t('client.presentedHours');
+    case 'days':
+      return t('client.presentedDays');
+    default:
+      return '';
+  }
+}
+
+function clientOutputColumnAbbr(key: ClientOutputColumnKey): string {
+  switch (key) {
+    case 'name':
+      return 'N';
+    case 'tags':
+      return 'T';
+    case 'notes':
+      return '…';
+    case 'hours':
+      return 'h';
+    case 'days':
+      return 'D';
+    default:
+      return '';
+  }
+}
+
+function clientOutputHeaderTitle(key: ClientOutputColumnKey): string {
+  if (key === 'hours' || key === 'days') return clientOutputColumnLabel(key);
+  return `${clientOutputColumnLabel(key)} · ${t('common.expandCol')}`;
+}
+
+function columnLabel(key: ManagerColumnKey): string {
+  switch (key) {
+    case 'show':
+      return t('client.showCol');
+    case 'name':
+      return t('client.activity');
+    case 'category':
+      return t('common.category');
+    case 'tags':
+      return t('columns.tags');
+    case 'base':
+      return `${t('common.base')} (${effortUnitShort.value})`;
+    case 'ctg':
+      return `${t('common.ctg')} (${effortUnitShort.value})`;
+    case 'withCtg':
+      return `${t('common.withCtg')} (${effortUnitShort.value})`;
+    case 'presented':
+      return `${t('client.presented')} (${effortUnitShort.value})`;
+    case 'delta':
+      return `${t('client.statDelta')} (${effortUnitShort.value})`;
+    case 'notes':
+      return t('common.notes');
+    case 'actions':
+      return '';
+    default:
+      return '';
+  }
+}
+
+function columnAbbr(key: ManagerColumnKey): string {
+  switch (key) {
+    case 'show':
+      return 'S';
+    case 'name':
+      return 'N';
+    case 'category':
+      return 'C';
+    case 'tags':
+      return 'T';
+    case 'base':
+      return effortUnitShort.value;
+    case 'ctg':
+      return '+';
+    case 'withCtg':
+      return 'Σ';
+    case 'presented':
+      return 'P';
+    case 'delta':
+      return 'Δ';
+    case 'notes':
+      return '…';
+    case 'actions':
+      return '';
+    default:
+      return '';
+  }
+}
+
+function headerTitle(key: ManagerColumnKey): string {
+  if (key === 'show') return t('client.showHint');
+  if (key === 'delta') return t('client.compareHint');
+  return t('common.expandCol');
+}
 
 async function onExport(format: EstimateExportFormat, view: 'manager' | 'client' = 'manager') {
   try {
@@ -354,117 +572,245 @@ async function onExportFromMenu(
       </div>
 
     <div class="table-shell">
-      <table class="data-table">
+      <table class="data-table sheet">
         <thead>
           <tr>
-            <th class="show-th" :title="t('client.showHint')">{{ t('client.showCol') }}</th>
-            <th>{{ t('client.activity') }}</th>
-            <th>{{ t('common.category') }}</th>
-            <th v-if="!estimate.estimate.clientView.hideManagerTags">{{ t('columns.tags') }}</th>
-            <th>{{ t('common.base') }} ({{ effortUnitShort }})</th>
-            <th>{{ t('common.ctg') }} ({{ effortUnitShort }})</th>
-            <th>{{ t('common.withCtg') }} ({{ effortUnitShort }})</th>
-            <th>{{ t('client.presented') }} ({{ effortUnitShort }})</th>
-            <th class="delta-col-head">{{ t('client.statDelta') }} ({{ effortUnitShort }})</th>
-            <th v-if="!estimate.estimate.clientView.hideManagerNotes">{{ t('common.notes') }}</th>
-            <th class="actions-th" />
+            <th
+              v-for="key in tableColumnKeys"
+              :key="key"
+              class="resizable"
+              :class="{
+                collapsed: cols.collapsed[key],
+                'show-th': key === 'show',
+                'delta-col-head': key === 'delta',
+                'actions-th': key === 'actions',
+              }"
+              :style="cols.styleFor(key)"
+              :title="headerTitle(key)"
+              draggable="true"
+              @dblclick="onHeaderDblClick(key)"
+              @dragstart="cols.onColDragStart(key, $event)"
+              @dragover="cols.onColDragOver(key, $event)"
+              @drop="cols.onColDrop(key, $event)"
+              @dragend="cols.onColDragEnd"
+            >
+              <div class="th-inner th-drag">
+                <button
+                  v-if="key === 'name'"
+                  type="button"
+                  class="collapse all"
+                  :aria-label="allMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
+                  @click.stop="toggleAllMacros"
+                >
+                  {{ allMacrosExpanded ? '▾' : '▸' }}
+                </button>
+                <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
+                <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
+              </div>
+              <span
+                class="col-resizer"
+                draggable="false"
+                @mousedown="cols.startResize(key, $event)"
+                @dragstart.stop.prevent
+              />
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="line in estimate.clientLines"
+            v-for="line in visibleManagerLines"
             :key="line.item.id"
-            :class="{
-              macro: line.isMacro,
-              overridden: line.overridden,
-              hidden: !line.item.clientVisible,
-            }"
+            :class="[
+              {
+                macro: line.isMacro,
+                overridden: line.overridden,
+                hidden: !line.item.clientVisible,
+              },
+              rowDrag.rowClass(line.item.id),
+            ]"
+            @dragover="rowDrag.onDragOver(line.item.id, $event)"
+            @dragleave="rowDrag.onDragLeave(line.item.id)"
+            @drop="rowDrag.onDrop(line.item.id, $event)"
           >
-            <td class="pad center show-cell">
-              <input
-                type="checkbox"
-                :checked="line.item.clientVisible"
-                :title="t('client.showHint')"
-                :aria-label="`${t('client.showCol')}: ${line.item.name}`"
-                @change="onShowVisibleChange(line.item.id, ($event.target as HTMLInputElement).checked, $event)"
-              />
-            </td>
-            <td class="pad" :style="{ paddingLeft: line.depth ? '1.75rem' : '0.65rem' }">
-              {{ line.item.name }}
-              <span v-if="line.overridden" class="edited-mark" :title="t('client.editedMark')">●</span>
-              <span
-                v-if="!line.item.clientVisible"
-                class="hidden-tag"
-                :title="t('client.hiddenRow')"
-              >{{ t('client.hiddenRow') }}</span>
-            </td>
-            <td class="pad muted">{{ line.item.category }}</td>
-            <td v-if="!estimate.estimate.clientView.hideManagerTags" class="pad">
-              <TagPicker
-                :model-value="line.item.tags ?? []"
-                :options="tagOptions"
-                :disabled="!line.item.clientVisible"
-                :aria-label="`${line.item.name} ${t('columns.tags')}`"
-                @update:model-value="onItemTagsChange(line.item.id, $event)"
-                @create-option="onCreateTagOption"
-              />
-            </td>
-            <td class="pad num-cell">
-              {{ effortInputValue(line.hoursBase) }}
-            </td>
-            <td class="pad num-cell">
-              {{ effortInputValue(line.hoursContingency) }}
-            </td>
-            <td class="pad num-cell emph">
-              {{ effortInputValue(line.hoursWithContingency) }}
-            </td>
-            <td class="pad num-cell emph">
-              <input
-                class="num"
-                type="number"
-                min="0"
-                step="any"
-                :disabled="!line.item.clientVisible"
-                :value="effortInputValue(line.hoursPresented)"
-                :aria-label="`${line.item.name} ${t('client.presented')}`"
-                @change="onPresentedEffort(line.item.id, ($event.target as HTMLInputElement).value)"
-              />
-            </td>
-            <td
-              class="pad num-cell delta-cell"
-              :class="{
-                positive: (linePresentedDeltaHours(line) ?? 0) > 0,
-                negative: (linePresentedDeltaHours(line) ?? 0) < 0,
-              }"
-              :title="t('client.compareHint')"
-            >
-              {{ formatDeltaCell(linePresentedDeltaHours(line)) }}
-            </td>
-            <td
-              v-if="!estimate.estimate.clientView.hideManagerNotes"
-              class="pad notes-cell"
-            >
-              <button
-                type="button"
-                class="notes-preview"
-                :class="{ empty: !line.item.notes.trim() }"
-                :title="t('client.notesOpen')"
-                @click="openNotesEditor(line.item.id)"
+            <template v-for="key in tableColumnKeys" :key="key">
+              <td
+                v-if="key === 'show'"
+                class="pad center show-cell"
+                :style="cols.styleFor('show')"
+                :class="{ collapsed: cols.collapsed.show }"
               >
-                {{ previewNotes(line.item.notes) || t('client.notesEmpty') }}
-              </button>
-            </td>
-            <td class="pad row-actions">
-              <button
-                v-if="line.item.clientVisible"
-                type="button"
-                class="ghost redistribute"
-                :title="t('client.redistributeHint')"
-                @click="onRedistribute(line.item.id)"
+                <input
+                  v-if="!cols.collapsed.show"
+                  type="checkbox"
+                  :checked="line.item.clientVisible"
+                  :title="t('client.showHint')"
+                  :aria-label="`${t('client.showCol')}: ${line.item.name}`"
+                  @change="onShowVisibleChange(line.item.id, ($event.target as HTMLInputElement).checked, $event)"
+                />
+              </td>
+              <td
+                v-else-if="key === 'name'"
+                class="pad name-wrap"
+                :style="cols.styleFor('name')"
+                :class="{ collapsed: cols.collapsed.name }"
               >
-                {{ t('client.redistribute') }}
-              </button>
-            </td>
+                <div
+                  v-if="!cols.collapsed.name"
+                  class="name-cell"
+                  :style="{ paddingLeft: line.depth ? '1.1rem' : '0' }"
+                >
+                  <span
+                    class="drag-handle"
+                    draggable="true"
+                    :title="t('common.dragRow')"
+                    :aria-label="t('common.dragRow')"
+                    @dragstart="rowDrag.onDragStart(line.item.id, $event)"
+                    @dragend="rowDrag.onDragEnd"
+                  >⋮⋮</span>
+                  <button
+                    v-if="line.isMacro && line.hasChildren"
+                    type="button"
+                    class="collapse"
+                    :aria-expanded="!estimate.isCollapsed(line.item.id)"
+                    :aria-label="estimate.isCollapsed(line.item.id) ? t('common.expand') : t('common.collapse')"
+                    @click="estimate.toggleMacro(line.item.id)"
+                  >
+                    {{ estimate.isCollapsed(line.item.id) ? '▸' : '▾' }}
+                  </button>
+                  <span v-else class="collapse-spacer" aria-hidden="true" />
+                  <span class="activity-name">{{ line.item.name }}</span>
+                  <select
+                    v-if="line.isMacro && line.hasChildren"
+                    class="macro-present-select"
+                    :value="macroPresentationFor(line.item.id)"
+                    :title="t('client.macroPresentation')"
+                    :aria-label="`${t('client.macroPresentation')}: ${line.item.name}`"
+                    @change="onMacroPresentationChange(line.item.id, ($event.target as HTMLSelectElement).value)"
+                  >
+                    <option value="rollup">{{ t('client.macroRollup') }}</option>
+                    <option value="detail">{{ t('client.macroDetail') }}</option>
+                  </select>
+                  <span v-if="line.overridden" class="edited-mark" :title="t('client.editedMark')">●</span>
+                  <span
+                    v-if="!line.item.clientVisible"
+                    class="hidden-tag"
+                    :title="t('client.hiddenRow')"
+                  >{{ t('client.hiddenRow') }}</span>
+                </div>
+              </td>
+              <td
+                v-else-if="key === 'category'"
+                class="pad muted"
+                :style="cols.styleFor('category')"
+                :class="{ collapsed: cols.collapsed.category }"
+              >
+                <template v-if="!cols.collapsed.category">{{ line.item.category }}</template>
+              </td>
+              <td
+                v-else-if="key === 'tags'"
+                class="pad"
+                :style="cols.styleFor('tags')"
+                :class="{ collapsed: cols.collapsed.tags }"
+              >
+                <TagPicker
+                  v-if="!cols.collapsed.tags"
+                  :model-value="line.item.tags ?? []"
+                  :options="tagOptions"
+                  :disabled="!line.item.clientVisible"
+                  :aria-label="`${line.item.name} ${t('columns.tags')}`"
+                  @update:model-value="onItemTagsChange(line.item.id, $event)"
+                  @create-option="onCreateTagOption"
+                />
+              </td>
+              <td
+                v-else-if="key === 'base'"
+                class="pad num-cell"
+                :style="cols.styleFor('base')"
+                :class="{ collapsed: cols.collapsed.base }"
+              >
+                <template v-if="!cols.collapsed.base">{{ effortInputValue(line.hoursBase) }}</template>
+              </td>
+              <td
+                v-else-if="key === 'ctg'"
+                class="pad num-cell"
+                :style="cols.styleFor('ctg')"
+                :class="{ collapsed: cols.collapsed.ctg }"
+              >
+                <template v-if="!cols.collapsed.ctg">{{ effortInputValue(line.hoursContingency) }}</template>
+              </td>
+              <td
+                v-else-if="key === 'withCtg'"
+                class="pad num-cell emph"
+                :style="cols.styleFor('withCtg')"
+                :class="{ collapsed: cols.collapsed.withCtg }"
+              >
+                <template v-if="!cols.collapsed.withCtg">{{ effortInputValue(line.hoursWithContingency) }}</template>
+              </td>
+              <td
+                v-else-if="key === 'presented'"
+                class="pad num-cell emph"
+                :style="cols.styleFor('presented')"
+                :class="{ collapsed: cols.collapsed.presented }"
+              >
+                <input
+                  v-if="!cols.collapsed.presented"
+                  class="num"
+                  type="number"
+                  min="0"
+                  step="any"
+                  :disabled="!line.item.clientVisible"
+                  :value="effortInputValue(line.hoursPresented)"
+                  :aria-label="`${line.item.name} ${t('client.presented')}`"
+                  @change="onPresentedEffort(line.item.id, ($event.target as HTMLInputElement).value)"
+                />
+              </td>
+              <td
+                v-else-if="key === 'delta'"
+                class="pad num-cell delta-cell"
+                :style="cols.styleFor('delta')"
+                :class="{
+                  collapsed: cols.collapsed.delta,
+                  positive: (linePresentedDeltaHours(line) ?? 0) > 0,
+                  negative: (linePresentedDeltaHours(line) ?? 0) < 0,
+                }"
+                :title="t('client.compareHint')"
+              >
+                <template v-if="!cols.collapsed.delta">{{ formatDeltaCell(linePresentedDeltaHours(line)) }}</template>
+              </td>
+              <td
+                v-else-if="key === 'notes'"
+                class="pad notes-cell"
+                :style="cols.styleFor('notes')"
+                :class="{ collapsed: cols.collapsed.notes }"
+              >
+                <button
+                  v-if="!cols.collapsed.notes"
+                  type="button"
+                  class="notes-preview"
+                  :class="{ empty: !line.item.notes.trim() }"
+                  :title="t('client.notesOpen')"
+                  @click="openNotesEditor(line.item.id)"
+                >
+                  {{ previewNotes(line.item.notes) || t('client.notesEmpty') }}
+                </button>
+              </td>
+              <td
+                v-else-if="key === 'actions'"
+                class="pad row-actions"
+                :style="cols.styleFor('actions')"
+                :class="{ collapsed: cols.collapsed.actions }"
+              >
+                <button
+                  v-if="!cols.collapsed.actions && line.item.clientVisible"
+                  type="button"
+                  class="ghost redistribute"
+                  :title="t('client.redistributeHint')"
+                  @click="onRedistribute(line.item.id)"
+                >
+                  {{ t('client.redistribute') }}
+                </button>
+              </td>
+            </template>
           </tr>
         </tbody>
       </table>
@@ -524,36 +870,139 @@ async function onExportFromMenu(
         </div>
       </header>
       <div class="table-shell">
-        <table class="data-table">
+        <table class="data-table sheet">
           <thead>
             <tr>
-              <th>{{ t('client.activity') }}</th>
-              <th v-if="!estimate.estimate.clientView.hideClientTags">{{ t('columns.tags') }}</th>
-              <th v-if="!estimate.estimate.clientView.hideClientNotes">{{ t('common.notes') }}</th>
-              <th>{{ t('client.timeColumn') }}</th>
+              <th
+                v-for="key in clientOutputColumnKeys"
+                :key="key"
+                class="resizable"
+                :class="{ collapsed: clientCols.collapsed[key] }"
+                :style="clientCols.styleFor(key)"
+                :title="clientOutputHeaderTitle(key)"
+                draggable="true"
+                @dblclick="onClientOutputHeaderDblClick(key)"
+                @dragstart="clientCols.onColDragStart(key, $event)"
+                @dragover="clientCols.onColDragOver(key, $event)"
+                @drop="clientCols.onColDrop(key, $event)"
+                @dragend="clientCols.onColDragEnd"
+              >
+                <div class="th-inner th-drag">
+                  <button
+                    v-if="key === 'name'"
+                    type="button"
+                    class="collapse all"
+                    :aria-label="allClientPreviewMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
+                    @click.stop="toggleAllClientPreviewMacros"
+                  >
+                    {{ allClientPreviewMacrosExpanded ? '▾' : '▸' }}
+                  </button>
+                  <span v-if="!clientCols.collapsed[key]">{{ clientOutputColumnLabel(key) }}</span>
+                  <span v-else class="abbr">{{ clientOutputColumnAbbr(key) }}</span>
+                </div>
+                <span
+                  class="col-resizer"
+                  draggable="false"
+                  @mousedown="clientCols.startResize(key, $event)"
+                  @dragstart.stop.prevent
+                />
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="line in visibleClientLines" :key="line.item.id">
-              <td class="pad" :style="{ paddingLeft: line.depth ? '1.75rem' : '0.65rem' }">{{ line.item.name }}</td>
-              <td v-if="!estimate.estimate.clientView.hideClientTags" class="pad">
-                <TagPicker
-                  readonly
-                  :model-value="line.item.tags ?? []"
-                  :options="tagOptions"
-                />
-              </td>
-              <td v-if="!estimate.estimate.clientView.hideClientNotes" class="pad muted">{{ line.item.notes }}</td>
-              <td class="pad num-cell emph">{{ formatHours(line.hoursPresented) }} h · {{ formatDays(line.hoursPresented, hoursPerDay) }} D</td>
+            <tr
+              v-for="line in visibleClientLines"
+              :key="line.item.id"
+              :class="rowDrag.rowClass(line.item.id)"
+              @dragover="rowDrag.onDragOver(line.item.id, $event)"
+              @dragleave="rowDrag.onDragLeave(line.item.id)"
+              @drop="rowDrag.onDrop(line.item.id, $event)"
+            >
+              <template v-for="key in clientOutputColumnKeys" :key="key">
+                <td
+                  v-if="key === 'name'"
+                  class="pad name-wrap"
+                  :style="clientCols.styleFor('name')"
+                  :class="{ collapsed: clientCols.collapsed.name }"
+                >
+                  <div
+                    v-if="!clientCols.collapsed.name"
+                    class="name-cell"
+                    :style="{ paddingLeft: line.depth ? '1.75rem' : '0' }"
+                  >
+                    <span
+                      class="drag-handle"
+                      draggable="true"
+                      :title="t('common.dragRow')"
+                      :aria-label="t('common.dragRow')"
+                      @dragstart="rowDrag.onDragStart(line.item.id, $event)"
+                      @dragend="rowDrag.onDragEnd"
+                    >⋮⋮</span>
+                    <span class="activity-name">{{ line.item.name }}</span>
+                  </div>
+                </td>
+                <td
+                  v-else-if="key === 'tags'"
+                  class="pad"
+                  :style="clientCols.styleFor('tags')"
+                  :class="{ collapsed: clientCols.collapsed.tags }"
+                >
+                  <TagPicker
+                    v-if="!clientCols.collapsed.tags"
+                    readonly
+                    :model-value="line.item.tags ?? []"
+                    :options="tagOptions"
+                  />
+                </td>
+                <td
+                  v-else-if="key === 'notes'"
+                  class="pad muted notes-wrap"
+                  :style="clientCols.styleFor('notes')"
+                  :class="{ collapsed: clientCols.collapsed.notes }"
+                >
+                  <template v-if="!clientCols.collapsed.notes">{{ line.item.notes }}</template>
+                </td>
+                <td
+                  v-else-if="key === 'hours'"
+                  class="pad num-cell emph"
+                  :style="clientCols.styleFor('hours')"
+                  :class="{ collapsed: clientCols.collapsed.hours }"
+                >
+                  <template v-if="!clientCols.collapsed.hours">
+                    {{ formatHours(line.hoursPresented) }}
+                  </template>
+                </td>
+                <td
+                  v-else-if="key === 'days'"
+                  class="pad num-cell emph"
+                  :style="clientCols.styleFor('days')"
+                  :class="{ collapsed: clientCols.collapsed.days }"
+                >
+                  <template v-if="!clientCols.collapsed.days">
+                    {{ formatDays(line.hoursPresented, hoursPerDay) }}
+                  </template>
+                </td>
+              </template>
             </tr>
           </tbody>
           <tfoot>
             <tr>
-              <th :colspan="1 + Number(!estimate.estimate.clientView.hideClientTags) + Number(!estimate.estimate.clientView.hideClientNotes)">
+              <th :colspan="clientOutputFootLabelColspan" class="pad">
                 {{ t('working.total') }}
               </th>
-              <th class="pad num-cell emph">
-                {{ formatHours(estimate.clientTotals.totalPresented) }} h · {{ formatDays(estimate.clientTotals.totalPresented, hoursPerDay) }} D
+              <th
+                v-for="key in clientOutputColumnKeys.slice(clientOutputFootLabelColspan)"
+                :key="'foot-' + key"
+                class="pad num-cell emph"
+                :class="{ collapsed: clientCols.collapsed[key] }"
+                :style="clientCols.styleFor(key)"
+              >
+                <template v-if="key === 'hours' && !clientCols.collapsed.hours">
+                  {{ formatHours(clientOutputTotalPresented) }}
+                </template>
+                <template v-else-if="key === 'days' && !clientCols.collapsed.days">
+                  {{ formatDays(clientOutputTotalPresented, hoursPerDay) }}
+                </template>
               </th>
             </tr>
           </tfoot>
@@ -586,7 +1035,8 @@ async function onExportFromMenu(
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-width: 1100px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .top {
@@ -890,6 +1340,112 @@ async function onExportFromMenu(
   background: var(--surface);
 }
 
+.sheet {
+  table-layout: fixed;
+  width: max-content;
+  min-width: 100%;
+}
+
+.resizable {
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.col-resizer:hover,
+.col-resizer:active {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.abbr {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+td.collapsed,
+th.collapsed {
+  padding-left: 0.2rem !important;
+  padding-right: 0.2rem !important;
+  overflow: hidden;
+}
+
+.name-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.activity-name {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.macro-present-select {
+  flex-shrink: 0;
+  max-width: 9.5rem;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.macro-present-select:focus {
+  outline: none;
+  border-color: var(--line-strong);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.name-wrap,
+.notes-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.collapse {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  width: 1.4rem;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.collapse.all {
+  width: 1.2rem;
+}
+
+.collapse:hover {
+  color: var(--ink);
+  background: transparent;
+}
+
+.collapse-spacer {
+  display: inline-block;
+  width: 1.4rem;
+  flex-shrink: 0;
+}
+
 .pad {
   padding: 0.55rem 0.65rem;
 }
@@ -1002,9 +1558,9 @@ tr.overridden td {
   font-weight: 400;
   text-align: left;
   line-height: 1.35;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   cursor: pointer;
 }
 

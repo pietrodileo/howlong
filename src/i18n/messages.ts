@@ -26,6 +26,8 @@ export type MessageTree = {
     expand: string;
     collapse: string;
     expandCol: string;
+    dragRow: string;
+    dragColumn: string;
     columns: string;
     columnsVisible: string;
     name: string;
@@ -320,6 +322,11 @@ export type MessageTree = {
     statPresentedTotal: string;
     statDelta: string;
     timeColumn: string;
+    presentedHours: string;
+    presentedDays: string;
+    macroPresentation: string;
+    macroRollup: string;
+    macroDetail: string;
     exported: string;
     editHint: string;
     reset: string;
@@ -426,6 +433,8 @@ const it: MessageTree = {
     expand: 'Espandi',
     collapse: 'Comprimi',
     expandCol: 'Doppio click: collassa/espandi colonna',
+    dragRow: 'Trascina per riordinare la riga',
+    dragColumn: 'Trascina per riordinare la colonna',
     columns: 'Colonne',
     columnsVisible: 'Colonne visibili',
     name: 'Nome',
@@ -726,6 +735,11 @@ const it: MessageTree = {
     statPresentedTotal: 'Totale presentato',
     statDelta: 'Delta',
     timeColumn: 'Tempo',
+    presentedHours: 'Ore (h)',
+    presentedDays: 'Giorni (D)',
+    macroPresentation: 'Presentazione al cliente',
+    macroRollup: 'Solo macro (somma)',
+    macroDetail: 'Sotto-task',
     exported: 'Vista cliente esportata ({format}): {path}',
     editHint:
       'I valori modificati dall\'utente saranno visibili nell\'export Excel/YAML. La stima di lavoro originale non verrà modificata.',
@@ -839,6 +853,8 @@ const en: MessageTree = {
     expand: 'Expand',
     collapse: 'Collapse',
     expandCol: 'Double-click: collapse/expand column',
+    dragRow: 'Drag to reorder row',
+    dragColumn: 'Drag to reorder column',
     columns: 'Columns',
     columnsVisible: 'Visible columns',
     name: 'Name',
@@ -1138,6 +1154,11 @@ const en: MessageTree = {
     statPresentedTotal: 'Presented total',
     statDelta: 'Delta',
     timeColumn: 'Time',
+    presentedHours: 'Hours (h)',
+    presentedDays: 'Days (D)',
+    macroPresentation: 'Client presentation',
+    macroRollup: 'Macro only (sum)',
+    macroDetail: 'Sub-tasks',
     exported: 'Client view exported ({format}): {path}',
     editHint:
       'User edits will be visible in the Excel/YAML export. The working estimate stays unchanged.',

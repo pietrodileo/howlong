@@ -7,6 +7,58 @@ export type ClientPresentedLine = ComputedLineHours & {
   overridden: boolean;
 };
 
+export type MacroClientPresentationMode = 'rollup' | 'detail';
+
+export function getMacroClientPresentation(
+  estimate: Estimate,
+  macroId: string,
+): MacroClientPresentationMode {
+  return estimate.clientView.macroPresentation?.[macroId] ?? 'detail';
+}
+
+/** Righe effettive in anteprima/export cliente (rollup vs detail, collapse UI opzionale). */
+export function filterLinesForClientOutput(
+  lines: ClientPresentedLine[],
+  estimate: Estimate,
+  options?: {
+    hideCollapsedSubs?: boolean;
+    isMacroCollapsed?: (macroId: string) => boolean;
+  },
+): ClientPresentedLine[] {
+  const out: ClientPresentedLine[] = [];
+  for (const line of lines) {
+    if (!line.item.clientVisible) continue;
+
+    const parentId = line.item.parentId;
+    if (parentId) {
+      const mode = getMacroClientPresentation(estimate, parentId);
+      if (mode === 'rollup') continue;
+      if (
+        options?.hideCollapsedSubs &&
+        options.isMacroCollapsed?.(parentId)
+      ) {
+        continue;
+      }
+      out.push(line);
+      continue;
+    }
+
+    if (line.isMacro && line.hasChildren) {
+      const mode = getMacroClientPresentation(estimate, line.item.id);
+      if (mode === 'detail') continue;
+      out.push(line);
+      continue;
+    }
+
+    out.push(line);
+  }
+  return out;
+}
+
+export function sumClientOutputPresented(lines: ClientPresentedLine[]): number {
+  return lines.reduce((s, l) => s + l.hoursPresented, 0);
+}
+
 export function buildClientPresentedLines(
   estimate: Estimate,
   opts?: { includeHidden?: boolean; ignoreOverrides?: boolean },
