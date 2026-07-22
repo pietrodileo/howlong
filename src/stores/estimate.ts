@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Estimate, LineItem, MacroClientPresentationMode } from '../models/estimate';
+import type { Estimate, LineItem } from '../models/estimate';
 import { parseEstimate } from '../models/estimate';
 import type { Model } from '../models/model';
 import type { FormulaAggregate } from '../models/model';
@@ -124,12 +124,6 @@ export const useEstimateStore = defineStore('estimate', () => {
     touch();
   }
 
-  function setMacroClientPresentation(macroId: string, mode: MacroClientPresentationMode) {
-    const next = { ...(estimate.value.clientView.macroPresentation ?? {}) };
-    next[macroId] = mode;
-    updateClientView({ macroPresentation: next });
-  }
-
   function setClientVisible(id: string, value: boolean) {
     const item = estimate.value.items.find((i) => i.id === id);
     if (!item) return;
@@ -176,7 +170,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     // 2. Recalculate macro = sum of children's hoursPresented
     const lines = buildClientPresentedLines(estimate.value, { includeHidden: true });
     const children = lines.filter(
-      (l) => l.item.parentId === subtask.parentId && l.contributesToTotals,
+      (l) => l.item.parentId === subtask.parentId && (l.contributesToTotals || l.hasChildren),
     );
     const macroPresented = children.reduce((s, l) => s + l.hoursPresented, 0);
 
@@ -565,7 +559,6 @@ export const useEstimateStore = defineStore('estimate', () => {
     updateMeta,
     updateContingency,
     updateClientView,
-    setMacroClientPresentation,
     setClientVisible,
     setClientPresentedEffort,
     setSubtaskPresentedEffort,

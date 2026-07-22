@@ -28,10 +28,9 @@ import {
 import { useRowDragReorder } from '../lib/useRowDragReorder';
 import {
   filterLinesForClientOutput,
-  getMacroClientPresentation,
   sumClientOutputPresented,
+  type ClientPresentedLine,
 } from '../lib/clientPresentation';
-import type { MacroClientPresentationMode } from '../models/estimate';
 import { useI18n } from '../i18n/useI18n';
 import { toErrorMessage } from '../lib/errors';
 
@@ -165,7 +164,14 @@ function effortInputValue(hours: number): number {
   return Math.round(v * 1000) / 1000;
 }
 
-function linePresentedDeltaHours(line: { hoursPresented: number; hoursWithContingency: number; contributesToTotals: boolean }): number | null {
+function linePresentedDeltaHours(line: ClientPresentedLine, allLines?: ClientPresentedLine[]): number | null {
+  if (line.isMacro && line.hasChildren) {
+    // Sum children's individual deltas to avoid rounding mismatch with macro rollup
+    if (!allLines) return null;
+    const children = allLines.filter((l) => l.item.parentId === line.item.id && l.contributesToTotals);
+    const sum = children.reduce((s, c) => s + (c.hoursPresented - c.hoursWithContingency), 0);
+    return sum;
+  }
   if (!line.contributesToTotals) return null;
   return line.hoursPresented - line.hoursWithContingency;
 }
@@ -327,16 +333,6 @@ function toggleAllClientPreviewMacros() {
     else next.add(m.item.id);
   }
   clientPreviewCollapsed.value = next;
-}
-
-function macroPresentationFor(id: string): MacroClientPresentationMode {
-  return getMacroClientPresentation(estimate.estimate, id);
-}
-
-function onMacroPresentationChange(macroId: string, raw: string) {
-  const mode = raw as MacroClientPresentationMode;
-  if (mode !== 'rollup' && mode !== 'detail') return;
-  estimate.setMacroClientPresentation(macroId, mode);
 }
 
 function onHeaderDblClick(key: ManagerColumnKey) {
@@ -717,17 +713,6 @@ async function onExportFromMenu(
                   </button>
                   <span v-else class="collapse-spacer" aria-hidden="true" />
                   <span class="activity-name">{{ line.item.name }}</span>
-                  <select
-                    v-if="line.isMacro && line.hasChildren"
-                    class="macro-present-select"
-                    :value="macroPresentationFor(line.item.id)"
-                    :title="t('client.macroPresentation')"
-                    :aria-label="`${t('client.macroPresentation')}: ${line.item.name}`"
-                    @change="onMacroPresentationChange(line.item.id, ($event.target as HTMLSelectElement).value)"
-                  >
-                    <option value="rollup">{{ t('client.macroRollup') }}</option>
-                    <option value="detail">{{ t('client.macroDetail') }}</option>
-                  </select>
                   <span v-if="line.overridden" class="edited-mark" :title="t('client.editedMark')">●</span>
                   <span
                     v-if="!line.item.clientVisible"
@@ -811,12 +796,12 @@ async function onExportFromMenu(
                 :style="cols.styleFor('delta')"
                 :class="{
                   collapsed: cols.collapsed.delta,
-                  positive: (linePresentedDeltaHours(line) ?? 0) > 0,
-                  negative: (linePresentedDeltaHours(line) ?? 0) < 0,
+                  positive: (linePresentedDeltaHours(line, clientLines) ?? 0) > 0,
+                  negative: (linePresentedDeltaHours(line, clientLines) ?? 0) < 0,
                 }"
                 :title="t('client.compareHint')"
               >
-                <template v-if="!cols.collapsed.delta">{{ formatDeltaCell(linePresentedDeltaHours(line)) }}</template>
+                <template v-if="!cols.collapsed.delta">{{ formatDeltaCell(linePresentedDeltaHours(line, clientLines)) }}</template>
               </td>
               <td
                 v-else-if="key === 'notes'"
@@ -1451,24 +1436,6 @@ th.collapsed {
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
-}
-
-.macro-present-select {
-  flex-shrink: 0;
-  max-width: 9.5rem;
-  font-size: 0.72rem;
-  padding: 0.2rem 0.35rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.macro-present-select:focus {
-  outline: none;
-  border-color: var(--line-strong);
-  box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
 .name-wrap,

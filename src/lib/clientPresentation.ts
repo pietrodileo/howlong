@@ -16,10 +16,10 @@ export function getMacroClientPresentation(
   return estimate.clientView.macroPresentation?.[macroId] ?? 'detail';
 }
 
-/** Righe effettive in anteprima/export cliente (rollup vs detail, collapse UI opzionale). */
+/** Always show both macros and subtasks; only hide subtasks when macro is collapsed in UI. */
 export function filterLinesForClientOutput(
   lines: ClientPresentedLine[],
-  estimate: Estimate,
+  _estimate: Estimate,
   options?: {
     hideCollapsedSubs?: boolean;
     isMacroCollapsed?: (macroId: string) => boolean;
@@ -31,8 +31,6 @@ export function filterLinesForClientOutput(
 
     const parentId = line.item.parentId;
     if (parentId) {
-      const mode = getMacroClientPresentation(estimate, parentId);
-      if (mode === 'rollup') continue;
       if (
         options?.hideCollapsedSubs &&
         options.isMacroCollapsed?.(parentId)
@@ -43,13 +41,7 @@ export function filterLinesForClientOutput(
       continue;
     }
 
-    if (line.isMacro && line.hasChildren) {
-      const mode = getMacroClientPresentation(estimate, line.item.id);
-      if (mode === 'detail') continue;
-      out.push(line);
-      continue;
-    }
-
+    // Always show macros (with or without children)
     out.push(line);
   }
   return out;
