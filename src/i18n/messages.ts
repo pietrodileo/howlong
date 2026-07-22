@@ -337,9 +337,6 @@ export type MessageTree = {
     editedMark: string;
     showCol: string;
     showHint: string;
-    showChangeConfirmTitle: string;
-    showChangeConfirmBody: string;
-    showChangeConfirmAction: string;
     hiddenRow: string;
     redistribute: string;
     redistributeHint: string;
@@ -752,12 +749,9 @@ const it: MessageTree = {
     resetConfirmBody:
       'Le modifiche manuali alle ore presentate e alle ripartizioni andranno perse. La stima originale non viene modificata.',
     editedMark: 'Valore ritoccato',
-    showCol: 'Mostra',
-    showHint: 'Includi questa voce nella presentazione e nell\'export cliente',
-    showChangeConfirmTitle: 'Aggiornare le righe mostrate?',
-    showChangeConfirmBody:
-      'L\'anteprima cliente torna ai valori calcolati dalla Stima (ore presentate e ripartizioni). Le modifiche manuali in questa vista andranno perse.',
-    showChangeConfirmAction: 'Applica',
+    showCol: 'Incluso',
+    showHint:
+      'Togli questa voce dalla stima cliente (ore e sottovoci incluse). Togliendo, le ore escono dal totale.',
     hiddenRow: 'Nascosta',
     redistribute: 'Ripartiziona',
     redistributeHint:
@@ -1174,12 +1168,8 @@ const en: MessageTree = {
     resetConfirmBody:
       'Manual edits to presented hours and redistributions will be lost. The original estimate is not modified.',
     editedMark: 'Edited value',
-    showCol: 'Show',
-    showHint: 'Include this line in the client presentation and export',
-    showChangeConfirmTitle: 'Update shown lines?',
-    showChangeConfirmBody:
-      'The client preview goes back to values calculated from the Estimate (presented hours and redistributions). Manual edits in this view will be lost.',
-    showChangeConfirmAction: 'Apply',
+    showCol: 'Included',
+    showHint: 'Remove this line from the client estimate (hours and subtasks included)',
     hiddenRow: 'Hidden',
     redistribute: 'Redistribute',
     redistributeHint:

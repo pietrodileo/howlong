@@ -56,41 +56,11 @@ const emit = defineEmits<{ back: [] }>();
 const notesEditId = ref<string | null>(null);
 const managerExportMenuOpen = ref(false);
 const clientExportMenuOpen = ref(false);
-const showChangeConfirmOpen = ref(false);
-const pendingShowChange = ref<{ id: string; visible: boolean } | null>(null);
 const resetConfirmOpen = ref(false);
 const clientPreviewCollapsed = ref<Set<string>>(new Set());
 
-function needsConfirmForShowChange(): boolean {
-  return estimate.hasClientOverrides;
-}
-
-function onShowVisibleChange(id: string, visible: boolean, event: Event) {
-  if (!needsConfirmForShowChange()) {
-    estimate.setClientVisible(id, visible);
-    return;
-  }
-  const input = event.target as HTMLInputElement;
-  input.checked = !visible;
-  pendingShowChange.value = { id, visible };
-  showChangeConfirmOpen.value = true;
-}
-
-function confirmShowChange() {
-  const pending = pendingShowChange.value;
-  if (!pending) {
-    showChangeConfirmOpen.value = false;
-    return;
-  }
-  estimate.updateClientView({ lineOverrides: {} });
-  estimate.setClientVisible(pending.id, pending.visible);
-  pendingShowChange.value = null;
-  showChangeConfirmOpen.value = false;
-}
-
-function cancelShowChange() {
-  pendingShowChange.value = null;
-  showChangeConfirmOpen.value = false;
+function onShowVisibleChange(id: string, visible: boolean) {
+  estimate.setClientVisible(id, visible);
 }
 
 function closeExportMenus(except?: 'manager' | 'client') {
@@ -679,7 +649,7 @@ async function onExportFromMenu(
                   :checked="line.item.clientVisible"
                   :title="t('client.showHint')"
                   :aria-label="`${t('client.showCol')}: ${line.item.name}`"
-                  @change="onShowVisibleChange(line.item.id, ($event.target as HTMLInputElement).checked, $event)"
+                  @change="onShowVisibleChange(line.item.id, ($event.target as HTMLInputElement).checked)"
                 />
               </td>
               <td
@@ -796,12 +766,12 @@ async function onExportFromMenu(
                 :style="cols.styleFor('delta')"
                 :class="{
                   collapsed: cols.collapsed.delta,
-                  positive: (linePresentedDeltaHours(line, clientLines) ?? 0) > 0,
-                  negative: (linePresentedDeltaHours(line, clientLines) ?? 0) < 0,
+                  positive: (linePresentedDeltaHours(line, estimate.clientLines) ?? 0) > 0,
+                  negative: (linePresentedDeltaHours(line, estimate.clientLines) ?? 0) < 0,
                 }"
                 :title="t('client.compareHint')"
               >
-                <template v-if="!cols.collapsed.delta">{{ formatDeltaCell(linePresentedDeltaHours(line, clientLines)) }}</template>
+                <template v-if="!cols.collapsed.delta">{{ formatDeltaCell(linePresentedDeltaHours(line, estimate.clientLines)) }}</template>
               </td>
               <td
                 v-else-if="key === 'notes'"
@@ -1042,16 +1012,6 @@ async function onExportFromMenu(
       :notes="notesEditItem?.notes ?? ''"
       @close="closeNotesEditor"
       @save="onSaveNotes"
-    />
-
-    <ConfirmModal
-      :open="showChangeConfirmOpen"
-      :title="t('client.showChangeConfirmTitle')"
-      :message="t('client.showChangeConfirmBody')"
-      :confirm-label="t('client.showChangeConfirmAction')"
-      danger
-      @cancel="cancelShowChange"
-      @confirm="confirmShowChange"
     />
 
     <ConfirmModal
