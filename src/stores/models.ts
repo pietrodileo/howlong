@@ -209,6 +209,26 @@ export const useModelsStore = defineStore('models', () => {
     setCategories(m.categories.filter((c) => c !== name));
   }
 
+  function addTagOption(name: string) {
+    const m = selected();
+    if (!m) return;
+    const tag = name.trim();
+    if (!tag || m.tagOptions.includes(tag)) return;
+    updateSelected({ tagOptions: [...m.tagOptions, tag] });
+  }
+
+  function removeTagOption(name: string) {
+    const m = selected();
+    if (!m) return;
+    updateSelected({ tagOptions: m.tagOptions.filter((t) => t !== name) });
+  }
+
+  function ensureTagOption(name: string) {
+    const tag = name.trim();
+    if (!tag) return;
+    addTagOption(tag);
+  }
+
   async function importFromText(text: string): Promise<boolean> {
     const result = await importModelText(text);
     if (!result.ok) {
@@ -331,6 +351,9 @@ export const useModelsStore = defineStore('models', () => {
     setCategories,
     addCategory,
     removeCategory,
+    addTagOption,
+    removeTagOption,
+    ensureTagOption,
     importFromText,
     removeSelected,
     replaceAll,

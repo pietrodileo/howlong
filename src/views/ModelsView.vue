@@ -15,6 +15,7 @@ import FormulaEditor, {
 import IconBtn from '../components/IconBtn.vue';
 import ModelIcon from '../components/ModelIcon.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
+import TagPicker from '../components/TagPicker.vue';
 import { formulaLabel } from '../lib/formulas';
 import { useI18n } from '../i18n/useI18n';
 import { isDialogCancelled, isDialogDesktopOnly } from '../lib/dialogResult';
@@ -67,6 +68,13 @@ const listStyle = computed(() => ({
 }));
 
 const current = computed(() => models.selected());
+
+const tagOptionsForPicker = computed(() => {
+  const m = current.value;
+  if (!m) return [];
+  const fromItems = m.macroActivities.flatMap((a) => a.tags ?? []);
+  return [...new Set([...m.tagOptions, ...fromItems])].filter(Boolean);
+});
 
 const filteredModels = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
@@ -247,6 +255,7 @@ function addMacro() {
       id: newId('macro'),
       name: t('models.newMacroName'),
       category: m.categories[0] || 'Generale',
+      tags: [],
       defaultHours: 0,
       kind: 'operational',
       parentId: null,
@@ -271,6 +280,7 @@ function addSubtask(macroId: string) {
     id: newId('task'),
     name: t('models.newSubName'),
     category: macro.category,
+    tags: [],
     defaultHours: 0,
     kind: 'operational',
     parentId: macroId,
@@ -441,6 +451,14 @@ function onRemoveCategory(name: string) {
   models.removeCategory(name);
 }
 
+function onMacroTagsChange(id: string, tags: string[]) {
+  updateMacro(id, { tags });
+}
+
+function onCreateTagOption(label: string) {
+  models.ensureTagOption(label);
+}
+
 const editingFormulaMacro = computed(() => {
   if (formulaDraft.value) return formulaDraft.value;
   if (formulaEditId.value && current.value) {
@@ -469,6 +487,7 @@ function onSaveModelFormula(patch: {
         id: formulaDraft.value.id,
         name: patch.name,
         category: m.categories[0] || 'Generale',
+        tags: [],
         defaultHours: 0,
         kind: 'formula',
         parentId: null,
@@ -854,6 +873,18 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 <span class="col-resizer" @mousedown="cols.startResize('ctg', $event)" />
               </th>
               <th
+                v-if="cols.isVisible('tags')"
+                class="resizable"
+                :class="{ collapsed: cols.collapsed.tags }"
+                :style="cols.styleFor('tags')"
+                :title="t('common.expandCol')"
+                @dblclick="onHeaderDblClick('tags')"
+              >
+                <span v-if="!cols.collapsed.tags">{{ t('columns.tags') }}</span>
+                <span v-else class="abbr">T</span>
+                <span class="col-resizer" @mousedown="cols.startResize('tags', $event)" />
+              </th>
+              <th
                 class="resizable"
                 :class="{ collapsed: cols.collapsed.actions }"
                 :style="cols.styleFor('actions')"
@@ -970,6 +1001,20 @@ function setMacroApplyContingency(id: string, value: boolean) {
                   :title="resolveAppliesContingency(a) ? t('models.ctgOn') : t('models.ctgOff')"
                   :aria-label="`Contingency su ${a.name}`"
                   @change="setMacroApplyContingency(a.id, ($event.target as HTMLInputElement).checked)"
+                />
+              </td>
+              <td
+                v-if="cols.isVisible('tags')"
+                :style="cols.styleFor('tags')"
+                :class="{ collapsed: cols.collapsed.tags }"
+              >
+                <TagPicker
+                  v-if="!cols.collapsed.tags"
+                  :model-value="a.tags ?? []"
+                  :options="tagOptionsForPicker"
+                  :aria-label="`${t('columns.tags')}: ${a.name}`"
+                  @update:model-value="onMacroTagsChange(a.id, $event)"
+                  @create-option="onCreateTagOption"
                 />
               </td>
               <td

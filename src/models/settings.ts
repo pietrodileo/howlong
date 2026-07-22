@@ -1,4 +1,16 @@
 import { z } from 'zod';
+import {
+  DEFAULT_ESTIMATE_COLUMN_VISIBILITY,
+  ESTIMATE_TOGGLEABLE_COLUMNS,
+} from '../lib/estimateColumns';
+
+const estimateColumnVisibilityShape = Object.fromEntries(
+  ESTIMATE_TOGGLEABLE_COLUMNS.map((k) => [k, z.boolean().default(DEFAULT_ESTIMATE_COLUMN_VISIBILITY[k])]),
+) as Record<(typeof ESTIMATE_TOGGLEABLE_COLUMNS)[number], z.ZodDefault<z.ZodBoolean>>;
+
+export const EstimateColumnVisibilitySchema = z.object(estimateColumnVisibilityShape);
+
+export type EstimateColumnVisibility = z.infer<typeof EstimateColumnVisibilitySchema>;
 
 export const ContingencyModeSchema = z.enum(['project', 'categories', 'custom']);
 export const ContingencyPlacementSchema = z.enum(['inline', 'separate_line', 'both']);
@@ -13,6 +25,16 @@ export const SettingsSchema = z.object({
   defaultContingencyMode: ContingencyModeSchema.default('project'),
   defaultContingencyPlacement: ContingencyPlacementSchema.default('both'),
   defaultClientRoundingMode: RoundingModeSchema.default('ceil_1'),
+  defaultManagerHideNotes: z.boolean().default(false),
+  defaultManagerHideTags: z.boolean().default(false),
+  defaultClientHideNotes: z.boolean().default(true),
+  defaultClientHideTags: z.boolean().default(false),
+  /** Colonne visibili di default nella vista Stima (prima scelta / reset). */
+  estimateColumnVisibility: EstimateColumnVisibilitySchema.default({
+    ...DEFAULT_ESTIMATE_COLUMN_VISIBILITY,
+  }),
+  exportIncludeDate: z.boolean().default(true),
+  exportIncludeTime: z.boolean().default(true),
   /** Ore in un giorno-uomo (1 gg = N h). */
   hoursPerDay: z.number().min(1).max(24).default(8),
   /** UI language. */
@@ -40,6 +62,13 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultContingencyMode: 'project',
   defaultContingencyPlacement: 'both',
   defaultClientRoundingMode: 'ceil_1',
+  defaultManagerHideNotes: false,
+  defaultManagerHideTags: false,
+  defaultClientHideNotes: true,
+  defaultClientHideTags: false,
+  estimateColumnVisibility: { ...DEFAULT_ESTIMATE_COLUMN_VISIBILITY },
+  exportIncludeDate: true,
+  exportIncludeTime: true,
   hoursPerDay: 8,
   locale: 'it',
   username: '',

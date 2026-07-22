@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeModelInput } from '../lib/normalizeTags';
 import {
   ContingencyModeSchema,
   ContingencyPlacementSchema,
@@ -27,6 +28,7 @@ export const MacroActivitySchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   category: z.string().min(1),
+  tags: z.array(z.string()).default([]),
   defaultHours: z.number().min(0).default(0),
   kind: ItemKindSchema.default('operational'),
   /** null = macro top-level; altrimenti id della macro padre (sotto-task di default). */
@@ -111,6 +113,8 @@ export const ModelSchema = z.object({
   icon: ModelIconSchema.default('letter'),
   macroActivities: z.array(MacroActivitySchema).min(1),
   categories: z.array(z.string()).min(1),
+  /** Etichette disponibili per le voci (stile Jira). */
+  tagOptions: z.array(z.string()).default([]),
   /** Ore in un giorno-uomo (1 gg = N h). */
   hoursPerDay: z.number().min(1).max(24).default(8),
   contingency: ModelContingencySchema.default({
@@ -131,13 +135,14 @@ export const DEFAULT_MODEL: Model = {
   name: 'Modello standard',
   icon: 'letter',
   macroActivities: [
-    { id: '1', name: 'Analisi e documentazione', category: 'Analisi', defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
-    { id: '2', name: 'Sviluppo', category: 'Sviluppo', defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
-    { id: '3', name: 'Test', category: 'Test', defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
-    { id: '4', name: 'Collaudo', category: 'Collaudo', defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
-    { id: '5', name: 'Rilascio e monitoraggio', category: 'Rilascio', defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
+    { id: '1', name: 'Analisi e documentazione', category: 'Analisi', tags: [], defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
+    { id: '2', name: 'Sviluppo', category: 'Sviluppo', tags: [], defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
+    { id: '3', name: 'Test', category: 'Test', tags: [], defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
+    { id: '4', name: 'Collaudo', category: 'Collaudo', tags: [], defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
+    { id: '5', name: 'Rilascio e monitoraggio', category: 'Rilascio', tags: [], defaultHours: 0, kind: 'operational', parentId: null, applyContingency: true },
   ],
   categories: ['Analisi', 'Sviluppo', 'Test', 'Collaudo', 'Rilascio'],
+  tagOptions: [],
   hoursPerDay: 8,
   contingency: {
     defaultPercent: 20,
@@ -148,7 +153,7 @@ export const DEFAULT_MODEL: Model = {
 };
 
 export function parseModel(data: unknown): { ok: true; data: Model } | { ok: false; error: string } {
-  const result = ModelSchema.safeParse(data);
+  const result = ModelSchema.safeParse(normalizeModelInput(data));
   if (!result.success) {
     return { ok: false, error: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ') };
   }

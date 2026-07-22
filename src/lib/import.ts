@@ -121,6 +121,10 @@ async function importEstimateCsv(
           ? Number(row.contingencyPercentApplied)
           : null,
       notes: row.notes || '',
+      tags: (row.tags || row.tag || '')
+        .split('|')
+        .map((s) => s.trim())
+        .filter(Boolean),
       clientVisible: row.clientVisible !== 'false' && row.clientVisible !== '0',
       applyContingency: resolveAppliesContingency({
         kind,
@@ -156,9 +160,13 @@ async function importEstimateCsv(
       placement: 'both',
     },
     items,
+    tagOptions: [],
     clientView: {
       roundingMode: 'none',
-      hideInternalNotes: true,
+      hideManagerNotes: false,
+      hideManagerTags: false,
+      hideClientNotes: true,
+      hideClientTags: false,
       titleOverride: '',
       lineOverrides: {},
     },
@@ -233,6 +241,10 @@ export async function importModelCsv(
       id: row.id || String(i + 1),
       name: row.name || `Macro ${i + 1}`,
       category: row.category || 'Generale',
+      tags: (row.tags || row.tag || '')
+        .split('|')
+        .map((s) => s.trim())
+        .filter(Boolean),
       defaultHours: Number(row.defaultHours ?? 0) || 0,
       kind,
       parentId: row.parentId?.trim() ? row.parentId.trim() : null,
@@ -256,6 +268,7 @@ export async function importModelCsv(
     name: 'Modello importato',
     macroActivities,
     categories,
+    tagOptions: [],
     contingency: {
       defaultPercent: 20,
       mode: 'project',

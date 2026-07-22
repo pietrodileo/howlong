@@ -15,7 +15,7 @@ export function useI18n() {
   }
 
   function setLocale(next: Locale) {
-    settings.settings.locale = next;
+    s.value.locale = next;
   }
 
   return { locale, t, setLocale };

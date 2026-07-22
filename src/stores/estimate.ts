@@ -246,6 +246,15 @@ export const useEstimateStore = defineStore('estimate', () => {
     touch();
   }
 
+  function ensureTagOption(name: string) {
+    const tag = name.trim();
+    if (!tag) return;
+    const opts = estimate.value.tagOptions ?? [];
+    if (opts.includes(tag)) return;
+    estimate.value.tagOptions = [...opts, tag];
+    touch();
+  }
+
   function addMacro() {
     const cats = settingsStore.settings.defaultCategories;
     const category = cats[0] ?? 'Generale';
@@ -259,6 +268,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       parentId: null,
       contingencyPercentOverride: null,
       notes: '',
+      tags: [],
       clientVisible: true,
       applyContingency: true,
     });
@@ -294,6 +304,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       parentId: null,
       contingencyPercentOverride: null,
       notes: '',
+      tags: [],
       clientVisible: true,
       applyContingency: applyCtg,
       formula: {
@@ -365,6 +376,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       parentId: macroId,
       contingencyPercentOverride: null,
       notes: '',
+      tags: [],
       clientVisible: true,
       applyContingency: macro.applyContingency ?? true,
     });
@@ -510,6 +522,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     setClientPresentedEffort,
     resetClientOverrides,
     redistributeClientLine,
+    ensureTagOption,
     updateItem,
     addMacro,
     addFormula,

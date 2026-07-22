@@ -50,6 +50,7 @@ export type MessageTree = {
     withCtg: string;
     override: string;
     notes: string;
+    tags: string;
     client: string;
     actions: string;
     hours: string;
@@ -99,6 +100,27 @@ export type MessageTree = {
     importBad: string;
     cancelled: string;
     exported: string;
+    sectionProfile: string;
+    sectionLocale: string;
+    sectionAppearance: string;
+    sectionEstimate: string;
+    sectionPresentation: string;
+    sectionExport: string;
+    sectionFolder: string;
+    sectionWorkspace: string;
+    estimateColumnsIntro: string;
+    presentationIntro: string;
+    managerViewLegend: string;
+    clientOutputLegend: string;
+    defaultManagerHideNotes: string;
+    defaultManagerHideTags: string;
+    defaultClientHideNotes: string;
+    defaultClientHideTags: string;
+    exportFilenameLegend: string;
+    exportIncludeDate: string;
+    exportIncludeDateHint: string;
+    exportIncludeTime: string;
+    exportIncludeTimeHint: string;
   };
   about: {
     close: string;
@@ -147,6 +169,7 @@ export type MessageTree = {
     clientPh: string;
     clientView: string;
     clientViewTitle: string;
+    presentationView: string;
     unit: string;
     hoursPerDayTitle: string;
     base: string;
@@ -239,6 +262,11 @@ export type MessageTree = {
     addCat: string;
     needOneCat: string;
     removeCat: string;
+    tagsLabel: string;
+    tagsAria: string;
+    newTagPh: string;
+    addTag: string;
+    removeTag: string;
     ctgTitle: string;
     ctgLede: string;
     ctgPercentTitle: string;
@@ -262,6 +290,7 @@ export type MessageTree = {
     deleteFail: string;
     deleted: string;
     catExists: string;
+    tagExists: string;
     editFormula: string;
     ctgOn: string;
     ctgOff: string;
@@ -276,10 +305,21 @@ export type MessageTree = {
     roundCeil1: string;
     roundRound1: string;
     hideNotes: string;
+    hideTags: string;
+    hideNotesManager: string;
+    hideTagsManager: string;
+    hideNotesClient: string;
+    hideTagsClient: string;
+    managerSectionTitle: string;
+    managerViewLegend: string;
+    clientOutputLegend: string;
     notesOpen: string;
     notesEmpty: string;
     activity: string;
     presented: string;
+    statPresentedTotal: string;
+    statDelta: string;
+    timeColumn: string;
     exported: string;
     editHint: string;
     reset: string;
@@ -288,6 +328,9 @@ export type MessageTree = {
     editedMark: string;
     showCol: string;
     showHint: string;
+    showChangeConfirmTitle: string;
+    showChangeConfirmBody: string;
+    showChangeConfirmAction: string;
     hiddenRow: string;
     redistribute: string;
     redistributeHint: string;
@@ -336,6 +379,14 @@ export type MessageTree = {
     emptySources: string;
     cancel: string;
     apply: string;
+  };
+  tagPicker: {
+    placeholder: string;
+    filterPh: string;
+    all: string;
+    none: string;
+    create: string;
+    remove: string;
   };
   ctg: {
     label: string;
@@ -399,6 +450,7 @@ const it: MessageTree = {
     withCtg: 'Con CTG',
     override: 'CTG custom %',
     notes: 'Note',
+    tags: 'Etichetta',
     client: 'Cliente',
     actions: 'Azioni',
     hours: 'Ore default',
@@ -452,6 +504,27 @@ const it: MessageTree = {
     importBad: 'Settings non validi',
     cancelled: 'Annullato',
     exported: 'Workspace esportato',
+    sectionProfile: 'Profilo',
+    sectionLocale: 'Lingua',
+    sectionAppearance: 'Aspetto',
+    sectionEstimate: 'Vista Stima',
+    sectionPresentation: 'Presentazione',
+    sectionExport: 'Nome file export',
+    sectionFolder: 'Cartella stime',
+    sectionWorkspace: 'Import / export workspace',
+    estimateColumnsIntro: 'Colonne visibili quando apri la Stima (dopo Salva). Il nome resta sempre visibile.',
+    presentationIntro: 'Default per le nuove stime. Nella vista Presentazione puoi cambiarli per singola stima.',
+    managerViewLegend: 'Vista manager (modifica)',
+    clientOutputLegend: 'Output cliente (anteprima / export)',
+    defaultManagerHideNotes: 'Nascondi note',
+    defaultManagerHideTags: 'Nascondi etichette',
+    defaultClientHideNotes: 'Nascondi note',
+    defaultClientHideTags: 'Nascondi etichette',
+    exportFilenameLegend: 'Segmenti aggiunti al nome file (dopo titolo e tipo).',
+    exportIncludeDate: 'Data',
+    exportIncludeDateHint: 'Formato yyyy-mm-dd',
+    exportIncludeTime: 'Ora',
+    exportIncludeTimeHint: 'Formato hh_mm_ss (solo se la data è attiva)',
   },
   about: {
     close: 'Chiudi',
@@ -500,6 +573,7 @@ const it: MessageTree = {
     clientPh: 'Cliente',
     clientView: 'Vista cliente',
     clientViewTitle: 'Anteprima presentabile della stima corrente',
+    presentationView: 'Anteprima cliente',
     unit: 'Unità',
     hoursPerDayTitle: 'Ore in un giorno-uomo per questa stima',
     base: 'Base',
@@ -594,6 +668,11 @@ const it: MessageTree = {
     addCat: 'Aggiungi',
     needOneCat: 'Serve almeno una categoria',
     removeCat: 'Rimuovi {name}',
+    tagsLabel: 'Etichette disponibili',
+    tagsAria: 'Etichette del modello',
+    newTagPh: 'Nuova etichetta (es. Site, Edition)',
+    addTag: 'Aggiungi',
+    removeTag: 'Rimuovi etichetta {name}',
     ctgTitle: 'Contingency',
     ctgLede: '% di default sulle voci con flag CTG attivo.',
     ctgPercentTitle: '% contingency applicata alle voci con flag CTG',
@@ -617,6 +696,7 @@ const it: MessageTree = {
     deleteFail: 'Eliminazione non riuscita',
     deleted: 'Modello eliminato: «{name}»',
     catExists: 'Categoria già presente',
+    tagExists: 'Etichetta già presente',
     editFormula: 'Modifica voce derivata',
     ctgOn: 'CTG attiva',
     ctgOff: 'CTG esclusa',
@@ -631,10 +711,21 @@ const it: MessageTree = {
     roundCeil1: 'Per eccesso 1',
     roundRound1: 'Al più vicino 1',
     hideNotes: 'Nascondi note',
+    hideTags: 'Nascondi etichette',
+    hideNotesManager: 'Nascondi note',
+    hideTagsManager: 'Nascondi etichette',
+    hideNotesClient: 'Nascondi note',
+    hideTagsClient: 'Nascondi etichette',
+    managerSectionTitle: 'Vista manager',
+    managerViewLegend: 'Vista manager (modifica)',
+    clientOutputLegend: 'Output cliente (anteprima / export)',
     notesOpen: 'Click: apri e modifica la nota',
     notesEmpty: 'Aggiungi nota…',
     activity: 'Attività',
     presented: 'Totale presentato',
+    statPresentedTotal: 'Totale presentato',
+    statDelta: 'Delta',
+    timeColumn: 'Tempo',
     exported: 'Vista cliente esportata ({format}): {path}',
     editHint:
       'I valori modificati dall\'utente saranno visibili nell\'export Excel/YAML. La stima di lavoro originale non verrà modificata.',
@@ -644,6 +735,10 @@ const it: MessageTree = {
     editedMark: 'Valore ritoccato',
     showCol: 'Mostra',
     showHint: 'Includi questa voce nella presentazione e nell\'export cliente',
+    showChangeConfirmTitle: 'Aggiornare le righe mostrate?',
+    showChangeConfirmBody:
+      'L\'anteprima cliente torna ai valori calcolati dalla Stima (ore presentate e ripartizioni). Le modifiche manuali in questa vista andranno perse.',
+    showChangeConfirmAction: 'Applica',
     hiddenRow: 'Nascosta',
     redistribute: 'Ripartiziona',
     redistributeHint:
@@ -684,7 +779,7 @@ const it: MessageTree = {
     optCtg: 'Aggiungi anche la % CTG della stima su queste ore',
     optCtgHelp:
       'Esempio: questa riga fa 6 h e la stima ha CTG 20%. Spento → restano 6 h. Acceso → diventano 6 + 20% = 7,2 h. Se stai creando proprio la Contingency, lascia spento.',
-    optDerived: 'Permetti di includere anche le voci con tag “derivata”',
+    optDerived: 'Permetti di includere anche le voci con etichetta “derivata”',
     optDerivedHelp:
       'Di default la % usa solo attività digitate a mano (Sviluppo, Analisi…). Se accendi questa opzione, puoi spuntare anche altre voci già calcolate (es. Project Mgmt) e la % le include.',
     sources: 'Voci sorgente',
@@ -696,6 +791,14 @@ const it: MessageTree = {
     emptySources: 'Nessuna voce disponibile.',
     cancel: 'Annulla',
     apply: 'Applica',
+  },
+  tagPicker: {
+    placeholder: 'Aggiungi etichette…',
+    filterPh: 'Cerca o crea…',
+    all: 'Tutte le etichette',
+    none: 'Nessuna etichetta',
+    create: 'Crea «{name}»',
+    remove: 'Rimuovi {name}',
   },
   ctg: {
     label: 'CTG',
@@ -760,6 +863,7 @@ const en: MessageTree = {
     withCtg: 'With CTG',
     override: 'Custom CTG %',
     notes: 'Notes',
+    tags: 'Label',
     client: 'Client',
     actions: 'Actions',
     hours: 'Default hours',
@@ -813,6 +917,27 @@ const en: MessageTree = {
     importBad: 'Invalid settings',
     cancelled: 'Cancelled',
     exported: 'Workspace exported',
+    sectionProfile: 'Profile',
+    sectionLocale: 'Language',
+    sectionAppearance: 'Appearance',
+    sectionEstimate: 'Estimate view',
+    sectionPresentation: 'Presentation',
+    sectionExport: 'Export filename',
+    sectionFolder: 'Estimates folder',
+    sectionWorkspace: 'Workspace import / export',
+    estimateColumnsIntro: 'Columns shown when you open Estimate (after Save). Name stays visible.',
+    presentationIntro: 'Defaults for new estimates. You can override per estimate in Presentation view.',
+    managerViewLegend: 'Manager view (edit)',
+    clientOutputLegend: 'Client output (preview / export)',
+    defaultManagerHideNotes: 'Hide notes',
+    defaultManagerHideTags: 'Hide labels',
+    defaultClientHideNotes: 'Hide notes',
+    defaultClientHideTags: 'Hide labels',
+    exportFilenameLegend: 'Extra segments in the export filename (after title and type).',
+    exportIncludeDate: 'Date',
+    exportIncludeDateHint: 'Format yyyy-mm-dd',
+    exportIncludeTime: 'Time',
+    exportIncludeTimeHint: 'Format hh_mm_ss (only when date is on)',
   },
   about: {
     close: 'Close',
@@ -861,6 +986,7 @@ const en: MessageTree = {
     clientPh: 'Client',
     clientView: 'Client view',
     clientViewTitle: 'Presentable preview of the current estimate',
+    presentationView: 'Client preview',
     unit: 'Unit',
     hoursPerDayTitle: 'Hours in a person-day for this estimate',
     base: 'Base',
@@ -954,6 +1080,11 @@ const en: MessageTree = {
     addCat: 'Add',
     needOneCat: 'At least one category is required',
     removeCat: 'Remove {name}',
+    tagsLabel: 'Available labels',
+    tagsAria: 'Model labels',
+    newTagPh: 'New label (e.g. Site, Edition)',
+    addTag: 'Add',
+    removeTag: 'Remove label {name}',
     ctgTitle: 'Contingency',
     ctgLede: 'Default % on lines with the CTG flag on.',
     ctgPercentTitle: '% contingency applied to lines with CTG flag',
@@ -977,6 +1108,7 @@ const en: MessageTree = {
     deleteFail: 'Delete failed',
     deleted: 'Model deleted: «{name}»',
     catExists: 'Category already exists',
+    tagExists: 'Label already exists',
     editFormula: 'Edit calculated item',
     ctgOn: 'CTG on',
     ctgOff: 'CTG off',
@@ -991,10 +1123,21 @@ const en: MessageTree = {
     roundCeil1: 'Ceil 1',
     roundRound1: 'Round 1',
     hideNotes: 'Hide notes',
+    hideTags: 'Hide labels',
+    hideNotesManager: 'Hide notes',
+    hideTagsManager: 'Hide labels',
+    hideNotesClient: 'Hide notes',
+    hideTagsClient: 'Hide labels',
+    managerSectionTitle: 'Manager view',
+    managerViewLegend: 'Manager view (edit)',
+    clientOutputLegend: 'Client output (preview / export)',
     notesOpen: 'Click: open and edit the note',
     notesEmpty: 'Add a note…',
     activity: 'Activity',
     presented: 'Presented total',
+    statPresentedTotal: 'Presented total',
+    statDelta: 'Delta',
+    timeColumn: 'Time',
     exported: 'Client view exported ({format}): {path}',
     editHint:
       'User edits will be visible in the Excel/YAML export. The working estimate stays unchanged.',
@@ -1004,6 +1147,10 @@ const en: MessageTree = {
     editedMark: 'Edited value',
     showCol: 'Show',
     showHint: 'Include this line in the client presentation and export',
+    showChangeConfirmTitle: 'Update shown lines?',
+    showChangeConfirmBody:
+      'The client preview goes back to values calculated from the Estimate (presented hours and redistributions). Manual edits in this view will be lost.',
+    showChangeConfirmAction: 'Apply',
     hiddenRow: 'Hidden',
     redistribute: 'Redistribute',
     redistributeHint:
@@ -1056,6 +1203,14 @@ const en: MessageTree = {
     emptySources: 'No lines available.',
     cancel: 'Cancel',
     apply: 'Apply',
+  },
+  tagPicker: {
+    placeholder: 'Add labels…',
+    filterPh: 'Search or create…',
+    all: 'All labels',
+    none: 'No labels',
+    create: 'Create «{name}»',
+    remove: 'Remove {name}',
   },
   ctg: {
     label: 'CTG',

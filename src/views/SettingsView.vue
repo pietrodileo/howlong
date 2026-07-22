@@ -11,12 +11,15 @@ import { useI18n } from '../i18n/useI18n';
 import { isDialogCancelled } from '../lib/dialogResult';
 import { toErrorMessage } from '../lib/errors';
 import type { Locale, Theme } from '../models/settings';
+import SettingsPanel from '../components/SettingsPanel.vue';
+import { ESTIMATE_TOGGLEABLE_COLUMNS, type EstimateToggleableColumn } from '../lib/estimateColumns';
+import { syncEstimateColumnsFromSettings } from '../lib/useResizableColumns';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
 const library = useLibraryStore();
 const ui = useUiStore();
-const { t, setLocale } = useI18n();
+const { t, setLocale, locale } = useI18n();
 
 const resolvedEstimatesDir = ref('');
 
@@ -66,6 +69,7 @@ async function applyEstimatesFolderChange() {
 async function save() {
   try {
     await settings.save();
+    syncEstimateColumnsFromSettings();
     const n = await library.loadAll();
     await refreshEstimatesDir();
     ui.notify(
@@ -149,21 +153,38 @@ function onLocaleChange(value: string) {
 function onThemeChange(value: Theme) {
   settings.settings.theme = value;
 }
+
+const estimateColumnKeys = ESTIMATE_TOGGLEABLE_COLUMNS;
+
+function estimateColumnLabel(key: EstimateToggleableColumn): string {
+  return t(`columns.${key}`);
+}
+
+function onEstimateColumnChange(key: EstimateToggleableColumn, checked: boolean) {
+  settings.settings.estimateColumnVisibility[key] = checked;
+}
+
+function onExportDateChange(checked: boolean) {
+  settings.settings.exportIncludeDate = checked;
+  if (!checked) settings.settings.exportIncludeTime = false;
+}
 </script>
 
 <template>
-  <div class="settings">
+  <div class="settings" :key="locale">
     <header class="hero">
-      <h2 class="title">{{ t('settings.title') }}</h2>
+      <div class="hero-top">
+        <h2 class="title">{{ t('settings.title') }}</h2>
+        <button type="button" class="primary" @click="save">{{ t('settings.save') }}</button>
+      </div>
       <p v-if="settings.settings.username.trim()" class="user-badge">
         {{ settings.settings.username.trim() }}
       </p>
     </header>
 
-    <section class="block">
-      <h3>{{ t('settings.username') }}</h3>
-      <p class="intro">{{ t('settings.usernameHelp') }}</p>
+    <SettingsPanel :title="t('settings.sectionProfile')">
       <label class="field">
+        <span class="field-label">{{ t('settings.username') }}</span>
         <input
           type="text"
           class="username-input"
@@ -173,11 +194,11 @@ function onThemeChange(value: Theme) {
           @input="settings.settings.username = ($event.target as HTMLInputElement).value"
         />
       </label>
-    </section>
+      <p class="field-hint">{{ t('settings.usernameHelp') }}</p>
+    </SettingsPanel>
 
-    <section class="block">
-      <h3>{{ t('settings.language') }}</h3>
-      <p class="intro">{{ t('settings.languageHelp') }}</p>
+    <SettingsPanel :title="t('settings.sectionLocale')">
+      <p class="field-hint">{{ t('settings.languageHelp') }}</p>
       <div class="lang-actions">
         <div class="lang-row" role="radiogroup" :aria-label="t('settings.language')">
           <label class="lang-opt">
@@ -201,13 +222,11 @@ function onThemeChange(value: Theme) {
             <span>ENG — {{ t('settings.english') }}</span>
           </label>
         </div>
-        <button type="button" class="primary" @click="save">{{ t('settings.save') }}</button>
       </div>
-    </section>
+    </SettingsPanel>
 
-    <section class="block">
-      <h3>{{ t('settings.appearance') }}</h3>
-      <p class="intro">{{ t('settings.appearanceHelp') }}</p>
+    <SettingsPanel :title="t('settings.sectionAppearance')">
+      <p class="field-hint">{{ t('settings.appearanceHelp') }}</p>
       <div class="lang-row" role="radiogroup" :aria-label="t('settings.appearance')">
         <label class="lang-opt">
           <input
@@ -230,16 +249,102 @@ function onThemeChange(value: Theme) {
           <span>{{ t('settings.appearanceDark') }}</span>
         </label>
       </div>
-    </section>
+    </SettingsPanel>
 
-    <section class="block">
-      <h3>{{ t('settings.estimatesFolder') }}</h3>
-      <p class="intro">{{ t('settings.estimatesFolderHelp') }}</p>
+    <SettingsPanel :title="t('settings.sectionEstimate')">
+      <p class="field-hint">{{ t('settings.estimateColumnsIntro') }}</p>
+      <div class="option-grid columns-grid">
+        <label v-for="key in estimateColumnKeys" :key="key" class="lang-opt compact">
+          <input
+            type="checkbox"
+            :checked="settings.settings.estimateColumnVisibility[key]"
+            @change="onEstimateColumnChange(key, ($event.target as HTMLInputElement).checked)"
+          />
+          <span>{{ estimateColumnLabel(key) }}</span>
+        </label>
+      </div>
+    </SettingsPanel>
+
+    <SettingsPanel :title="t('settings.sectionPresentation')">
+      <p class="field-hint">{{ t('settings.presentationIntro') }}</p>
+      <div class="pref-grid">
+        <fieldset class="pref-group">
+          <legend>{{ t('settings.managerViewLegend') }}</legend>
+          <label class="lang-opt compact">
+            <input
+              type="checkbox"
+              :checked="settings.settings.defaultManagerHideNotes"
+              @change="settings.settings.defaultManagerHideNotes = ($event.target as HTMLInputElement).checked"
+            />
+            <span>{{ t('settings.defaultManagerHideNotes') }}</span>
+          </label>
+          <label class="lang-opt compact">
+            <input
+              type="checkbox"
+              :checked="settings.settings.defaultManagerHideTags"
+              @change="settings.settings.defaultManagerHideTags = ($event.target as HTMLInputElement).checked"
+            />
+            <span>{{ t('settings.defaultManagerHideTags') }}</span>
+          </label>
+        </fieldset>
+        <fieldset class="pref-group">
+          <legend>{{ t('settings.clientOutputLegend') }}</legend>
+          <label class="lang-opt compact">
+            <input
+              type="checkbox"
+              :checked="settings.settings.defaultClientHideNotes"
+              @change="settings.settings.defaultClientHideNotes = ($event.target as HTMLInputElement).checked"
+            />
+            <span>{{ t('settings.defaultClientHideNotes') }}</span>
+          </label>
+          <label class="lang-opt compact">
+            <input
+              type="checkbox"
+              :checked="settings.settings.defaultClientHideTags"
+              @change="settings.settings.defaultClientHideTags = ($event.target as HTMLInputElement).checked"
+            />
+            <span>{{ t('settings.defaultClientHideTags') }}</span>
+          </label>
+        </fieldset>
+      </div>
+    </SettingsPanel>
+
+    <SettingsPanel :title="t('settings.sectionExport')">
+      <p class="field-hint">{{ t('settings.exportFilenameLegend') }}</p>
+      <div class="export-filename-opts">
+        <label class="export-opt">
+          <span class="export-opt-head">
+            <input
+              type="checkbox"
+              :checked="settings.settings.exportIncludeDate"
+              @change="onExportDateChange(($event.target as HTMLInputElement).checked)"
+            />
+            <span>{{ t('settings.exportIncludeDate') }}</span>
+          </span>
+          <span class="export-opt-hint">{{ t('settings.exportIncludeDateHint') }}</span>
+        </label>
+        <label class="export-opt" :class="{ disabled: !settings.settings.exportIncludeDate }">
+          <span class="export-opt-head">
+            <input
+              type="checkbox"
+              :checked="settings.settings.exportIncludeTime"
+              :disabled="!settings.settings.exportIncludeDate"
+              @change="settings.settings.exportIncludeTime = ($event.target as HTMLInputElement).checked"
+            />
+            <span>{{ t('settings.exportIncludeTime') }}</span>
+          </span>
+          <span class="export-opt-hint">{{ t('settings.exportIncludeTimeHint') }}</span>
+        </label>
+      </div>
+    </SettingsPanel>
+
+    <SettingsPanel :title="t('settings.sectionFolder')">
+      <p class="field-hint">{{ t('settings.estimatesFolderHelp') }}</p>
       <dl class="meta">
         <dt>{{ t('settings.estimatesFolderActive') }}</dt>
         <dd class="path">{{ resolvedEstimatesDir || t('library.desktopOnly') }}</dd>
       </dl>
-      <p v-if="settings.settings.estimatesDir.trim()" class="intro custom-note">
+      <p v-if="settings.settings.estimatesDir.trim()" class="field-hint custom-note">
         {{ t('settings.estimatesFolderCustom') }}
       </p>
       <div class="chrome">
@@ -255,10 +360,9 @@ function onThemeChange(value: Theme) {
           {{ t('settings.resetFolder') }}
         </button>
       </div>
-    </section>
+    </SettingsPanel>
 
-    <section class="block">
-      <h3>{{ t('settings.importExport') }}</h3>
+    <SettingsPanel :title="t('settings.sectionWorkspace')">
       <ul class="tips">
         <li v-html="md(t('settings.tipImport'))" />
         <li v-html="md(t('settings.tipExport'))" />
@@ -267,7 +371,7 @@ function onThemeChange(value: Theme) {
         <button type="button" class="ghost" @click="onImport">{{ t('settings.import') }}</button>
         <button type="button" class="ghost" @click="onExport">{{ t('settings.export') }}</button>
       </div>
-    </section>
+    </SettingsPanel>
 
     <p v-if="settings.lastError" class="err">{{ settings.lastError }}</p>
   </div>
@@ -275,10 +379,18 @@ function onThemeChange(value: Theme) {
 
 <style scoped>
 .settings {
-  max-width: 560px;
+  max-width: 620px;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.35rem;
+}
+
+.hero-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
 }
 
 .hero {
@@ -345,34 +457,94 @@ function onThemeChange(value: Theme) {
   margin-top: 0.15rem;
 }
 
-.block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding-bottom: 1.15rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.block:last-of-type {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.block h3 {
-  margin: 0;
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
+.field-label {
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.intro {
+.field-hint {
   margin: 0;
   font-size: 0.9rem;
   color: var(--ink-soft);
-  line-height: 1.5;
+  line-height: 1.45;
+}
+
+.pref-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.pref-group {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.pref-group legend {
+  padding: 0 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.option-grid.columns-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 0.45rem;
+}
+
+.lang-opt.compact {
+  padding: 0.38rem 0.55rem;
+  font-size: 0.85rem;
+}
+
+.export-filename-opts {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.export-opt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.export-opt.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.export-opt-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 550;
+  color: var(--ink);
+}
+
+.export-opt-hint {
+  margin-left: 1.35rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.custom-note {
+  color: var(--accent);
 }
 
 .lang-actions {

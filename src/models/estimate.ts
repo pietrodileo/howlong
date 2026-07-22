@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeEstimateInput } from '../lib/normalizeTags';
 import {
   ContingencyModeSchema,
   ContingencyPlacementSchema,
@@ -16,6 +17,8 @@ export const LineItemSchema = z.object({
   parentId: z.string().nullable().default(null),
   contingencyPercentOverride: z.number().min(0).max(100).nullable().default(null),
   notes: z.string().default(''),
+  /** Etichette brevi (stile Jira) per presentazione e filtri. */
+  tags: z.array(z.string()).default([]),
   clientVisible: z.boolean().default(true),
   /** Se false, la CTG globale non si applica a questa voce. */
   applyContingency: z.boolean().default(true),
@@ -37,7 +40,10 @@ export const ClientLineOverrideSchema = z.object({
 
 export const ClientViewSchema = z.object({
   roundingMode: RoundingModeSchema.default('none'),
-  hideInternalNotes: z.boolean().default(true),
+  hideManagerNotes: z.boolean().default(false),
+  hideManagerTags: z.boolean().default(false),
+  hideClientNotes: z.boolean().default(true),
+  hideClientTags: z.boolean().default(false),
   titleOverride: z.string().default(''),
   /** Ritocchi presentazione in vista cliente (ore canoniche). */
   lineOverrides: z.record(z.string(), ClientLineOverrideSchema).default({}),
@@ -61,10 +67,15 @@ export const EstimateSchema = z.object({
   meta: EstimateMetaSchema,
   modelId: z.string().optional(),
   contingency: EstimateContingencySchema,
+  /** Etichette disponibili nella stima (copiate dal modello, estendibili). */
+  tagOptions: z.array(z.string()).default([]),
   items: z.array(LineItemSchema),
   clientView: ClientViewSchema.default({
     roundingMode: 'none',
-    hideInternalNotes: true,
+    hideManagerNotes: false,
+    hideManagerTags: false,
+    hideClientNotes: true,
+    hideClientTags: false,
     titleOverride: '',
     lineOverrides: {},
   }),
@@ -77,7 +88,7 @@ export type ClientViewConfig = z.infer<typeof ClientViewSchema>;
 export type ClientLineOverride = z.infer<typeof ClientLineOverrideSchema>;
 
 export function parseEstimate(data: unknown): { ok: true; data: Estimate } | { ok: false; error: string } {
-  const result = EstimateSchema.safeParse(data);
+  const result = EstimateSchema.safeParse(normalizeEstimateInput(data));
   if (!result.success) {
     return { ok: false, error: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ') };
   }

@@ -8,6 +8,7 @@ import FormulaEditor, {
   type FormulaEditableItem,
 } from '../components/FormulaEditor.vue';
 import NotesEditor from '../components/NotesEditor.vue';
+import TagPicker from '../components/TagPicker.vue';
 import IconBtn from '../components/IconBtn.vue';
 import MetaIconPicker from '../components/MetaIconPicker.vue';
 import ClientView from './ClientView.vue';
@@ -147,6 +148,23 @@ const categoryOptions = computed(() => {
     modelList.value.find((m) => m.id === modelId)?.categories ?? [];
   return [...new Set([...fromModel, ...fromSettings, ...fromItems])].filter(Boolean);
 });
+
+const tagOptions = computed(() => {
+  const fromEstimate = estimate.estimate.tagOptions ?? [];
+  const modelId = estimate.estimate.modelId;
+  const fromModel =
+    modelList.value.find((m) => m.id === modelId)?.tagOptions ?? [];
+  const fromItems = estimate.estimate.items.flatMap((i) => i.tags ?? []);
+  return [...new Set([...fromModel, ...fromEstimate, ...fromItems])].filter(Boolean);
+});
+
+function onItemTagsChange(id: string, tags: string[]) {
+  estimate.updateItem(id, { tags });
+}
+
+function onCreateTagOption(label: string) {
+  estimate.ensureTagOption(label);
+}
 
 function columnLabel(key: ColumnKey): string {
   return t(`columns.${key}`);
@@ -299,7 +317,7 @@ async function onSave() {
 
 async function onExport(format: EstimateExportFormat) {
   try {
-    const path = await exportEstimate(estimate.estimate, format, false);
+    const path = await exportEstimate(estimate.estimate, format, 'estimate', settings.settings);
     if (path) ui.notify(t('working.exported', { format: format.toUpperCase(), path }));
   } catch (e) {
     ui.notify(toErrorMessage(e), true);
@@ -460,19 +478,76 @@ function onHeaderDblClick(key: ColumnKey) {
   <ClientView v-if="clientPreview" @back="clientPreview = false" />
   <div v-else class="working">
     <header class="hero">
-      <div class="title-row">
-        <MetaIconPicker
-          :icon="estimate.estimate.meta.icon"
-          :name="estimate.estimate.meta.title"
-          :size="20"
-          @update:icon="estimate.updateMeta({ icon: $event as ModelIcon })"
-        />
-        <input
-          class="title-input"
-          :value="estimate.estimate.meta.title"
-          :placeholder="t('working.titlePh')"
-          @input="estimate.updateMeta({ title: ($event.target as HTMLInputElement).value })"
-        />
+      <div class="title-head">
+        <div class="title-main">
+          <div class="title-row">
+            <MetaIconPicker
+              :icon="estimate.estimate.meta.icon"
+              :name="estimate.estimate.meta.title"
+              :size="20"
+              @update:icon="estimate.updateMeta({ icon: $event as ModelIcon })"
+            />
+            <input
+              class="title-input"
+              :value="estimate.estimate.meta.title"
+              :placeholder="t('working.titlePh')"
+              @input="estimate.updateMeta({ title: ($event.target as HTMLInputElement).value })"
+            />
+          </div>
+          <input
+            class="client-label-input"
+            :value="estimate.estimate.meta.clientLabel"
+            :placeholder="t('working.clientPh')"
+            @input="estimate.updateMeta({ clientLabel: ($event.target as HTMLInputElement).value })"
+          />
+        </div>
+
+        <div class="title-promo">
+          <div class="export-menu">
+            <button
+              type="button"
+              class="ghost"
+              :aria-expanded="exportMenuOpen"
+              @click.stop="toggleExportMenu"
+            >
+              {{ t('common.export') }} ▾
+            </button>
+            <div v-if="exportMenuOpen" class="menu" role="menu" @pointerdown.stop>
+              <button
+                type="button"
+                role="menuitem"
+                :title="t('export.aiHint')"
+                @click="onExport('yaml'); exportMenuOpen = false"
+              >
+                {{ t('export.ai') }}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                :title="t('export.excelHint')"
+                @click="onExport('xlsx'); exportMenuOpen = false"
+              >
+                {{ t('export.excel') }}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                :title="t('export.backupHint')"
+                @click="onExport('json'); exportMenuOpen = false"
+              >
+                {{ t('export.backup') }}
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="ghost presentation-view-btn"
+            :title="t('working.clientViewTitle')"
+            @click="clientPreview = true"
+          >
+            {{ t('working.presentationView') }}
+          </button>
+        </div>
       </div>
 
       <div class="chrome">
@@ -525,62 +600,36 @@ function onHeaderDblClick(key: ColumnKey) {
           </div>
           <button type="button" class="ghost" @click="onOpen">{{ t('common.open') }}</button>
           <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
-          <button
-            type="button"
-            class="ghost"
-            :title="t('working.clientViewTitle')"
-            @click="clientPreview = true"
-          >
-            {{ t('working.clientView') }}
-          </button>
-          <div class="export-menu">
-            <button
-              type="button"
-              class="ghost"
-              :aria-expanded="exportMenuOpen"
-              @click.stop="toggleExportMenu"
-            >
-              {{ t('common.export') }} ▾
-            </button>
-            <div v-if="exportMenuOpen" class="menu" role="menu" @pointerdown.stop>
-              <button
-                type="button"
-                role="menuitem"
-                :title="t('export.aiHint')"
-                @click="onExport('yaml'); exportMenuOpen = false"
-              >
-                {{ t('export.ai') }}
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                :title="t('export.excelHint')"
-                @click="onExport('xlsx'); exportMenuOpen = false"
-              >
-                {{ t('export.excel') }}
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                :title="t('export.backupHint')"
-                @click="onExport('json'); exportMenuOpen = false"
-              >
-                {{ t('export.backup') }}
-              </button>
-            </div>
-          </div>
-
-          <span class="chrome-sep" aria-hidden="true" />
-
-          <input
-            class="meta-input"
-            :value="estimate.estimate.meta.clientLabel"
-            :placeholder="t('working.clientPh')"
-            @input="estimate.updateMeta({ clientLabel: ($event.target as HTMLInputElement).value })"
-          />
+          <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
         </div>
+      </div>
+    </header>
 
-        <div class="chrome-row meta-row">
+    <div class="summary-row" aria-live="polite">
+      <div class="stat">
+        <span>{{ t('working.base') }}</span>
+        <strong>
+          <span>{{ formatHours(estimate.totals.totalBase) }} h</span>
+          <span class="stat-days">{{ formatDays(estimate.totals.totalBase, hoursPerDay) }} D</span>
+        </strong>
+      </div>
+      <div class="stat" :title="t('working.ctgSumTitle')">
+        <span>{{ t('common.ctg') }}</span>
+        <strong>
+          <span>{{ formatHours(estimate.totals.totalContingency) }} h</span>
+          <span class="stat-days">{{ formatDays(estimate.totals.totalContingency, hoursPerDay) }} D</span>
+        </strong>
+      </div>
+      <div class="stat accent">
+        <span>{{ t('working.total') }}</span>
+        <strong>
+          <span>{{ formatHours(estimate.totals.totalWithContingency) }} h</span>
+          <span class="stat-days">{{ formatDays(estimate.totals.totalWithContingency, hoursPerDay) }} D</span>
+        </strong>
+      </div>
+
+      <div class="summary-actions">
+        <div class="estimate-settings">
           <label class="unit-field">
             {{ t('working.unit') }}
             <select
@@ -611,36 +660,10 @@ function onHeaderDblClick(key: ColumnKey) {
           </label>
 
           <ContingencyControls />
-
-          <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
         </div>
-      </div>
-    </header>
 
-    <div class="summary-row" aria-live="polite">
-      <div class="stat">
-        <span>{{ t('working.base') }}</span>
-        <strong>
-          <span>{{ formatHours(estimate.totals.totalBase) }} h</span>
-          <span class="stat-days">{{ formatDays(estimate.totals.totalBase, hoursPerDay) }} D</span>
-        </strong>
-      </div>
-      <div class="stat" :title="t('working.ctgSumTitle')">
-        <span>{{ t('common.ctg') }}</span>
-        <strong>
-          <span>{{ formatHours(estimate.totals.totalContingency) }} h</span>
-          <span class="stat-days">{{ formatDays(estimate.totals.totalContingency, hoursPerDay) }} D</span>
-        </strong>
-      </div>
-      <div class="stat accent">
-        <span>{{ t('working.total') }}</span>
-        <strong>
-          <span>{{ formatHours(estimate.totals.totalWithContingency) }} h</span>
-          <span class="stat-days">{{ formatDays(estimate.totals.totalWithContingency, hoursPerDay) }} D</span>
-        </strong>
-      </div>
+        <span class="settings-sep" aria-hidden="true" />
 
-      <div class="summary-actions">
         <button
           type="button"
           class="ghost"
@@ -775,6 +798,18 @@ function onHeaderDblClick(key: ColumnKey) {
               <span v-if="!cols.collapsed.override">{{ t('columns.override') }}</span>
               <span v-else class="abbr">%</span>
               <span class="col-resizer" @mousedown="cols.startResize('override', $event)" />
+            </th>
+            <th
+              v-if="cols.isVisible('tags')"
+              class="resizable"
+              :class="{ collapsed: cols.collapsed.tags }"
+              :style="cols.styleFor('tags')"
+              :title="t('common.expandCol')"
+              @dblclick="onHeaderDblClick('tags')"
+            >
+              <span v-if="!cols.collapsed.tags">{{ t('columns.tags') }}</span>
+              <span v-else class="abbr">T</span>
+              <span class="col-resizer" @mousedown="cols.startResize('tags', $event)" />
             </th>
               <th
                 v-if="cols.isVisible('notes')"
@@ -951,6 +986,20 @@ function onHeaderDblClick(key: ColumnKey) {
                 </template>
               </td>
               <td
+                v-if="cols.isVisible('tags')"
+                :style="cols.styleFor('tags')"
+                :class="{ collapsed: cols.collapsed.tags }"
+              >
+                <TagPicker
+                  v-if="!cols.collapsed.tags"
+                  :model-value="line.item.tags ?? []"
+                  :options="tagOptions"
+                  :aria-label="`${t('columns.tags')}: ${line.item.name}`"
+                  @update:model-value="onItemTagsChange(line.item.id, $event)"
+                  @create-option="onCreateTagOption"
+                />
+              </td>
+              <td
                 v-if="cols.isVisible('notes')"
                 :style="cols.styleFor('notes')"
                 :class="{ collapsed: cols.collapsed.notes }"
@@ -1057,6 +1106,11 @@ function onHeaderDblClick(key: ColumnKey) {
               :class="{ collapsed: cols.collapsed.override }"
             />
             <td
+              v-if="cols.isVisible('tags')"
+              :style="cols.styleFor('tags')"
+              :class="{ collapsed: cols.collapsed.tags }"
+            />
+            <td
               v-if="cols.isVisible('notes')"
               :style="cols.styleFor('notes')"
               :class="{ collapsed: cols.collapsed.notes }"
@@ -1132,6 +1186,65 @@ function onHeaderDblClick(key: ColumnKey) {
   overflow: visible;
 }
 
+.title-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem 1.25rem;
+}
+
+.title-main {
+  flex: 1;
+  min-width: min(100%, 260px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.title-promo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-shrink: 0;
+  padding-top: 0.2rem;
+}
+
+.client-label-input {
+  width: 100%;
+  max-width: 28rem;
+  margin-left: calc(2.4rem + 0.65rem);
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  padding: 0.12rem 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.client-label-input:hover,
+.client-label-input:focus {
+  border-bottom-color: var(--line-strong);
+  color: var(--ink);
+  outline: none;
+}
+
+.client-label-input::placeholder {
+  color: var(--muted-soft);
+}
+
+.presentation-view-btn {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.presentation-view-btn:hover {
+  color: var(--ink);
+}
+
 .title-row {
   display: flex;
   align-items: center;
@@ -1187,6 +1300,47 @@ function onHeaderDblClick(key: ColumnKey) {
   padding-left: 0;
 }
 
+.chrome-row .dirty {
+  margin-left: auto;
+}
+
+.estimate-settings {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.75rem;
+}
+
+.estimate-settings :deep(.ctg) {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  height: 2.1rem;
+}
+
+.estimate-settings :deep(.pct-field) {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  height: 100%;
+}
+
+.estimate-settings :deep(.pct-input-wrap) {
+  height: 2.1rem;
+  box-sizing: border-box;
+  padding: 0 0.45rem 0 0.3rem;
+}
+
+.settings-sep {
+  width: 1px;
+  align-self: stretch;
+  min-height: 1.25rem;
+  background: var(--line);
+  flex-shrink: 0;
+}
+
 .chrome-row.meta-row {
   column-gap: 0.75rem;
 }
@@ -1196,28 +1350,6 @@ function onHeaderDblClick(key: ColumnKey) {
   height: 1.1rem;
   background: var(--line);
   flex-shrink: 0;
-}
-
-.chrome :deep(.ctg) {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  height: 2.1rem;
-}
-
-.chrome :deep(.pct-field) {
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0;
-  height: 100%;
-}
-
-.chrome :deep(.pct-input-wrap) {
-  height: 2.1rem;
-  box-sizing: border-box;
-  padding: 0 0.45rem 0 0.3rem;
 }
 
 .unit-field {
@@ -1472,7 +1604,7 @@ function onHeaderDblClick(key: ColumnKey) {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem 1.5rem;
-  align-items: baseline;
+  align-items: center;
   padding: 0.55rem 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -1530,7 +1662,7 @@ function onHeaderDblClick(key: ColumnKey) {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem 0.55rem;
   margin-left: auto;
 }
 

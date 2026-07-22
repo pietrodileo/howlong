@@ -22,6 +22,7 @@ function macroFrom(
     parentId: null,
     contingencyPercentOverride: null,
     notes: '',
+    tags: [],
     clientVisible: true,
     applyContingency,
     ...(formula ? { formula: { ...formula, sourceIds: [...formula.sourceIds] } } : {}),
@@ -36,6 +37,7 @@ export function createEstimateFromModel(model: Model, settings?: Settings): Esti
     const item = macroFrom(m.id, m.name, m.category, m.kind, m.formula, apply);
     item.parentId = m.parentId ?? null;
     if (m.kind !== 'formula') item.hours = m.defaultHours;
+    item.tags = [...(m.tags ?? [])];
     return item;
   });
 
@@ -60,6 +62,7 @@ export function createEstimateFromModel(model: Model, settings?: Settings): Esti
       icon: model.icon ?? 'letter',
     },
     modelId: model.id,
+    tagOptions: [...(model.tagOptions ?? [])],
     contingency: {
       percent: model.contingency.defaultPercent || s.defaultContingencyPercentage,
       mode: model.contingency.mode || s.defaultContingencyMode,
@@ -72,7 +75,10 @@ export function createEstimateFromModel(model: Model, settings?: Settings): Esti
     items,
     clientView: {
       roundingMode: s.defaultClientRoundingMode,
-      hideInternalNotes: true,
+      hideManagerNotes: s.defaultManagerHideNotes,
+      hideManagerTags: s.defaultManagerHideTags,
+      hideClientNotes: s.defaultClientHideNotes,
+      hideClientTags: s.defaultClientHideTags,
       titleOverride: '',
       lineOverrides: {},
     },
@@ -100,9 +106,13 @@ export function createEmptyEstimate(settings: Settings): Estimate {
       placement: settings.defaultContingencyPlacement,
     },
     items: settings.defaultCategories.map((cat, i) => macroFrom(String(i + 1), cat, cat)),
+    tagOptions: [],
     clientView: {
       roundingMode: settings.defaultClientRoundingMode,
-      hideInternalNotes: true,
+      hideManagerNotes: settings.defaultManagerHideNotes,
+      hideManagerTags: settings.defaultManagerHideTags,
+      hideClientNotes: settings.defaultClientHideNotes,
+      hideClientTags: settings.defaultClientHideTags,
       titleOverride: '',
       lineOverrides: {},
     },
@@ -118,12 +128,14 @@ export function createBlankModel(settings: Settings): Model {
       id: String(i + 1),
       name: cat,
       category: cat,
+      tags: [],
       defaultHours: 0,
       kind: 'operational' as const,
       parentId: null,
       applyContingency: true,
     })),
     categories: [...settings.defaultCategories],
+    tagOptions: [],
     hoursPerDay: settings.hoursPerDay ?? 8,
     icon: 'letter',
     contingency: {

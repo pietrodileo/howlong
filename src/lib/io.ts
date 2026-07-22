@@ -3,6 +3,8 @@ import {
   estimateToJson,
   estimateToAiYaml,
   estimateToXlsx,
+  estimateToClientYaml,
+  estimateToClientXlsx,
   modelToJson,
   extensionFor,
   mimeFilters,
@@ -51,20 +53,38 @@ async function saveContent(
   return path;
 }
 
+function safePart(value: string): string {
+  return value.trim().replace(/[^\w.-]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+function exportName(estimate: Estimate, type: string, settings?: Settings): string {
+  const parts = [safePart(estimate.meta.clientLabel), safePart(estimate.clientView.titleOverride || estimate.meta.title), safePart(type)].filter(Boolean);
+  const now = new Date();
+  if (settings?.exportIncludeDate !== false) {
+    parts.push(now.toISOString().slice(0, 10));
+    if (settings?.exportIncludeTime !== false) {
+      parts.push(now.toTimeString().slice(0, 8).replace(/:/g, '_'));
+    }
+  }
+  return parts.join('_') || type;
+}
+
 export async function exportEstimate(
   estimate: Estimate,
   format: EstimateExportFormat,
-  clientOnly = false,
+  view: 'estimate' | 'manager' | 'client' = 'estimate',
+  settings?: Settings,
 ): Promise<string | null> {
-  const base = clientOnly ? 'vista-cliente' : 'stima';
+  const base = exportName(estimate, view === 'manager' ? 'manager-view' : view === 'client' ? 'client-view' : 'estimate', settings);
+  const manager = view === 'manager';
   switch (format) {
     case 'json':
       // Backup HowLong: solo stima completa (non vista cliente filtrata)
       return saveContent(base, format, estimateToJson(estimate), null);
     case 'yaml':
-      return saveContent(base, format, await estimateToAiYaml(estimate, clientOnly), null);
+      return saveContent(base, format, view === 'client' ? await estimateToClientYaml(estimate) : await estimateToAiYaml(estimate, manager), null);
     case 'xlsx':
-      return saveContent(base, format, null, await estimateToXlsx(estimate, clientOnly));
+      return saveContent(base, format, null, view === 'client' ? await estimateToClientXlsx(estimate) : await estimateToXlsx(estimate, manager));
   }
 }
 
