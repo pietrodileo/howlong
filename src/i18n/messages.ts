@@ -15,6 +15,8 @@ export type MessageTree = {
   common: {
     save: string;
     open: string;
+    reload: string;
+    noFileOpen: string;
     export: string;
     import: string;
     delete: string;
@@ -195,6 +197,7 @@ export type MessageTree = {
     modelNotFound: string;
     newEstimateFrom: string;
     opened: string;
+    reloaded: string;
     saved: string;
     exported: string;
     cycleError: string;
@@ -421,6 +424,8 @@ const it: MessageTree = {
   common: {
     save: 'Salva',
     open: 'Apri',
+    reload: 'Aggiorna',
+    noFileOpen: 'Nessun file aperto. Salva prima.',
     export: 'Esporta',
     import: 'Importa',
     delete: 'Elimina',
@@ -606,6 +611,7 @@ const it: MessageTree = {
     modelNotFound: 'Modello non trovato. Vai in Modelli.',
     newEstimateFrom: 'Nuova stima da «{name}»',
     opened: 'Stima aperta',
+    reloaded: 'Stima ricaricata dal file',
     saved: 'Salvata: {path}',
     exported: 'Esportata ({format}): {path}',
     cycleError: 'Dipendenza circolare',
@@ -841,6 +847,8 @@ const en: MessageTree = {
   common: {
     save: 'Save',
     open: 'Open',
+    reload: 'Reload',
+    noFileOpen: 'No file open. Save first.',
     export: 'Export',
     import: 'Import',
     delete: 'Delete',
@@ -1025,6 +1033,7 @@ const en: MessageTree = {
     modelNotFound: 'Model not found. Go to Models.',
     newEstimateFrom: 'New estimate from «{name}»',
     opened: 'Estimate opened',
+    reloaded: 'Estimate reloaded from file',
     saved: 'Saved: {path}',
     exported: 'Exported ({format}): {path}',
     cycleError: 'Circular dependency',

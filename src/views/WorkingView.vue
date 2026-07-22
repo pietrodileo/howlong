@@ -26,6 +26,8 @@ import {
   type EffortUnit,
 } from '../lib/rounding';
 import { exportEstimate, openEstimateFile } from '../lib/io';
+import { readTextFile, isTauri } from '../lib/tauri';
+import { importEstimateText } from '../lib/import';
 import { isDialogCancelled, isDialogDesktopOnly } from '../lib/dialogResult';
 import { toErrorMessage } from '../lib/errors';
 import { resolveAppliesContingency } from '../lib/applyContingency';
@@ -349,6 +351,31 @@ async function doOpen() {
   estimate.setEstimate(result.data, result.path);
   clientPreview.value = false;
   ui.notify(t('working.opened'));
+}
+
+async function doReload() {
+  const path = estimate.filePath.value;
+  if (!path) {
+    ui.notify(t('common.noFileOpen'), true);
+    return;
+  }
+  if (!isTauri()) {
+    ui.notify(t('library.desktopOnly'), true);
+    return;
+  }
+  try {
+    const text = await readTextFile(path);
+    const result = await importEstimateText(text, 'json');
+    if (!result.ok) {
+      ui.notify(result.error, true);
+      return;
+    }
+    estimate.setEstimate(result.data, path);
+    clientPreview.value = false;
+    ui.notify(t('working.reloaded'));
+  } catch (e) {
+    ui.notify(toErrorMessage(e), true);
+  }
 }
 
 async function onSave() {

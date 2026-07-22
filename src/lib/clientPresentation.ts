@@ -23,11 +23,12 @@ export function filterLinesForClientOutput(
   options?: {
     hideCollapsedSubs?: boolean;
     isMacroCollapsed?: (macroId: string) => boolean;
+    showHidden?: boolean;
   },
 ): ClientPresentedLine[] {
   const out: ClientPresentedLine[] = [];
   for (const line of lines) {
-    if (!line.item.clientVisible) continue;
+    if (!line.item.clientVisible && !options?.showHidden) continue;
 
     const parentId = line.item.parentId;
     if (parentId) {
