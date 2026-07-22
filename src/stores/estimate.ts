@@ -159,6 +159,39 @@ export const useEstimateStore = defineStore('estimate', () => {
     touch();
   }
 
+  /**
+   * Impone il presented effort di un subtask e propaga la somma alla macro.
+   * La macro è sempre la somma dei suoi subtask (non editabile direttamente).
+   */
+  function setSubtaskPresentedEffort(subtaskId: string, hours: number) {
+    const subtask = estimate.value.items.find((i) => i.id === subtaskId);
+    if (!subtask?.parentId) {
+      setClientPresentedEffort(subtaskId, hours);
+      return;
+    }
+
+    // 1. Set subtask override
+    setClientPresentedEffort(subtaskId, hours);
+
+    // 2. Recalculate macro = sum of children's hoursPresented
+    const lines = buildClientPresentedLines(estimate.value, { includeHidden: true });
+    const children = lines.filter(
+      (l) => l.item.parentId === subtask.parentId && l.contributesToTotals,
+    );
+    const macroPresented = children.reduce((s, l) => s + l.hoursPresented, 0);
+
+    // 3. Set macro override
+    const macroOverrides: ClientLineOverride = { hoursPresented: macroPresented };
+    estimate.value.clientView = {
+      ...estimate.value.clientView,
+      lineOverrides: {
+        ...(estimate.value.clientView.lineOverrides ?? {}),
+        [subtask.parentId]: macroOverrides,
+      },
+    };
+    touch();
+  }
+
   function resetClientOverrides() {
     const hasOverrides = Object.keys(estimate.value.clientView.lineOverrides ?? {}).length > 0;
     const hasHiddenItems = estimate.value.items.some((item) => !item.clientVisible);
@@ -535,6 +568,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     setMacroClientPresentation,
     setClientVisible,
     setClientPresentedEffort,
+    setSubtaskPresentedEffort,
     resetClientOverrides,
     redistributeClientLine,
     ensureTagOption,

@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useEstimateStore } from '../stores/estimate';
 import { useUiStore } from '../stores/ui';
+import { useLibraryStore } from '../stores/library';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import NotesEditor from '../components/NotesEditor.vue';
 import TagPicker from '../components/TagPicker.vue';
@@ -39,6 +40,7 @@ const NOTES_PREVIEW_MAX = 72;
 const estimate = useEstimateStore();
 const ui = useUiStore();
 const settings = useSettingsStore();
+const library = useLibraryStore();
 const modelsStore = useModelsStore();
 const { models: modelList } = storeToRefs(modelsStore);
 const { t } = useI18n();
@@ -57,6 +59,7 @@ const managerExportMenuOpen = ref(false);
 const clientExportMenuOpen = ref(false);
 const showChangeConfirmOpen = ref(false);
 const pendingShowChange = ref<{ id: string; visible: boolean } | null>(null);
+const resetConfirmOpen = ref(false);
 const clientPreviewCollapsed = ref<Set<string>>(new Set());
 
 function needsConfirmForShowChange(): boolean {
@@ -174,11 +177,23 @@ function formatDeltaCell(hours: number | null): string {
   return v > 0 ? `+${v}` : String(v);
 }
 
+function isEditableInManager(line: { isMacro: boolean; hasChildren: boolean; item: { clientVisible: boolean } }): boolean {
+  if (!line.item.clientVisible) return false;
+  // Macro con subtask: non editabile (si editano i subtask)
+  if (line.isMacro && line.hasChildren) return false;
+  return true;
+}
+
 function onPresentedEffort(id: string, raw: string) {
   const n = Number(raw);
   if (!Number.isFinite(n) || n < 0) return;
   const hours = inputUnitToHours(n, effortUnit.value, hoursPerDay.value);
-  estimate.setClientPresentedEffort(id, hours);
+  const item = estimate.estimate.items.find((i) => i.id === id);
+  if (item?.parentId) {
+    estimate.setSubtaskPresentedEffort(id, hours);
+  } else {
+    estimate.setClientPresentedEffort(id, hours);
+  }
 }
 
 function previewNotes(notes: string): string {
@@ -203,8 +218,29 @@ function onSaveNotes(notes: string) {
 }
 
 function onReset() {
+  if (!estimate.hasClientOverrides) return;
+  resetConfirmOpen.value = true;
+}
+
+function confirmReset() {
   estimate.resetClientOverrides();
+  resetConfirmOpen.value = false;
   ui.notify(t('client.resetOk'));
+}
+
+function cancelReset() {
+  resetConfirmOpen.value = false;
+}
+
+async function onSave() {
+  try {
+    const { path, data } = await library.saveEstimate(estimate.estimate);
+    estimate.estimate.meta.updatedAt = data.meta.updatedAt;
+    estimate.markSaved(path);
+    ui.notify(t('working.saved', { path }));
+  } catch (e) {
+    ui.notify(toErrorMessage(e), true);
+  }
 }
 
 function onRedistribute(id: string) {
@@ -450,6 +486,8 @@ async function onExportFromMenu(
         >
           {{ t('client.reset') }}
         </button>
+        <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
+        <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
       </div>
     </header>
 
@@ -750,7 +788,10 @@ async function onExportFromMenu(
                 v-else-if="key === 'presented'"
                 class="pad num-cell emph"
                 :style="cols.styleFor('presented')"
-                :class="{ collapsed: cols.collapsed.presented }"
+                :class="{
+                  collapsed: cols.collapsed.presented,
+                  readonly: line.isMacro && line.hasChildren,
+                }"
               >
                 <input
                   v-if="!cols.collapsed.presented"
@@ -758,7 +799,7 @@ async function onExportFromMenu(
                   type="number"
                   min="0"
                   step="any"
-                  :disabled="!line.item.clientVisible"
+                  :disabled="!isEditableInManager(line)"
                   :value="effortInputValue(line.hoursPresented)"
                   :aria-label="`${line.item.name} ${t('client.presented')}`"
                   @change="onPresentedEffort(line.item.id, ($event.target as HTMLInputElement).value)"
@@ -1027,6 +1068,16 @@ async function onExportFromMenu(
       @cancel="cancelShowChange"
       @confirm="confirmShowChange"
     />
+
+    <ConfirmModal
+      :open="resetConfirmOpen"
+      :title="t('client.resetConfirmTitle')"
+      :message="t('client.resetConfirmBody')"
+      :confirm-label="t('client.reset')"
+      danger
+      @cancel="cancelReset"
+      @confirm="confirmReset"
+    />
   </div>
 </template>
 
@@ -1055,6 +1106,14 @@ async function onExportFromMenu(
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  align-items: center;
+}
+
+.dirty {
+  margin-left: auto;
+  color: var(--warn);
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
 .fields {
@@ -1508,6 +1567,15 @@ tr.hidden .num {
 .num:focus {
   border-color: var(--line-strong);
   outline: none;
+}
+
+.num-cell.readonly {
+  color: var(--muted);
+}
+
+.num-cell.readonly .num {
+  background: var(--page-soft);
+  cursor: default;
 }
 
 .num-cell.emph {

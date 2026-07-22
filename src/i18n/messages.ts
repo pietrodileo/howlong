@@ -332,6 +332,8 @@ export type MessageTree = {
     reset: string;
     resetHint: string;
     resetOk: string;
+    resetConfirmTitle: string;
+    resetConfirmBody: string;
     editedMark: string;
     showCol: string;
     showHint: string;
@@ -746,6 +748,9 @@ const it: MessageTree = {
     reset: 'Reset',
     resetHint: 'Ripristina i valori calcolati (arrotondamento incluso)',
     resetOk: 'Valori vista cliente ripristinati',
+    resetConfirmTitle: 'Ripristinare i valori calcolati?',
+    resetConfirmBody:
+      'Le modifiche manuali alle ore presentate e alle ripartizioni andranno perse. La stima originale non viene modificata.',
     editedMark: 'Valore ritoccato',
     showCol: 'Mostra',
     showHint: 'Includi questa voce nella presentazione e nell\'export cliente',
@@ -1165,6 +1170,9 @@ const en: MessageTree = {
     reset: 'Reset',
     resetHint: 'Restore calculated values (including rounding)',
     resetOk: 'Client view values restored',
+    resetConfirmTitle: 'Restore calculated values?',
+    resetConfirmBody:
+      'Manual edits to presented hours and redistributions will be lost. The original estimate is not modified.',
     editedMark: 'Edited value',
     showCol: 'Show',
     showHint: 'Include this line in the client presentation and export',
