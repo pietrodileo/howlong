@@ -16,7 +16,7 @@ import { nowIso, newId } from '../lib/ids';
 import { nextCopyName } from '../lib/copyName';
 import { reorderHierarchical } from '../lib/reorderHierarchical';
 import { useSettingsStore } from './settings';
-import type { ClientLineOverride } from '../models/estimate';
+import type { ClientLineOverride, MacroClientPresentationMode } from '../models/estimate';
 
 export const useEstimateStore = defineStore('estimate', () => {
   const settingsStore = useSettingsStore();
@@ -122,6 +122,14 @@ export const useEstimateStore = defineStore('estimate', () => {
   function updateClientView(patch: Partial<Estimate['clientView']>) {
     estimate.value.clientView = { ...estimate.value.clientView, ...patch };
     touch();
+  }
+
+  /** detail = mostra sotto-task; rollup = solo macro (ore aggregate). Default detail. */
+  function setMacroPresentation(macroId: string, mode: MacroClientPresentationMode) {
+    const next = { ...(estimate.value.clientView.macroPresentation ?? {}) };
+    if (mode === 'detail') delete next[macroId];
+    else next[macroId] = 'rollup';
+    updateClientView({ macroPresentation: next });
   }
 
   function setClientVisible(id: string, value: boolean) {
@@ -559,6 +567,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     updateMeta,
     updateContingency,
     updateClientView,
+    setMacroPresentation,
     setClientVisible,
     setClientPresentedEffort,
     setSubtaskPresentedEffort,

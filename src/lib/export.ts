@@ -58,19 +58,60 @@ export function estimateToJson(estimate: Estimate): string {
   return JSON.stringify(estimate, null, 2);
 }
 
+type AiYamlItem = Record<string, unknown>;
+
+type NestableLine = {
+  item: { id: string; parentId: string | null };
+  depth: number;
+};
+
+/** Flat computed lines → tree: macro at root, sub under `items`. */
+function nestAiYamlItems<T extends NestableLine>(
+  lines: T[],
+  toItem: (line: T) => AiYamlItem,
+): AiYamlItem[] {
+  const roots: AiYamlItem[] = [];
+  const byId = new Map<string, AiYamlItem>();
+  const pendingSubs: { parentId: string; item: AiYamlItem }[] = [];
+
+  for (const line of lines) {
+    const node = toItem(line);
+    byId.set(line.item.id, node);
+    const parentId = line.item.parentId;
+    if (parentId && line.depth) {
+      pendingSubs.push({ parentId, item: node });
+    } else {
+      roots.push(node);
+    }
+  }
+
+  for (const { parentId, item } of pendingSubs) {
+    const parent = byId.get(parentId);
+    if (!parent) {
+      roots.push(item);
+      continue;
+    }
+    const kids = (parent.items as AiYamlItem[] | undefined) ?? [];
+    kids.push(item);
+    parent.items = kids;
+  }
+
+  return roots;
+}
+
 /**
  * YAML semplice per AI / lettura.
  * Non è pensato per re-import in HowLong.
+ * Macro in `items`; sotto-task annidati in `items` della macro (niente `level`).
  */
-/** YAML semplice per AI / lettura (non re-importabile). */
 export async function estimateToAiYaml(estimate: Estimate, clientOnly = false): Promise<string> {
   const v = visibleLines(estimate, clientOnly);
   const byId = new Map(estimate.items.map((i) => [i.id, i.name]));
   const hpd = estimate.meta.hoursPerDay || 8;
 
-  const items = v.lines.map((line) => {
+  const items = nestAiYamlItems(v.lines, (line) => {
     const presented = presentationHours(line);
-    const base: Record<string, unknown> = {
+    const base: AiYamlItem = {
       name: line.item.name,
       category: line.item.category,
       hours: line.hoursBase,
@@ -82,7 +123,6 @@ export async function estimateToAiYaml(estimate: Estimate, clientOnly = false): 
       presented,
       presentedDays: hoursToDays(presented, hpd),
     };
-    if (line.depth) base.level = 'sub';
     if (line.isFormula || line.item.kind === 'formula') {
       base.kind = 'calculated';
       if (line.item.formula) {

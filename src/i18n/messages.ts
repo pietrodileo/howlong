@@ -328,6 +328,8 @@ export type MessageTree = {
     presentedHours: string;
     presentedDays: string;
     macroPresentation: string;
+    macroSubsCol: string;
+    hideSubsCol: string;
     macroRollup: string;
     macroDetail: string;
     exported: string;
@@ -425,7 +427,7 @@ const it: MessageTree = {
     save: 'Salva',
     open: 'Apri',
     reload: 'Aggiorna',
-    noFileOpen: 'Nessun file aperto. Salva prima.',
+    noFileOpen: 'Nessun file salvato. Salva prima una stima per poterla aprire.',
     export: 'Esporta',
     import: 'Importa',
     delete: 'Elimina',
@@ -436,7 +438,7 @@ const it: MessageTree = {
     ore: 'ore',
     expand: 'Espandi',
     collapse: 'Comprimi',
-    expandCol: 'Doppio click: collassa/espandi colonna',
+    expandCol: 'Collassa/espandi colonna',
     dragRow: 'Trascina per riordinare la riga',
     dragColumn: 'Trascina per riordinare la colonna',
     columns: 'Colonne',
@@ -470,9 +472,9 @@ const it: MessageTree = {
   },
   export: {
     ai: 'YAML',
-    aiHint: 'File semplice per lettura. Non si re-importa in HowLong.',
+    aiHint: 'File semplice per lettura. Non può essere importato di nuovo in HowLong.',
     excel: 'Excel',
-    excelHint: 'Foglio per condividere con altre persone.',
+    excelHint: 'Foglio Excel per condividere con altre persone.',
     backup: 'JSON (HowLong)',
     backupHint: 'Copia completa da riaprire in HowLong.',
   },
@@ -490,7 +492,7 @@ const it: MessageTree = {
     appearanceLight: 'Chiaro',
     appearanceDark: 'Scuro',
     username: 'Nome utente',
-    usernameHelp: 'Etichetta per riconoscere queste impostazioni (es. dopo un import)',
+    usernameHelp: 'Nome dell\'utente che sta usando HowLong',
     usernamePh: 'username',
     info: 'Informazioni',
     infoBody:
@@ -498,13 +500,13 @@ const it: MessageTree = {
     dataFolder: 'Cartella dati',
     estimatesFolder: 'Cartella stime',
     estimatesFolderHelp:
-      'Scegliendo una cartella (o tornandoci al default) HowLong salva la preferenza e carica subito le stime `.howlong.json` presenti.',
+      'Cartella dove HowLong salva le preferenze e da dove carica le stime `.howlong.json` presenti.',
     estimatesFolderActive: 'Cartella attiva',
     estimatesFolderCustom: 'Stai usando una cartella personalizzata.',
     pickFolder: 'Scegli cartella…',
     resetFolder: 'Usa default',
     folderLoaded: 'Caricate {n} stime dalla cartella',
-    folderEmpty: 'Cartella pronta — nessuna stima HowLong trovata',
+    folderEmpty: 'Cartella vuota — nessuna stima HowLong trovata',
     importExport: 'Import / Export',
     tipImport:
       '**Import** — file `.json` con **impostazioni + modelli**. Poi **Salva**.',
@@ -525,8 +527,8 @@ const it: MessageTree = {
     sectionExport: 'Nome file export',
     sectionFolder: 'Cartella stime',
     sectionWorkspace: 'Import / export workspace',
-    estimateColumnsIntro: 'Colonne visibili quando apri la Stima (dopo Salva). Il nome resta sempre visibile.',
-    presentationIntro: 'Default per le nuove stime. Nella vista Presentazione puoi cambiarli per singola stima.',
+    estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
+    presentationIntro: 'Definisce la visibilità predefinita delle colonne nella vista Presentazione.',
     managerViewLegend: 'Vista manager (modifica)',
     clientOutputLegend: 'Output cliente (anteprima / export)',
     defaultManagerHideNotes: 'Nascondi note',
@@ -743,8 +745,10 @@ const it: MessageTree = {
     presentedHours: 'Ore (h)',
     presentedDays: 'Giorni (D)',
     macroPresentation: 'Presentazione al cliente',
-    macroRollup: 'Solo macro (somma)',
-    macroDetail: 'Sotto-task',
+    macroSubsCol: 'Sub',
+    hideSubsCol: 'Nascondi colonna sub',
+    macroRollup: 'Solo macro (somma; nasconde i sotto-task anche in export)',
+    macroDetail: 'Mostra sotto-task (anche in export)',
     exported: 'Vista cliente esportata ({format}): {path}',
     editHint:
       'I valori modificati dall\'utente saranno visibili nell\'export Excel/YAML. La stima di lavoro originale non verrà modificata.',
@@ -848,7 +852,7 @@ const en: MessageTree = {
     save: 'Save',
     open: 'Open',
     reload: 'Reload',
-    noFileOpen: 'No file open. Save first.',
+    noFileOpen: 'No file saved. Save a first estimate to open it.',
     export: 'Export',
     import: 'Import',
     delete: 'Delete',
@@ -859,7 +863,7 @@ const en: MessageTree = {
     ore: 'hrs',
     expand: 'Expand',
     collapse: 'Collapse',
-    expandCol: 'Double-click: collapse/expand column',
+    expandCol: 'Collapse/expand column',
     dragRow: 'Drag to reorder row',
     dragColumn: 'Drag to reorder column',
     columns: 'Columns',
@@ -893,11 +897,11 @@ const en: MessageTree = {
   },
   export: {
     ai: 'YAML',
-    aiHint: 'Simple file for AI or reading. Not re-imported into HowLong.',
+    aiHint: 'Simple file for AI or reading. Not re-imported in HowLong.',
     excel: 'Excel',
     excelHint: 'Spreadsheet to share with other people.',
     backup: 'JSON (HowLong)',
-    backupHint: 'Full copy to reopen in HowLong.',
+    backupHint: 'Full copy to re-import in HowLong.',
   },
   settings: {
     title: 'Settings',
@@ -913,7 +917,7 @@ const en: MessageTree = {
     appearanceLight: 'Light',
     appearanceDark: 'Dark',
     username: 'Username',
-    usernameHelp: 'Label to recognize these settings (e.g. after an import)',
+    usernameHelp: 'User name using HowLong',
     usernamePh: 'username',
     info: 'About',
     infoBody:
@@ -921,13 +925,13 @@ const en: MessageTree = {
     dataFolder: 'Data folder',
     estimatesFolder: 'Estimates folder',
     estimatesFolderHelp:
-      'When you pick a folder (or reset to default), HowLong saves the preference and immediately loads any `.howlong.json` estimates found there.',
+      'Folder where HowLong saves preferences and loads estimates `.howlong.json` found there.',
     estimatesFolderActive: 'Active folder',
     estimatesFolderCustom: 'You are using a custom folder.',
     pickFolder: 'Choose folder…',
     resetFolder: 'Use default',
     folderLoaded: 'Loaded {n} estimates from the folder',
-    folderEmpty: 'Folder ready — no HowLong estimates found',
+    folderEmpty: 'Empty folder — no HowLong estimates found',
     importExport: 'Import / Export',
     tipImport:
       '**Import** — `.json` file with **settings + models**. Then **Save**.',
@@ -948,8 +952,8 @@ const en: MessageTree = {
     sectionExport: 'Export filename',
     sectionFolder: 'Estimates folder',
     sectionWorkspace: 'Workspace import / export',
-    estimateColumnsIntro: 'Columns shown when you open Estimate (after Save). Name stays visible.',
-    presentationIntro: 'Defaults for new estimates. You can override per estimate in Presentation view.',
+    estimateColumnsIntro: 'Columns shown when you open an estimate.',
+    presentationIntro: 'Defines the default visibility of columns in the Presentation view.',
     managerViewLegend: 'Manager view (edit)',
     clientOutputLegend: 'Client output (preview / export)',
     defaultManagerHideNotes: 'Hide notes',
@@ -1165,8 +1169,10 @@ const en: MessageTree = {
     presentedHours: 'Hours (h)',
     presentedDays: 'Days (D)',
     macroPresentation: 'Client presentation',
-    macroRollup: 'Macro only (sum)',
-    macroDetail: 'Sub-tasks',
+    macroSubsCol: 'Subs',
+    hideSubsCol: 'Hide subs column',
+    macroRollup: 'Macro only (sum; hides sub-tasks in export too)',
+    macroDetail: 'Show sub-tasks (in export too)',
     exported: 'Client view exported ({format}): {path}',
     editHint:
       'User edits will be visible in the Excel/YAML export. The working estimate stays unchanged.',

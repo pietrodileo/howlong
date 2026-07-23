@@ -16,10 +16,15 @@ export function getMacroClientPresentation(
   return estimate.clientView.macroPresentation?.[macroId] ?? 'detail';
 }
 
-/** Always show both macros and subtasks; only hide subtasks when macro is collapsed in UI. */
+/**
+ * Vista/export cliente: macro sempre in lista.
+ * rollup → nascondi sotto-task (ore restano sulla macro);
+ * detail → mostra sotto-task.
+ * Opzionale: hideCollapsedSubs per piega UI temporanea (non persistita).
+ */
 export function filterLinesForClientOutput(
   lines: ClientPresentedLine[],
-  _estimate: Estimate,
+  estimate: Estimate,
   options?: {
     hideCollapsedSubs?: boolean;
     isMacroCollapsed?: (macroId: string) => boolean;
@@ -32,6 +37,9 @@ export function filterLinesForClientOutput(
 
     const parentId = line.item.parentId;
     if (parentId) {
+      if (getMacroClientPresentation(estimate, parentId) === 'rollup') {
+        continue;
+      }
       if (
         options?.hideCollapsedSubs &&
         options.isMacroCollapsed?.(parentId)
@@ -42,14 +50,22 @@ export function filterLinesForClientOutput(
       continue;
     }
 
-    // Always show macros (with or without children)
     out.push(line);
   }
   return out;
 }
 
+/** Somma ore presentate senza doppio conteggio macro+figli. */
 export function sumClientOutputPresented(lines: ClientPresentedLine[]): number {
-  return lines.reduce((s, l) => s + l.hoursPresented, 0);
+  return lines.reduce((s, l) => {
+    if (l.item.parentId) return s + l.hoursPresented;
+    if (l.hasChildren) {
+      const childVisible = lines.some((c) => c.item.parentId === l.item.id);
+      if (childVisible) return s;
+      return s + l.hoursPresented;
+    }
+    return s + l.hoursPresented;
+  }, 0);
 }
 
 export function buildClientPresentedLines(

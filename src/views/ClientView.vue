@@ -28,11 +28,14 @@ import {
 import { useRowDragReorder } from '../lib/useRowDragReorder';
 import {
   filterLinesForClientOutput,
+  getMacroClientPresentation,
   sumClientOutputPresented,
   type ClientPresentedLine,
 } from '../lib/clientPresentation';
 import { useI18n } from '../i18n/useI18n';
 import { toErrorMessage } from '../lib/errors';
+import { readTextFile, isTauri } from '../lib/tauri';
+import { importEstimateText } from '../lib/import';
 
 const NOTES_PREVIEW_MAX = 72;
 
@@ -57,7 +60,7 @@ const notesEditId = ref<string | null>(null);
 const managerExportMenuOpen = ref(false);
 const clientExportMenuOpen = ref(false);
 const resetConfirmOpen = ref(false);
-const clientPreviewCollapsed = ref<Set<string>>(new Set());
+const reloadConfirmOpen = ref(false);
 
 function onShowVisibleChange(id: string, visible: boolean) {
   estimate.setClientVisible(id, visible);
@@ -219,6 +222,51 @@ async function onSave() {
   }
 }
 
+function onReload() {
+  if (!estimate.filePath) {
+    ui.notify(t('common.noFileOpen'), true);
+    return;
+  }
+  if (estimate.dirty) {
+    reloadConfirmOpen.value = true;
+    return;
+  }
+  void doReload();
+}
+
+function cancelReload() {
+  reloadConfirmOpen.value = false;
+}
+
+async function confirmReload() {
+  reloadConfirmOpen.value = false;
+  await doReload();
+}
+
+async function doReload() {
+  const path = estimate.filePath;
+  if (!path) {
+    ui.notify(t('common.noFileOpen'), true);
+    return;
+  }
+  if (!isTauri()) {
+    ui.notify(t('library.desktopOnly'), true);
+    return;
+  }
+  try {
+    const text = await readTextFile(path);
+    const result = await importEstimateText(text, 'json');
+    if (!result.ok) {
+      ui.notify(result.error, true);
+      return;
+    }
+    estimate.setEstimate(result.data, path);
+    ui.notify(t('working.reloaded'));
+  } catch (e) {
+    ui.notify(toErrorMessage(e), true);
+  }
+}
+
 function onRedistribute(id: string) {
   const ok = estimate.redistributeClientLine(id);
   if (ok) ui.notify(t('client.redistributeOk'));
@@ -226,10 +274,7 @@ function onRedistribute(id: string) {
 }
 
 const visibleClientLines = computed(() =>
-  filterLinesForClientOutput(estimate.clientLines, estimate.estimate, {
-    hideCollapsedSubs: true,
-    isMacroCollapsed: (id) => clientPreviewCollapsed.value.has(id),
-  }),
+  filterLinesForClientOutput(estimate.clientLines, estimate.estimate),
 );
 
 const clientOutputTotalPresented = computed(() =>
@@ -289,20 +334,30 @@ const allClientPreviewMacrosExpanded = computed(() => {
     (l) => l.isMacro && l.hasChildren && l.item.clientVisible,
   );
   if (macros.length === 0) return true;
-  return macros.every((m) => !clientPreviewCollapsed.value.has(m.item.id));
+  return macros.every(
+    (m) => getMacroClientPresentation(estimate.estimate, m.item.id) === 'detail',
+  );
 });
 
 function toggleAllClientPreviewMacros() {
   const macros = estimate.clientLines.filter(
     (l) => l.isMacro && l.hasChildren && l.item.clientVisible,
   );
-  const expand = !allClientPreviewMacrosExpanded.value;
-  const next = new Set(clientPreviewCollapsed.value);
+  const mode = allClientPreviewMacrosExpanded.value ? 'rollup' : 'detail';
+  const next = { ...(estimate.estimate.clientView.macroPresentation ?? {}) };
   for (const m of macros) {
-    if (expand) next.delete(m.item.id);
-    else next.add(m.item.id);
+    if (mode === 'detail') delete next[m.item.id];
+    else next[m.item.id] = 'rollup';
   }
-  clientPreviewCollapsed.value = next;
+  estimate.updateClientView({ macroPresentation: next });
+}
+
+function onMacroShowSubsChange(macroId: string, show: boolean) {
+  estimate.setMacroPresentation(macroId, show ? 'detail' : 'rollup');
+}
+
+function macroShowsSubs(macroId: string): boolean {
+  return getMacroClientPresentation(estimate.estimate, macroId) === 'detail';
 }
 
 function onHeaderDblClick(key: ManagerColumnKey) {
@@ -315,6 +370,8 @@ function onClientOutputHeaderDblClick(key: ClientOutputColumnKey) {
 
 function clientOutputColumnLabel(key: ClientOutputColumnKey): string {
   switch (key) {
+    case 'subs':
+      return t('client.macroSubsCol');
     case 'name':
       return t('client.activity');
     case 'tags':
@@ -332,6 +389,8 @@ function clientOutputColumnLabel(key: ClientOutputColumnKey): string {
 
 function clientOutputColumnAbbr(key: ClientOutputColumnKey): string {
   switch (key) {
+    case 'subs':
+      return '▾';
     case 'name':
       return 'N';
     case 'tags':
@@ -348,6 +407,7 @@ function clientOutputColumnAbbr(key: ClientOutputColumnKey): string {
 }
 
 function clientOutputHeaderTitle(key: ClientOutputColumnKey): string {
+  if (key === 'subs') return t('client.macroPresentation');
   if (key === 'hours' || key === 'days') return clientOutputColumnLabel(key);
   return `${clientOutputColumnLabel(key)} · ${t('common.expandCol')}`;
 }
@@ -451,6 +511,14 @@ async function onExportFromMenu(
           @click="onReset"
         >
           {{ t('client.reset') }}
+        </button>
+        <button
+          type="button"
+          class="ghost"
+          :title="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
+          @click="onReload"
+        >
+          {{ t('common.reload') }}
         </button>
         <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
         <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
@@ -821,6 +889,14 @@ async function onExportFromMenu(
             <label class="check compact">
               <input
                 type="checkbox"
+                :checked="!clientCols.isVisible('subs')"
+                @change="clientCols.toggleVisible('subs')"
+              />
+              {{ t('client.hideSubsCol') }}
+            </label>
+            <label class="check compact">
+              <input
+                type="checkbox"
                 :checked="estimate.estimate.clientView.hideClientNotes"
                 @change="estimate.updateClientView({ hideClientNotes: ($event.target as HTMLInputElement).checked })"
               />
@@ -873,7 +949,10 @@ async function onExportFromMenu(
                 v-for="key in clientOutputColumnKeys"
                 :key="key"
                 class="resizable"
-                :class="{ collapsed: clientCols.collapsed[key] }"
+                :class="{
+                  collapsed: clientCols.collapsed[key],
+                  'show-th': key === 'subs',
+                }"
                 :style="clientCols.styleFor(key)"
                 :title="clientOutputHeaderTitle(key)"
                 draggable="true"
@@ -883,18 +962,23 @@ async function onExportFromMenu(
                 @drop="clientCols.onColDrop(key, $event)"
                 @dragend="clientCols.onColDragEnd"
               >
-                <div class="th-inner th-drag">
-                  <button
-                    v-if="key === 'name'"
-                    type="button"
-                    class="collapse all"
-                    :aria-label="allClientPreviewMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
-                    @click.stop="toggleAllClientPreviewMacros"
-                  >
-                    {{ allClientPreviewMacrosExpanded ? '▾' : '▸' }}
-                  </button>
-                  <span v-if="!clientCols.collapsed[key]">{{ clientOutputColumnLabel(key) }}</span>
-                  <span v-else class="abbr">{{ clientOutputColumnAbbr(key) }}</span>
+                <div class="th-inner th-drag" :class="{ center: key === 'subs' }">
+                  <input
+                    v-if="key === 'subs' && !clientCols.collapsed.subs"
+                    type="checkbox"
+                    class="macro-subs-check"
+                    :checked="allClientPreviewMacrosExpanded"
+                    :title="allClientPreviewMacrosExpanded ? t('client.macroRollup') : t('client.macroDetail')"
+                    :aria-label="allClientPreviewMacrosExpanded ? t('client.macroRollup') : t('client.macroDetail')"
+                    @click.stop.prevent="toggleAllClientPreviewMacros"
+                  />
+                  <span v-else-if="key === 'subs' && clientCols.collapsed.subs" class="abbr">{{
+                    clientOutputColumnAbbr(key)
+                  }}</span>
+                  <span v-else-if="key !== 'subs' && !clientCols.collapsed[key]">{{
+                    clientOutputColumnLabel(key)
+                  }}</span>
+                  <span v-else-if="key !== 'subs'" class="abbr">{{ clientOutputColumnAbbr(key) }}</span>
                 </div>
                 <span
                   class="col-resizer"
@@ -916,7 +1000,23 @@ async function onExportFromMenu(
             >
               <template v-for="key in clientOutputColumnKeys" :key="key">
                 <td
-                  v-if="key === 'name'"
+                  v-if="key === 'subs'"
+                  class="pad center show-cell"
+                  :style="clientCols.styleFor('subs')"
+                  :class="{ collapsed: clientCols.collapsed.subs }"
+                >
+                  <input
+                    v-if="!clientCols.collapsed.subs && line.isMacro && line.hasChildren"
+                    type="checkbox"
+                    class="macro-subs-check"
+                    :checked="macroShowsSubs(line.item.id)"
+                    :title="macroShowsSubs(line.item.id) ? t('client.macroDetail') : t('client.macroRollup')"
+                    :aria-label="macroShowsSubs(line.item.id) ? t('client.macroDetail') : t('client.macroRollup')"
+                    @change="onMacroShowSubsChange(line.item.id, ($event.target as HTMLInputElement).checked)"
+                  />
+                </td>
+                <td
+                  v-else-if="key === 'name'"
                   class="pad name-wrap"
                   :style="clientCols.styleFor('name')"
                   :class="{ collapsed: clientCols.collapsed.name }"
@@ -1022,6 +1122,16 @@ async function onExportFromMenu(
       danger
       @cancel="cancelReset"
       @confirm="confirmReset"
+    />
+
+    <ConfirmModal
+      :open="reloadConfirmOpen"
+      :title="t('working.unsavedTitle')"
+      :message="t('working.unsavedBody')"
+      :confirm-label="t('working.unsavedDiscard')"
+      danger
+      @cancel="cancelReload"
+      @confirm="confirmReload"
     />
   </div>
 </template>
@@ -1432,6 +1542,19 @@ th.collapsed {
   flex-shrink: 0;
 }
 
+.macro-subs-check {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.th-inner.center {
+  justify-content: center;
+}
+
 .pad {
   padding: 0.55rem 0.65rem;
 }
@@ -1517,7 +1640,7 @@ tr.hidden .num {
 }
 
 tr.overridden td {
-  background: color-mix(in srgb, var(--accent-soft, #e8eef0) 55%, transparent);
+  background: color-mix(in srgb, var(--override-soft) 72%, var(--surface));
 }
 
 .notes-cell {
@@ -1575,7 +1698,7 @@ tr.overridden td {
 }
 
 .macro.overridden td {
-  background: color-mix(in srgb, var(--accent-soft, #e8eef0) 70%, var(--page-soft));
+  background: color-mix(in srgb, var(--override-soft) 65%, var(--page-soft));
 }
 
 .macro .notes-preview,

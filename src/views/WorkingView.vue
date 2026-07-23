@@ -353,8 +353,12 @@ async function doOpen() {
   ui.notify(t('working.opened'));
 }
 
+async function onReload() {
+  requestIfClean(() => doReload());
+}
+
 async function doReload() {
-  const path = estimate.filePath.value;
+  const path = estimate.filePath;
   if (!path) {
     ui.notify(t('common.noFileOpen'), true);
     return;
@@ -673,6 +677,14 @@ function onHeaderDblClick(key: ColumnKey) {
             </div>
           </div>
           <button type="button" class="ghost" @click="onOpen">{{ t('common.open') }}</button>
+          <button
+            type="button"
+            class="ghost"
+            :title="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
+            @click="onReload"
+          >
+            {{ t('common.reload') }}
+          </button>
           <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
           <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
         </div>

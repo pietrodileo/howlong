@@ -32,7 +32,7 @@ export type ManagerColumnKey =
   | 'notes'
   | 'actions';
 
-export type ClientOutputColumnKey = 'name' | 'tags' | 'notes' | 'hours' | 'days';
+export type ClientOutputColumnKey = 'subs' | 'name' | 'tags' | 'notes' | 'hours' | 'days';
 
 /** Colonne selezionabili (Nome resta sempre visibile). */
 export const TOGGLEABLE_COLUMNS: ColumnKey[] = [
@@ -164,6 +164,7 @@ const MANAGER_DEFAULT_ORDER: ManagerColumnKey[] = [
 ];
 
 const CLIENT_OUTPUT_DEFAULT_WIDTHS: Record<ClientOutputColumnKey, number> = {
+  subs: 52,
   name: 280,
   tags: 160,
   notes: 200,
@@ -172,6 +173,7 @@ const CLIENT_OUTPUT_DEFAULT_WIDTHS: Record<ClientOutputColumnKey, number> = {
 };
 
 const CLIENT_OUTPUT_DEFAULT_VISIBLE: Record<ClientOutputColumnKey, boolean> = {
+  subs: true,
   name: true,
   tags: true,
   notes: true,
@@ -180,6 +182,7 @@ const CLIENT_OUTPUT_DEFAULT_VISIBLE: Record<ClientOutputColumnKey, boolean> = {
 };
 
 const CLIENT_OUTPUT_DEFAULT_ORDER: ClientOutputColumnKey[] = [
+  'subs',
   'name',
   'tags',
   'notes',

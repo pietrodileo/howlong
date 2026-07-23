@@ -49,7 +49,7 @@ export const ClientViewSchema = z.object({
   titleOverride: z.string().default(''),
   /** Ritocchi presentazione in vista cliente (ore canoniche). */
   lineOverrides: z.record(z.string(), ClientLineOverrideSchema).default({}),
-  /** Per macro id: rollup = solo riga macro con somma; detail = solo sotto-task. */
+  /** Per macro id: rollup = solo macro (ore aggregate); detail = macro + sotto-task. */
   macroPresentation: z
     .record(z.string(), MacroClientPresentationModeSchema)
     .default({}),
