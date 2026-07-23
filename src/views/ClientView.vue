@@ -61,6 +61,8 @@ const managerExportMenuOpen = ref(false);
 const clientExportMenuOpen = ref(false);
 const resetConfirmOpen = ref(false);
 const reloadConfirmOpen = ref(false);
+/** Solo UI: piega sotto-task in vista cliente (non tocca export). */
+const clientPreviewCollapsed = ref<Set<string>>(new Set());
 
 function onShowVisibleChange(id: string, visible: boolean) {
   estimate.setClientVisible(id, visible);
@@ -274,7 +276,10 @@ function onRedistribute(id: string) {
 }
 
 const visibleClientLines = computed(() =>
-  filterLinesForClientOutput(estimate.clientLines, estimate.estimate),
+  filterLinesForClientOutput(estimate.clientLines, estimate.estimate, {
+    hideCollapsedSubs: true,
+    isMacroCollapsed: (id) => clientPreviewCollapsed.value.has(id),
+  }),
 );
 
 const clientOutputTotalPresented = computed(() =>
@@ -329,7 +334,8 @@ function toggleAllMacros() {
   }
 }
 
-const allClientPreviewMacrosExpanded = computed(() => {
+/** Flag persistito: tutti i macro mostrano i sotto-task (export compreso). */
+const allClientMacrosShowSubs = computed(() => {
   const macros = estimate.clientLines.filter(
     (l) => l.isMacro && l.hasChildren && l.item.clientVisible,
   );
@@ -339,14 +345,13 @@ const allClientPreviewMacrosExpanded = computed(() => {
   );
 });
 
-function toggleAllClientPreviewMacros() {
+function onAllClientShowSubsChange(show: boolean) {
   const macros = estimate.clientLines.filter(
     (l) => l.isMacro && l.hasChildren && l.item.clientVisible,
   );
-  const mode = allClientPreviewMacrosExpanded.value ? 'rollup' : 'detail';
   const next = { ...(estimate.estimate.clientView.macroPresentation ?? {}) };
   for (const m of macros) {
-    if (mode === 'detail') delete next[m.item.id];
+    if (show) delete next[m.item.id];
     else next[m.item.id] = 'rollup';
   }
   estimate.updateClientView({ macroPresentation: next });
@@ -358,6 +363,47 @@ function onMacroShowSubsChange(macroId: string, show: boolean) {
 
 function macroShowsSubs(macroId: string): boolean {
   return getMacroClientPresentation(estimate.estimate, macroId) === 'detail';
+}
+
+/** Solo UI: tutti i macro espansi in anteprima. */
+const allClientPreviewMacrosExpanded = computed(() => {
+  const macros = estimate.clientLines.filter(
+    (l) =>
+      l.isMacro &&
+      l.hasChildren &&
+      l.item.clientVisible &&
+      getMacroClientPresentation(estimate.estimate, l.item.id) === 'detail',
+  );
+  if (macros.length === 0) return true;
+  return macros.every((m) => !clientPreviewCollapsed.value.has(m.item.id));
+});
+
+function toggleAllClientPreviewMacros() {
+  const macros = estimate.clientLines.filter(
+    (l) =>
+      l.isMacro &&
+      l.hasChildren &&
+      l.item.clientVisible &&
+      getMacroClientPresentation(estimate.estimate, l.item.id) === 'detail',
+  );
+  const expand = !allClientPreviewMacrosExpanded.value;
+  const next = new Set(clientPreviewCollapsed.value);
+  for (const m of macros) {
+    if (expand) next.delete(m.item.id);
+    else next.add(m.item.id);
+  }
+  clientPreviewCollapsed.value = next;
+}
+
+function toggleClientPreviewMacro(macroId: string) {
+  const next = new Set(clientPreviewCollapsed.value);
+  if (next.has(macroId)) next.delete(macroId);
+  else next.add(macroId);
+  clientPreviewCollapsed.value = next;
+}
+
+function isClientPreviewCollapsed(macroId: string): boolean {
+  return clientPreviewCollapsed.value.has(macroId);
 }
 
 function onHeaderDblClick(key: ManagerColumnKey) {
@@ -390,7 +436,7 @@ function clientOutputColumnLabel(key: ClientOutputColumnKey): string {
 function clientOutputColumnAbbr(key: ClientOutputColumnKey): string {
   switch (key) {
     case 'subs':
-      return '▾';
+      return 'S';
     case 'name':
       return 'N';
     case 'tags':
@@ -889,14 +935,6 @@ async function onExportFromMenu(
             <label class="check compact">
               <input
                 type="checkbox"
-                :checked="!clientCols.isVisible('subs')"
-                @change="clientCols.toggleVisible('subs')"
-              />
-              {{ t('client.hideSubsCol') }}
-            </label>
-            <label class="check compact">
-              <input
-                type="checkbox"
                 :checked="estimate.estimate.clientView.hideClientNotes"
                 @change="estimate.updateClientView({ hideClientNotes: ($event.target as HTMLInputElement).checked })"
               />
@@ -963,15 +1001,30 @@ async function onExportFromMenu(
                 @dragend="clientCols.onColDragEnd"
               >
                 <div class="th-inner th-drag" :class="{ center: key === 'subs' }">
-                  <input
-                    v-if="key === 'subs' && !clientCols.collapsed.subs"
-                    type="checkbox"
-                    class="macro-subs-check"
-                    :checked="allClientPreviewMacrosExpanded"
-                    :title="allClientPreviewMacrosExpanded ? t('client.macroRollup') : t('client.macroDetail')"
-                    :aria-label="allClientPreviewMacrosExpanded ? t('client.macroRollup') : t('client.macroDetail')"
-                    @click.stop.prevent="toggleAllClientPreviewMacros"
-                  />
+                  <template v-if="key === 'subs' && !clientCols.collapsed.subs">
+                    <input
+                      type="checkbox"
+                      :checked="allClientMacrosShowSubs"
+                      :title="allClientMacrosShowSubs ? t('client.macroRollup') : t('client.macroDetail')"
+                      :aria-label="allClientMacrosShowSubs ? t('client.macroRollup') : t('client.macroDetail')"
+                      @click.stop
+                      @change="onAllClientShowSubsChange(($event.target as HTMLInputElement).checked)"
+                    />
+                    <span>{{ clientOutputColumnLabel(key) }}</span>
+                  </template>
+                  <template v-else-if="key === 'name'">
+                    <button
+                      type="button"
+                      class="collapse all"
+                      :aria-label="allClientPreviewMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
+                      :title="allClientPreviewMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
+                      @click.stop="toggleAllClientPreviewMacros"
+                    >
+                      {{ allClientPreviewMacrosExpanded ? '▾' : '▸' }}
+                    </button>
+                    <span v-if="!clientCols.collapsed[key]">{{ clientOutputColumnLabel(key) }}</span>
+                    <span v-else class="abbr">{{ clientOutputColumnAbbr(key) }}</span>
+                  </template>
                   <span v-else-if="key === 'subs' && clientCols.collapsed.subs" class="abbr">{{
                     clientOutputColumnAbbr(key)
                   }}</span>
@@ -1008,7 +1061,6 @@ async function onExportFromMenu(
                   <input
                     v-if="!clientCols.collapsed.subs && line.isMacro && line.hasChildren"
                     type="checkbox"
-                    class="macro-subs-check"
                     :checked="macroShowsSubs(line.item.id)"
                     :title="macroShowsSubs(line.item.id) ? t('client.macroDetail') : t('client.macroRollup')"
                     :aria-label="macroShowsSubs(line.item.id) ? t('client.macroDetail') : t('client.macroRollup')"
@@ -1034,6 +1086,17 @@ async function onExportFromMenu(
                       @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                       @dragend="rowDrag.onDragEnd"
                     >⋮⋮</span>
+                    <button
+                      v-if="line.isMacro && line.hasChildren && macroShowsSubs(line.item.id)"
+                      type="button"
+                      class="collapse"
+                      :aria-expanded="!isClientPreviewCollapsed(line.item.id)"
+                      :aria-label="isClientPreviewCollapsed(line.item.id) ? t('common.expand') : t('common.collapse')"
+                      @click="toggleClientPreviewMacro(line.item.id)"
+                    >
+                      {{ isClientPreviewCollapsed(line.item.id) ? '▸' : '▾' }}
+                    </button>
+                    <span v-else class="collapse-spacer" aria-hidden="true" />
                     <span class="activity-name">{{ line.item.name }}</span>
                   </div>
                 </td>
@@ -1540,15 +1603,6 @@ th.collapsed {
   display: inline-block;
   width: 1.4rem;
   flex-shrink: 0;
-}
-
-.macro-subs-check {
-  width: 1rem;
-  height: 1rem;
-  margin: 0;
-  flex-shrink: 0;
-  cursor: pointer;
-  accent-color: var(--accent);
 }
 
 .th-inner.center {
