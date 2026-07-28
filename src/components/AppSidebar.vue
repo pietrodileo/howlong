@@ -17,6 +17,7 @@ const settingsStore = useSettingsStore();
 const { sidebarCollapsed, sidebarWidth, currentView } = storeToRefs(ui);
 const { t } = useI18n();
 const sidebarResizing = ref(false);
+const suppressToggleChrome = ref(false);
 
 const username = computed(() => settingsStore.settings.username?.trim() || '');
 
@@ -39,8 +40,15 @@ function go(view: AppView) {
   ui.navigate(view);
 }
 
-function onToggleSidebar() {
+function onToggleSidebar(e: MouseEvent) {
+  suppressToggleChrome.value = true;
   ui.toggleSidebar();
+  const el = e.currentTarget;
+  if (el instanceof HTMLElement) el.blur();
+}
+
+function onBrandToggleLeave() {
+  suppressToggleChrome.value = false;
 }
 
 function startSidebarResize(e: MouseEvent) {
@@ -87,10 +95,10 @@ onUnmounted(() => {
     :style="sidebarStyle"
     :aria-label="t('nav.navigation')"
   >
-    <div class="side-top">
-      <div v-show="!sidebarCollapsed" class="brand">
-        <p class="tagline">Effort, made obvious.</p>
-        <div class="brand-row">
+    <div class="side-top" :class="{ 'is-collapsed': sidebarCollapsed }">
+      <div v-show="!sidebarCollapsed" class="brand" data-tauri-drag-region>
+        <p class="tagline" data-tauri-drag-region>Effort, made obvious.</p>
+        <div class="brand-row" data-tauri-drag-region>
           <img
             class="brand-mark"
             src="/howlong-icon.png"
@@ -98,30 +106,39 @@ onUnmounted(() => {
             height="40"
             alt=""
             draggable="false"
+            data-tauri-drag-region
           />
-          <h1>HowLong?</h1>
+          <h1 data-tauri-drag-region>HowLong?</h1>
         </div>
-        <p v-if="username" class="user">{{ username }}</p>
+        <p v-if="username" class="user" data-tauri-drag-region>{{ username }}</p>
       </div>
-      <img
-        v-show="sidebarCollapsed"
-        class="brand-mark collapsed-mark"
-        src="/howlong-icon.png"
-        width="32"
-        height="32"
-        alt="HowLong?"
-        draggable="false"
-      />
-      <button
-        type="button"
-        class="toggle"
-        :title="sidebarCollapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')"
-        :aria-expanded="!sidebarCollapsed"
-        :aria-label="sidebarCollapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')"
-        @click.stop.prevent="onToggleSidebar"
+      <div
+        class="brand-toggle"
+        :class="{ collapsed: sidebarCollapsed, 'suppress-hover': suppressToggleChrome }"
+        @mouseleave="onBrandToggleLeave"
       >
-        {{ sidebarCollapsed ? '»' : '«' }}
-      </button>
+        <img
+          v-show="sidebarCollapsed"
+          class="brand-mark collapsed-mark"
+          src="/howlong-icon.png"
+          width="32"
+          height="32"
+          alt="HowLong?"
+          draggable="false"
+        />
+        <button
+          type="button"
+          class="toggle"
+          :aria-expanded="!sidebarCollapsed"
+          :aria-label="sidebarCollapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')"
+          @click.stop.prevent="onToggleSidebar"
+        >
+          {{ sidebarCollapsed ? '»' : '«' }}
+          <span class="toggle-tip" role="tooltip">
+            {{ sidebarCollapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar') }}
+          </span>
+        </button>
+      </div>
     </div>
 
     <nav>
@@ -131,7 +148,7 @@ onUnmounted(() => {
         type="button"
         class="nav-item"
         :class="{ active: currentView === item.id }"
-        :title="item.label"
+        :aria-label="item.label"
         @click="go(item.id)"
       >
         <span class="mark" aria-hidden="true">
@@ -201,6 +218,7 @@ onUnmounted(() => {
           </svg>
         </span>
         <span v-show="!sidebarCollapsed" class="label">{{ item.label }}</span>
+        <span class="side-tip" role="tooltip">{{ item.label }}</span>
       </button>
     </nav>
 
@@ -208,7 +226,7 @@ onUnmounted(() => {
       <button
         type="button"
         class="nav-item"
-        :title="t('nav.about')"
+        :aria-label="t('nav.about')"
         @click="ui.showAbout()"
       >
         <span class="mark" aria-hidden="true">
@@ -228,6 +246,7 @@ onUnmounted(() => {
           </svg>
         </span>
         <span v-show="!sidebarCollapsed" class="label">{{ t('nav.about') }}</span>
+        <span class="side-tip" role="tooltip">{{ t('nav.about') }}</span>
       </button>
     </div>
 
@@ -236,7 +255,7 @@ onUnmounted(() => {
       role="separator"
       aria-orientation="vertical"
       :aria-label="t('nav.resizeSidebar')"
-      :title="t('nav.resizeSidebar')"
+      v-tip="t('nav.resizeSidebar')"
       @mousedown="startSidebarResize"
       @dblclick.stop="onToggleSidebar"
     />
@@ -246,14 +265,16 @@ onUnmounted(() => {
 <style scoped>
 .sidebar {
   position: relative;
+  z-index: 30;
   width: var(--sidebar-w, 228px);
   min-width: var(--sidebar-w, 228px);
   max-width: var(--sidebar-w, 228px);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  overflow: hidden;
+  height: 100%;
+  min-height: 0;
+  overflow: visible;
   background: var(--sidebar-bg);
   border-right: 1px solid color-mix(in srgb, var(--line) 85%, transparent);
   backdrop-filter: blur(10px);
@@ -311,6 +332,12 @@ onUnmounted(() => {
   position: relative;
 }
 
+.side-top.is-collapsed {
+  justify-content: center;
+  align-items: center;
+  min-height: 2.4rem;
+}
+
 .brand {
   flex: 1 1 auto;
   min-width: 0;
@@ -337,6 +364,7 @@ onUnmounted(() => {
   width: 32px;
   height: 32px;
   margin: 0;
+  transition: opacity 0.15s ease;
 }
 
 .brand .tagline {
@@ -372,34 +400,131 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.toggle {
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--muted);
-  width: 1.9rem;
-  height: 1.9rem;
-  padding: 0;
-  border-radius: var(--radius-sm);
+.brand-toggle {
   flex-shrink: 0;
-  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.brand-toggle.collapsed {
+  width: 40px;
+  height: 40px;
+}
+
+.toggle {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-size: 0.85rem;
   line-height: 1;
   box-shadow: none;
   position: relative;
   z-index: 2;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
 
-.toggle:hover {
+.toggle:hover,
+.toggle:focus-visible {
   color: var(--ink);
-  border-color: var(--line-strong);
-  background: var(--page-soft);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  outline: none;
+}
+
+.toggle-tip,
+.side-tip {
+  position: absolute;
+  left: calc(100% + 0.65rem);
+  top: 50%;
+  transform: translate(-4px, -50%);
+  padding: 0.42rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+  background: var(--toast-bg);
+  color: var(--toast-fg);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 40;
+  box-shadow: var(--shadow-menu);
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+}
+
+.toggle:hover .toggle-tip,
+.toggle:focus-visible .toggle-tip {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.brand-toggle.collapsed .toggle {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.brand-toggle.collapsed:hover .toggle,
+.brand-toggle.collapsed:focus-within .toggle {
+  opacity: 1;
+  pointer-events: auto;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.brand-toggle.collapsed:hover .collapsed-mark,
+.brand-toggle.collapsed:focus-within .collapsed-mark {
+  opacity: 0;
+}
+
+.brand-toggle.collapsed:hover .toggle-tip,
+.brand-toggle.collapsed:focus-within .toggle-tip {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.brand-toggle.suppress-hover.collapsed:hover .toggle,
+.brand-toggle.suppress-hover.collapsed:focus-within .toggle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.brand-toggle.suppress-hover.collapsed:hover .collapsed-mark,
+.brand-toggle.suppress-hover.collapsed:focus-within .collapsed-mark {
+  opacity: 1;
+}
+
+.brand-toggle.suppress-hover .toggle-tip,
+.brand-toggle.suppress-hover .toggle:hover .toggle-tip,
+.brand-toggle.suppress-hover .toggle:focus-visible .toggle-tip,
+.brand-toggle.suppress-hover.collapsed:hover .toggle-tip,
+.brand-toggle.suppress-hover.collapsed:focus-within .toggle-tip {
+  opacity: 0;
+  transform: translate(-4px, -50%);
 }
 
 .sidebar.collapsed .side-top {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 0.35rem;
+  gap: 0;
 }
 
 .sidebar.collapsed .collapsed-mark {
@@ -428,6 +553,7 @@ nav {
   font-weight: 500;
   cursor: pointer;
   min-width: 0;
+  position: relative;
 }
 
 .nav-item:hover {
@@ -472,6 +598,12 @@ nav {
 .sidebar.collapsed .nav-item {
   justify-content: center;
   padding: 0.55rem 0.35rem;
+}
+
+.sidebar.collapsed .nav-item:hover .side-tip,
+.sidebar.collapsed .nav-item:focus-visible .side-tip {
+  opacity: 1;
+  transform: translate(0, -50%);
 }
 
 .side-foot {

@@ -243,7 +243,7 @@ onUnmounted(() => {
 <template>
   <div class="library">
     <header class="hero">
-      <p v-if="folderPath" class="path" :title="folderPath">{{ folderPath }}</p>
+      <p v-if="folderPath" class="path" v-tip="folderPath">{{ folderPath }}</p>
       <p v-else-if="!isTauri()" class="path muted">{{ t('library.desktopOnly') }}</p>
       <button type="button" class="ghost" :disabled="library.loading || busy" @click="refresh">
         {{ t('library.refresh') }}
@@ -261,7 +261,7 @@ onUnmounted(() => {
       <button
         type="button"
         class="ghost"
-        :title="t('library.importHint')"
+        v-tip="t('library.importHint')"
         :disabled="busy || !isTauri()"
         @click="onImport"
       >
@@ -271,7 +271,7 @@ onUnmounted(() => {
         <button
           type="button"
           class="ghost"
-          :title="t('library.exportHint')"
+          v-tip="t('library.exportHint')"
           :disabled="busy || selectedCount === 0"
           :aria-expanded="exportMenuOpen"
           @click.stop="toggleExportMenu"
@@ -291,7 +291,11 @@ onUnmounted(() => {
           </button>
         </div>
       </div>
-      <button type="button" class="ghost" @click="ui.navigate('settings')">
+      <button
+        type="button"
+        class="ghost"
+        @click="ui.navigate('settings', { section: 'folder' })"
+      >
         {{ t('library.changeFolder') }}
       </button>
     </div>
@@ -336,7 +340,7 @@ onUnmounted(() => {
             class="title-input"
             :value="entry.title"
             :aria-label="t('library.renameAria')"
-            :title="t('library.renameHint')"
+            v-tip="t('library.renameHint')"
             @click.stop
             @keydown.enter.prevent="($event.target as HTMLInputElement).blur()"
             @change="onTitleChange(entry, ($event.target as HTMLInputElement).value)"

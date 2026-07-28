@@ -594,7 +594,7 @@ function onHeaderDblClick(key: ColumnKey) {
               <button
                 type="button"
                 role="menuitem"
-                :title="t('export.aiHint')"
+                v-tip="t('export.aiHint')"
                 @click="onExport('yaml'); exportMenuOpen = false"
               >
                 {{ t('export.ai') }}
@@ -602,7 +602,7 @@ function onHeaderDblClick(key: ColumnKey) {
               <button
                 type="button"
                 role="menuitem"
-                :title="t('export.excelHint')"
+                v-tip="t('export.excelHint')"
                 @click="onExport('xlsx'); exportMenuOpen = false"
               >
                 {{ t('export.excel') }}
@@ -610,7 +610,7 @@ function onHeaderDblClick(key: ColumnKey) {
               <button
                 type="button"
                 role="menuitem"
-                :title="t('export.backupHint')"
+                v-tip="t('export.backupHint')"
                 @click="onExport('json'); exportMenuOpen = false"
               >
                 {{ t('export.backup') }}
@@ -620,7 +620,7 @@ function onHeaderDblClick(key: ColumnKey) {
           <button
             type="button"
             class="ghost presentation-view-btn"
-            :title="t('working.clientViewTitle')"
+            v-tip="t('working.clientViewTitle')"
             @click="clientPreview = true"
           >
             {{ t('working.presentationView') }}
@@ -635,7 +635,7 @@ function onHeaderDblClick(key: ColumnKey) {
               <button
                 type="button"
                 class="ghost new-main"
-                :title="t('working.newFrom', { name: defaultModelLabel })"
+                v-tip="t('working.newFrom', { name: defaultModelLabel })"
                 @click="onNewFromDefault"
               >
                 <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
@@ -654,7 +654,7 @@ function onHeaderDblClick(key: ColumnKey) {
                 class="ghost new-caret"
                 :aria-expanded="newMenuOpen"
                 :aria-label="t('working.pickModel')"
-                :title="t('working.pickModel')"
+                v-tip="t('working.pickModel')"
                 @click.stop="toggleNewMenu"
               >
                 ▾
@@ -680,7 +680,7 @@ function onHeaderDblClick(key: ColumnKey) {
           <button
             type="button"
             class="ghost"
-            :title="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
+            v-tip="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
             @click="onReload"
           >
             {{ t('common.reload') }}
@@ -699,7 +699,7 @@ function onHeaderDblClick(key: ColumnKey) {
           <span class="stat-days">{{ formatDays(estimate.totals.totalBase, hoursPerDay) }} D</span>
         </strong>
       </div>
-      <div class="stat" :title="t('working.ctgSumTitle')">
+      <div class="stat" v-tip="t('working.ctgSumTitle')">
         <span>{{ t('common.ctg') }}</span>
         <strong>
           <span>{{ formatHours(estimate.totals.totalContingency) }} h</span>
@@ -730,7 +730,7 @@ function onHeaderDblClick(key: ColumnKey) {
 
           <label
             class="unit-field"
-            :title="t('working.hoursPerDayTitle')"
+            v-tip="t('working.hoursPerDayTitle')"
           >
             {{ t('working.oneDayEq') }}
             <input
@@ -798,7 +798,7 @@ function onHeaderDblClick(key: ColumnKey) {
               class="resizable"
               :class="{ collapsed: cols.collapsed[key] }"
               :style="cols.styleFor(key)"
-              :title="headerTitle(key)"
+              v-tip="headerTitle(key)"
               draggable="true"
               @dblclick="onHeaderDblClick(key)"
               @dragstart="cols.onColDragStart(key, $event)"
@@ -858,7 +858,7 @@ function onHeaderDblClick(key: ColumnKey) {
                     <span
                       class="drag-handle"
                       draggable="true"
-                      :title="t('common.dragRow')"
+                      v-tip="t('common.dragRow')"
                       :aria-label="t('common.dragRow')"
                       @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                       @dragend="rowDrag.onDragEnd"
@@ -877,7 +877,7 @@ function onHeaderDblClick(key: ColumnKey) {
                       v-else-if="line.isFormula || isFormulaItem(line.item)"
                       class="formula-mark"
                       aria-hidden="true"
-                      :title="t('working.formulaMark')"
+                      v-tip="t('working.formulaMark')"
                     >=</span>
                     <span v-else-if="!line.isMacro" class="task-mark" aria-hidden="true">·</span>
                     <span v-else class="collapse-spacer" aria-hidden="true" />
@@ -892,7 +892,7 @@ function onHeaderDblClick(key: ColumnKey) {
                       v-if="line.isFormula || isFormulaItem(line.item)"
                       type="button"
                       class="ghost formula-edit"
-                      :title="formulaHint(line.item)"
+                      v-tip="formulaHint(line.item)"
                       @click="openFormulaEditor(line.item.id)"
                     >
                       {{ line.item.formula ? formulaLabel(line.item.formula) : 'Σ' }}
@@ -900,7 +900,7 @@ function onHeaderDblClick(key: ColumnKey) {
                     <span
                       v-if="line.formulaError"
                       class="formula-err"
-                      :title="formulaErrorTitle(line.formulaError)"
+                      v-tip="formulaErrorTitle(line.formulaError)"
                     >!</span>
                   </div>
                 </td>
@@ -945,7 +945,7 @@ function onHeaderDblClick(key: ColumnKey) {
                     <span
                       v-else
                       class="readonly emph"
-                      :title="line.isFormula ? formulaHint(line.item) : undefined"
+                      v-tip="line.isFormula ? formulaHint(line.item) : undefined"
                     >{{ displayEffort(line.hoursBase) }}</span>
                   </template>
                 </td>
@@ -959,7 +959,7 @@ function onHeaderDblClick(key: ColumnKey) {
                     v-if="!cols.collapsed.applyCtg && line.item.kind !== 'summary'"
                     type="checkbox"
                     :checked="itemAppliesContingency(line.item)"
-                    :title="itemAppliesContingency(line.item) ? t('models.ctgOn') : t('models.ctgOff')"
+                    v-tip="itemAppliesContingency(line.item) ? t('models.ctgOn') : t('models.ctgOff')"
                     :aria-label="`Contingency su ${line.item.name}`"
                     @change="setApplyContingency(line.item.id, ($event.target as HTMLInputElement).checked)"
                   />
@@ -1026,7 +1026,7 @@ function onHeaderDblClick(key: ColumnKey) {
                       rows="2"
                       :value="line.item.notes"
                       :placeholder="t('working.notesPh')"
-                      :title="t('working.notesExpand')"
+                      v-tip="t('working.notesExpand')"
                       @input="estimate.updateItem(line.item.id, { notes: ($event.target as HTMLTextAreaElement).value })"
                       @dblclick="openNotesEditor(line.item.id)"
                     />
@@ -1128,7 +1128,7 @@ function onHeaderDblClick(key: ColumnKey) {
       <button
         type="button"
         class="ghost add"
-        :title="t('working.addFormulaTitle')"
+        v-tip="t('working.addFormulaTitle')"
         @click="onAddFormula"
       >
         {{ t('working.addFormula') }}

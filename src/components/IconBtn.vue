@@ -16,8 +16,8 @@ defineEmits<{ click: [e: MouseEvent] }>();
     type="button"
     class="icon-btn"
     :class="kind"
-    :title="label"
     :aria-label="label"
+    v-tip="label"
     :disabled="disabled"
     @click="$emit('click', $event)"
   >

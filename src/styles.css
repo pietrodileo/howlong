@@ -105,11 +105,13 @@ html.theme-dark {
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 #app {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 h1,
@@ -415,4 +417,31 @@ label.field textarea:focus,
 
 .muted {
   color: var(--muted);
+}
+
+/* App hover tips (v-tip) — replaces native title tooltips */
+.app-tip-bubble {
+  position: fixed;
+  z-index: 9999;
+  padding: 0.42rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+  background: var(--toast-bg);
+  color: var(--toast-fg);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  white-space: normal;
+  width: max-content;
+  max-width: min(22rem, calc(100vw - 1.5rem));
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: var(--shadow-menu);
+  transition: opacity 0.14s ease;
+}
+
+.app-tip-bubble.is-on {
+  opacity: 1;
 }

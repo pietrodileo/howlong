@@ -23,6 +23,8 @@ export const useModelsStore = defineStore('models', () => {
   const selectedId = ref<string | null>(null);
   const lastError = ref<string | null>(null);
   const dirty = ref(false);
+  /** Id su disco prima di un rename in corso (per cancellare il file vecchio al save). */
+  const pendingIdRenameFrom = ref<string | null>(null);
 
   function selected(): Model | null {
     return models.value.find((m) => m.id === selectedId.value) ?? null;
@@ -116,6 +118,19 @@ export const useModelsStore = defineStore('models', () => {
       return false;
     }
     await persist(parsed.data);
+    const renameFrom = pendingIdRenameFrom.value;
+    if (renameFrom && renameFrom !== parsed.data.id && isTauri()) {
+      try {
+        const dir = await ensureAppDefaults();
+        await deleteFile(await joinPath(dir, 'models', `${renameFrom}.howlong.json`));
+        if (renameFrom === DEFAULT_MODEL.id) {
+          await deleteFile(await joinPath(dir, 'models', 'default.howlong.json'));
+        }
+      } catch (e) {
+        lastError.value = toErrorMessage(e);
+      }
+    }
+    pendingIdRenameFrom.value = null;
     dirty.value = false;
     return true;
   }
@@ -125,6 +140,7 @@ export const useModelsStore = defineStore('models', () => {
     const model = createBlankModel(settings.settings);
     models.value.push(model);
     selectedId.value = model.id;
+    pendingIdRenameFrom.value = null;
     dirty.value = true;
   }
 
@@ -154,6 +170,7 @@ export const useModelsStore = defineStore('models', () => {
     }));
     models.value.push(copy);
     selectedId.value = copy.id;
+    pendingIdRenameFrom.value = null;
     dirty.value = true;
     return copy;
   }
@@ -161,7 +178,20 @@ export const useModelsStore = defineStore('models', () => {
   function updateSelected(patch: Partial<Model>) {
     const idx = models.value.findIndex((m) => m.id === selectedId.value);
     if (idx < 0) return;
+    const prevId = models.value[idx].id;
     models.value[idx] = { ...models.value[idx], ...patch };
+    if (patch.id !== undefined && patch.id !== prevId) {
+      if (pendingIdRenameFrom.value === null) {
+        pendingIdRenameFrom.value = prevId;
+      } else if (patch.id === pendingIdRenameFrom.value) {
+        pendingIdRenameFrom.value = null;
+      }
+      selectedId.value = patch.id;
+      const settings = useSettingsStore();
+      if (settings.settings.lastModelId === prevId) {
+        settings.settings.lastModelId = patch.id;
+      }
+    }
     dirty.value = true;
   }
 
@@ -264,6 +294,7 @@ export const useModelsStore = defineStore('models', () => {
     const id = m.id;
     models.value = models.value.filter((x) => x.id !== id);
     selectedId.value = models.value[0]?.id ?? null;
+    pendingIdRenameFrom.value = null;
     dirty.value = false;
     lastError.value = null;
 

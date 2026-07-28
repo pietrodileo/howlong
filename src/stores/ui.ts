@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 export type AppView = 'working' | 'library' | 'models' | 'settings';
+export type SettingsSection = 'folder';
 
 const SIDEBAR_KEY = 'howlong.sidebarCollapsed';
 const SIDEBAR_WIDTH_KEY = 'howlong.sidebarWidth';
@@ -24,6 +25,7 @@ function loadSidebarWidth(): number {
 
 export const useUiStore = defineStore('ui', () => {
   const currentView = ref<AppView>('working');
+  const settingsSection = ref<SettingsSection | null>(null);
   const aboutOpen = ref(false);
   const toast = ref<string | null>(null);
   const toastError = ref(false);
@@ -42,8 +44,16 @@ export const useUiStore = defineStore('ui', () => {
     }
   }
 
-  function navigate(view: AppView) {
+  function navigate(view: AppView, opts?: { section?: SettingsSection }) {
     currentView.value = view;
+    settingsSection.value = view === 'settings' ? (opts?.section ?? null) : null;
+  }
+
+  /** Legge e azzera la sezione Settings da aprire (one-shot). */
+  function consumeSettingsSection(): SettingsSection | null {
+    const section = settingsSection.value;
+    settingsSection.value = null;
+    return section;
   }
 
   function showAbout() {
@@ -89,12 +99,14 @@ export const useUiStore = defineStore('ui', () => {
 
   return {
     currentView,
+    settingsSection,
     aboutOpen,
     toast,
     toastError,
     sidebarCollapsed,
     sidebarWidth,
     navigate,
+    consumeSettingsSection,
     showAbout,
     hideAbout,
     toggleSidebar,

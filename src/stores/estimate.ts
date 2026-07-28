@@ -207,7 +207,7 @@ export const useEstimateStore = defineStore('estimate', () => {
   }
 
   /**
-   * Nasconde la riga (e i sotto-task se è macro) e spalmma le sue ore
+   * Nasconde la riga (e i sotto-task se è macro) e distribuisce le sue ore
    * sulle altre voci ancora visibili al cliente, in proporzione.
    */
   function redistributeClientLine(id: string): boolean {

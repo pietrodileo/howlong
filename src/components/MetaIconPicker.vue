@@ -52,7 +52,7 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocPointerDown))
       class="icon-trigger"
       :aria-label="t('models.iconLabel')"
       :aria-expanded="open"
-      :title="iconTitle(current())"
+      v-tip="iconTitle(current())"
       @click.stop="open = !open"
     >
       <ModelIcon :icon="current()" :name="name" :size="size" />
@@ -72,7 +72,7 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocPointerDown))
         role="option"
         :aria-selected="current() === opt"
         :class="{ active: current() === opt }"
-        :title="iconTitle(opt)"
+        v-tip="iconTitle(opt)"
         @click="pick(opt)"
       >
         <ModelIcon :icon="opt" :name="name" :size="15" />

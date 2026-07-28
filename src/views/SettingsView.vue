@@ -22,6 +22,7 @@ const ui = useUiStore();
 const { t, setLocale, locale } = useI18n();
 
 const resolvedEstimatesDir = ref('');
+const openFolderSection = ref(ui.consumeSettingsSection() === 'folder');
 
 async function refreshEstimatesDir() {
   if (!isTauri()) {
@@ -338,9 +339,9 @@ function onExportDateChange(checked: boolean) {
       </div>
     </SettingsPanel>
 
-    <SettingsPanel :title="t('settings.sectionFolder')">
+    <SettingsPanel :title="t('settings.sectionFolder')" :open="openFolderSection">
       <p class="field-hint">{{ t('settings.estimatesFolderHelp') }}</p>
-      <dl class="meta">
+      <dl class="meta folder-box">
         <dt>{{ t('settings.estimatesFolderActive') }}</dt>
         <dd class="path">{{ resolvedEstimatesDir || t('library.desktopOnly') }}</dd>
       </dl>
@@ -348,12 +349,12 @@ function onExportDateChange(checked: boolean) {
         {{ t('settings.estimatesFolderCustom') }}
       </p>
       <div class="chrome">
-        <button type="button" class="ghost" @click="onPickEstimatesDir">
+        <button type="button" class="settings-action" @click="onPickEstimatesDir">
           {{ t('settings.pickFolder') }}
         </button>
         <button
           type="button"
-          class="ghost"
+          class="settings-action"
           :disabled="!settings.settings.estimatesDir.trim()"
           @click="onResetEstimatesDir"
         >
@@ -363,13 +364,17 @@ function onExportDateChange(checked: boolean) {
     </SettingsPanel>
 
     <SettingsPanel :title="t('settings.sectionWorkspace')">
-      <ul class="tips">
+      <ul class="tips tip-box">
         <li v-html="md(t('settings.tipImport'))" />
         <li v-html="md(t('settings.tipExport'))" />
       </ul>
       <div class="chrome">
-        <button type="button" class="ghost" @click="onImport">{{ t('settings.import') }}</button>
-        <button type="button" class="ghost" @click="onExport">{{ t('settings.export') }}</button>
+        <button type="button" class="settings-action" @click="onImport">
+          {{ t('settings.import') }}
+        </button>
+        <button type="button" class="settings-action" @click="onExport">
+          {{ t('settings.export') }}
+        </button>
       </div>
     </SettingsPanel>
 
@@ -382,7 +387,7 @@ function onExportDateChange(checked: boolean) {
   max-width: 620px;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0;
 }
 
 .hero-top {
@@ -399,6 +404,9 @@ function onExportDateChange(checked: boolean) {
   align-items: stretch;
   gap: 0.55rem;
   overflow: visible;
+  margin-bottom: 1.15rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
 }
 
 .title {
@@ -455,6 +463,27 @@ function onExportDateChange(checked: boolean) {
   row-gap: 0.35rem;
   overflow: visible;
   margin-top: 0.15rem;
+}
+
+.settings-action {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  font-weight: 550;
+  padding: 0.45rem 0.7rem;
+}
+
+.settings-action:hover:not(:disabled) {
+  background: var(--page-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  color: var(--ink);
+}
+
+.settings-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .field-label {
@@ -592,12 +621,20 @@ function onExportDateChange(checked: boolean) {
   gap: 0.25rem;
 }
 
+.folder-box {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
 .meta dt {
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 .meta dd {
@@ -614,6 +651,16 @@ function onExportDateChange(checked: boolean) {
   line-height: 1.45;
 }
 
+.tip-box {
+  list-style-position: outside;
+  margin: 0;
+  padding: 0.65rem 0.75rem 0.65rem 1.35rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
+  color: var(--ink-soft);
+}
+
 .tips :deep(strong) {
   color: var(--ink);
   font-weight: 600;
@@ -624,7 +671,7 @@ function onExportDateChange(checked: boolean) {
   font-size: 0.84em;
   padding: 0.08em 0.35em;
   border-radius: 4px;
-  background: var(--page-soft);
+  background: var(--surface);
   border: 1px solid var(--line);
   color: var(--ink);
 }
@@ -636,8 +683,9 @@ function onExportDateChange(checked: boolean) {
 
 .path {
   margin: 0;
-  font-size: 0.8rem;
-  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink);
   word-break: break-all;
   line-height: 1.4;
 }

@@ -2,6 +2,7 @@
 import { onMounted, computed, defineAsyncComponent, watch } from 'vue';
 import AboutModal from './components/AboutModal.vue';
 import AppSidebar from './components/AppSidebar.vue';
+import TitleBar from './components/TitleBar.vue';
 import WorkingView from './views/WorkingView.vue';
 import { useSettingsStore } from './stores/settings';
 import { useModelsStore } from './stores/models';
@@ -15,7 +16,7 @@ const LibraryView = defineAsyncComponent(() => import('./views/LibraryView.vue')
 const ModelsView = defineAsyncComponent(() => import('./views/ModelsView.vue'));
 const SettingsView = defineAsyncComponent(() => import('./views/SettingsView.vue'));
 
-const APP_VERSION = '0.1.0';
+const APP_VERSION = '0.1.1';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -62,6 +63,7 @@ onMounted(async () => {
     <AppSidebar />
 
     <div class="workspace">
+      <TitleBar />
       <header v-if="ui.currentView === 'library' || ui.currentView === 'models'" class="topbar">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">
@@ -88,7 +90,7 @@ onMounted(async () => {
         type="button"
         class="toast-dismiss"
         :aria-label="t('about.close')"
-        :title="t('about.close')"
+        v-tip="t('about.close')"
         @click="ui.dismissToast()"
       >
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
@@ -106,7 +108,8 @@ onMounted(async () => {
 
 <style scoped>
 .app-shell {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   align-items: stretch;
 }
@@ -114,33 +117,44 @@ onMounted(async () => {
 .workspace {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .topbar {
-  padding: 1.15rem 1.75rem 0.35rem;
+  padding: 1.15rem 1.75rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.15rem;
 }
 
 .topbar h2 {
   margin: 0;
-  font-size: 1.35rem;
+  font-family: var(--font-brand);
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
   font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--ink);
 }
 
 .sub {
-  margin: 0.25rem 0 0;
+  margin: 0.35rem 0 0;
   color: var(--muted);
   font-size: 0.88rem;
+  line-height: 1.4;
 }
 
 main {
   flex: 1;
-  padding: 0.85rem 1.75rem 2rem;
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem 1.75rem 2rem;
 }
 
 main.flush {
-  padding-top: 1.35rem;
+  padding-top: 0.85rem;
 }
 
 .toast {

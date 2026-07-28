@@ -17,11 +17,7 @@ const percent = computed({
 </script>
 
 <template>
-  <div
-    class="ctg"
-    :aria-label="t('ctg.label')"
-    :title="t('ctg.title')"
-  >
+  <div class="ctg" :aria-label="t('ctg.label')" v-tip="t('ctg.title')">
     <label class="pct-field" for="ctg-percent">
       <span class="pct-label">{{ t('ctg.label') }}</span>
       <span class="pct-input-wrap">

@@ -608,7 +608,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
           type="button"
           class="ghost"
           @click="models.createNew"
-          :title="t('models.newModel')"
+          v-tip="t('models.newModel')"
         >
           + {{ t('models.newShort') }}
         </button>
@@ -617,7 +617,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
           type="button"
           class="ghost icon-only"
           @click="models.createNew"
-          :title="t('models.newModel')"
+          v-tip="t('models.newModel')"
           :aria-label="t('models.newModel')"
         >
           +
@@ -626,7 +626,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
           v-if="!listCollapsed"
           type="button"
           class="ghost"
-          :title="isTauri() ? t('models.importHint') : t('models.desktopOnly')"
+          v-tip="isTauri() ? t('models.importHint') : t('models.desktopOnly')"
           @click="onImport"
         >
           {{ t('models.import') }}
@@ -635,7 +635,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
           v-else
           type="button"
           class="ghost icon-only"
-          :title="isTauri() ? t('models.importHint') : t('models.desktopOnly')"
+          v-tip="isTauri() ? t('models.importHint') : t('models.desktopOnly')"
           :aria-label="t('models.import')"
           @click="onImport"
         >
@@ -644,7 +644,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
         <button
           type="button"
           class="ghost toggle"
-          :title="listCollapsed ? t('models.expandList') : t('models.collapseList')"
+          v-tip="listCollapsed ? t('models.expandList') : t('models.collapseList')"
           :aria-expanded="!listCollapsed"
           :aria-label="listCollapsed ? t('models.expandList') : t('models.collapseList')"
           @click="toggleList"
@@ -666,7 +666,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
           v-for="m in filteredModels"
           :key="m.id"
           :class="{ active: m.id === models.selectedId }"
-          :title="m.name"
+          v-tip="m.name"
           @click="models.selectedId = m.id"
         >
           <span class="mark" aria-hidden="true">
@@ -686,7 +686,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
         role="separator"
         aria-orientation="vertical"
         :aria-label="t('models.resizeList')"
-        :title="t('models.resizeList')"
+        v-tip="t('models.resizeList')"
         @mousedown="startListResize"
         @dblclick.stop="toggleList"
       />
@@ -701,7 +701,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
               class="icon-trigger"
               :aria-label="t('models.iconLabel')"
               :aria-expanded="iconMenuOpen"
-              :title="iconTitle((current.icon ?? 'letter') as ModelIconId)"
+              v-tip="iconTitle((current.icon ?? 'letter') as ModelIconId)"
               @click.stop="iconMenuOpen = !iconMenuOpen"
             >
               <ModelIcon :icon="current.icon" :name="current.name" :size="18" />
@@ -721,7 +721,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 role="option"
                 :aria-selected="(current.icon ?? 'letter') === opt"
                 :class="{ active: (current.icon ?? 'letter') === opt }"
-                :title="iconTitle(opt)"
+                v-tip="iconTitle(opt)"
                 @click="setModelIcon(opt)"
               >
                 <ModelIcon :icon="opt" :name="current.name" :size="15" />
@@ -741,7 +741,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
           <button
             type="button"
             class="danger"
-            :title="t('models.deleteModel')"
+            v-tip="t('models.deleteModel')"
             @click="onDeleteModel"
           >
             {{ t('common.delete') }}
@@ -766,7 +766,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
 
           <label
             class="inline-field"
-            :title="t('models.hoursPerDayTitle')"
+            v-tip="t('models.hoursPerDayTitle')"
           >
             {{ t('working.oneDayEq') }}
             <span class="pct-wrap">
@@ -814,7 +814,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
             <button
               type="button"
               class="chip-x"
-              :title="current.categories.length <= 1 ? t('models.needOneCat') : t('models.removeCat', { name: cat })"
+              v-tip="current.categories.length <= 1 ? t('models.needOneCat') : t('models.removeCat', { name: cat })"
               :disabled="current.categories.length <= 1"
               @click="onRemoveCategory(cat)"
             >
@@ -834,7 +834,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
           </div>
           <label
             class="inline-field ctg-percent"
-            :title="t('models.ctgPercentTitle')"
+            v-tip="t('models.ctgPercentTitle')"
           >
             {{ t('common.ctg') }}
             <span class="pct-wrap">
@@ -878,7 +878,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 class="resizable"
                 :class="{ collapsed: cols.collapsed[key], 'center-th': key === 'ctg' }"
                 :style="cols.styleFor(key)"
-                :title="headerTitle(key)"
+                v-tip="headerTitle(key)"
                 draggable="true"
                 @dblclick="onHeaderDblClick(key)"
                 @dragstart="cols.onColDragStart(key, $event)"
@@ -929,7 +929,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                     <span
                       class="drag-handle"
                       draggable="true"
-                      :title="t('common.dragRow')"
+                      v-tip="t('common.dragRow')"
                       :aria-label="t('common.dragRow')"
                       @dragstart="rowDrag.onDragStart(a.id, $event)"
                       @dragend="rowDrag.onDragEnd"
@@ -1000,13 +1000,13 @@ function setMacroApplyContingency(id: string, value: boolean) {
                     <span
                       v-else-if="a.kind !== 'formula' && hasChildren(a.id)"
                       class="readonly muted"
-                      :title="t('models.hoursFromSubs')"
+                      v-tip="t('models.hoursFromSubs')"
                     >{{ childrenHours(a.id) }}</span>
                     <button
                       v-else-if="a.kind === 'formula'"
                       type="button"
                       class="ghost formula-btn"
-                      :title="a.formula ? formulaLabel(a.formula) : t('models.editFormula')"
+                      v-tip="a.formula ? formulaLabel(a.formula) : t('models.editFormula')"
                       @click="openFormulaEditor(a.id)"
                     >
                       {{ a.formula ? formulaLabel(a.formula) : 'Σ × %' }}
@@ -1023,7 +1023,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                     v-if="!cols.collapsed.ctg"
                     type="checkbox"
                     :checked="resolveAppliesContingency(a)"
-                    :title="resolveAppliesContingency(a) ? t('models.ctgOn') : t('models.ctgOff')"
+                    v-tip="resolveAppliesContingency(a) ? t('models.ctgOn') : t('models.ctgOff')"
                     :aria-label="`Contingency su ${a.name}`"
                     @change="setMacroApplyContingency(a.id, ($event.target as HTMLInputElement).checked)"
                   />
@@ -1081,7 +1081,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
         <button
           type="button"
           class="ghost"
-          :title="t('models.addFormulaTitle')"
+          v-tip="t('models.addFormulaTitle')"
           @click="addFormulaMacro"
         >
           {{ t('models.addFormula') }}
@@ -1786,10 +1786,13 @@ th.collapsed {
 
 .id-field {
   min-width: 0;
+  flex: 1 1 18rem;
+  max-width: min(36rem, 100%);
 }
 
 .id-input {
-  width: 7.5rem;
+  width: 100%;
+  min-width: 14rem;
   border: none;
   border-bottom: 1px solid transparent;
   background: transparent;
@@ -1797,6 +1800,7 @@ th.collapsed {
   color: var(--muted);
   font-weight: 400;
   font-size: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .id-input:hover,

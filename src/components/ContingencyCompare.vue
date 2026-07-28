@@ -124,7 +124,7 @@ function applyScenario(index: 0 | 1 | 2) {
               <button
                 type="button"
                 class="ghost apply"
-                :title="t('ctg.applyScenario')"
+                v-tip="t('ctg.applyScenario')"
                 @click="applyScenario(i as 0 | 1 | 2)"
               >
                 {{ t('ctg.use') }}

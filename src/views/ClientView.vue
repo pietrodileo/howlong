@@ -553,7 +553,7 @@ async function onExportFromMenu(
           type="button"
           class="ghost"
           :disabled="!estimate.hasClientOverrides"
-          :title="t('client.resetHint')"
+          v-tip="t('client.resetHint')"
           @click="onReset"
         >
           {{ t('client.reset') }}
@@ -561,7 +561,7 @@ async function onExportFromMenu(
         <button
           type="button"
           class="ghost"
-          :title="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
+          v-tip="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
           @click="onReload"
         >
           {{ t('common.reload') }}
@@ -671,7 +671,7 @@ async function onExportFromMenu(
               <button
                 type="button"
                 role="menuitem"
-                :title="t('export.aiHint')"
+                v-tip="t('export.aiHint')"
                 @click="onExportFromMenu('yaml', 'manager')"
               >
                 {{ t('export.ai') }}
@@ -679,7 +679,7 @@ async function onExportFromMenu(
               <button
                 type="button"
                 role="menuitem"
-                :title="t('export.excelHint')"
+                v-tip="t('export.excelHint')"
                 @click="onExportFromMenu('xlsx', 'manager')"
               >
                 {{ t('export.excel') }}
@@ -704,7 +704,7 @@ async function onExportFromMenu(
                 'actions-th': key === 'actions',
               }"
               :style="cols.styleFor(key)"
-              :title="headerTitle(key)"
+              v-tip="headerTitle(key)"
               draggable="true"
               @dblclick="onHeaderDblClick(key)"
               @dragstart="cols.onColDragStart(key, $event)"
@@ -761,7 +761,7 @@ async function onExportFromMenu(
                   v-if="!cols.collapsed.show"
                   type="checkbox"
                   :checked="line.item.clientVisible"
-                  :title="t('client.showHint')"
+                  v-tip="t('client.showHint')"
                   :aria-label="`${t('client.showCol')}: ${line.item.name}`"
                   @change="onShowVisibleChange(line.item.id, ($event.target as HTMLInputElement).checked)"
                 />
@@ -780,7 +780,7 @@ async function onExportFromMenu(
                   <span
                     class="drag-handle"
                     draggable="true"
-                    :title="t('common.dragRow')"
+                    v-tip="t('common.dragRow')"
                     :aria-label="t('common.dragRow')"
                     @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                     @dragend="rowDrag.onDragEnd"
@@ -797,11 +797,11 @@ async function onExportFromMenu(
                   </button>
                   <span v-else class="collapse-spacer" aria-hidden="true" />
                   <span class="activity-name">{{ line.item.name }}</span>
-                  <span v-if="line.overridden" class="edited-mark" :title="t('client.editedMark')">●</span>
+                  <span v-if="line.overridden" class="edited-mark" v-tip="t('client.editedMark')">●</span>
                   <span
                     v-if="!line.item.clientVisible"
                     class="hidden-tag"
-                    :title="t('client.hiddenRow')"
+                    v-tip="t('client.hiddenRow')"
                   >{{ t('client.hiddenRow') }}</span>
                 </div>
               </td>
@@ -883,7 +883,7 @@ async function onExportFromMenu(
                   positive: (linePresentedDeltaHours(line, estimate.clientLines) ?? 0) > 0,
                   negative: (linePresentedDeltaHours(line, estimate.clientLines) ?? 0) < 0,
                 }"
-                :title="t('client.compareHint')"
+                v-tip="t('client.compareHint')"
               >
                 <template v-if="!cols.collapsed.delta">{{ formatDeltaCell(linePresentedDeltaHours(line, estimate.clientLines)) }}</template>
               </td>
@@ -898,7 +898,7 @@ async function onExportFromMenu(
                   type="button"
                   class="notes-preview"
                   :class="{ empty: !line.item.notes.trim() }"
-                  :title="t('client.notesOpen')"
+                  v-tip="t('client.notesOpen')"
                   @click="openNotesEditor(line.item.id)"
                 >
                   {{ previewNotes(line.item.notes) || t('client.notesEmpty') }}
@@ -914,7 +914,7 @@ async function onExportFromMenu(
                   v-if="!cols.collapsed.actions && line.item.clientVisible"
                   type="button"
                   class="ghost redistribute"
-                  :title="t('client.redistributeHint')"
+                  v-tip="t('client.redistributeHint')"
                   @click="onRedistribute(line.item.id)"
                 >
                   {{ t('client.redistribute') }}
@@ -962,7 +962,7 @@ async function onExportFromMenu(
               <button
                 type="button"
                 role="menuitem"
-                :title="t('export.aiHint')"
+                v-tip="t('export.aiHint')"
                 @click="onExportFromMenu('yaml', 'client')"
               >
                 {{ t('export.ai') }}
@@ -970,7 +970,7 @@ async function onExportFromMenu(
               <button
                 type="button"
                 role="menuitem"
-                :title="t('export.excelHint')"
+                v-tip="t('export.excelHint')"
                 @click="onExportFromMenu('xlsx', 'client')"
               >
                 {{ t('export.excel') }}
@@ -992,7 +992,7 @@ async function onExportFromMenu(
                   'show-th': key === 'subs',
                 }"
                 :style="clientCols.styleFor(key)"
-                :title="clientOutputHeaderTitle(key)"
+                v-tip="clientOutputHeaderTitle(key)"
                 draggable="true"
                 @dblclick="onClientOutputHeaderDblClick(key)"
                 @dragstart="clientCols.onColDragStart(key, $event)"
@@ -1005,7 +1005,7 @@ async function onExportFromMenu(
                     <input
                       type="checkbox"
                       :checked="allClientMacrosShowSubs"
-                      :title="allClientMacrosShowSubs ? t('client.macroRollup') : t('client.macroDetail')"
+                      v-tip="allClientMacrosShowSubs ? t('client.macroRollup') : t('client.macroDetail')"
                       :aria-label="allClientMacrosShowSubs ? t('client.macroRollup') : t('client.macroDetail')"
                       @click.stop
                       @change="onAllClientShowSubsChange(($event.target as HTMLInputElement).checked)"
@@ -1017,7 +1017,7 @@ async function onExportFromMenu(
                       type="button"
                       class="collapse all"
                       :aria-label="allClientPreviewMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
-                      :title="allClientPreviewMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
+                      v-tip="allClientPreviewMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
                       @click.stop="toggleAllClientPreviewMacros"
                     >
                       {{ allClientPreviewMacrosExpanded ? '▾' : '▸' }}
@@ -1062,7 +1062,7 @@ async function onExportFromMenu(
                     v-if="!clientCols.collapsed.subs && line.isMacro && line.hasChildren"
                     type="checkbox"
                     :checked="macroShowsSubs(line.item.id)"
-                    :title="macroShowsSubs(line.item.id) ? t('client.macroDetail') : t('client.macroRollup')"
+                    v-tip="macroShowsSubs(line.item.id) ? t('client.macroDetail') : t('client.macroRollup')"
                     :aria-label="macroShowsSubs(line.item.id) ? t('client.macroDetail') : t('client.macroRollup')"
                     @change="onMacroShowSubsChange(line.item.id, ($event.target as HTMLInputElement).checked)"
                   />
@@ -1081,7 +1081,7 @@ async function onExportFromMenu(
                     <span
                       class="drag-handle"
                       draggable="true"
-                      :title="t('common.dragRow')"
+                      v-tip="t('common.dragRow')"
                       :aria-label="t('common.dragRow')"
                       @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                       @dragend="rowDrag.onDragEnd"
