@@ -286,9 +286,9 @@ function applyScenario(index: 0 | 1 | 2) {
 }
 
 .apply {
-  display: block;
+  display: inline-block;
   margin-top: 0.35rem;
-  padding: 0.2rem 0.45rem;
+  padding: 0.2rem 0;
   font-size: 0.75rem;
 }
 </style>

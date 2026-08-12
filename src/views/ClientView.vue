@@ -615,6 +615,7 @@ async function onExportFromMenu(
 
     <section class="manager-block">
       <h2 class="section-title">{{ t('client.managerSectionTitle') }}</h2>
+      <p class="section-lede">{{ t('client.managerSectionLede') }}</p>
       <div class="summary-row" aria-live="polite">
         <div class="summary-stats">
           <div class="stat">
@@ -929,7 +930,10 @@ async function onExportFromMenu(
 
     <section class="client-output">
       <header class="client-output-head">
-        <h2 class="section-title">{{ t('working.clientView') }}</h2>
+        <div>
+          <h2 class="section-title">{{ t('working.clientView') }}</h2>
+          <p class="section-lede">{{ t('client.clientSectionLede') }}</p>
+        </div>
         <div class="client-output-actions">
           <div class="visibility-toggles" role="group" :aria-label="t('client.clientOutputLegend')">
             <label class="check compact">
@@ -1275,6 +1279,17 @@ async function onExportFromMenu(
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.section-lede {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  line-height: 1.4;
+  max-width: 42rem;
 }
 
 .manager-block {

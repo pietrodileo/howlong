@@ -316,8 +316,10 @@ export type MessageTree = {
     hideNotesClient: string;
     hideTagsClient: string;
     managerSectionTitle: string;
+    managerSectionLede: string;
     managerViewLegend: string;
     clientOutputLegend: string;
+    clientSectionLede: string;
     notesOpen: string;
     notesEmpty: string;
     activity: string;
@@ -733,8 +735,12 @@ const it: MessageTree = {
     hideNotesClient: 'Nascondi note',
     hideTagsClient: 'Nascondi etichette',
     managerSectionTitle: 'Vista manager',
+    managerSectionLede:
+      'Arrotonda, mostra/nascondi voci e ritocca i totali da presentare al cliente senza alterare la stima originale.',
     managerViewLegend: 'Vista manager (modifica)',
     clientOutputLegend: 'Output cliente (anteprima / export)',
+    clientSectionLede:
+      'Anteprima di ciò verrà esposto al cliente',
     notesOpen: 'Click: apri e modifica la nota',
     notesEmpty: 'Aggiungi nota…',
     activity: 'Attività',
@@ -1157,8 +1163,12 @@ const en: MessageTree = {
     hideNotesClient: 'Hide notes',
     hideTagsClient: 'Hide labels',
     managerSectionTitle: 'Manager view',
+    managerSectionLede:
+      'Round, show/hide lines and tweak totals to present to the client without changing the original estimate.',
     managerViewLegend: 'Manager view (edit)',
     clientOutputLegend: 'Client output (preview / export)',
+    clientSectionLede:
+      'Preview of what will be presented to the client',
     notesOpen: 'Click: open and edit the note',
     notesEmpty: 'Add a note…',
     activity: 'Activity',
