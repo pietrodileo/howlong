@@ -7,6 +7,7 @@ import { useUiStore } from '../stores/ui';
 import { exportSettings, openSettingsFile } from '../lib/io';
 import { importWorkspaceText } from '../lib/workspace';
 import { openDirectoryDialog, isTauri } from '../lib/tauri';
+import { ensureWorkspaceLayout, resolveEstimatesDir, resolveModelsDir, workspaceRootFromSettings } from '../lib/workspacePaths';
 import { useI18n } from '../i18n/useI18n';
 import { isDialogCancelled } from '../lib/dialogResult';
 import { toErrorMessage } from '../lib/errors';
@@ -21,22 +22,31 @@ const library = useLibraryStore();
 const ui = useUiStore();
 const { t, setLocale, locale } = useI18n();
 
+const resolvedWorkspaceDir = ref('');
 const resolvedEstimatesDir = ref('');
+const resolvedModelsDir = ref('');
 const openFolderSection = ref(ui.consumeSettingsSection() === 'folder');
 
-async function refreshEstimatesDir() {
+async function refreshWorkspacePaths() {
   if (!isTauri()) {
+    resolvedWorkspaceDir.value = '';
     resolvedEstimatesDir.value = '';
+    resolvedModelsDir.value = '';
     return;
   }
   try {
-    resolvedEstimatesDir.value = await library.resolveDir();
+    const root = workspaceRootFromSettings();
+    resolvedWorkspaceDir.value = root || settings.appDataDir || '';
+    resolvedEstimatesDir.value = await resolveEstimatesDir();
+    resolvedModelsDir.value = await resolveModelsDir();
   } catch {
+    resolvedWorkspaceDir.value = '';
     resolvedEstimatesDir.value = '';
+    resolvedModelsDir.value = '';
   }
 }
 
-refreshEstimatesDir();
+refreshWorkspacePaths();
 
 /** Mini markdown: **bold** e `code`. */
 function md(text: string): string {
@@ -48,11 +58,12 @@ function md(text: string): string {
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
 
-async function applyEstimatesFolderChange() {
+async function applyWorkspaceFolderChange() {
   try {
     await settings.save();
     const n = await library.loadAll();
-    await refreshEstimatesDir();
+    await models.loadAll();
+    await refreshWorkspacePaths();
     if (library.lastError) {
       ui.notify(library.lastError, true);
       return;
@@ -72,7 +83,8 @@ async function save() {
     await settings.save();
     syncEstimateColumnsFromSettings();
     const n = await library.loadAll();
-    await refreshEstimatesDir();
+    await models.loadAll();
+    await refreshWorkspacePaths();
     ui.notify(
       n > 0
         ? `${t('settings.saved')} — ${t('settings.folderLoaded', { n: String(n) })}`
@@ -83,26 +95,31 @@ async function save() {
   }
 }
 
-async function onPickEstimatesDir() {
+async function onPickWorkspaceDir() {
   if (!isTauri()) {
     ui.notify(t('library.desktopOnly'), true);
     return;
   }
   const path = await openDirectoryDialog(
-    settings.settings.estimatesDir.trim() || resolvedEstimatesDir.value || undefined,
+    settings.settings.workspaceDir.trim() ||
+      resolvedWorkspaceDir.value ||
+      undefined,
   );
   if (!path) return;
-  settings.settings.estimatesDir = path;
-  await applyEstimatesFolderChange();
+  await ensureWorkspaceLayout(path);
+  settings.settings.workspaceDir = path;
+  settings.settings.estimatesDir = '';
+  await applyWorkspaceFolderChange();
 }
 
-async function onResetEstimatesDir() {
+async function onResetWorkspaceDir() {
   if (!isTauri()) {
     ui.notify(t('library.desktopOnly'), true);
     return;
   }
+  settings.settings.workspaceDir = '';
   settings.settings.estimatesDir = '';
-  await applyEstimatesFolderChange();
+  await applyWorkspaceFolderChange();
 }
 
 async function onImport() {
@@ -135,7 +152,7 @@ async function onImport() {
   } else {
     ui.notify(t('settings.importOkLegacy'));
   }
-  await refreshEstimatesDir();
+  await refreshWorkspacePaths();
 }
 
 async function onExport() {
@@ -190,12 +207,13 @@ function onExportDateChange(checked: boolean) {
           type="text"
           class="username-input"
           :value="settings.settings.username"
-          :placeholder="t('settings.usernamePh')"
+          :placeholder="settings.osUsername || t('settings.usernamePh')"
           autocomplete="username"
           @input="settings.settings.username = ($event.target as HTMLInputElement).value"
         />
       </label>
       <p class="field-hint">{{ t('settings.usernameHelp') }}</p>
+      <p class="field-hint">{{ t('settings.usernameDesktopHint') }}</p>
     </SettingsPanel>
 
     <SettingsPanel :title="t('settings.sectionLocale')">
@@ -340,23 +358,33 @@ function onExportDateChange(checked: boolean) {
     </SettingsPanel>
 
     <SettingsPanel :title="t('settings.sectionFolder')" :open="openFolderSection">
-      <p class="field-hint">{{ t('settings.estimatesFolderHelp') }}</p>
+      <p class="field-hint">{{ t('settings.workspaceFolderHelp') }}</p>
       <dl class="meta folder-box">
+        <dt>{{ t('settings.workspaceFolderActive') }}</dt>
+        <dd class="path">
+          {{
+            settings.settings.workspaceDir.trim()
+              ? settings.settings.workspaceDir.trim()
+              : t('settings.workspaceFolderDefault')
+          }}
+        </dd>
         <dt>{{ t('settings.estimatesFolderActive') }}</dt>
         <dd class="path">{{ resolvedEstimatesDir || t('library.desktopOnly') }}</dd>
+        <dt>{{ t('settings.modelsFolderActive') }}</dt>
+        <dd class="path">{{ resolvedModelsDir || t('library.desktopOnly') }}</dd>
       </dl>
-      <p v-if="settings.settings.estimatesDir.trim()" class="field-hint custom-note">
-        {{ t('settings.estimatesFolderCustom') }}
+      <p v-if="settings.settings.workspaceDir.trim()" class="field-hint custom-note">
+        {{ t('settings.workspaceFolderCustom') }}
       </p>
       <div class="chrome">
-        <button type="button" class="settings-action" @click="onPickEstimatesDir">
+        <button type="button" class="settings-action" @click="onPickWorkspaceDir">
           {{ t('settings.pickFolder') }}
         </button>
         <button
           type="button"
           class="settings-action"
-          :disabled="!settings.settings.estimatesDir.trim()"
-          @click="onResetEstimatesDir"
+          :disabled="!settings.settings.workspaceDir.trim()"
+          @click="onResetWorkspaceDir"
         >
           {{ t('settings.resetFolder') }}
         </button>

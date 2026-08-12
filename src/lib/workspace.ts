@@ -22,13 +22,48 @@ export type HowLongWorkspace = {
   models: Model[];
 };
 
+/** Campi legati all’installazione/PC: non vanno trasferiti via import/export. */
+export type MachineLocalSettings = Pick<
+  Settings,
+  'workspaceDir' | 'estimatesDir' | 'username'
+>;
+
+export function pickMachineLocalSettings(settings: Settings): MachineLocalSettings {
+  return {
+    workspaceDir: settings.workspaceDir,
+    estimatesDir: settings.estimatesDir,
+    username: settings.username,
+  };
+}
+
+/** Settings per il JSON workspace: senza path cartella né username locale. */
+export function settingsForWorkspaceExport(settings: Settings): Settings {
+  return {
+    ...settings,
+    workspaceDir: '',
+    estimatesDir: '',
+    username: '',
+  };
+}
+
+/** Applica settings importate ma tiene i campi machine-local della sessione corrente. */
+export function mergeImportedSettings(
+  current: Settings,
+  incoming: Settings,
+): Settings {
+  return {
+    ...incoming,
+    ...pickMachineLocalSettings(current),
+  };
+}
+
 /** Bundle Impostazioni + modelli (JSON HowLong). */
 export function workspaceToJson(settings: Settings, models: Model[]): string {
   const bundle: HowLongWorkspace = {
     schemaVersion: 1,
     kind: WORKSPACE_KIND,
     exportedAt: nowIso(),
-    settings,
+    settings: settingsForWorkspaceExport(settings),
     models,
   };
   return JSON.stringify(bundle, null, 2);

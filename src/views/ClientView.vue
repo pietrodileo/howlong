@@ -3,6 +3,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useEstimateStore } from '../stores/estimate';
 import { useUiStore } from '../stores/ui';
 import { useLibraryStore } from '../stores/library';
+import AuditHistoryModal from '../components/AuditHistoryModal.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import NotesEditor from '../components/NotesEditor.vue';
 import TagPicker from '../components/TagPicker.vue';
@@ -34,6 +35,7 @@ import {
 } from '../lib/clientPresentation';
 import { useI18n } from '../i18n/useI18n';
 import { toErrorMessage } from '../lib/errors';
+import { formatAuditDateTime } from '../lib/formatAuditDate';
 import { readTextFile, isTauri } from '../lib/tauri';
 import { importEstimateText } from '../lib/import';
 
@@ -46,6 +48,17 @@ const library = useLibraryStore();
 const modelsStore = useModelsStore();
 const { models: modelList } = storeToRefs(modelsStore);
 const { t } = useI18n();
+
+const lastAudit = computed(() => {
+  const h = estimate.estimate.auditHistory;
+  return h?.length ? h[h.length - 1]! : null;
+});
+
+const lastAuditWhen = computed(() => {
+  if (!lastAudit.value) return '';
+  return formatAuditDateTime(lastAudit.value.at);
+});
+
 const cols = useManagerResizableColumns();
 const clientCols = useClientOutputResizableColumns();
 
@@ -61,6 +74,7 @@ const managerExportMenuOpen = ref(false);
 const clientExportMenuOpen = ref(false);
 const resetConfirmOpen = ref(false);
 const reloadConfirmOpen = ref(false);
+const auditHistoryOpen = ref(false);
 /** Solo UI: piega sotto-task in vista cliente (non tocca export). */
 const clientPreviewCollapsed = ref<Set<string>>(new Set());
 
@@ -217,6 +231,7 @@ async function onSave() {
   try {
     const { path, data } = await library.saveEstimate(estimate.estimate);
     estimate.estimate.meta.updatedAt = data.meta.updatedAt;
+    estimate.estimate.auditHistory = data.auditHistory;
     estimate.markSaved(path);
     ui.notify(t('working.saved', { path }));
   } catch (e) {
@@ -568,6 +583,21 @@ async function onExportFromMenu(
         </button>
         <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
         <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
+        <button
+          v-else-if="lastAudit"
+          type="button"
+          class="audit-meta"
+          :aria-label="t('working.auditHistoryOpen')"
+          @click="auditHistoryOpen = true"
+        >
+          {{
+            t('working.lastSavedBy', {
+              user: lastAudit.username,
+              when: lastAuditWhen,
+            })
+          }}
+        </button>
+        <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
       </div>
     </header>
 
@@ -1200,6 +1230,12 @@ async function onExportFromMenu(
       @cancel="cancelReload"
       @confirm="confirmReload"
     />
+
+    <AuditHistoryModal
+      :open="auditHistoryOpen"
+      :entries="estimate.estimate.auditHistory ?? []"
+      @close="auditHistoryOpen = false"
+    />
   </div>
 </template>
 
@@ -1236,6 +1272,36 @@ async function onExportFromMenu(
   color: var(--warn);
   font-size: 0.8rem;
   font-weight: 500;
+}
+
+.audit-meta {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.audit-meta:hover,
+.audit-meta:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+  outline: none;
+}
+
+span.audit-meta {
+  cursor: default;
+}
+
+span.audit-meta:hover,
+span.audit-meta:focus-visible {
+  text-decoration: none;
+  color: var(--muted);
 }
 
 .fields {

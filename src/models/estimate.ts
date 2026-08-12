@@ -68,8 +68,13 @@ export const EstimateMetaSchema = z.object({
   icon: ModelIconSchema.default('letter'),
 });
 
+export const AuditEntrySchema = z.object({
+  at: z.string().min(1),
+  username: z.string().min(1),
+});
+
 export const EstimateSchema = z.object({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.union([z.literal(1), z.literal(2)]),
   meta: EstimateMetaSchema,
   modelId: z.string().optional(),
   contingency: EstimateContingencySchema,
@@ -86,10 +91,15 @@ export const EstimateSchema = z.object({
     lineOverrides: {},
     macroPresentation: {},
   }),
+  /** Cronologia salvataggi: chi e quando. */
+  auditHistory: z.array(AuditEntrySchema).default([]),
 });
 
 export type LineItem = z.infer<typeof LineItemSchema>;
-export type Estimate = z.infer<typeof EstimateSchema>;
+export type AuditEntry = z.infer<typeof AuditEntrySchema>;
+export type Estimate = Omit<z.infer<typeof EstimateSchema>, 'schemaVersion'> & {
+  schemaVersion: 2;
+};
 export type EstimateContingency = z.infer<typeof EstimateContingencySchema>;
 export type ClientViewConfig = z.infer<typeof ClientViewSchema>;
 export type ClientLineOverride = z.infer<typeof ClientLineOverrideSchema>;
@@ -100,5 +110,13 @@ export function parseEstimate(data: unknown): { ok: true; data: Estimate } | { o
   if (!result.success) {
     return { ok: false, error: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ') };
   }
-  return { ok: true, data: result.data };
+  const { schemaVersion: _v, ...rest } = result.data;
+  return {
+    ok: true,
+    data: {
+      ...rest,
+      schemaVersion: 2,
+      auditHistory: result.data.auditHistory ?? [],
+    },
+  };
 }

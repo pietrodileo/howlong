@@ -3,6 +3,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import ContingencyControls from '../components/ContingencyControls.vue';
 import ContingencyCompare from '../components/ContingencyCompare.vue';
+import AuditHistoryModal from '../components/AuditHistoryModal.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import FormulaEditor, {
   type FormulaEditableItem,
@@ -38,6 +39,7 @@ import {
   type ColumnKey,
 } from '../lib/useResizableColumns';
 import { useRowDragReorder } from '../lib/useRowDragReorder';
+import { formatAuditDateTime } from '../lib/formatAuditDate';
 import type { EstimateExportFormat } from '../lib/export';
 import type { ComputedLineHours } from '../lib/contingency';
 import { formulaLabel, isFormulaItem } from '../lib/formulas';
@@ -53,6 +55,18 @@ const library = useLibraryStore();
 const ui = useUiStore();
 const cols = useResizableColumns();
 const { t } = useI18n();
+
+const lastAudit = computed(() => {
+  const h = estimate.estimate.auditHistory;
+  return h?.length ? h[h.length - 1]! : null;
+});
+
+const lastAuditWhen = computed(() => {
+  if (!lastAudit.value) return '';
+  return formatAuditDateTime(lastAudit.value.at);
+});
+
+const auditHistoryOpen = ref(false);
 
 const rowDrag = useRowDragReorder({
   getItems: () => estimate.estimate.items,
@@ -386,6 +400,7 @@ async function onSave() {
   try {
     const { path, data } = await library.saveEstimate(estimate.estimate);
     estimate.estimate.meta.updatedAt = data.meta.updatedAt;
+    estimate.estimate.auditHistory = data.auditHistory;
     estimate.markSaved(path);
     ui.notify(t('working.saved', { path }));
   } catch (e) {
@@ -687,6 +702,21 @@ function onHeaderDblClick(key: ColumnKey) {
           </button>
           <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
           <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
+          <button
+            v-else-if="lastAudit"
+            type="button"
+            class="audit-meta"
+            :aria-label="t('working.auditHistoryOpen')"
+            @click="auditHistoryOpen = true"
+          >
+            {{
+              t('working.lastSavedBy', {
+                user: lastAudit.username,
+                when: lastAuditWhen,
+              })
+            }}
+          </button>
+          <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
         </div>
       </div>
     </header>
@@ -1160,6 +1190,12 @@ function onHeaderDblClick(key: ColumnKey) {
       @cancel="cancelConfirm"
       @confirm="runConfirm"
     />
+
+    <AuditHistoryModal
+      :open="auditHistoryOpen"
+      :entries="estimate.estimate.auditHistory ?? []"
+      @close="auditHistoryOpen = false"
+    />
   </div>
 </template>
 
@@ -1596,6 +1632,36 @@ function onHeaderDblClick(key: ColumnKey) {
   color: var(--warn);
   font-size: 0.8rem;
   font-weight: 500;
+}
+
+.audit-meta {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.audit-meta:hover,
+.audit-meta:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+  outline: none;
+}
+
+span.audit-meta {
+  cursor: default;
+}
+
+span.audit-meta:hover,
+span.audit-meta:focus-visible {
+  text-decoration: none;
+  color: var(--muted);
 }
 
 .summary-row {

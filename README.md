@@ -8,7 +8,7 @@ Applicazione desktop per **stime di progetto**: leggera, personalizzabile, pensa
 
 | | |
 |---|---|
-| **Versione** | 0.1.0 |
+| **Versione** | 0.2.0 |
 | **Autore** | Pietro Di Leo |
 | **Identifier** | `com.pietrodileo.howlong` |
 | **Piattaforma prioritaria** | Windows 10/11 |

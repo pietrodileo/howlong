@@ -16,7 +16,7 @@ const LibraryView = defineAsyncComponent(() => import('./views/LibraryView.vue')
 const ModelsView = defineAsyncComponent(() => import('./views/ModelsView.vue'));
 const SettingsView = defineAsyncComponent(() => import('./views/SettingsView.vue'));
 
-const APP_VERSION = '0.1.1';
+const APP_VERSION = '0.2.0';
 
 const settings = useSettingsStore();
 const models = useModelsStore();

@@ -41,7 +41,15 @@ export const SettingsSchema = z.object({
   locale: LocaleSchema.default('it'),
   /** Nome utente / etichetta per riconoscere queste impostazioni. */
   username: z.string().default(''),
-  /** Cartella libreria stime. Vuota = `{appData}/estimates`. */
+  /**
+   * Cartella workspace condivisa (stime + modelli).
+   * Vuota = `{appData}/estimates` e `{appData}/models`.
+   */
+  workspaceDir: z.string().default(''),
+  /**
+   * @deprecated Preferire `workspaceDir`. Se valorizzata e workspaceDir vuota, viene migrata.
+   * Cartella libreria stime. Vuota = `{appData}/estimates`.
+   */
   estimatesDir: z.string().default(''),
   /** Tema interfaccia: chiaro o scuro. */
   theme: ThemeSchema.default('light'),
@@ -72,6 +80,7 @@ export const DEFAULT_SETTINGS: Settings = {
   hoursPerDay: 8,
   locale: 'it',
   username: '',
+  workspaceDir: '',
   estimatesDir: '',
   theme: 'light',
 };

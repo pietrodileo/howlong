@@ -10,6 +10,7 @@ import {
   pickHowLongEstimateFiles,
 } from '../lib/libraryIo';
 import { toErrorMessage } from '../lib/errors';
+import { formatAuditDateTime } from '../lib/formatAuditDate';
 import { isTauri } from '../lib/tauri';
 import type { ModelIcon } from '../models/model';
 import { useEstimateStore } from '../stores/estimate';
@@ -19,7 +20,7 @@ import { useUiStore } from '../stores/ui';
 const library = useLibraryStore();
 const estimate = useEstimateStore();
 const ui = useUiStore();
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 const searchQuery = ref('');
 const folderPath = ref('');
@@ -48,18 +49,8 @@ const allFilteredSelected = computed(
     filtered.value.every((e) => selected.value.has(e.path)),
 );
 
-const dateFmt = computed(
-  () =>
-    new Intl.DateTimeFormat(locale.value === 'en' ? 'en-GB' : 'it-IT', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }),
-);
-
 function formatUpdated(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return dateFmt.value.format(d);
+  return formatAuditDateTime(iso);
 }
 
 async function refresh() {
@@ -348,6 +339,14 @@ onUnmounted(() => {
           <button type="button" class="open-meta" @click="openEntry(entry)">
             <span v-if="entry.clientLabel" class="client">{{ entry.clientLabel }}</span>
             <span class="meta">{{ formatUpdated(entry.updatedAt) }}</span>
+            <span v-if="entry.lastAudit" class="meta audit">
+              {{
+                t('library.lastSavedBy', {
+                  user: entry.lastAudit.username,
+                  when: formatUpdated(entry.lastAudit.at),
+                })
+              }}
+            </span>
             <span class="open-label">{{ t('common.open') }}</span>
           </button>
         </div>
@@ -601,6 +600,10 @@ li.selected {
   font-size: 0.78rem;
   color: var(--muted);
   white-space: nowrap;
+}
+
+.meta.audit {
+  opacity: 0.9;
 }
 
 .open-label {

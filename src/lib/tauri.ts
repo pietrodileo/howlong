@@ -5,6 +5,10 @@ export async function getAppDataDir(): Promise<string> {
   return invoke<string>('get_app_data_dir');
 }
 
+export async function getOsUsername(): Promise<string> {
+  return invoke<string>('get_os_username');
+}
+
 export async function readTextFile(path: string): Promise<string> {
   return invoke<string>('read_text_file', { path });
 }

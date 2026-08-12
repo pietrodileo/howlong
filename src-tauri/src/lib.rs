@@ -43,6 +43,13 @@ fn app_data_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 }
 
 #[tauri::command]
+fn get_os_username() -> String {
+    std::env::var("USERNAME")
+        .or_else(|_| std::env::var("USER"))
+        .unwrap_or_default()
+}
+
+#[tauri::command]
 fn get_app_data_dir(app: tauri::AppHandle) -> Result<String, String> {
     Ok(app_data_path(&app)?.to_string_lossy().to_string())
 }
@@ -159,6 +166,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
             get_app_data_dir,
+            get_os_username,
             join_path,
             read_text_file,
             write_text_file,

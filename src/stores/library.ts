@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import type { Estimate } from '../models/estimate';
+import type { AuditEntry, Estimate } from '../models/estimate';
 import { parseEstimate } from '../models/estimate';
 import type { ModelIcon } from '../models/model';
 import { estimateToJson } from '../lib/export';
 import { nowIso } from '../lib/ids';
 import {
   deleteFile,
-  ensureAppDefaults,
   ensureDir,
   isTauri,
   joinPath,
@@ -19,6 +18,8 @@ import { useSettingsStore } from './settings';
 import { useEstimateStore } from './estimate';
 import { ensureUniqueEstimateId } from '../lib/estimateIdentity';
 import { toErrorMessage } from '../lib/errors';
+import { appendAuditEntry, resolveAuditUsername } from '../lib/auditUsername';
+import { resolveEstimatesDir } from '../lib/workspacePaths';
 
 export type LibraryEntry = {
   path: string;
@@ -27,17 +28,13 @@ export type LibraryEntry = {
   clientLabel: string;
   updatedAt: string;
   icon: ModelIcon;
+  lastAudit: AuditEntry | null;
 };
 
-export async function resolveEstimatesDir(): Promise<string> {
-  const settings = useSettingsStore();
-  const custom = settings.settings.estimatesDir?.trim();
-  if (custom) return custom;
-  const appDir = settings.appDataDir || (await ensureAppDefaults());
-  return joinPath(appDir, 'estimates');
-}
+export { resolveEstimatesDir };
 
 function entryFromEstimate(estimate: Estimate, path: string): LibraryEntry {
+  const history = estimate.auditHistory ?? [];
   return {
     path,
     id: estimate.meta.id,
@@ -45,7 +42,27 @@ function entryFromEstimate(estimate: Estimate, path: string): LibraryEntry {
     clientLabel: estimate.meta.clientLabel || '',
     updatedAt: estimate.meta.updatedAt,
     icon: estimate.meta.icon ?? 'letter',
+    lastAudit: history.length > 0 ? history[history.length - 1]! : null,
   };
+}
+
+async function withAudit(estimate: Estimate): Promise<Estimate> {
+  const settings = useSettingsStore();
+  const at = nowIso();
+  const username = await resolveAuditUsername(settings.settings.username);
+  return appendAuditEntry(
+    {
+      ...estimate,
+      schemaVersion: 2 as const,
+      meta: {
+        ...estimate.meta,
+        updatedAt: at,
+      },
+      auditHistory: estimate.auditHistory ?? [],
+    },
+    at,
+    username,
+  );
 }
 
 export const useLibraryStore = defineStore('library', () => {
@@ -97,13 +114,7 @@ export const useLibraryStore = defineStore('library', () => {
     if (!isTauri()) {
       throw new Error('Salvataggio libreria disponibile solo nell’app desktop');
     }
-    const next: Estimate = {
-      ...estimate,
-      meta: {
-        ...estimate.meta,
-        updatedAt: nowIso(),
-      },
-    };
+    const next = await withAudit(estimate);
     const dir = await resolveDir();
     const path = await joinPath(dir, `${next.meta.id}.howlong.json`);
     await writeTextFile(path, estimateToJson(next));
@@ -142,16 +153,16 @@ export const useLibraryStore = defineStore('library', () => {
       patch.title !== undefined
         ? patch.title.trim() || loaded.data.meta.title
         : loaded.data.meta.title;
-    const next: Estimate = {
+    const patched: Estimate = {
       ...loaded.data,
       meta: {
         ...loaded.data.meta,
         ...patch,
         title,
-        updatedAt: nowIso(),
       },
     };
     try {
+      const next = await withAudit(patched);
       await writeTextFile(path, estimateToJson(next));
       const entry = entryFromEstimate(next, path);
       const idx = entries.value.findIndex((e) => e.path === path);
@@ -160,6 +171,7 @@ export const useLibraryStore = defineStore('library', () => {
       const estimateStore = useEstimateStore();
       if (estimateStore.filePath === path) {
         const wasDirty = estimateStore.dirty;
+        estimateStore.estimate.auditHistory = next.auditHistory;
         estimateStore.updateMeta({
           title: next.meta.title,
           icon: next.meta.icon,

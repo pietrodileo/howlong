@@ -37,7 +37,7 @@ function clampCenterX(centerX: number, bubbleWidth: number): number {
   return Math.min(max, Math.max(min, centerX));
 }
 
-function position(el: HTMLElement, place: Place) {
+function applyPlace(el: HTMLElement, place: Place) {
   const b = ensureBubble();
   const r = el.getBoundingClientRect();
   const gap = 8;
@@ -68,6 +68,23 @@ function position(el: HTMLElement, place: Place) {
     const bw = b.getBoundingClientRect().width;
     b.style.left = `${clampCenterX(r.left + r.width / 2, bw)}px`;
   }
+}
+
+function flipIfNeeded(preferred: Place): Place {
+  const b = ensureBubble();
+  const br = b.getBoundingClientRect();
+  const pad = 8;
+  if (preferred === 'bottom' && br.bottom > window.innerHeight - pad) return 'top';
+  if (preferred === 'top' && br.top < pad) return 'bottom';
+  if (preferred === 'right' && br.right > window.innerWidth - pad) return 'left';
+  if (preferred === 'left' && br.left < pad) return 'right';
+  return preferred;
+}
+
+function position(el: HTMLElement, preferred: Place) {
+  applyPlace(el, preferred);
+  const place = flipIfNeeded(preferred);
+  if (place !== preferred) applyPlace(el, place);
 }
 
 function show(el: HTMLElement, binding: DirectiveBinding<string | null | undefined>) {

@@ -83,6 +83,7 @@ export type MessageTree = {
     username: string;
     usernameHelp: string;
     usernamePh: string;
+    usernameDesktopHint: string;
     info: string;
     infoBody: string;
     dataFolder: string;
@@ -90,6 +91,11 @@ export type MessageTree = {
     estimatesFolderHelp: string;
     estimatesFolderActive: string;
     estimatesFolderCustom: string;
+    workspaceFolderHelp: string;
+    workspaceFolderActive: string;
+    workspaceFolderDefault: string;
+    workspaceFolderCustom: string;
+    modelsFolderActive: string;
     pickFolder: string;
     resetFolder: string;
     folderLoaded: string;
@@ -159,6 +165,7 @@ export type MessageTree = {
     exportOk: string;
     exportZipHint: string;
     noneSelected: string;
+    lastSavedBy: string;
   };
   working: {
     titlePh: string;
@@ -200,6 +207,13 @@ export type MessageTree = {
     reloaded: string;
     saved: string;
     exported: string;
+    lastSavedBy: string;
+    auditHistoryTitle: string;
+    auditHistoryWhen: string;
+    auditHistoryUser: string;
+    auditHistoryEmpty: string;
+    auditHistoryOpen: string;
+    auditHistoryUnavailable: string;
     cycleError: string;
     oneDayEq: string;
     statFmt: string;
@@ -496,6 +510,8 @@ const it: MessageTree = {
     username: 'Nome utente',
     usernameHelp: 'Nome dell\'utente che sta usando HowLong',
     usernamePh: 'username',
+    usernameDesktopHint:
+      'Di default viene usato il nome dell\'account del PC',
     info: 'Informazioni',
     infoBody:
       'Dove HowLong? salva i suoi file sul PC',
@@ -503,17 +519,23 @@ const it: MessageTree = {
     estimatesFolder: 'Cartella stime',
     estimatesFolderHelp:
       'Cartella dove HowLong salva le preferenze e da dove carica le stime `.howlong.json` presenti.',
-    estimatesFolderActive: 'Cartella attiva',
+    estimatesFolderActive: 'Stime',
     estimatesFolderCustom: 'Stai usando una cartella personalizzata.',
+    workspaceFolderHelp:
+      'Cartella dove HowLong salva le stime e i modelli',
+    workspaceFolderActive: 'Workspace',
+    workspaceFolderDefault: 'Default app data (locale)',
+    workspaceFolderCustom: 'Stai usando un workspace personalizzato.',
+    modelsFolderActive: 'Modelli',
     pickFolder: 'Scegli cartella…',
     resetFolder: 'Usa default',
     folderLoaded: 'Caricate {n} stime dalla cartella',
     folderEmpty: 'Cartella vuota — nessuna stima HowLong trovata',
     importExport: 'Import / Export',
     tipImport:
-      '**Import** — file `.json` con **impostazioni + modelli**. Poi **Salva**.',
+      '**Import** — Importa e sostituisce le **impostazioni** e i **modelli** nella cartella workspace attiva.',
     tipExport:
-      '**Export** — copia `.json` di **impostazioni** e **tutti i modelli**.',
+      '**Export** — Esporta **impostazioni** e **modelli**.',
     saved: 'Impostazioni salvate',
     importOk: 'Settings importati',
     importOkFull: 'Importati impostazioni e {count} modelli',
@@ -527,7 +549,7 @@ const it: MessageTree = {
     sectionEstimate: 'Vista Stima',
     sectionPresentation: 'Presentazione',
     sectionExport: 'Nome file export',
-    sectionFolder: 'Cartella stime',
+    sectionFolder: 'Workspace',
     sectionWorkspace: 'Import / export workspace',
     estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
     presentationIntro: 'Definisce la visibilità predefinita delle colonne nella vista Presentazione.',
@@ -546,7 +568,7 @@ const it: MessageTree = {
   about: {
     close: 'Chiudi',
     version: 'Versione',
-    aim: 'Estimate project effort without wrestling Excel — totals with contingency, reusable templates, client view, export.',
+    aim: 'Esegui le stime dei progetti senza lottare con Excel',
   },
   library: {
     lede: 'Apri e cerca le stime salvate in formato HowLong',
@@ -572,10 +594,11 @@ const it: MessageTree = {
     importOk: 'Importate {n} stime in libreria',
     importPartial: 'Importate {ok} stime; {fail} errori',
     export: 'Esporta',
-    exportHint: 'Esporta le stime selezionate (1 file, oppure ZIP se più di una)',
+    exportHint: 'Esporta le stime selezionate',
     exportOk: 'Esportate {n} stime: {path}',
-    exportZipHint: 'Più stime → un archivio ZIP con file separati',
+    exportZipHint: 'Più stime saranno esportate come un unico archivio ZIP con file separati',
     noneSelected: 'Seleziona almeno una stima',
+    lastSavedBy: 'Salvata da {user} · {when}',
   },
   working: {
     titlePh: 'Titolo stima',
@@ -618,6 +641,13 @@ const it: MessageTree = {
     reloaded: 'Stima ricaricata dal file',
     saved: 'Salvata: {path}',
     exported: 'Esportata ({format}): {path}',
+    lastSavedBy: 'Ultimo salvataggio: {user} · {when}',
+    auditHistoryTitle: 'Cronologia salvataggi',
+    auditHistoryWhen: 'Data e ora',
+    auditHistoryUser: 'Utente',
+    auditHistoryEmpty: 'Nessun salvataggio registrato',
+    auditHistoryOpen: 'Apri cronologia salvataggi',
+    auditHistoryUnavailable: 'Cronologia salvataggi non disponibile',
     cycleError: 'Dipendenza circolare',
     oneDayEq: '1 gg =',
     statFmt: '{hours} h · {days} D',
@@ -925,6 +955,8 @@ const en: MessageTree = {
     username: 'Username',
     usernameHelp: 'User name using HowLong',
     usernamePh: 'username',
+    usernameDesktopHint:
+      'By default, the PC account name is used',
     info: 'About',
     infoBody:
       'This shows where HowLong? stores its files on your PC. CTG and hours/day are set on the model or estimate. Settings export also includes your models.',
@@ -932,17 +964,23 @@ const en: MessageTree = {
     estimatesFolder: 'Estimates folder',
     estimatesFolderHelp:
       'Folder where HowLong saves preferences and loads estimates `.howlong.json` found there.',
-    estimatesFolderActive: 'Active folder',
+    estimatesFolderActive: 'Estimates',
     estimatesFolderCustom: 'You are using a custom folder.',
+    workspaceFolderHelp:
+      'Folder where HowLong saves estimates and models',
+    workspaceFolderActive: 'Workspace',
+    workspaceFolderDefault: 'Default app data (local)',
+    workspaceFolderCustom: 'You are using a custom workspace.',
+    modelsFolderActive: 'Models',
     pickFolder: 'Choose folder…',
     resetFolder: 'Use default',
     folderLoaded: 'Loaded {n} estimates from the folder',
     folderEmpty: 'Empty folder — no HowLong estimates found',
     importExport: 'Import / Export',
     tipImport:
-      '**Import** — `.json` file with **settings + models**. Then **Save**.',
+      '**Import** — Import and replace **settings** and **models** in the active workspace folder.',
     tipExport:
-      '**Export** — `.json` copy of **settings** and **all models**.',
+      '**Export** — Export **settings** and **models**.',
     saved: 'Settings saved',
     importOk: 'Settings imported',
     importOkFull: 'Imported settings and {count} models',
@@ -956,7 +994,7 @@ const en: MessageTree = {
     sectionEstimate: 'Estimate view',
     sectionPresentation: 'Presentation',
     sectionExport: 'Export filename',
-    sectionFolder: 'Estimates folder',
+    sectionFolder: 'Workspace',
     sectionWorkspace: 'Workspace import / export',
     estimateColumnsIntro: 'Columns shown when you open an estimate.',
     presentationIntro: 'Defines the default visibility of columns in the Presentation view.',
@@ -975,7 +1013,7 @@ const en: MessageTree = {
   about: {
     close: 'Close',
     version: 'Version',
-    aim: 'Estimate project effort without wrestling Excel — totals with contingency, reusable templates, client view, export.',
+    aim: 'Estimate project effort without wrestling Excel',
   },
   library: {
     lede: 'Open and search estimates saved in HowLong format',
@@ -1001,10 +1039,11 @@ const en: MessageTree = {
     importOk: 'Imported {n} estimates into the library',
     importPartial: 'Imported {ok} estimates; {fail} failed',
     export: 'Export',
-    exportHint: 'Export selected estimates (one file, or a ZIP if more than one)',
+    exportHint: 'Export selected estimates',
     exportOk: 'Exported {n} estimates: {path}',
-    exportZipHint: 'Multiple estimates → one ZIP with separate files',
+    exportZipHint: 'Multiple estimates will be exported as a single ZIP file with separate files',
     noneSelected: 'Select at least one estimate',
+    lastSavedBy: 'Saved by {user} · {when}',
   },
   working: {
     titlePh: 'Estimate title',
@@ -1046,6 +1085,13 @@ const en: MessageTree = {
     reloaded: 'Estimate reloaded from file',
     saved: 'Saved: {path}',
     exported: 'Exported ({format}): {path}',
+    lastSavedBy: 'Last saved: {user} · {when}',
+    auditHistoryTitle: 'Save history',
+    auditHistoryWhen: 'Date and time',
+    auditHistoryUser: 'User',
+    auditHistoryEmpty: 'No saves recorded',
+    auditHistoryOpen: 'Open save history',
+    auditHistoryUnavailable: 'Save history not available',
     cycleError: 'Circular dependency',
     oneDayEq: '1 day =',
     statFmt: '{hours} h · {days} D',

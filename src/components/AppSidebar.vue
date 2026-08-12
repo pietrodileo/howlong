@@ -101,7 +101,7 @@ onUnmounted(() => {
         <div class="brand-row" data-tauri-drag-region>
           <img
             class="brand-mark"
-            src="/howlong-icon.png"
+            src="/howlong-icon-vector.svg"
             width="40"
             height="40"
             alt=""
@@ -120,7 +120,7 @@ onUnmounted(() => {
         <img
           v-show="sidebarCollapsed"
           class="brand-mark collapsed-mark"
-          src="/howlong-icon.png"
+          src="/howlong-icon-vector.svg"
           width="32"
           height="32"
           alt="HowLong?"

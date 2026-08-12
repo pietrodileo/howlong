@@ -4,9 +4,8 @@ import { DEFAULT_MODEL, type Model, parseModel } from '../models/model';
 import { createBlankModel } from '../lib/factory';
 import { newId } from '../lib/ids';
 import {
-  ensureAppDefaults,
   joinPath,
-  listModelFiles,
+  listJsonFiles,
   readTextFile,
   writeTextFile,
   deleteFile,
@@ -17,6 +16,7 @@ import { modelToJson } from '../lib/export';
 import { toErrorMessage } from '../lib/errors';
 import { reorderHierarchical } from '../lib/reorderHierarchical';
 import { useSettingsStore } from './settings';
+import { resolveModelsDir } from '../lib/workspacePaths';
 
 export const useModelsStore = defineStore('models', () => {
   const models = ref<Model[]>([]);
@@ -62,8 +62,8 @@ export const useModelsStore = defineStore('models', () => {
       return;
     }
     try {
-      const dir = await ensureAppDefaults();
-      const files = await listModelFiles();
+      const dir = await resolveModelsDir();
+      const files = await listJsonFiles(dir);
       const loaded: Model[] = [];
       for (const file of files) {
         try {
@@ -77,7 +77,7 @@ export const useModelsStore = defineStore('models', () => {
       }
       if (loaded.length === 0) {
         loaded.push(structuredClone(DEFAULT_MODEL));
-        const path = await joinPath(dir, 'models', 'default.howlong.json');
+        const path = await joinPath(dir, 'default.howlong.json');
         await writeTextFile(path, modelToJson(DEFAULT_MODEL));
       }
       models.value = loaded;
@@ -102,9 +102,9 @@ export const useModelsStore = defineStore('models', () => {
 
   async function persist(model: Model) {
     if (!isTauri()) return;
-    const dir = await ensureAppDefaults();
+    const dir = await resolveModelsDir();
     const filename = `${model.id}.howlong.json`;
-    const path = await joinPath(dir, 'models', filename);
+    const path = await joinPath(dir, filename);
     await writeTextFile(path, modelToJson(model));
   }
 
@@ -121,10 +121,10 @@ export const useModelsStore = defineStore('models', () => {
     const renameFrom = pendingIdRenameFrom.value;
     if (renameFrom && renameFrom !== parsed.data.id && isTauri()) {
       try {
-        const dir = await ensureAppDefaults();
-        await deleteFile(await joinPath(dir, 'models', `${renameFrom}.howlong.json`));
+        const dir = await resolveModelsDir();
+        await deleteFile(await joinPath(dir, `${renameFrom}.howlong.json`));
         if (renameFrom === DEFAULT_MODEL.id) {
-          await deleteFile(await joinPath(dir, 'models', 'default.howlong.json'));
+          await deleteFile(await joinPath(dir, 'default.howlong.json'));
         }
       } catch (e) {
         lastError.value = toErrorMessage(e);
@@ -300,12 +300,12 @@ export const useModelsStore = defineStore('models', () => {
 
     if (isTauri()) {
       try {
-        const dir = await ensureAppDefaults();
-        const path = await joinPath(dir, 'models', `${id}.howlong.json`);
+        const dir = await resolveModelsDir();
+        const path = await joinPath(dir, `${id}.howlong.json`);
         await deleteFile(path);
         // Legacy default file name
         if (id === DEFAULT_MODEL.id) {
-          const legacy = await joinPath(dir, 'models', 'default.howlong.json');
+          const legacy = await joinPath(dir, 'default.howlong.json');
           await deleteFile(legacy);
         }
       } catch (e) {
@@ -349,8 +349,8 @@ export const useModelsStore = defineStore('models', () => {
     if (!isTauri()) return true;
 
     try {
-      const dir = await ensureAppDefaults();
-      const files = await listModelFiles();
+      const dir = await resolveModelsDir();
+      const files = await listJsonFiles(dir);
       for (const file of files) {
         await deleteFile(file);
       }
@@ -358,7 +358,7 @@ export const useModelsStore = defineStore('models', () => {
         await persist(m);
       }
       // cleanup legacy name if still present somehow
-      const legacy = await joinPath(dir, 'models', 'default.howlong.json');
+      const legacy = await joinPath(dir, 'default.howlong.json');
       if (!models.value.some((m) => m.id === DEFAULT_MODEL.id)) {
         await deleteFile(legacy);
       }

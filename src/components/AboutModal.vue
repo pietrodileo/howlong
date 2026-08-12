@@ -15,7 +15,7 @@ const { t } = useI18n();
     <div class="modal" role="dialog" aria-labelledby="about-title">
       <header>
         <div class="brand">
-          <img class="brand-mark" src="/howlong-icon.png" width="44" height="44" alt="" />
+          <img class="brand-mark" src="/howlong-icon-vector.svg" width="44" height="44" alt="" />
           <div>
             <p class="tagline">Effort, made obvious.</p>
             <h2 id="about-title">HowLong?</h2>
