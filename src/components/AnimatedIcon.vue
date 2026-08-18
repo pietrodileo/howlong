@@ -1,0 +1,154 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+
+const props = defineProps<{
+  size?: number;
+  animate?: boolean;
+  speed?: number;
+  className?: string;
+}>();
+
+const size = computed(() => props.size || 40);
+const isAnimating = computed(() => props.animate !== false);
+const animationDuration = computed(() => props.speed || 8);
+
+const iconStyle = computed(() => ({
+  width: `${size.value}px`,
+  height: `${size.value}px`,
+  animation: isAnimating.value ? `rotate ${animationDuration.value}s ease-in-out infinite` : 'none',
+  transformOrigin: 'center',
+}));
+
+const sandStyle = computed(() => ({
+  animationDuration: `${animationDuration.value / 2}s`,
+}));
+</script>
+
+<template>
+  <div class="animated-icon-wrapper" :class="className">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 1024 1024"
+      :style="iconStyle"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#293b58"/><stop offset="1" stop-color="#243752"/>
+        </linearGradient>
+        <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#fffdf6"/><stop offset="0.55" stop-color="#fff9ed"/><stop offset="1" stop-color="#f7f0df"/>
+        </linearGradient>
+        <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff0d0"/><stop offset="1" stop-color="#ead4aa"/>
+        </linearGradient>
+        <linearGradient id="sand" x1="0" y1="0" x2="0.8" y2="1">
+          <stop offset="0" stop-color="#ffb63f"/><stop offset="0.62" stop-color="#f5a72f"/><stop offset="1" stop-color="#df9525"/>
+        </linearGradient>
+        <linearGradient id="sand2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffb642"/><stop offset="1" stop-color="#e49a29"/>
+        </linearGradient>
+      </defs>
+
+      <rect width="1024" height="1024" rx="205" fill="url(#bg)"/>
+
+      <g class="hourglass-glass">
+        <!-- glass silhouette -->
+        <path d="M322 214 C309 243 308 279 314 311 C322 357 347 394 387 425 L454 477 C483 500 483 522 454 547 L384 605 C340 641 315 686 315 735 C315 760 320 785 326 802 L699 802 C706 783 710 758 710 735 C710 686 684 641 640 605 L570 547 C541 522 541 500 570 477 L637 425 C677 394 702 357 710 311 C716 279 715 243 702 214 Z" fill="url(#glass)"/>
+
+        <!-- upper sand -->
+        <path class="sand-top" d="M391 410 C432 402 460 406 488 412 C510 417 533 417 556 412 C585 406 612 402 633 410 L548 471 C525 488 514 504 512 524 C509 505 499 488 476 471 Z" fill="url(#sand)"/>
+        <path class="sand-top" d="M391 410 C434 404 464 411 491 417 C514 422 539 420 563 414 C590 408 614 404 633 410 L556 463 C530 481 515 486 489 476 C458 464 425 435 391 410Z" fill="#ffb53c" opacity=".52"/>
+        
+        <!-- sand particles -->
+        <circle class="sand-particle" cx="512" cy="595" r="6.5" fill="#f2a332"/>
+        <circle class="sand-particle" cx="512" cy="623" r="6.5" fill="#f2a332"/>
+        <circle class="sand-particle" cx="512" cy="651" r="6.5" fill="#f2a332"/>
+
+        <!-- lower sand -->
+        <path class="sand-bottom" d="M342 801 C344 772 362 753 393 737 L466 695 C485 684 499 674 512 671 C525 674 539 684 558 695 L631 737 C662 753 680 772 682 801 Z" fill="url(#sand2)"/>
+        <path class="sand-bottom" d="M342 801 C344 774 363 755 397 737 L468 697 C485 686 498 678 512 675 C526 680 540 691 558 705 C582 723 604 737 622 748 C647 764 665 782 668 801 Z" fill="#ffb63e" opacity=".58"/>
+
+        <!-- glass highlights -->
+        <path d="M622 235 C658 243 680 271 680 305 C680 315 678 325 674 333" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" opacity=".78"/>
+        <path d="M600 604 C640 628 667 664 670 705" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" opacity=".72"/>
+
+        <!-- face -->
+        <circle cx="428" cy="315" r="21" fill="#26384f"/>
+        <circle cx="596" cy="315" r="21" fill="#26384f"/>
+        <path d="M487 341 C493 351 503 356 512 356 C522 356 532 351 537 341" fill="none" stroke="#26384f" stroke-width="10" stroke-linecap="round"/>
+
+        <!-- top and bottom wooden caps -->
+        <rect x="274" y="133" width="476" height="61" rx="30.5" fill="url(#wood)"/>
+        <rect x="319" y="192" width="386" height="28" rx="7" fill="#f3dfbd"/>
+        <rect x="274" y="815" width="476" height="58" rx="29" fill="url(#wood)"/>
+        <rect x="316" y="800" width="392" height="19" rx="7" fill="#f4e2c2"/>
+
+        <!-- subtle cap highlights -->
+        <path d="M305 145 H719" stroke="#fff7e6" stroke-width="7" stroke-linecap="round" opacity=".45"/>
+      </g>
+    </svg>
+  </div>
+</template>
+
+<style scoped>
+.animated-icon-wrapper {
+  display: inline-block;
+  line-height: 0;
+}
+
+.animated-icon-wrapper svg {
+  display: block;
+}
+
+@keyframes rotate {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+@keyframes sandFlow {
+  0%, 100% { 
+    transform: translateY(0); 
+    opacity: 1;
+  }
+  50% { 
+    transform: translateY(15px); 
+    opacity: 0.3;
+  }
+}
+
+@keyframes sandFlowReverse {
+  0%, 100% { 
+    transform: translateY(0); 
+    opacity: 0.3;
+  }
+  50% { 
+    transform: translateY(-15px); 
+    opacity: 1;
+  }
+}
+
+.hourglass-glass {
+  transform-origin: center;
+}
+
+.sand-top {
+  animation: sandFlow v-bind('animationDuration / 2 + "s"') ease-in-out infinite;
+}
+
+.sand-bottom {
+  animation: sandFlowReverse v-bind('animationDuration / 2 + "s"') ease-in-out infinite;
+}
+
+.sand-particle {
+  animation: sandFlow v-bind('animationDuration / 2 + "s"') ease-in-out infinite;
+}
+
+.sand-particle:nth-child(2) {
+  animation-delay: calc(v-bind('animationDuration / 4 + "s"'));
+}
+
+.sand-particle:nth-child(3) {
+  animation-delay: calc(v-bind('animationDuration / 2 + "s"'));
+}
+</style>
