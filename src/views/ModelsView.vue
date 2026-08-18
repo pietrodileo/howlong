@@ -927,7 +927,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 @dragend="cols.onColDragEnd"
               >
                 <div class="th-inner th-drag">
-                  <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
+                  <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
                   <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
                 </div>
                 <span
@@ -1370,9 +1370,6 @@ li.active .mark {
 .editor .table-shell {
   flex: 1 1 auto;
   max-height: min(60vh, 520px);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
   overflow: auto;
 }
 
