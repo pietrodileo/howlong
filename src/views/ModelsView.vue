@@ -1188,8 +1188,8 @@ aside {
 .list-resizer {
   position: absolute;
   top: 0;
-  right: -0.85rem;
-  width: 14px;
+  right: -5px;
+  width: 10px;
   height: 100%;
   cursor: col-resize;
   z-index: 3;
@@ -1202,16 +1202,16 @@ aside {
   top: 0;
   bottom: 0;
   left: 50%;
-  width: 3px;
+  width: 2px;
   transform: translateX(-50%);
   border-radius: 1px;
-  background: var(--line);
+  background: transparent;
   transition: background 0.12s ease;
 }
 
 .list-resizer:hover::after,
 .list-resizing .list-resizer::after {
-  background: var(--accent);
+  background: color-mix(in srgb, var(--accent) 55%, var(--line));
 }
 
 .aside-head {
