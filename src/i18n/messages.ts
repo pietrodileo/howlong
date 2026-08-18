@@ -255,7 +255,10 @@ export type MessageTree = {
     resizeList: string;
     namePh: string;
     deleteModel: string;
+    saveModel: string;
+    exportModel: string;
     setDefault: string;
+    modelIdTitle: string;
     iconLabel: string;
     icon_letter: string;
     icon_layers: string;

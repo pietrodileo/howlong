@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useModelsStore } from '../stores/models';
 import { useUiStore } from '../stores/ui';
+import { useSettingsStore } from '../stores/settings';
 import { exportModel, openModelFiles } from '../lib/io';
 import { isTauri } from '../lib/tauri';
 import { newId } from '../lib/ids';
@@ -27,6 +28,7 @@ import { MODEL_ICON_OPTIONS, type FormulaAggregate, type ModelIcon as ModelIconI
 
 const models = useModelsStore();
 const ui = useUiStore();
+const settings = useSettingsStore();
 const { t } = useI18n();
 const cols = useModelResizableColumns();
 
@@ -338,14 +340,14 @@ function duplicateMacro(id: string) {
   if (!macro) return;
 
   const existingNames = m.macroActivities.map((a) => a.name);
-  const locale = ui.settings.locale === 'en' ? 'en' : 'it';
+  const locale = settings.settings.locale === 'en' ? 'en' : 'it';
   const newName = nextCopyName(macro.name, existingNames, locale);
 
   const next = [...m.macroActivities];
-  const newId = newId(macro.parentId ? 'task' : macro.kind === 'formula' ? 'formula' : 'macro');
+  const newIdValue = newId(macro.parentId ? 'task' : macro.kind === 'formula' ? 'formula' : 'macro');
   const duplicated: MacroActivity = {
     ...macro,
-    id: newId,
+    id: newIdValue,
     name: newName,
     // Clear parent if duplicating a top-level macro
     parentId: isTopLevel(macro) ? null : macro.parentId,
@@ -357,7 +359,7 @@ function duplicateMacro(id: string) {
     const childrenDuplicates = children.map((child) => ({
       ...child,
       id: newId('task'),
-      parentId: newId,
+      parentId: newIdValue,
       name: nextCopyName(child.name, existingNames, locale),
     }));
     next.push(duplicated, ...childrenDuplicates);
