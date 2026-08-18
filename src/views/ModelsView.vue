@@ -1844,17 +1844,17 @@ th.collapsed {
 }
 
 .model-action-btn.default-btn {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  background: color-mix(in srgb, var(--line) 20%, transparent);
+  color: var(--ink-soft);
+  border-color: color-mix(in srgb, var(--line) 40%, transparent);
   height: 1.9rem;
   padding: 0 0.85rem;
 }
 
 .model-action-btn.default-btn:hover {
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
-  color: var(--accent-dark);
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--line) 30%, transparent);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--line) 55%, transparent);
 }
 
 .default-hint {
