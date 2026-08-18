@@ -918,7 +918,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 class="resizable"
                 :class="{ collapsed: cols.collapsed[key], 'center-th': key === 'ctg' }"
                 :style="cols.styleFor(key)"
-                v-tip="headerTitle(key)"
+                v-tip="key !== 'actions' ? headerTitle(key) : null"
                 draggable="true"
                 @dblclick="onHeaderDblClick(key)"
                 @dragstart="cols.onColDragStart(key, $event)"
