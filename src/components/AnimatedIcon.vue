@@ -15,12 +15,9 @@ const animationDuration = computed(() => props.speed || 8);
 const iconStyle = computed(() => ({
   width: `${size.value}px`,
   height: `${size.value}px`,
-  animation: isAnimating.value ? `rotate ${animationDuration.value}s ease-in-out infinite` : 'none',
-  transformOrigin: 'center',
-}));
-
-const sandStyle = computed(() => ({
-  animationDuration: `${animationDuration.value / 2}s`,
+  '--animation-duration': `${animationDuration.value}s`,
+  '--animation-duration-half': `${animationDuration.value / 2}s`,
+  '--animation-duration-quarter': `${animationDuration.value / 4}s`,
 }));
 </script>
 
@@ -50,9 +47,18 @@ const sandStyle = computed(() => ({
         </linearGradient>
       </defs>
 
+      <!-- Static background -->
       <rect width="1024" height="1024" rx="205" fill="url(#bg)"/>
 
-      <g class="hourglass-glass">
+      <!-- Static wooden caps (don't rotate) -->
+      <rect x="274" y="133" width="476" height="61" rx="30.5" fill="url(#wood)"/>
+      <rect x="319" y="192" width="386" height="28" rx="7" fill="#f3dfbd"/>
+      <rect x="274" y="815" width="476" height="58" rx="29" fill="url(#wood)"/>
+      <rect x="316" y="800" width="392" height="19" rx="7" fill="#f4e2c2"/>
+      <path d="M305 145 H719" stroke="#fff7e6" stroke-width="7" stroke-linecap="round" opacity=".45"/>
+
+      <!-- Rotating group - only the hourglass glass and sand rotate -->
+      <g class="rotating-hourglass" :class="{ 'animate-rotate': isAnimating }">
         <!-- glass silhouette -->
         <path d="M322 214 C309 243 308 279 314 311 C322 357 347 394 387 425 L454 477 C483 500 483 522 454 547 L384 605 C340 641 315 686 315 735 C315 760 320 785 326 802 L699 802 C706 783 710 758 710 735 C710 686 684 641 640 605 L570 547 C541 522 541 500 570 477 L637 425 C677 394 702 357 710 311 C716 279 715 243 702 214 Z" fill="url(#glass)"/>
 
@@ -73,19 +79,12 @@ const sandStyle = computed(() => ({
         <path d="M622 235 C658 243 680 271 680 305 C680 315 678 325 674 333" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" opacity=".78"/>
         <path d="M600 604 C640 628 667 664 670 705" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" opacity=".72"/>
 
-        <!-- face -->
-        <circle cx="428" cy="315" r="21" fill="#26384f"/>
-        <circle cx="596" cy="315" r="21" fill="#26384f"/>
-        <path d="M487 341 C493 351 503 356 512 356 C522 356 532 351 537 341" fill="none" stroke="#26384f" stroke-width="10" stroke-linecap="round"/>
-
-        <!-- top and bottom wooden caps -->
-        <rect x="274" y="133" width="476" height="61" rx="30.5" fill="url(#wood)"/>
-        <rect x="319" y="192" width="386" height="28" rx="7" fill="#f3dfbd"/>
-        <rect x="274" y="815" width="476" height="58" rx="29" fill="url(#wood)"/>
-        <rect x="316" y="800" width="392" height="19" rx="7" fill="#f4e2c2"/>
-
-        <!-- subtle cap highlights -->
-        <path d="M305 145 H719" stroke="#fff7e6" stroke-width="7" stroke-linecap="round" opacity=".45"/>
+        <!-- face - counter-rotates to stay upright -->
+        <g class="face-group">
+          <circle cx="428" cy="315" r="21" fill="#26384f"/>
+          <circle cx="596" cy="315" r="21" fill="#26384f"/>
+          <path d="M487 341 C493 351 503 356 512 356 C522 356 532 351 537 341" fill="none" stroke="#26384f" stroke-width="10" stroke-linecap="round"/>
+        </g>
       </g>
     </svg>
   </div>
@@ -112,7 +111,7 @@ const sandStyle = computed(() => ({
     opacity: 1;
   }
   50% { 
-    transform: translateY(15px); 
+    transform: translateY(20px); 
     opacity: 0.3;
   }
 }
@@ -123,32 +122,57 @@ const sandStyle = computed(() => ({
     opacity: 0.3;
   }
   50% { 
-    transform: translateY(-15px); 
+    transform: translateY(-20px); 
     opacity: 1;
   }
 }
 
-.hourglass-glass {
-  transform-origin: center;
+@keyframes faceCounterRotate {
+  0%, 100% { 
+    transform: rotate(0deg); 
+  }
+  50% { 
+    transform: rotate(-180deg); 
+  }
+}
+
+.rotating-hourglass {
+  transform-origin: 512px 512px;
+}
+
+.rotating-hourglass.animate-rotate {
+  animation: rotate var(--animation-duration) ease-in-out infinite;
 }
 
 .sand-top {
-  animation: sandFlow v-bind('animationDuration / 2 + "s"') ease-in-out infinite;
+  transform-origin: 512px 512px;
+  animation: sandFlow var(--animation-duration-half) ease-in-out infinite;
 }
 
 .sand-bottom {
-  animation: sandFlowReverse v-bind('animationDuration / 2 + "s"') ease-in-out infinite;
+  transform-origin: 512px 512px;
+  animation: sandFlowReverse var(--animation-duration-half) ease-in-out infinite;
 }
 
 .sand-particle {
-  animation: sandFlow v-bind('animationDuration / 2 + "s"') ease-in-out infinite;
+  transform-origin: 512px 512px;
+  animation: sandFlow var(--animation-duration-half) ease-in-out infinite;
 }
 
 .sand-particle:nth-child(2) {
-  animation-delay: calc(v-bind('animationDuration / 4 + "s"'));
+  animation-delay: var(--animation-duration-quarter);
 }
 
 .sand-particle:nth-child(3) {
-  animation-delay: calc(v-bind('animationDuration / 2 + "s"'));
+  animation-delay: var(--animation-duration-half);
+}
+
+/* Face group - counter-rotates to stay upright */
+.face-group {
+  transform-origin: 512px 512px;
+}
+
+.rotating-hourglass.animate-rotate .face-group {
+  animation: faceCounterRotate var(--animation-duration) ease-in-out infinite;
 }
 </style>
