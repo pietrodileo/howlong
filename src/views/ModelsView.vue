@@ -826,6 +826,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 v-else
                 type="button"
                 class="model-action-btn default-btn"
+                v-tip="t('models.setDefault')"
                 @click="setAsDefault"
               >
                 {{ t('models.setDefault') }}
