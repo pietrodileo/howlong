@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { useModelsStore } from '../stores/models';
 import { useLibraryStore } from '../stores/library';
@@ -26,6 +26,34 @@ const resolvedWorkspaceDir = ref('');
 const resolvedEstimatesDir = ref('');
 const resolvedModelsDir = ref('');
 const openFolderSection = ref(ui.consumeSettingsSection() === 'folder');
+
+// Flag to prevent duplicate saves
+let isSaving = false;
+
+// Auto-save settings when they change
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+watch(
+  () => settings.settings,
+  async () => {
+    if (isSaving) return;
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(async () => {
+      try {
+        isSaving = true;
+        await settings.save();
+        syncEstimateColumnsFromSettings();
+        await library.loadAll();
+        await models.loadAll();
+        await refreshWorkspacePaths();
+      } catch (e) {
+        ui.notify(toErrorMessage(e), true);
+      } finally {
+        isSaving = false;
+      }
+    }, 1000);
+  },
+  { deep: true },
+);
 
 async function refreshWorkspacePaths() {
   if (!isTauri()) {
@@ -59,7 +87,9 @@ function md(text: string): string {
 }
 
 async function applyWorkspaceFolderChange() {
+  if (isSaving) return;
   try {
+    isSaving = true;
     await settings.save();
     const n = await library.loadAll();
     await models.loadAll();
@@ -75,23 +105,8 @@ async function applyWorkspaceFolderChange() {
     }
   } catch (e) {
     ui.notify(toErrorMessage(e), true);
-  }
-}
-
-async function save() {
-  try {
-    await settings.save();
-    syncEstimateColumnsFromSettings();
-    const n = await library.loadAll();
-    await models.loadAll();
-    await refreshWorkspacePaths();
-    ui.notify(
-      n > 0
-        ? `${t('settings.saved')} — ${t('settings.folderLoaded', { n: String(n) })}`
-        : t('settings.saved'),
-    );
-  } catch (e) {
-    ui.notify(toErrorMessage(e), true);
+  } finally {
+    isSaving = false;
   }
 }
 
@@ -193,7 +208,6 @@ function onExportDateChange(checked: boolean) {
     <header class="hero">
       <div class="hero-top">
         <h2 class="title">{{ t('settings.title') }}</h2>
-        <button type="button" class="primary" @click="save">{{ t('settings.save') }}</button>
       </div>
       <p v-if="settings.settings.username.trim()" class="user-badge">
         {{ settings.settings.username.trim() }}
