@@ -201,6 +201,10 @@ function onExportDateChange(checked: boolean) {
     </header>
 
     <SettingsPanel :title="t('settings.sectionProfile')">
+      <div class="profile-hints">
+        <span class="field-hint">{{ t('settings.usernameHelp') }}</span>
+        <span class="field-hint">{{ t('settings.usernameDesktopHint') }}</span>
+      </div>
       <label class="field">
         <span class="field-label">{{ t('settings.username') }}</span>
         <input
@@ -212,8 +216,6 @@ function onExportDateChange(checked: boolean) {
           @input="settings.settings.username = ($event.target as HTMLInputElement).value"
         />
       </label>
-      <p class="field-hint">{{ t('settings.usernameHelp') }}</p>
-      <p class="field-hint">{{ t('settings.usernameDesktopHint') }}</p>
     </SettingsPanel>
 
     <SettingsPanel :title="t('settings.sectionLocale')">
@@ -457,7 +459,12 @@ function onExportDateChange(checked: boolean) {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.45rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
+  min-width: 0;
 }
 
 .username-input {
@@ -468,8 +475,8 @@ function onExportDateChange(checked: boolean) {
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--ink);
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 400;
 }
 
 .username-input::placeholder {
@@ -515,18 +522,34 @@ function onExportDateChange(checked: boolean) {
 }
 
 .field-label {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
+  letter-spacing: 0.02em;
+  color: var(--ink);
 }
 
 .field-hint {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--ink-soft);
   line-height: 1.45;
+}
+
+.profile-hints {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.45rem;
+}
+
+.profile-hints .field-hint:first-child::after {
+  content: '';
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  background: var(--line);
+  margin-left: 0.45rem;
+  vertical-align: middle;
 }
 
 .pref-grid {
@@ -573,12 +596,13 @@ function onExportDateChange(checked: boolean) {
 .export-opt {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.55rem 0.65rem;
+  gap: 0.45rem;
+  padding: 0.65rem 0.75rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--page-soft);
   cursor: pointer;
+  min-width: 0;
 }
 
 .export-opt.disabled {
@@ -590,14 +614,15 @@ function onExportDateChange(checked: boolean) {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-weight: 550;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--ink);
 }
 
 .export-opt-hint {
-  margin-left: 1.35rem;
-  font-size: 0.8rem;
-  color: var(--muted);
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
 }
 
 .custom-note {
@@ -644,54 +669,72 @@ function onExportDateChange(checked: boolean) {
 }
 
 .meta {
-  margin: 0.15rem 0 0;
+  margin: 0;
   display: grid;
   gap: 0.25rem;
 }
 
+.meta.folder-box {
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem 0.75rem;
+  align-items: center;
+}
+
 .folder-box {
   margin: 0;
-  padding: 0.55rem 0.65rem;
+  padding: 0.65rem 0.75rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--page-soft);
 }
 
 .meta dt {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+  color: var(--ink);
 }
 
 .meta dd {
   margin: 0;
+  padding-top: 0.15rem;
 }
 
 .tips {
   margin: 0;
-  padding-left: 1.15rem;
-  display: grid;
-  gap: 0.55rem;
-  font-size: 0.9rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.85rem;
   color: var(--ink-soft);
   line-height: 1.45;
 }
 
 .tip-box {
-  list-style-position: outside;
+  list-style: none;
   margin: 0;
-  padding: 0.65rem 0.75rem 0.65rem 1.35rem;
+  padding: 0.65rem 0.75rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--page-soft);
   color: var(--ink-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
-.tips :deep(strong) {
+.tip-box li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 0.75rem;
+  align-items: start;
+}
+
+.tip-box :deep(strong) {
   color: var(--ink);
   font-weight: 600;
+  font-size: 0.85rem;
 }
 
 .tips :deep(code) {
@@ -711,9 +754,9 @@ function onExportDateChange(checked: boolean) {
 
 .path {
   margin: 0;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--ink-soft);
   word-break: break-all;
   line-height: 1.4;
 }
