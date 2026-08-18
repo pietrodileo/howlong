@@ -811,7 +811,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
               </label>
             </div>
             <div class="chrome-settings">
-              <label class="inline-field id-field">
+              <label class="inline-field id-field" v-tip="t('models.modelIdTitle')">
                 ID
                 <input
                   class="id-input"
