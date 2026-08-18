@@ -773,7 +773,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
             @input="models.updateSelected({ name: ($event.target as HTMLInputElement).value })"
           />
           <div class="chrome-btn-group">
-            <span v-if="models.dirty" class="dirty">{{ t('common.unsaved') }}</span>
+            <span v-if="models.currentDirty" class="dirty">{{ t('common.unsaved') }}</span>
             <button type="button" class="model-action-btn save-btn" v-tip="t('models.saveModel')" @click="save">{{ t('common.save') }}</button>
             <button
               type="button"
