@@ -5,6 +5,7 @@ import { useUiStore } from '../stores/ui';
 import { exportModel, openModelFiles } from '../lib/io';
 import { isTauri } from '../lib/tauri';
 import { newId } from '../lib/ids';
+import { nextCopyName } from '../lib/copyName';
 import {
   useModelResizableColumns,
   type ModelColumnKey,
@@ -327,6 +328,43 @@ function addSubtask(macroId: string) {
   });
   collapsedMacros.value.delete(macroId);
   collapsedMacros.value = new Set(collapsedMacros.value);
+  models.setMacroActivities(next);
+}
+
+function duplicateMacro(id: string) {
+  const m = current.value;
+  if (!m) return;
+  const macro = m.macroActivities.find((a) => a.id === id);
+  if (!macro) return;
+
+  const existingNames = m.macroActivities.map((a) => a.name);
+  const locale = ui.settings.locale === 'en' ? 'en' : 'it';
+  const newName = nextCopyName(macro.name, existingNames, locale);
+
+  const next = [...m.macroActivities];
+  const newId = newId(macro.parentId ? 'task' : macro.kind === 'formula' ? 'formula' : 'macro');
+  const duplicated: MacroActivity = {
+    ...macro,
+    id: newId,
+    name: newName,
+    // Clear parent if duplicating a top-level macro
+    parentId: isTopLevel(macro) ? null : macro.parentId,
+  };
+
+  // If duplicating a top-level macro with children, duplicate children too
+  if (isTopLevel(macro)) {
+    const children = m.macroActivities.filter((a) => a.parentId === id);
+    const childrenDuplicates = children.map((child) => ({
+      ...child,
+      id: newId('task'),
+      parentId: newId,
+      name: nextCopyName(child.name, existingNames, locale),
+    }));
+    next.push(duplicated, ...childrenDuplicates);
+  } else {
+    next.push(duplicated);
+  }
+
   models.setMacroActivities(next);
 }
 
@@ -889,7 +927,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 @dragend="cols.onColDragEnd"
               >
                 <div class="th-inner th-drag">
-                  <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
+                  <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
                   <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
                 </div>
                 <span
@@ -1055,6 +1093,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                       v-if="isTopLevel(a) && a.kind !== 'formula'"
                       type="button"
                       class="ghost"
+                      v-tip="t('working.addTask')"
                       @click="addSubtask(a.id)"
                     >
                       {{ t('working.addTask') }}
@@ -1064,6 +1103,12 @@ function setMacroApplyContingency(id: string, value: boolean) {
                       kind="edit"
                       :label="t('models.editFormula')"
                       @click="openFormulaEditor(a.id)"
+                    />
+                    <IconBtn
+                      v-if="isTopLevel(a)"
+                      kind="duplicate"
+                      :label="t('working.duplicateItem')"
+                      @click="duplicateMacro(a.id)"
                     />
                     <IconBtn
                       kind="delete"
@@ -1700,8 +1745,13 @@ th.collapsed {
   overflow: visible;
 }
 
-.row-actions :deep(.icon-btn) {
+.row-actions .ghost {
   margin-right: 0.15rem;
+}
+
+.row-actions :deep(.icon-btn) {
+  margin-right: 0.1rem;
+  vertical-align: middle;
 }
 
 .chrome {
