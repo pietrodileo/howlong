@@ -1223,6 +1223,10 @@ aside {
   margin-bottom: 0.65rem;
 }
 
+.aside-head .ghost {
+  font-size: 0.85rem;
+}
+
 .aside-head .toggle {
   margin-left: auto;
 }
