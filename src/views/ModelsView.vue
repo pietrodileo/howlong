@@ -1328,7 +1328,7 @@ li.active .mark {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface);
-  overflow: hidden;
+  overflow: auto;
 }
 
 .hero {
