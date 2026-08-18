@@ -734,64 +734,66 @@ function setMacroApplyContingency(id: string, value: boolean) {
             :placeholder="t('models.namePh')"
             @input="models.updateSelected({ name: ($event.target as HTMLInputElement).value })"
           />
+          <div class="chrome-btn-group">
+            <span v-if="models.dirty" class="dirty">{{ t('common.unsaved') }}</span>
+            <button type="button" class="model-action-btn save-btn" v-tip="t('models.saveModel')" @click="save">{{ t('common.save') }}</button>
+            <button
+              type="button"
+              class="model-action-btn delete-btn"
+              v-tip="t('models.deleteModel')"
+              @click="onDeleteModel"
+            >
+              {{ t('common.delete') }}
+            </button>
+            <button type="button" class="model-action-btn export-btn" v-tip="t('models.exportModel')" @click="onExport">
+              {{ t('common.export') }}
+            </button>
+          </div>
         </div>
 
         <div class="chrome">
-          <button type="button" class="primary" @click="save">{{ t('common.save') }}</button>
-          <button
-            type="button"
-            class="danger"
-            v-tip="t('models.deleteModel')"
-            @click="onDeleteModel"
-          >
-            {{ t('common.delete') }}
-          </button>
-          <button
-            v-if="!models.isDefault(current.id)"
-            type="button"
-            class="ghost"
-            @click="setAsDefault"
-          >
-            {{ t('models.setDefault') }}
-          </button>
-          <span v-else class="default-hint">{{ t('models.defaultBadge') }}</span>
-
-          <span class="chrome-sep" aria-hidden="true" />
-
-          <button type="button" class="ghost" @click="onExport">
-            {{ t('common.export') }}
-          </button>
-
-          <span class="chrome-sep" aria-hidden="true" />
-
-          <label
-            class="inline-field"
-            v-tip="t('models.hoursPerDayTitle')"
-          >
-            {{ t('working.oneDayEq') }}
-            <span class="pct-wrap">
-              <input
-                type="number"
-                min="1"
-                max="24"
-                step="0.5"
-                :value="current.hoursPerDay ?? 8"
-                @input="models.updateSelected({ hoursPerDay: Math.min(24, Math.max(1, Number(($event.target as HTMLInputElement).value) || 8)) })"
-              />
-              <span>{{ t('common.ore') }}</span>
-            </span>
-          </label>
-
-          <label class="inline-field id-field">
-            ID
-            <input
-              class="id-input"
-              :value="current.id"
-              @input="models.updateSelected({ id: ($event.target as HTMLInputElement).value })"
-            />
-          </label>
-
-          <span v-if="models.dirty" class="dirty">{{ t('common.unsaved') }}</span>
+          <div class="chrome-row chrome-config">
+            <div class="chrome-settings">
+              <label
+                class="inline-field"
+                v-tip="t('models.hoursPerDayTitle')"
+              >
+                {{ t('working.oneDayEq') }}
+                <span class="pct-wrap">
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    step="0.5"
+                    :value="current.hoursPerDay ?? 8"
+                    @input="models.updateSelected({ hoursPerDay: Math.min(24, Math.max(1, Number(($event.target as HTMLInputElement).value) || 8)) })"
+                  />
+                  <span>{{ t('common.ore') }}</span>
+                </span>
+              </label>
+            </div>
+            <div class="chrome-settings">
+              <label class="inline-field id-field">
+                ID
+                <input
+                  class="id-input"
+                  :value="current.id"
+                  @input="models.updateSelected({ id: ($event.target as HTMLInputElement).value })"
+                />
+              </label>
+            </div>
+            <div class="chrome-settings">
+              <span v-if="models.isDefault(current.id)" class="default-hint">{{ t('models.defaultBadge') }}</span>
+              <button
+                v-else
+                type="button"
+                class="model-action-btn default-btn"
+                @click="setAsDefault"
+              >
+                {{ t('models.setDefault') }}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -1323,6 +1325,10 @@ li.active .mark {
 .editor .table-shell {
   flex: 1 1 auto;
   max-height: min(60vh, 520px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
 }
 
 .hero {
@@ -1438,7 +1444,10 @@ li.active .mark {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  padding: 0.15rem 0 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
 }
 
 .cats-head {
@@ -1482,6 +1491,7 @@ li.active .mark {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  padding: 0.25rem 0;
 }
 
 .chip {
@@ -1691,17 +1701,98 @@ th.collapsed {
 
 .chrome {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.55rem;
+  flex-direction: column;
+  gap: 0.55rem;
+  align-items: flex-start;
   overflow: visible;
 }
 
-.chrome-sep {
-  width: 1px;
-  height: 1.15rem;
-  background: var(--line);
-  flex-shrink: 0;
+.chrome-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.chrome-config {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.chrome-settings {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
+  display: flex;
+  align-items: center;
+}
+
+/* Button group in title row */
+.title-row .chrome-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+/* Custom action buttons with very soft colored backgrounds and visible borders */
+.model-action-btn {
+  height: 1.9rem;
+  padding: 0 0.85rem;
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 550;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.model-action-btn.save-btn {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.model-action-btn.save-btn:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.model-action-btn.delete-btn {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+}
+
+.model-action-btn.delete-btn:hover {
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+.model-action-btn.export-btn {
+  background: color-mix(in srgb, var(--line) 20%, transparent);
+  color: var(--ink-soft);
+  border-color: color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+.model-action-btn.export-btn:hover {
+  background: color-mix(in srgb, var(--line) 30%, transparent);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--line) 55%, transparent);
+}
+
+.model-action-btn.default-btn {
+  background: color-mix(in srgb, var(--line) 20%, transparent);
+  color: var(--ink-soft);
+  border-color: color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+.model-action-btn.default-btn:hover {
+  background: color-mix(in srgb, var(--line) 30%, transparent);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--line) 55%, transparent);
 }
 
 .default-hint {
@@ -1710,10 +1801,10 @@ th.collapsed {
 }
 
 .dirty {
-  margin-left: auto;
   color: var(--warn);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 500;
+  margin-right: 0.55rem;
 }
 
 .export-menu {
@@ -1758,6 +1849,11 @@ th.collapsed {
   font-weight: 500;
   color: var(--muted);
   white-space: nowrap;
+}
+
+.chrome-settings .inline-field {
+  color: var(--ink-soft);
+  margin: 0;
 }
 
 .pct-wrap {
@@ -1898,9 +1994,10 @@ tr.sub td {
 
 .add-row {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--line);
+  background: var(--page-soft);
 }
 
 .empty {
