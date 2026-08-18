@@ -279,6 +279,7 @@ label.field textarea:focus,
 .data-table td {
   padding: 0.28rem 0.4rem;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  background: var(--surface);
   vertical-align: middle;
   overflow-wrap: anywhere;
   word-break: break-word;
