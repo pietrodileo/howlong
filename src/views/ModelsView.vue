@@ -1832,29 +1832,27 @@ th.collapsed {
 }
 
 .model-action-btn.export-btn {
-  background: color-mix(in srgb, var(--line) 20%, transparent);
-  color: var(--ink-soft);
-  border-color: color-mix(in srgb, var(--line) 40%, transparent);
+  background: transparent;
+  color: var(--muted);
+  border-color: transparent;
 }
 
 .model-action-btn.export-btn:hover {
-  background: color-mix(in srgb, var(--line) 30%, transparent);
-  color: var(--ink);
-  border-color: color-mix(in srgb, var(--line) 55%, transparent);
+  color: var(--ink-soft);
+  background: var(--accent-glow);
 }
 
 .model-action-btn.default-btn {
-  background: color-mix(in srgb, var(--line) 20%, transparent);
-  color: var(--ink-soft);
-  border-color: color-mix(in srgb, var(--line) 40%, transparent);
+  background: transparent;
+  color: var(--muted);
+  border-color: transparent;
   height: 1.9rem;
   padding: 0 0.85rem;
 }
 
 .model-action-btn.default-btn:hover {
-  background: color-mix(in srgb, var(--line) 30%, transparent);
-  color: var(--ink);
-  border-color: color-mix(in srgb, var(--line) 55%, transparent);
+  color: var(--ink-soft);
+  background: var(--accent-glow);
 }
 
 .default-hint {
