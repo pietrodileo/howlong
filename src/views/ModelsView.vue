@@ -1780,6 +1780,8 @@ th.collapsed {
   background: var(--page-soft);
   display: flex;
   align-items: center;
+  min-width: 12rem;
+  flex: 1;
 }
 
 /* Button group in title row */
