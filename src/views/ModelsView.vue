@@ -1334,7 +1334,7 @@ li.active .mark {
 .hero {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0;
   overflow: visible;
 }
 
@@ -1343,6 +1343,9 @@ li.active .mark {
   align-items: center;
   gap: 0.65rem;
   min-width: 0;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.55rem;
+  border-bottom: 1px solid var(--line);
 }
 
 .title-input {
