@@ -1142,8 +1142,8 @@ aside {
 .list-resizer {
   position: absolute;
   top: 0;
-  right: -0.7rem;
-  width: 10px;
+  right: -0.85rem;
+  width: 14px;
   height: 100%;
   cursor: col-resize;
   z-index: 3;
@@ -1156,16 +1156,16 @@ aside {
   top: 0;
   bottom: 0;
   left: 50%;
-  width: 2px;
+  width: 3px;
   transform: translateX(-50%);
   border-radius: 1px;
-  background: transparent;
+  background: var(--line);
   transition: background 0.12s ease;
 }
 
 .list-resizer:hover::after,
 .list-resizing .list-resizer::after {
-  background: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: var(--accent);
 }
 
 .aside-head {
@@ -1462,11 +1462,12 @@ li.active .mark {
 }
 
 .cats-label {
+  font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 .cat-add {
@@ -1558,11 +1559,12 @@ li.active .mark {
 
 .ctg-title {
   margin: 0;
+  font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 .ctg-lede {
