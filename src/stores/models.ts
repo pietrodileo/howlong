@@ -396,6 +396,8 @@ export const useModelsStore = defineStore('models', () => {
     selectedId,
     lastError,
     dirty,
+    dirtyIds,
+    currentDirty,
     selected,
     defaultModel,
     isDefault,
