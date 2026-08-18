@@ -15,8 +15,9 @@ import { applyTheme } from './lib/appearance';
 const LibraryView = defineAsyncComponent(() => import('./views/LibraryView.vue'));
 const ModelsView = defineAsyncComponent(() => import('./views/ModelsView.vue'));
 const SettingsView = defineAsyncComponent(() => import('./views/SettingsView.vue'));
+const CompareView = defineAsyncComponent(() => import('./views/CompareView.vue'));
 
-const APP_VERSION = '0.2.0';
+const APP_VERSION = '0.3.0';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -30,6 +31,7 @@ const pageTitle = computed(() => {
     working: 'nav.working',
     library: 'nav.library',
     models: 'nav.models',
+    compare: 'nav.compare',
     settings: 'nav.settings',
   };
   return t(keys[ui.currentView]);
@@ -75,6 +77,7 @@ onMounted(async () => {
         <WorkingView v-if="ui.currentView === 'working'" />
         <LibraryView v-else-if="ui.currentView === 'library'" />
         <ModelsView v-else-if="ui.currentView === 'models'" />
+        <CompareView v-else-if="ui.currentView === 'compare'" />
         <SettingsView v-else-if="ui.currentView === 'settings'" />
       </main>
     </div>

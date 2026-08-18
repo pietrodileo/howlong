@@ -5,12 +5,20 @@ export type MessageTree = {
     working: string;
     library: string;
     models: string;
+    compare: string;
     settings: string;
     about: string;
     expandSidebar: string;
     collapseSidebar: string;
     resizeSidebar: string;
     navigation: string;
+  };
+  compare: {
+    backToLibrary: string;
+    title: string;
+    lede: string;
+    loading: string;
+    selectAtLeastTwo: string;
   };
   common: {
     save: string;
@@ -432,12 +440,20 @@ const it: MessageTree = {
     working: 'Stima',
     library: 'Libreria',
     models: 'Modelli',
+    compare: 'Confronta',
     settings: 'Impostazioni',
     about: 'About',
     expandSidebar: 'Apri barra laterale',
     collapseSidebar: 'Chiudi barra laterale',
     resizeSidebar: 'Ridimensiona navigazione',
     navigation: 'Navigazione',
+  },
+  compare: {
+    backToLibrary: 'Torna a Libreria',
+    title: 'Confronta stime',
+    lede: 'Seleziona due o più stime per confrontarle',
+    loading: 'Caricamento...',
+    selectAtLeastTwo: 'Seleziona almeno due stime per confrontarle',
   },
   common: {
     save: 'Salva',
@@ -877,12 +893,20 @@ const en: MessageTree = {
     working: 'Estimate',
     library: 'Library',
     models: 'Models',
+    compare: 'Compare',
     settings: 'Settings',
     about: 'About',
     expandSidebar: 'Open sidebar',
     collapseSidebar: 'Close sidebar',
     resizeSidebar: 'Resize navigation',
     navigation: 'Navigation',
+  },
+  compare: {
+    backToLibrary: 'Back to Library',
+    title: 'Compare Estimates',
+    lede: 'Select two or more estimates to compare them',
+    loading: 'Loading...',
+    selectAtLeastTwo: 'Select at least two estimates to compare',
   },
   common: {
     save: 'Save',

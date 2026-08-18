@@ -702,21 +702,6 @@ function onHeaderDblClick(key: ColumnKey) {
           </button>
           <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
           <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
-          <button
-            v-else-if="lastAudit"
-            type="button"
-            class="audit-meta"
-            :aria-label="t('working.auditHistoryOpen')"
-            @click="auditHistoryOpen = true"
-          >
-            {{
-              t('working.lastSavedBy', {
-                user: lastAudit.username,
-                when: lastAuditWhen,
-              })
-            }}
-          </button>
-          <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
         </div>
       </div>
     </header>
@@ -1196,6 +1181,19 @@ function onHeaderDblClick(key: ColumnKey) {
       :entries="estimate.estimate.auditHistory ?? []"
       @close="auditHistoryOpen = false"
     />
+
+    <footer class="audit-footer">
+      <button
+        v-if="lastAudit"
+        type="button"
+        class="audit-meta"
+        :aria-label="t('working.auditHistoryOpen')"
+        @click="auditHistoryOpen = true"
+      >
+        {{ t('working.lastSavedBy', { user: lastAudit.username, when: lastAuditWhen }) }}
+      </button>
+      <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
+    </footer>
   </div>
 </template>
 
@@ -1332,10 +1330,6 @@ function onHeaderDblClick(key: ColumnKey) {
   overflow: visible;
   min-height: 2.25rem;
   padding-left: 0;
-}
-
-.chrome-row .dirty {
-  margin-left: auto;
 }
 
 .estimate-settings {
@@ -1632,36 +1626,6 @@ function onHeaderDblClick(key: ColumnKey) {
   color: var(--warn);
   font-size: 0.8rem;
   font-weight: 500;
-}
-
-.audit-meta {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 500;
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-}
-
-.audit-meta:hover,
-.audit-meta:focus-visible {
-  color: var(--ink);
-  text-decoration: underline;
-  outline: none;
-}
-
-span.audit-meta {
-  cursor: default;
-}
-
-span.audit-meta:hover,
-span.audit-meta:focus-visible {
-  text-decoration: none;
-  color: var(--muted);
 }
 
 .summary-row {

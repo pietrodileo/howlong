@@ -445,3 +445,40 @@ label.field textarea:focus,
 .app-tip-bubble.is-on {
   opacity: 1;
 }
+
+/* Audit footer - comune a WorkingView e ClientView */
+.audit-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 0;
+}
+
+.audit-footer .audit-meta {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.audit-footer .audit-meta:hover,
+.audit-footer .audit-meta:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+  outline: none;
+}
+
+.audit-footer span.audit-meta {
+  cursor: default;
+}
+
+.audit-footer span.audit-meta:hover,
+.audit-footer span.audit-meta:focus-visible {
+  text-decoration: none;
+  color: var(--muted);
+}
