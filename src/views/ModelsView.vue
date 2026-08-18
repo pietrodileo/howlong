@@ -1948,12 +1948,13 @@ th.collapsed {
 }
 
 .id-input {
-  width: 100%;
-  min-width: 14rem;
-  border: none;
-  border-bottom: 1px solid transparent;
-  background: transparent;
-  padding: 0.15rem 0;
+  width: auto;
+  max-width: 14rem;
+  min-width: 8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 0.35rem 0.45rem;
   color: var(--muted);
   font-weight: 400;
   font-size: 0.85rem;
@@ -1962,7 +1963,7 @@ th.collapsed {
 
 .id-input:hover,
 .id-input:focus {
-  border-bottom-color: var(--line-strong);
+  border-color: var(--line-strong);
   color: var(--ink);
   outline: none;
 }
