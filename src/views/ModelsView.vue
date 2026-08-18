@@ -918,7 +918,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 class="resizable"
                 :class="{ collapsed: cols.collapsed[key], 'center-th': key === 'ctg' }"
                 :style="cols.styleFor(key)"
-                v-tip="key !== 'actions' ? headerTitle(key) : null"
+                v-tip="headerTitle(key)"
                 draggable="true"
                 @dblclick="onHeaderDblClick(key)"
                 @dragstart="cols.onColDragStart(key, $event)"
@@ -931,6 +931,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                   <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
                 </div>
                 <span
+                  v-if="key !== 'actions'"
                   class="col-resizer"
                   draggable="false"
                   @mousedown="cols.startResize(key, $event)"
