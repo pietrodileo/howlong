@@ -19,6 +19,20 @@ export type MessageTree = {
     lede: string;
     loading: string;
     selectAtLeastTwo: string;
+    availableEstimates: string;
+    searchEstimates: string;
+    searchEstimatesAria: string;
+    selectAllVisible: string;
+    clearSelection: string;
+    selectedCount: string;
+    estimatesSelected: string;
+    loadingComparison: string;
+    noEstimatesAvailable: string;
+    partialLoadWarning: string;
+    compareAction: string;
+    compareHint: string;
+    item: string;
+    total: string;
   };
   common: {
     save: string;
@@ -232,6 +246,7 @@ export type MessageTree = {
     unsavedDiscard: string;
   };
   models: {
+    lede: string;
     listAria: string;
     searchAria: string;
     catsAria: string;
@@ -457,6 +472,20 @@ const it: MessageTree = {
     lede: 'Seleziona due o più stime per confrontarle',
     loading: 'Caricamento...',
     selectAtLeastTwo: 'Seleziona almeno due stime per confrontarle',
+    availableEstimates: 'Stime disponibili',
+    searchEstimates: 'Cerca stime...',
+    searchEstimatesAria: 'Cerca tra le stime disponibili',
+    selectAllVisible: 'Seleziona tutte',
+    clearSelection: 'Deseleziona tutte',
+    selectedCount: '{n} selezionate',
+    estimatesSelected: 'stime selezionate',
+    loadingComparison: 'Caricamento confronto...',
+    noEstimatesAvailable: 'Nessuna stima disponibile',
+    partialLoadWarning: 'Alcune stime non sono state caricate correttamente',
+    compareAction: 'Confronta',
+    compareHint: 'Confronta le stime selezionate',
+    item: 'Voce',
+    total: 'Totale',
   },
   common: {
     save: 'Salva',
@@ -593,7 +622,7 @@ const it: MessageTree = {
     refresh: 'Aggiorna',
     changeFolder: 'Cartella…',
     loading: 'Caricamento…',
-    empty: 'Nessuna stima salvata. Usa Salva nella vista Stima.',
+    empty: 'Nessuna stima salvata.',
     noResults: 'Nessun risultato',
     desktopOnly: 'Disponibile solo nell\'app desktop.',
     opened: 'Aperta «{name}»',
@@ -675,6 +704,7 @@ const it: MessageTree = {
     unsavedDiscard: 'Scarta e continua',
   },
   models: {
+    lede: 'Gestisci modelli per le tue stime',
     listAria: 'Elenco modelli',
     searchAria: 'Cerca modello',
     catsAria: 'Categorie del modello',
@@ -686,11 +716,11 @@ const it: MessageTree = {
     newModel: 'Nuovo modello',
     newShort: 'Nuovo',
     import: 'Importa',
-    importHint: 'Importa uno o più modelli JSON (app desktop)',
+    importHint: 'Importa uno o più modelli JSON',
     importOk: 'Importati {n} modelli',
     importPartial: 'Importati {ok} modelli; {fail} errori',
     importBad: 'Modello non valido',
-    desktopOnly: 'L\'import modelli è disponibile solo nell\'app desktop (non nel browser).',
+    desktopOnly: 'L\'import modelli è disponibile solo nell\'app desktop.',
     expandList: 'Espandi elenco',
     collapseList: 'Comprimi elenco',
     searchPh: 'Cerca modello…',
@@ -746,10 +776,10 @@ const it: MessageTree = {
     howCalc: 'Come si calcola',
     howHint: 'es. 10 h al 20% → 12 h',
     howP1: 'Questa % CTG si applica alle ore delle voci con flag CTG attivo nella tabella:',
-    howFormula: 'CTG = ore × (% ÷ 100)  ·  totale = ore + CTG',
+    howFormula: 'CTG = ore × (% ÷ 100)  |  totale = ore + CTG',
     howP2: 'Esempio: 10 h al 20% → +2 h → totale 12 h. Se il flag CTG è spento, quella voce resta senza contingency.',
     hoursDefault: 'Ore default',
-    ctgColTitle: 'Applica contingency a questa voce. Doppio click: collassa/espandi',
+    ctgColTitle: 'Applica contingency a questa voce',
     addMacro: 'Aggiungi macro-attività',
     addFormula: '+ Voce derivata',
     addFormulaTitle: 'Ore = aggregazione delle voci scelte × %',
@@ -770,8 +800,8 @@ const it: MessageTree = {
   },
   client: {
     backToEstimate: 'Torna alla stima',
-    titleLabel: 'Titolo presentabile',
-    titlePh: 'Lascia vuoto per usare il titolo stima',
+    titleLabel: 'Titolo stima presentata al cliente',
+    titlePh: 'Lascia vuoto per usare il titolo della stima',
     rounding: 'Arrotondamento',
     roundNone: 'Nessuno',
     roundCeil05: 'Per eccesso 0,5',
@@ -785,7 +815,7 @@ const it: MessageTree = {
     hideTagsClient: 'Nascondi etichette',
     managerSectionTitle: 'Vista manager',
     managerSectionLede:
-      'Arrotonda, mostra/nascondi voci e ritocca i totali da presentare al cliente senza alterare la stima originale.',
+      'Modifica le voci e ritocca i totali da presentare al cliente senza alterare la stima originale.',
     managerViewLegend: 'Vista manager',
     clientOutputLegend: 'Vista cliente',
     clientSectionLede:
@@ -805,8 +835,7 @@ const it: MessageTree = {
     macroRollup: 'Nasconde o rende visibili i sotto-task nell\'export',
     macroDetail: 'Mostra sotto-task nell\'export',
     exported: 'Vista cliente esportata ({format}): {path}',
-    editHint:
-      'I valori modificati dall\'utente saranno visibili nell\'export Excel/YAML. La stima di lavoro originale non verrà modificata.',
+    editHint:'',
     reset: 'Reset',
     resetHint: 'Ripristina i valori calcolati (arrotondamento incluso)',
     resetOk: 'Valori vista cliente ripristinati',
@@ -816,11 +845,11 @@ const it: MessageTree = {
     editedMark: 'Valore ritoccato',
     showCol: 'Incluso',
     showHint:
-      'Togli questa voce dalla stima cliente (ore e sottovoci incluse). Togliendo, le ore escono dal totale.',
+      'Rimuovi questa voce dalla stima cliente (ore e sottovoci incluse).',
     hiddenRow: 'Nascosta',
     redistribute: 'Ripartiziona',
     redistributeHint:
-      'Nasconde questa voce e distribuisce le sue ore sulle altre voci ancora mostrate (in proporzione)',
+      'Nasconde questa voce e distribuisce le sue ore sulle altre voci ancora attive',
     redistributeOk: 'Ore ripartite sulle altre voci',
     redistributeFail: 'Nessuna altra voce su cui ripartire',
     compare: 'Confronto',
@@ -910,6 +939,20 @@ const en: MessageTree = {
     lede: 'Select two or more estimates to compare them',
     loading: 'Loading...',
     selectAtLeastTwo: 'Select at least two estimates to compare',
+    availableEstimates: 'Available Estimates',
+    searchEstimates: 'Search estimates...',
+    searchEstimatesAria: 'Search available estimates',
+    selectAllVisible: 'Select all',
+    clearSelection: 'Clear selection',
+    selectedCount: '{n} selected',
+    estimatesSelected: 'estimates selected',
+    loadingComparison: 'Loading comparison...',
+    noEstimatesAvailable: 'No estimates available',
+    partialLoadWarning: 'Some estimates failed to load',
+    compareAction: 'Compare',
+    compareHint: 'Compare selected estimates',
+    item: 'Item',
+    total: 'Total',
   },
   common: {
     save: 'Save',
@@ -1046,7 +1089,7 @@ const en: MessageTree = {
     refresh: 'Refresh',
     changeFolder: 'Folder…',
     loading: 'Loading…',
-    empty: 'No saved estimates yet. Use Save in the Estimate view',
+    empty: 'No saved estimates yet',
     noResults: 'No results',
     desktopOnly: 'Available only in the desktop app',
     opened: 'Opened «{name}»',
@@ -1127,6 +1170,7 @@ const en: MessageTree = {
     unsavedDiscard: 'Discard and continue',
   },
   models: {
+    lede: 'Manage your models for estimates',
     listAria: 'Model list',
     searchAria: 'Search model',
     catsAria: 'Model categories',
@@ -1138,11 +1182,11 @@ const en: MessageTree = {
     newModel: 'New model',
     newShort: 'New',
     import: 'Import',
-    importHint: 'Import one or more model JSON files (desktop app)',
+    importHint: 'Import one or more model JSON files',
     importOk: 'Imported {n} models',
     importPartial: 'Imported {ok} models; {fail} failed',
     importBad: 'Invalid model',
-    desktopOnly: 'Model import is available only in the desktop app (not in the browser).',
+    desktopOnly: 'Model import is available only in the desktop app.',
     expandList: 'Expand list',
     collapseList: 'Collapse list',
     searchPh: 'Search model…',
@@ -1198,10 +1242,10 @@ const en: MessageTree = {
     howCalc: 'How it works',
     howHint: 'e.g. 10 h at 20% → 12 h',
     howP1: 'This CTG % applies to hours of lines with the CTG flag on in the table:',
-    howFormula: 'CTG = hours × (% ÷ 100)  ·  total = hours + CTG',
+    howFormula: 'CTG = hours × (% ÷ 100)  |  total = hours + CTG',
     howP2: 'Example: 10 h at 20% → +2 h → total 12 h. If CTG is off, that line has no contingency.',
     hoursDefault: 'Default hours',
-    ctgColTitle: 'Apply contingency to this line. Double-click: collapse/expand',
+    ctgColTitle: 'Apply contingency to this line',
     addMacro: 'Add macro activity',
     addFormula: '+ Calculated item',
     addFormulaTitle: 'Hours = aggregation of selected lines × %',
@@ -1222,7 +1266,7 @@ const en: MessageTree = {
   },
   client: {
     backToEstimate: 'Back to estimate',
-    titleLabel: 'Presentation title',
+    titleLabel: 'Estimate title presented to client',
     titlePh: 'Leave empty to use estimate title',
     rounding: 'Rounding',
     roundNone: 'None',
@@ -1237,7 +1281,7 @@ const en: MessageTree = {
     hideTagsClient: 'Hide labels',
     managerSectionTitle: 'Manager view',
     managerSectionLede:
-      'Round, show/hide lines and tweak totals to present to the client without changing the original estimate.',
+      'Modify lines and tweak totals to present to the client without changing the original estimate.',
     managerViewLegend: 'Manager view',
     clientOutputLegend: 'Client view',
     clientSectionLede:
@@ -1257,8 +1301,7 @@ const en: MessageTree = {
     macroRollup: 'Hide or show sub-tasks in export',
     macroDetail: 'Show sub-tasks in export',
     exported: 'Client view exported ({format}): {path}',
-    editHint:
-      'User edits will be visible in the Excel/YAML export. The working estimate stays unchanged.',
+    editHint:'',
     reset: 'Reset',
     resetHint: 'Restore calculated values (including rounding)',
     resetOk: 'Client view values restored',
@@ -1271,7 +1314,7 @@ const en: MessageTree = {
     hiddenRow: 'Hidden',
     redistribute: 'Redistribute',
     redistributeHint:
-      'Hide this line and spread its hours across the other still-shown lines (proportionally)',
+      'Hide this line and spread its hours across the other active lines',
     redistributeOk: 'Hours redistributed to other lines',
     redistributeFail: 'No other line to redistribute onto',
     compare: 'Compare',

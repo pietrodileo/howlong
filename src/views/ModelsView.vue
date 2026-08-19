@@ -774,6 +774,18 @@ function setMacroApplyContingency(id: string, value: boolean) {
             :placeholder="t('models.namePh')"
             @input="models.updateSelected({ name: ($event.target as HTMLInputElement).value })"
           />
+          <span v-if="models.isDefault(current.id)" class="default-badge" v-tip="t('models.defaultBadge')">
+            <span class="star">★</span> {{ t('common.default') }}
+          </span>
+          <button
+            v-else
+            type="button"
+            class="model-action-btn default-btn"
+            v-tip="t('models.setDefault')"
+            @click="setAsDefault"
+          >
+            <span class="star">★</span> {{ t('models.setDefault') }}
+          </button>
           <div class="chrome-btn-group">
             <span v-if="models.currentDirty" class="dirty">{{ t('common.unsaved') }}</span>
             <button type="button" class="model-action-btn save-btn" v-tip="t('models.saveModel')" @click="save">{{ t('common.save') }}</button>
@@ -821,18 +833,6 @@ function setMacroApplyContingency(id: string, value: boolean) {
                   @input="models.updateSelected({ id: ($event.target as HTMLInputElement).value })"
                 />
               </label>
-            </div>
-            <div class="chrome-settings">
-              <span v-if="models.isDefault(current.id)" class="default-hint">{{ t('models.defaultBadge') }}</span>
-              <button
-                v-else
-                type="button"
-                class="model-action-btn default-btn"
-                v-tip="t('models.setDefault')"
-                @click="setAsDefault"
-              >
-                {{ t('models.setDefault') }}
-              </button>
             </div>
           </div>
         </div>
@@ -947,6 +947,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
             <tr
               v-for="a in orderedActivities"
               :key="a.id"
+              :data-row-id="a.id"
               :class="[
                 {
                   formula: a.kind === 'formula',
@@ -975,6 +976,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                       draggable="true"
                       v-tip="t('common.dragRow')"
                       :aria-label="t('common.dragRow')"
+                      @pointerdown="rowDrag.onPointerDown(a.id, $event)"
                       @dragstart="rowDrag.onDragStart(a.id, $event)"
                       @dragend="rowDrag.onDragEnd"
                     >⋮⋮</span>
@@ -1363,6 +1365,37 @@ li.active .mark {
   flex-shrink: 0;
 }
 
+.default-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.default-badge .star {
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.model-action-btn.default-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 1.9rem;
+  padding: 0 0.75rem;
+}
+
+.model-action-btn.default-btn .star {
+  font-size: 0.85rem;
+}
+
 .editor {
   display: flex;
   flex-direction: column;
@@ -1376,6 +1409,7 @@ li.active .mark {
   flex: 1 1 auto;
   max-height: min(60vh, 520px);
   overflow: auto;
+  background: var(--page-soft);
 }
 
 .hero {
@@ -1744,7 +1778,7 @@ th.collapsed {
 
 .row-actions {
   white-space: nowrap;
-  overflow: visible;
+  overflow: hidden;
   background: var(--surface);
 }
 
@@ -1853,11 +1887,6 @@ th.collapsed {
 .model-action-btn.default-btn:hover {
   color: var(--ink-soft);
   background: var(--accent-glow);
-}
-
-.default-hint {
-  font-size: 0.8rem;
-  color: var(--muted);
 }
 
 .dirty {
@@ -2055,10 +2084,9 @@ tr.sub td {
 
 .add-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0.75rem;
-  border-top: 1px solid var(--line);
-  background: var(--page-soft);
+  margin-top: 0.15rem;
 }
 
 .empty {

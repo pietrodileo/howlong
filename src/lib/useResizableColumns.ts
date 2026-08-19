@@ -98,7 +98,7 @@ const MODEL_DEFAULT_WIDTHS: Record<ModelColumnKey, number> = {
   hours: 110,
   ctg: 64,
   tags: 160,
-  actions: 88,
+  actions: 152,
 };
 
 const MODEL_DEFAULT_VISIBLE: Record<ModelColumnKey, boolean> = {

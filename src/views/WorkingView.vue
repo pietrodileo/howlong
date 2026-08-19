@@ -847,6 +847,7 @@ function onHeaderDblClick(key: ColumnKey) {
         <tbody>
           <template v-for="line in estimate.visibleLines" :key="line.item.id">
             <tr
+              :data-row-id="line.item.id"
               :class="[
                 {
                   macro: line.isMacro && !line.isFormula,
@@ -876,6 +877,7 @@ function onHeaderDblClick(key: ColumnKey) {
                       draggable="true"
                       v-tip="t('common.dragRow')"
                       :aria-label="t('common.dragRow')"
+                      @pointerdown="rowDrag.onPointerDown(line.item.id, $event)"
                       @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                       @dragend="rowDrag.onDragEnd"
                     >⋮⋮</span>

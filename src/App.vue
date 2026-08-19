@@ -66,10 +66,16 @@ onMounted(async () => {
 
     <div class="workspace">
       <TitleBar />
-      <header v-if="ui.currentView === 'library' || ui.currentView === 'models'" class="topbar">
+      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare'" class="topbar">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">
           {{ t('library.lede') }}
+        </p>
+        <p v-else-if="ui.currentView === 'models'" class="sub">
+          {{ t('models.lede') }}
+        </p>
+        <p v-else-if="ui.currentView === 'compare'" class="sub">
+          {{ t('compare.lede') }}
         </p>
       </header>
 

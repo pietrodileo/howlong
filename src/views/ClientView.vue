@@ -582,12 +582,14 @@ async function onExportFromMenu(
           {{ t('common.reload') }}
         </button>
         <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
-        <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
       </div>
     </header>
 
     <div class="preview-head">
-      <h1 class="estimate-title">{{ estimate.clientTitle }}</h1>
+      <div class="title-status-row">
+        <h1 class="estimate-title">{{ estimate.clientTitle }}</h1>
+        <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
+      </div>
       <p v-if="estimate.estimate.meta.clientLabel" class="muted">
         {{ estimate.estimate.meta.clientLabel }}
       </p>
@@ -754,6 +756,7 @@ async function onExportFromMenu(
           <tr
             v-for="line in visibleManagerLines"
             :key="line.item.id"
+            :data-row-id="line.item.id"
             :class="[
               {
                 macro: line.isMacro,
@@ -798,6 +801,7 @@ async function onExportFromMenu(
                     draggable="true"
                     v-tip="t('common.dragRow')"
                     :aria-label="t('common.dragRow')"
+                    @pointerdown="rowDrag.onPointerDown(line.item.id, $event)"
                     @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                     @dragend="rowDrag.onDragEnd"
                   >⋮⋮</span>
@@ -1065,6 +1069,7 @@ async function onExportFromMenu(
             <tr
               v-for="line in visibleClientLines"
               :key="line.item.id"
+              :data-row-id="line.item.id"
               :class="rowDrag.rowClass(line.item.id)"
               @dragover="rowDrag.onDragOver(line.item.id, $event)"
               @dragleave="rowDrag.onDragLeave(line.item.id)"
@@ -1102,6 +1107,7 @@ async function onExportFromMenu(
                       draggable="true"
                       v-tip="t('common.dragRow')"
                       :aria-label="t('common.dragRow')"
+                      @pointerdown="rowDrag.onPointerDown(line.item.id, $event)"
                       @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                       @dragend="rowDrag.onDragEnd"
                     >⋮⋮</span>
@@ -1270,7 +1276,6 @@ async function onExportFromMenu(
 }
 
 .dirty {
-  margin-left: auto;
   color: var(--warn);
   font-size: 0.8rem;
   font-weight: 500;
@@ -1296,6 +1301,8 @@ async function onExportFromMenu(
 
 .estimate-title {
   margin: 0;
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-display, inherit);
   font-size: 1.5rem;
   font-weight: 600;
@@ -1307,6 +1314,13 @@ async function onExportFromMenu(
   margin: 0.25rem 0 0;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.title-status-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .section-title {
@@ -1815,5 +1829,13 @@ tr.overridden td {
 
 .muted {
   color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  .title-status-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
 }
 </style>

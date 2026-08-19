@@ -251,7 +251,6 @@ label.field textarea:focus,
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-soft);
-  scrollbar-gutter: stable;
 }
 
 .data-table {
@@ -354,15 +353,19 @@ label.field textarea:focus,
   justify-content: center;
   flex-shrink: 0;
   width: 1.1rem;
+  min-width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
   color: var(--muted-soft);
   cursor: grab;
-  padding: 0;
+  padding: 0 4px;
+  margin: 0 -4px;
   font-size: 0.85rem;
   line-height: 1;
   letter-spacing: -0.08em;
   user-select: none;
+  touch-action: none;
 }
 
 .drag-handle:active {
