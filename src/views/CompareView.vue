@@ -315,6 +315,7 @@ onUnmounted(() => {
           :key="entry.path"
           :class="{ selected: isSelected(entry.path) }"
           v-tip="entry.title"
+          @click="toggleSelect(entry.path, !isSelected(entry.path))"
         >
           <input
             v-if="!listCollapsed"

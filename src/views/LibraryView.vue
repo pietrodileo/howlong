@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
+import FolderPathModal from '../components/FolderPathModal.vue';
 import IconBtn from '../components/IconBtn.vue';
 import MetaIconPicker from '../components/MetaIconPicker.vue';
+import ModelIconComponent from '../components/ModelIcon.vue';
 import { useI18n } from '../i18n/useI18n';
 import type { EstimateExportFormat } from '../lib/export';
 import {
@@ -12,6 +14,7 @@ import {
 import { toErrorMessage } from '../lib/errors';
 import { formatAuditDateTime } from '../lib/formatAuditDate';
 import { isTauri } from '../lib/tauri';
+import { ensureUniqueEstimateId } from '../lib/estimateIdentity';
 import type { ModelIcon } from '../models/model';
 import { useCompareStore } from '../stores/compare';
 import { useEstimateStore } from '../stores/estimate';
@@ -30,17 +33,71 @@ const pendingDelete = ref<LibraryEntry | null>(null);
 const selected = ref<Set<string>>(new Set());
 const exportMenuOpen = ref(false);
 const busy = ref(false);
+const showPathModal = ref(false);
+
+// Sort options
+type SortBy = 'title' | 'client' | 'updated';
+const sortBy = ref<SortBy>('title');
+const sortDesc = ref(false);
+
+function toggleSort(field: SortBy) {
+  if (sortBy.value === field) {
+    sortDesc.value = !sortDesc.value;
+  } else {
+    sortBy.value = field;
+    sortDesc.value = false;
+  }
+}
+
+function getSortLabel(field: SortBy): string {
+  const labels: Record<SortBy, string> = {
+    title: t('common.name'),
+    client: t('common.client'),
+    updated: t('settings.exportIncludeDate'),
+  };
+  return labels[field];
+}
 
 const filtered = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
-  const list = library.sorted;
-  if (!q) return list;
-  return list.filter(
-    (e) =>
-      e.title.toLowerCase().includes(q) ||
-      e.clientLabel.toLowerCase().includes(q) ||
-      e.id.toLowerCase().includes(q),
-  );
+  let list = library.sorted;
+  
+  // Filter
+  if (q) {
+    list = list.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.clientLabel.toLowerCase().includes(q) ||
+        e.id.toLowerCase().includes(q),
+    );
+  }
+  
+  // Sort
+  return [...list].sort((a, b) => {
+    let aVal: string;
+    let bVal: string;
+    
+    switch (sortBy.value) {
+      case 'title':
+        aVal = a.title;
+        bVal = b.title;
+        break;
+      case 'client':
+        aVal = a.clientLabel || '';
+        bVal = b.clientLabel || '';
+        break;
+      case 'updated':
+        aVal = a.updatedAt;
+        bVal = b.updatedAt;
+        break;
+      default:
+        aVal = a.title;
+        bVal = b.title;
+    }
+    
+    const comparison = aVal.localeCompare(bVal);
+    return sortDesc.value ? -comparison : comparison;
+  });
 });
 
 const selectedCount = computed(() => selected.value.size);
@@ -145,6 +202,45 @@ async function confirmDelete() {
   }
 }
 
+async function duplicateEntry(entry: LibraryEntry) {
+  if (busy.value || !isTauri()) return;
+  busy.value = true;
+  try {
+    const loaded = await library.loadEstimate(entry.path);
+    if (!loaded.ok) {
+      ui.notify(loaded.error, true);
+      return;
+    }
+
+    const baseTitle = entry.title;
+    let newTitle = `${baseTitle} (1)`;
+    let counter = 1;
+    const existingTitles = new Set(library.entries.map((e) => e.title));
+    const existingIds = new Set(library.entries.map((e) => e.id));
+
+    while (existingTitles.has(newTitle)) {
+      counter++;
+      newTitle = `${baseTitle} (${counter})`;
+    }
+
+    let newEstimate = ensureUniqueEstimateId(loaded.data, existingIds);
+    newEstimate = {
+      ...newEstimate,
+      meta: {
+        ...newEstimate.meta,
+        title: newTitle,
+      },
+    };
+
+    await library.saveEstimate(newEstimate);
+    ui.notify(t('library.duplicated', { name: newTitle }));
+  } catch (e) {
+    ui.notify(toErrorMessage(e), true);
+  } finally {
+    busy.value = false;
+  }
+}
+
 async function onTitleChange(entry: LibraryEntry, raw: string) {
   const title = raw.trim();
   if (!title || title === entry.title) return;
@@ -229,6 +325,14 @@ function onDocPointerDown(e: PointerEvent) {
   if (!el?.closest?.('.export-menu')) exportMenuOpen.value = false;
 }
 
+function openPathModal() {
+  showPathModal.value = true;
+}
+
+function closePathModal() {
+  showPathModal.value = false;
+}
+
 onMounted(() => {
   document.addEventListener('pointerdown', onDocPointerDown);
   void refresh();
@@ -241,13 +345,70 @@ onUnmounted(() => {
 
 <template>
   <div class="library">
-    <header class="hero">
-      <p v-if="folderPath" class="path" v-tip="folderPath">{{ folderPath }}</p>
-      <p v-else-if="!isTauri()" class="path muted">{{ t('library.desktopOnly') }}</p>
-      <button type="button" class="ghost" :disabled="library.loading || busy" @click="refresh">
-        {{ t('library.refresh') }}
-      </button>
-    </header>
+    <div class="action-bar">
+      <div class="action-left">
+        <button
+          type="button"
+          class="ghost"
+          v-tip="t('library.importHint')"
+          :disabled="busy || !isTauri()"
+          @click="onImport"
+        >
+          {{ t('library.import') }}
+        </button>
+        <div class="export-menu">
+          <button
+            type="button"
+            class="ghost"
+            v-tip="t('library.exportHint')"
+            :disabled="busy || selectedCount === 0"
+            :aria-expanded="exportMenuOpen"
+            @click.stop="toggleExportMenu"
+          >
+            {{ t('library.export') }} ▾
+          </button>
+          <div v-if="exportMenuOpen" class="menu" role="menu" @pointerdown.stop>
+            <p class="menu-hint">{{ t('library.exportZipHint') }}</p>
+            <button type="button" role="menuitem" @click="onExport('json')">
+              {{ t('export.backup') }}
+            </button>
+            <button type="button" role="menuitem" @click="onExport('yaml')">
+              {{ t('export.ai') }}
+            </button>
+            <button type="button" role="menuitem" @click="onExport('xlsx')">
+              {{ t('export.excel') }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="action-right">
+        <button
+          type="button"
+          class="ghost folder-btn"
+          v-tip="t('library.showPath')"
+          :disabled="!folderPath"
+          :aria-label="t('library.showPath')"
+          @click="openPathModal"
+        >
+          <ModelIconComponent icon="folder" :name="t('library.showPath')" :size="14" />
+        </button>
+        <button
+          type="button"
+          class="ghost"
+          @click="ui.navigate('settings', { section: 'folder' })"
+        >
+          {{ t('nav.settings') }}
+        </button>
+        <button
+          type="button"
+          class="ghost"
+          :disabled="library.loading || busy"
+          @click="refresh"
+        >
+          {{ t('library.refresh') }}
+        </button>
+      </div>
+    </div>
 
     <div class="toolbar">
       <input
@@ -260,51 +421,44 @@ onUnmounted(() => {
       <button
         type="button"
         class="ghost"
-        v-tip="t('library.importHint')"
-        :disabled="busy || !isTauri()"
-        @click="onImport"
-      >
-        {{ t('library.import') }}
-      </button>
-      <div class="export-menu">
-        <button
-          type="button"
-          class="ghost"
-          v-tip="t('library.exportHint')"
-          :disabled="busy || selectedCount === 0"
-          :aria-expanded="exportMenuOpen"
-          @click.stop="toggleExportMenu"
-        >
-          {{ t('library.export') }} ▾
-        </button>
-        <div v-if="exportMenuOpen" class="menu" role="menu" @pointerdown.stop>
-          <p class="menu-hint">{{ t('library.exportZipHint') }}</p>
-          <button type="button" role="menuitem" @click="onExport('json')">
-            {{ t('export.backup') }}
-          </button>
-          <button type="button" role="menuitem" @click="onExport('yaml')">
-            {{ t('export.ai') }}
-          </button>
-          <button type="button" role="menuitem" @click="onExport('xlsx')">
-            {{ t('export.excel') }}
-          </button>
-        </div>
-      </div>
-      <button
-        type="button"
-        class="ghost"
-        @click="ui.navigate('settings', { section: 'folder' })"
-      >
-        {{ t('library.changeFolder') }}
-      </button>
-      <button
-        type="button"
-        class="ghost"
         v-tip="t('compare.compareHint')"
         :disabled="selectedCount < 2"
         @click="onCompare"
       >
         {{ t('compare.compareAction') }}
+      </button>
+    </div>
+
+    <div v-if="filtered.length > 0" class="sort-controls">
+      <button
+        type="button"
+        class="sort-btn"
+        :class="{ active: sortBy === 'title' }"
+        v-tip="t('common.name')"
+        @click="toggleSort('title')"
+      >
+        {{ getSortLabel('title') }}
+        <span v-if="sortBy === 'title'" class="sort-icon">{{ sortDesc ? '▼' : '▲' }}</span>
+      </button>
+      <button
+        type="button"
+        class="sort-btn"
+        :class="{ active: sortBy === 'client' }"
+        v-tip="t('common.client')"
+        @click="toggleSort('client')"
+      >
+        {{ getSortLabel('client') }}
+        <span v-if="sortBy === 'client'" class="sort-icon">{{ sortDesc ? '▼' : '▲' }}</span>
+      </button>
+      <button
+        type="button"
+        class="sort-btn"
+        :class="{ active: sortBy === 'updated' }"
+        v-tip="t('settings.exportIncludeDate')"
+        @click="toggleSort('updated')"
+      >
+        {{ getSortLabel('updated') }}
+        <span v-if="sortBy === 'updated'" class="sort-icon">{{ sortDesc ? '▼' : '▲' }}</span>
       </button>
     </div>
 
@@ -329,13 +483,14 @@ onUnmounted(() => {
     </p>
 
     <ul v-else class="list">
-      <li v-for="entry in filtered" :key="entry.path" :class="{ selected: isSelected(entry.path) }">
+      <li v-for="entry in filtered" :key="entry.path" :class="{ selected: isSelected(entry.path) }" @click="toggleSelect(entry.path, !isSelected(entry.path))">
         <input
           type="checkbox"
           class="row-check"
           :checked="isSelected(entry.path)"
           :aria-label="entry.title"
           @change="toggleSelect(entry.path, ($event.target as HTMLInputElement).checked)"
+          @click.stop
         />
         <MetaIconPicker
           :icon="entry.icon"
@@ -353,7 +508,7 @@ onUnmounted(() => {
             @keydown.enter.prevent="($event.target as HTMLInputElement).blur()"
             @change="onTitleChange(entry, ($event.target as HTMLInputElement).value)"
           />
-          <button type="button" class="open-meta" @click="openEntry(entry)">
+          <button type="button" class="open-meta" @click.stop="openEntry(entry)">
             <span v-if="entry.clientLabel" class="client">{{ entry.clientLabel }}</span>
             <span class="meta">{{ formatUpdated(entry.updatedAt) }}</span>
             <span v-if="entry.lastAudit" class="meta audit">
@@ -368,12 +523,23 @@ onUnmounted(() => {
           </button>
         </div>
         <IconBtn
+          kind="duplicate"
+          :label="t('common.duplicate')"
+          @click.stop="duplicateEntry(entry)"
+        />
+        <IconBtn
           kind="delete"
           :label="t('common.delete')"
           @click.stop="askDelete(entry)"
         />
       </li>
     </ul>
+
+    <FolderPathModal
+      :open="showPathModal"
+      :path="folderPath"
+      @close="closePathModal"
+    />
 
     <ConfirmModal
       :open="pendingOpen != null"
@@ -402,30 +568,29 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-width: 720px;
-}
-
-.hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.path {
-  flex: 1;
   min-width: 0;
-  margin: 0;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.78rem;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.path.muted {
-  font-family: inherit;
+
+
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.action-left {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.action-right {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .toolbar {
@@ -436,7 +601,7 @@ onUnmounted(() => {
 }
 
 .search {
-  flex: 1 1 220px;
+  flex: 1 1 240px;
   min-width: 0;
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--line);
@@ -444,6 +609,29 @@ onUnmounted(() => {
   background: var(--surface);
   color: var(--ink);
   font-size: 0.92rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.folder-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.folder-btn :deep(svg) {
+  width: 16px;
+  height: 16px;
 }
 
 .search:focus {
@@ -496,6 +684,46 @@ onUnmounted(() => {
 
 .menu button:hover {
   background: var(--page-soft);
+}
+
+.sort-controls {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.25rem;
+}
+
+.sort-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.sort-btn:hover {
+  background: var(--page-soft);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.sort-btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.sort-icon {
+  font-size: 0.65rem;
+  color: inherit;
 }
 
 .selection-bar {
@@ -637,5 +865,54 @@ li :deep(.icon-btn) {
 li :deep(.icon-trigger) {
   width: 2rem;
   height: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .hero .ghost {
+    margin-left: auto;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search {
+    flex: none;
+    width: 100%;
+  }
+  
+  .actions {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+  
+  .sort-controls {
+    flex-wrap: wrap;
+  }
+  
+  .selection-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .open-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .client,
+  .meta,
+  .open-label {
+    white-space: normal;
+  }
 }
 </style>
