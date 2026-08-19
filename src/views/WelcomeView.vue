@@ -136,6 +136,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 
 .welcome-header {
   margin-bottom: 3rem;
+  text-align: center;
 }
 
 .welcome-title {
@@ -171,7 +172,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--muted);
-  text-align: left;
+  text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -180,7 +181,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .action-btn {
@@ -228,6 +229,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .recent-item {
@@ -239,6 +241,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  max-width: 500px;
   padding: 0.75rem 1rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
