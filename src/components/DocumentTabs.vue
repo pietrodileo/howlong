@@ -84,25 +84,6 @@ function onNewEstimate() {
       @cancel="cancelClose"
       @confirm="confirmClose"
     />
-    
-    <!-- New estimate button -->
-    <button 
-      type="button" 
-      class="tab new-tab"
-      @click="onNewEstimate"
-      v-tip="t('working.newFrom')"
-      :aria-label="t('working.newFrom')"
-    >
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-        <path
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          d="M8 2.5v11M2.5 8h11"
-        />
-      </svg>
-    </button>
 
     <!-- Document tabs -->
     <div class="tabs-scroll">
@@ -132,6 +113,25 @@ function onNewEstimate() {
         </button>
       </button>
     </div>
+
+    <!-- New estimate button (on the right) -->
+    <button 
+      type="button" 
+      class="new-tab"
+      @click="onNewEstimate"
+      v-tip="t('working.newFrom')"
+      :aria-label="t('working.newFrom')"
+    >
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          d="M8 2.5v11M2.5 8h11"
+        />
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -140,10 +140,8 @@ function onNewEstimate() {
   display: flex;
   align-items: stretch;
   height: 36px;
-  background: var(--surface);
+  background: var(--page);
   border-bottom: 1px solid var(--line);
-  padding: 0 0.5rem;
-  gap: 0.25rem;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -159,24 +157,28 @@ function onNewEstimate() {
   display: flex;
   align-items: stretch;
   gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .tab {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0 1rem;
-  height: 100%;
+  padding: 0 12px;
+  height: 32px;
+  margin: 2px 0;
   border: none;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  background: transparent;
+  border-radius: 8px 8px 0 0;
+  background: var(--surface);
   color: var(--muted);
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   transition: all 0.15s ease;
   white-space: nowrap;
   position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .tab:hover {
@@ -185,24 +187,28 @@ function onNewEstimate() {
 }
 
 .tab.active {
-  background: var(--surface);
+  background: var(--page);
   color: var(--ink);
   font-weight: 500;
+  margin-top: 0;
+  height: 36px;
+  border-bottom: 2px solid var(--page);
 }
 
 .tab.active:hover {
-  background: var(--surface);
+  background: var(--page);
 }
 
 .tab.dirty::after {
   content: '';
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 8px;
+  right: 8px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
+  border: 2px solid var(--page);
 }
 
 .tab svg {
@@ -226,22 +232,37 @@ function onNewEstimate() {
   padding: 0;
   margin: 0;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   background: transparent;
-  color: inherit;
+  color: var(--muted);
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 0.7;
   transition: all 0.15s ease;
 }
 
-.tab-close:hover {
+.tab:hover .tab-close {
   opacity: 1;
+  color: var(--ink);
+}
+
+.tab.active .tab-close {
+  color: var(--muted);
+}
+
+.tab.active:hover .tab-close {
+  opacity: 1;
+  color: var(--ink);
+}
+
+.tab-close:hover {
   background: var(--danger-subtle);
   color: var(--danger);
+  opacity: 1;
 }
 
 .tab-close:active {
   opacity: 0.8;
+  transform: scale(0.95);
 }
 
 .tab-close svg {
@@ -251,13 +272,34 @@ function onNewEstimate() {
 }
 
 .new-tab {
-  border-right: 1px solid var(--line);
-  margin-right: 0.5rem;
-  padding-right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 2px 4px 0 4px;
+  border: none;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .new-tab:hover {
   background: var(--accent-subtle);
   color: var(--accent);
+}
+
+.new-tab:active {
+  background: var(--accent);
+  color: var(--on-accent);
+  transform: scale(0.95);
+}
+
+.new-tab svg {
+  flex-shrink: 0;
 }
 </style>
