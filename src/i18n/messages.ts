@@ -165,6 +165,7 @@ export type MessageTree = {
   };
   welcome: {
     title: string;
+    phrases: string[];
     description: string;
     newEstimate: string;
     openEstimate: string;
@@ -496,6 +497,28 @@ const it: MessageTree = {
   },
   welcome: {
     title: 'Benvenuto in HowLong',
+    phrases: [
+      'Ogni stima comincia da un momento ben speso.',
+      'Il tempo si misura meglio quando lo si rende visibile.',
+      'Una buona stima lascia spazio al lavoro che conta.',
+      'Conta il tempo, chiarisci il lavoro.',
+      'Anche il tempo incerto merita una stima.',
+      'Le ore passano. Le buone stime restano.',
+      'Dare un nome al tempo è il primo passo per governarlo.',
+      'Una clessidra non corre: rende il tempo leggibile.',
+      'Stimare è trasformare il tempo in una decisione.',
+      'Il tempo del progetto inizia da qui.',
+      'Più chiarezza nelle ore, meno sorprese dopo.',
+      'Ogni attività ha il suo tempo. Diamogli forma.',
+      'Il futuro è incerto, ma il lavoro si può stimare.',
+      'Misura le ore. Proteggi il margine.',
+      'Il tempo ben contato diventa lavoro ben organizzato.',
+      'Una stima alla volta, il progetto prende forma.',
+      'Dalla clessidra alla consegna: rendiamo visibile il tempo.',
+      'Quando il tempo è chiaro, anche il prossimo passo lo è.',
+      'Stimare il tempo è prendersi cura del lavoro.',
+      'Cominciamo dalle ore che abbiamo davanti.',
+    ],
     description: 'Crea una nuova stima, apri una stima esistente o esplora la libreria.',
     newEstimate: 'Nuova stima',
     openEstimate: 'Apri stima',
@@ -754,7 +777,7 @@ const it: MessageTree = {
   tabs: {
     closeConfirm: 'Chiudere questa scheda?',
     closeDirtyTitle: 'Modifiche non salvate',
-    closeDirtyBody: 'Questa stima ha modifiche non salvate. Se chiudi la scheda, le modifiche verranno perse.',
+    closeDirtyBody: 'La stima «{name}» ha modifiche non salvate. Se chiudi la scheda, le modifiche verranno perse.',
     closeDirtyDiscard: 'Scarta e chiudi',
   },
   models: {
@@ -787,7 +810,7 @@ const it: MessageTree = {
     setDefault: 'Imposta default',
     modelIdTitle: 'ID univoco del modello',
     iconLabel: 'Icona',
-    icon_letter: 'Prima lettera del nome',
+    icon_letter: 'Iniziale',
     icon_layers: 'Layers',
     icon_table: 'Tabella',
     icon_folder: 'Cartella',
@@ -990,6 +1013,28 @@ const en: MessageTree = {
   },
   welcome: {
     title: 'Welcome to HowLong',
+    phrases: [
+      'Every estimate begins with a moment well spent.',
+      'Time is easier to measure when you make it visible.',
+      'A good estimate leaves room for the work that matters.',
+      'Count the time, clarify the work.',
+      'Even uncertain time deserves an estimate.',
+      'Hours pass. Good estimates remain.',
+      'Naming time is the first step toward guiding it.',
+      'An hourglass does not rush: it makes time readable.',
+      'Estimating turns time into a decision.',
+      'The project\'s time starts here.',
+      'More clarity in the hours, fewer surprises later.',
+      'Every task has its time. Let\'s give it shape.',
+      'The future is uncertain, but work can be estimated.',
+      'Measure the hours. Protect the margin.',
+      'Time well counted becomes work well organized.',
+      'One estimate at a time, the project takes shape.',
+      'From hourglass to delivery: make time visible.',
+      'When time is clear, the next step is too.',
+      'Estimating time is taking care of the work.',
+      'Let\'s start with the hours ahead.',
+    ],
     description: 'Create a new estimate, open an existing one, or browse the library.',
     newEstimate: 'New Estimate',
     openEstimate: 'Open Estimate',
@@ -1247,7 +1292,7 @@ const en: MessageTree = {
   tabs: {
     closeConfirm: 'Close this tab?',
     closeDirtyTitle: 'Unsaved changes',
-    closeDirtyBody: 'This estimate has unsaved changes. If you close the tab, changes will be lost.',
+    closeDirtyBody: 'The estimate «{name}» has unsaved changes. If you close the tab, changes will be lost.',
     closeDirtyDiscard: 'Discard and close',
   },
   models: {
@@ -1280,7 +1325,7 @@ const en: MessageTree = {
     setDefault: 'Set as default',
     modelIdTitle: 'Unique model ID',
     iconLabel: 'Icon',
-    icon_letter: 'First letter of the name',
+    icon_letter: 'Initial',
     icon_layers: 'Layers',
     icon_table: 'Table',
     icon_folder: 'Folder',
@@ -1482,4 +1527,16 @@ export function translate(locale: Locale, path: string, vars?: Record<string, st
     }
   }
   return out;
+}
+
+export function translateList(locale: Locale, path: string): string[] {
+  const parts = path.split('.');
+  let cur: unknown = messages[locale] ?? messages.it;
+  for (const p of parts) {
+    if (cur == null || typeof cur !== 'object') return [];
+    cur = (cur as Record<string, unknown>)[p];
+  }
+  return Array.isArray(cur) && cur.every((item) => typeof item === 'string')
+    ? cur
+    : [];
 }

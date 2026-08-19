@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import ContingencyControls from '../components/ContingencyControls.vue';
 import ContingencyCompare from '../components/ContingencyCompare.vue';
@@ -15,6 +15,7 @@ import MetaIconPicker from '../components/MetaIconPicker.vue';
 import ClientView from './ClientView.vue';
 import type { FormulaAggregate, ModelIcon } from '../models/model';
 import { useEstimateStore } from '../stores/estimate';
+import { useDocumentsStore } from '../stores/documents';
 import { useModelsStore } from '../stores/models';
 import { useSettingsStore } from '../stores/settings';
 import { useUiStore } from '../stores/ui';
@@ -48,6 +49,7 @@ import type { LineItem } from '../models/estimate';
 import { useI18n } from '../i18n/useI18n';
 
 const estimate = useEstimateStore();
+const docs = useDocumentsStore();
 const modelsStore = useModelsStore();
 const { models: modelList, defaultModel } = storeToRefs(modelsStore);
 const settings = useSettingsStore();
@@ -55,6 +57,42 @@ const library = useLibraryStore();
 const ui = useUiStore();
 const cols = useResizableColumns();
 const { t } = useI18n();
+
+// Sync estimate store with documents store active session
+function syncWithDocuments(): void {
+  const session = docs.activeSession;
+  if (session) {
+    estimate.setEstimate(session.estimate, session.filePath);
+    // Update dirty state
+    if (session.dirty !== estimate.dirty) {
+      estimate.touch();
+    }
+    // Sync collapsed macros
+    estimate.collapsedMacros = new Set(session.collapsedMacros);
+  }
+}
+
+// Sync documents store with estimate store
+function syncToDocuments(): void {
+  if (docs.hasSessions) {
+    const session = docs.activeSession;
+    if (session) {
+      docs.updateSessionEstimate(session.sessionId, estimate.estimate);
+      if (estimate.filePath) {
+        docs.markSaved(session.sessionId, estimate.filePath);
+      } else {
+        docs.markDirty(session.sessionId);
+      }
+      // Sync collapsed macros
+      docs.sessions = docs.sessions.map(s => {
+        if (s.sessionId === session.sessionId) {
+          return { ...s, collapsedMacros: new Set(estimate.collapsedMacros) };
+        }
+        return s;
+      });
+    }
+  }
+}
 
 const lastAudit = computed(() => {
   const h = estimate.estimate.auditHistory;
@@ -290,7 +328,35 @@ function onDocPointerDown(e: PointerEvent) {
   if (!t?.closest?.('.col-picker')) columnsMenuOpen.value = false;
 }
 
-onMounted(() => document.addEventListener('pointerdown', onDocPointerDown));
+onMounted(() => {
+  // Ensure we have an active document session
+  if (!docs.hasSessions) {
+    const m = defaultModel.value ?? modelList.value[0] ?? null;
+    if (m) {
+      docs.createFromModel(m);
+    } else {
+      docs.createEmpty();
+    }
+  } else {
+    syncWithDocuments();
+  }
+  document.addEventListener('pointerdown', onDocPointerDown);
+});
+
+// Watch for active session changes and sync estimate store
+watch(() => docs.activeId, (newId) => {
+  if (newId) {
+    syncWithDocuments();
+  }
+}, { immediate: true });
+
+// Watch for changes in estimate store and sync to documents
+watch(() => [estimate.estimate, estimate.dirty, estimate.filePath], () => {
+  if (docs.hasSessions) {
+    syncToDocuments();
+  }
+}, { deep: true });
+
 onUnmounted(() => document.removeEventListener('pointerdown', onDocPointerDown));
 
 const allMacrosExpanded = computed(() => {
@@ -341,7 +407,14 @@ function doNewFromModelId(id: string) {
     return;
   }
   modelsStore.selectedId = id;
-  estimate.newFromModel(m);
+  
+  // Create new session in documents store
+  const sessionId = docs.createFromModel(m);
+  docs.activate(sessionId);
+  
+  // Sync estimate store with new session
+  syncWithDocuments();
+  
   clientPreview.value = false;
   newMenuOpen.value = false;
   ui.notify(t('working.newEstimateFrom', { name: m.name }));
@@ -362,7 +435,14 @@ async function doOpen() {
     }
     return;
   }
-  estimate.setEstimate(result.data, result.path);
+  
+  // Open in documents store
+  const sessionId = await docs.openFromFile(result.data, result.path);
+  docs.activate(sessionId);
+  
+  // Sync estimate store with opened session
+  syncWithDocuments();
+  
   clientPreview.value = false;
   ui.notify(t('working.opened'));
 }
@@ -376,10 +456,19 @@ function onClose() {
 }
 
 function doClose() {
-  // Clear the current estimate and go to welcome
+  // Sync current estimate state to documents before closing
+  syncToDocuments();
+  
+  // Close the active session
+  docs.closeActive();
+  
+  // Clear estimate store
   estimate.newEmpty();
   estimate.markSaved(null);
-  ui.navigate('welcome');
+  
+  if (!docs.hasSessions) {
+    ui.navigate('welcome');
+  }
 }
 
 async function doReload() {

@@ -18,11 +18,13 @@ import { ensureUniqueEstimateId } from '../lib/estimateIdentity';
 import type { ModelIcon } from '../models/model';
 import { useCompareStore } from '../stores/compare';
 import { useEstimateStore } from '../stores/estimate';
+import { useDocumentsStore } from '../stores/documents';
 import { useLibraryStore, type LibraryEntry } from '../stores/library';
 import { useUiStore } from '../stores/ui';
 
 const library = useLibraryStore();
 const estimate = useEstimateStore();
+const docs = useDocumentsStore();
 const compare = useCompareStore();
 const ui = useUiStore();
 const { t } = useI18n();
@@ -158,6 +160,22 @@ function openEntry(entry: LibraryEntry) {
       ui.notify(result.error, true);
       return;
     }
+    
+    // Check if this file is already open in a tab
+    const existingSession = docs.findSessionByPath(entry.path);
+    if (existingSession) {
+      // Activate existing tab
+      docs.activate(existingSession.sessionId);
+      ui.navigate('working');
+      ui.notify(t('library.opened', { name: result.data.meta.title }));
+      return;
+    }
+    
+    // Open new tab
+    const sessionId = await docs.openFromFile(result.data, entry.path);
+    docs.activate(sessionId);
+    
+    // Sync estimate store with new session
     estimate.setEstimate(result.data, entry.path);
     ui.navigate('working');
     ui.notify(t('library.opened', { name: result.data.meta.title }));

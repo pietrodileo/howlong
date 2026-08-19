@@ -18,13 +18,20 @@ const CompareView = defineAsyncComponent(() => import('./views/CompareView.vue')
 const WelcomeView = defineAsyncComponent(() => import('./views/WelcomeView.vue'));
 const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTabs.vue'));
 
-const APP_VERSION = '0.3.0';
+const APP_VERSION = '0.4.0';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
 const library = useLibraryStore();
 const ui = useUiStore();
 const { t } = useI18n();
+
+// Handle document tab activation
+function onActivateDocument() {
+  // The estimate store will be synced by WorkingView
+  // We just need to ensure we're in working view
+  ui.navigate('working');
+}
 
 const pageTitle = computed(() => {
   const keys: Record<AppView, string> = {
@@ -61,7 +68,7 @@ onMounted(async () => {
 
     <div class="workspace">
       <TitleBar />
-      <DocumentTabs v-if="ui.currentView === 'working'" />
+      <DocumentTabs v-if="ui.currentView === 'working'" @activate="onActivateDocument" />
       <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare'" class="topbar">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">

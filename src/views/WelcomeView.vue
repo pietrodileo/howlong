@@ -14,7 +14,13 @@ const modelsStore = useModelsStore();
 const library = useLibraryStore();
 const estimate = useEstimateStore();
 const { defaultModel } = storeToRefs(modelsStore);
-const { t } = useI18n();
+const { t, tList } = useI18n();
+
+const welcomePhraseIndex = Math.floor(Math.random() * 20);
+const welcomeTitle = computed(() => {
+  const phrases = tList('welcome.phrases');
+  return phrases[welcomePhraseIndex] ?? t('welcome.title');
+});
 
 const recentEstimates = computed(() => {
   return library.sorted.slice(0, 5); // Show up to 5 most recent estimates
@@ -65,7 +71,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 <template>
   <div class="welcome">
     <header class="welcome-header">
-      <h1 class="welcome-title">{{ t('welcome.title') }}</h1>
+      <h1 class="welcome-title">{{ welcomeTitle }}</h1>
       <p class="welcome-description">{{ t('welcome.description') }}</p>
     </header>
 

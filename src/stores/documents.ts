@@ -44,7 +44,8 @@ export const useDocumentsStore = defineStore('documents', () => {
   }
 
   // Find session by filePath (for opening existing files)
-  function findSessionByPath(filePath: string): DocumentSession | null {
+  function findSessionByPath(filePath: string | null): DocumentSession | null {
+    if (!filePath) return null;
     return sessions.value.find(s => s.filePath === filePath) ?? null;
   }
 
@@ -87,7 +88,7 @@ export const useDocumentsStore = defineStore('documents', () => {
   }
 
   // Open an estimate from a file
-  async function openFromFile(estimateData: Estimate, filePath: string): Promise<SessionId> {
+  async function openFromFile(estimateData: Estimate, filePath: string | null): Promise<SessionId> {
     const sessionId = newId('session');
     
     const newSession: DocumentSession = {

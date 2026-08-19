@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import ConfirmModal from './ConfirmModal.vue';
 import { useDocumentsStore } from '../stores/documents';
 import { useUiStore } from '../stores/ui';
 import { useI18n } from '../i18n/useI18n';
 
 const emit = defineEmits<{
+  'activate': [sessionId: string]
   'close-dirty': [sessionId: string]
 }>();
 
@@ -15,20 +17,40 @@ const { t } = useI18n();
 const tabs = computed(() => docs.sessions);
 const activeId = computed(() => docs.activeId);
 
+// Confirmation modal for closing dirty tabs
+const confirmDirtyClose = ref<{ sessionId: string, sessionTitle: string } | null>(null);
+
 function activateTab(sessionId: string) {
   docs.activate(sessionId);
+  // Emit event to sync estimate store
+  emit('activate', sessionId);
 }
 
 function closeTab(sessionId: string, event: MouseEvent) {
   event.stopPropagation(); // Don't trigger tab activation when clicking close
   
+  const session = docs.sessions.find(s => s.sessionId === sessionId);
+  if (!session) return;
+  
   // Check if dirty and ask for confirmation
-  if (docs.hasUnsavedChanges(sessionId)) {
-    // For now, we'll emit an event for the parent to handle
-    // In a real implementation, we'd use the same confirmation logic as WorkingView
-    emit('close-dirty', sessionId);
+  if (session.dirty) {
+    confirmDirtyClose.value = {
+      sessionId: session.sessionId,
+      sessionTitle: session.displayTitle
+    };
   } else {
     docs.closeSession(sessionId);
+  }
+}
+
+function cancelClose() {
+  confirmDirtyClose.value = null;
+}
+
+function confirmClose() {
+  if (confirmDirtyClose.value) {
+    docs.closeSession(confirmDirtyClose.value.sessionId);
+    confirmDirtyClose.value = null;
   }
 }
 
@@ -39,6 +61,16 @@ function goToWelcome() {
 
 <template>
   <div class="document-tabs">
+    <!-- Confirmation Modal for dirty close -->
+    <ConfirmModal
+      :open="confirmDirtyClose !== null"
+      :title="t('tabs.closeDirtyTitle')"
+      :message="t('tabs.closeDirtyBody', { name: confirmDirtyClose?.sessionTitle ?? '' })"
+      :confirm-label="t('tabs.closeDirtyDiscard')"
+      danger
+      @cancel="cancelClose"
+      @confirm="confirmClose"
+    />
     <!-- Welcome tab (persistent, not closable) -->
     <button 
       type="button" 
