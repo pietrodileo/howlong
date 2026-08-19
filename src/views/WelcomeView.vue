@@ -23,10 +23,6 @@ const recentEstimates = computed(() => {
 // Model selection dropdown
 const newMenuOpen = ref(false);
 
-const defaultModelLabel = computed(() => {
-  return defaultModel.value?.name ?? models.value[0]?.name ?? t('working.pickModel');
-});
-
 function closeNewMenu() {
   newMenuOpen.value = false;
 }
@@ -128,7 +124,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
                   d="M8 2.5v11M2.5 8h11"
                 />
               </svg>
-              <span>{{ defaultModelLabel }}</span>
+              <span>{{ t('welcome.newEstimate') }}</span>
             </button>
             <button
               type="button"
