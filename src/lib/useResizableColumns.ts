@@ -301,6 +301,16 @@ function useColumnLayout<K extends string>(options: {
   ) as Record<K, boolean>;
   const order = ref<K[]>(loadOrder(orderStorageKey, defaultOrder));
 
+  // Pointer-based drag state
+  const pointerColDragKey = ref<K | null>(null);
+  const pointerColStartX = ref<number>(0);
+  const pointerColStartY = ref<number>(0);
+  const pointerColDragActive = ref<boolean>(false);
+  const dragOverColKey = ref<K | null>(null);
+
+  // Drag threshold in pixels to distinguish between click and drag
+  const DRAG_THRESHOLD = 5;
+
   let resizeKey: K | null = null;
   let startX = 0;
   let startW = 0;
@@ -331,6 +341,21 @@ function useColumnLayout<K extends string>(options: {
   );
 
   const orderedKeys = computed(() => order.value);
+
+  function getColumnKeyAtPoint(clientX: number, clientY: number): K | null {
+    const element = document.elementFromPoint(clientX, clientY);
+    if (!element) return null;
+
+    // Cerca l'elemento th più vicino con attributo data-column-key
+    const thEl = (element as HTMLElement).closest?.('th[data-column-key]');
+    if (thEl && thEl instanceof HTMLElement) {
+      const key = thEl.dataset.columnKey as K | undefined;
+      if (key && keys.includes(key)) {
+        return key;
+      }
+    }
+    return null;
+  }
 
   function isVisible(key: K): boolean {
     return visible[key] !== false;
@@ -370,6 +395,113 @@ function useColumnLayout<K extends string>(options: {
     }
   }
 
+  function cleanupColPointerDrag() {
+    pointerColDragKey.value = null;
+    pointerColDragActive.value = false;
+    dragOverColKey.value = null;
+    document.body.classList.remove('col-dragging');
+  }
+
+  function onColPointerDown(key: K, e: PointerEvent) {
+    // Solo pulsante primario (left mouse o touch)
+    if (e.button !== 0 && e.button !== -1) return;
+
+    // Ignora se target è resizer o controlli interattivi
+    const target = e.target as HTMLElement;
+    if (target.closest?.('.col-resizer')) return;
+    if (target.closest?.('button, input, select, textarea')) return;
+
+    // Inizializza stato
+    pointerColDragKey.value = key;
+    pointerColStartX.value = e.clientX;
+    pointerColStartY.value = e.clientY;
+    pointerColDragActive.value = false;
+    dragOverColKey.value = null;
+
+    // Capture pointer per continuous tracking
+    const el = e.currentTarget as HTMLElement;
+    el.setPointerCapture(e.pointerId);
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      // Solo processa se questo è il drag attivo
+      if (pointerColDragKey.value !== key) {
+        cleanupColPointerDrag();
+        el.releasePointerCapture(moveEvent.pointerId);
+        return;
+      }
+
+      // Calcola distanza dal punto iniziale
+      const dx = Math.abs(moveEvent.clientX - pointerColStartX.value);
+      const dy = Math.abs(moveEvent.clientY - pointerColStartY.value);
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Attiva drag solo oltre soglia
+      if (distance >= DRAG_THRESHOLD && !pointerColDragActive.value) {
+        pointerColDragActive.value = true;
+        dragOverColKey.value = null;
+        document.body.classList.add('col-dragging');
+      }
+
+      // Aggiorna over state se dragging è attivo
+      if (pointerColDragActive.value) {
+        const targetKey = getColumnKeyAtPoint(moveEvent.clientX, moveEvent.clientY);
+        if (targetKey && targetKey !== key && keys.includes(targetKey)) {
+          dragOverColKey.value = targetKey;
+        } else {
+          dragOverColKey.value = null;
+        }
+      }
+    };
+
+    const handlePointerUp = (upEvent: PointerEvent) => {
+      if (pointerColDragKey.value !== key) {
+        cleanupColPointerDrag();
+        el.releasePointerCapture(upEvent.pointerId);
+        return;
+      }
+
+      // Se drag era attivo, esegui reorder
+      if (pointerColDragActive.value) {
+        const targetKey = getColumnKeyAtPoint(upEvent.clientX, upEvent.clientY);
+        if (targetKey && targetKey !== key && keys.includes(targetKey)) {
+          reorderColumn(key, targetKey);
+        }
+      }
+
+      cleanupColPointerDrag();
+      el.releasePointerCapture(upEvent.pointerId);
+    };
+
+    const handlePointerCancel = (cancelEvent: PointerEvent) => {
+      if (pointerColDragKey.value !== key) {
+        cleanupColPointerDrag();
+        el.releasePointerCapture(cancelEvent.pointerId);
+        return;
+      }
+      cleanupColPointerDrag();
+      el.releasePointerCapture(cancelEvent.pointerId);
+    };
+
+    // Aggiungi listeners
+    el.addEventListener('pointermove', handlePointerMove, { passive: false });
+    el.addEventListener('pointerup', handlePointerUp, { passive: false });
+    el.addEventListener('pointercancel', handlePointerCancel, { passive: false });
+
+    // Cleanup automatico come safety
+    const cleanupListeners = () => {
+      el.removeEventListener('pointermove', handlePointerMove);
+      el.removeEventListener('pointerup', handlePointerUp);
+      el.removeEventListener('pointercancel', handlePointerCancel);
+      if (pointerColDragKey.value === key) {
+        cleanupColPointerDrag();
+      }
+    };
+
+    setTimeout(() => {
+      cleanupListeners();
+    }, 10000);
+  }
+
   function reorderColumn(dragKey: K, targetKey: K) {
     if (dragKey === targetKey) return;
     const current = order.value as K[];
@@ -385,6 +517,11 @@ function useColumnLayout<K extends string>(options: {
   }
 
   function onColDragStart(key: K, e: DragEvent) {
+    // Previeni se pointer drag è già attivo
+    if (pointerColDragActive.value) {
+      e.preventDefault();
+      return;
+    }
     colDragKey = key;
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = 'move';
@@ -393,12 +530,20 @@ function useColumnLayout<K extends string>(options: {
   }
 
   function onColDragOver(targetKey: K, e: DragEvent) {
+    if (pointerColDragActive.value) {
+      e.preventDefault();
+      return;
+    }
     if (!colDragKey || colDragKey === targetKey) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
   }
 
   function onColDrop(targetKey: K, e: DragEvent) {
+    if (pointerColDragActive.value) {
+      e.preventDefault();
+      return;
+    }
     e.preventDefault();
     const dragKey =
       colDragKey ?? ((e.dataTransfer?.getData('text/plain') as K | undefined) || null);
@@ -409,7 +554,16 @@ function useColumnLayout<K extends string>(options: {
   }
 
   function onColDragEnd() {
-    colDragKey = null;
+    if (!pointerColDragActive.value) {
+      colDragKey = null;
+    }
+  }
+
+  function colDragClass(key: K): Record<string, boolean> {
+    return {
+      'col-dragging': pointerColDragKey.value === key,
+      'col-drag-over': dragOverColKey.value === key && pointerColDragKey.value !== key,
+    };
   }
 
   function onMove(e: MouseEvent) {
@@ -446,6 +600,7 @@ function useColumnLayout<K extends string>(options: {
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup', onUp);
     document.body.classList.remove('col-resizing');
+    cleanupColPointerDrag();
   });
 
   return {
@@ -462,6 +617,10 @@ function useColumnLayout<K extends string>(options: {
     setVisible,
     toggleVisible,
     reorderColumn,
+    // Pointer-based drag handlers
+    onColPointerDown,
+    colDragClass,
+    // HTML5 drag-and-drop handlers (fallback)
     onColDragStart,
     onColDragOver,
     onColDrop,

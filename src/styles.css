@@ -385,6 +385,25 @@ label.field textarea:focus,
   cursor: grabbing;
 }
 
+/* Pointer-based column drag states */
+th.col-dragging {
+  opacity: 0.5;
+  background-color: var(--surface);
+}
+
+th.col-drag-over {
+  border-top: 2px solid var(--primary);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+body.col-dragging {
+  cursor: grabbing !important;
+}
+
+body.col-dragging * {
+  cursor: grabbing !important;
+}
+
 .th-inner {
   display: flex;
   align-items: center;

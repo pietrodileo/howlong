@@ -720,11 +720,14 @@ async function onExportFromMenu(
                 'show-th': key === 'show',
                 'delta-col-head': key === 'delta',
                 'actions-th': key === 'actions',
+                ...cols.colDragClass(key),
               }"
               :style="cols.styleFor(key)"
               v-tip="headerTitle(key)"
+              :data-column-key="key"
               draggable="true"
               @dblclick="onHeaderDblClick(key)"
+              @pointerdown="cols.onColPointerDown(key, $event)"
               @dragstart="cols.onColDragStart(key, $event)"
               @dragover="cols.onColDragOver(key, $event)"
               @drop="cols.onColDrop(key, $event)"
@@ -1013,11 +1016,14 @@ async function onExportFromMenu(
                 :class="{
                   collapsed: clientCols.collapsed[key],
                   'show-th': key === 'subs',
+                  ...clientCols.colDragClass(key),
                 }"
                 :style="clientCols.styleFor(key)"
                 v-tip="clientOutputHeaderTitle(key)"
+                :data-column-key="key"
                 draggable="true"
                 @dblclick="onClientOutputHeaderDblClick(key)"
+                @pointerdown="clientCols.onColPointerDown(key, $event)"
                 @dragstart="clientCols.onColDragStart(key, $event)"
                 @dragover="clientCols.onColDragOver(key, $event)"
                 @drop="clientCols.onColDrop(key, $event)"
