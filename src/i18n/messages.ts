@@ -44,6 +44,7 @@ export type MessageTree = {
     delete: string;
     add: string;
     default: string;
+    duplicate: string;
     hours: string;
     days: string;
     ore: string;
@@ -188,6 +189,13 @@ export type MessageTree = {
     exportZipHint: string;
     noneSelected: string;
     lastSavedBy: string;
+    showPath: string;
+    pathTitle: string;
+    copyPath: string;
+    pathCopied: string;
+    pathCopyFailed: string;
+    noPath: string;
+    duplicated: string;
   };
   working: {
     titlePh: string;
@@ -519,6 +527,7 @@ const it: MessageTree = {
     unsavedF: 'Non salvata',
     cancel: 'Annulla',
     confirm: 'Conferma',
+    duplicate: 'Duplica',
   },
   columns: {
     name: 'Nome',
@@ -616,7 +625,7 @@ const it: MessageTree = {
     aim: 'Esegui le stime dei progetti senza lottare con Excel',
   },
   library: {
-    lede: 'Apri e cerca le stime salvate in formato HowLong',
+    lede: 'Le stime salvate in HowLong',
     searchPh: 'Cerca per titolo o cliente…',
     searchAria: 'Cerca stime',
     refresh: 'Aggiorna',
@@ -644,6 +653,13 @@ const it: MessageTree = {
     exportZipHint: 'Più stime saranno esportate come un unico archivio ZIP con file separati',
     noneSelected: 'Seleziona almeno una stima',
     lastSavedBy: 'Salvata da {user} · {when}',
+    showPath: 'Mostra percorso',
+    pathTitle: 'Percorso libreria',
+    copyPath: 'Copia percorso',
+    pathCopied: 'Percorso copiato',
+    pathCopyFailed: 'Impossibile copiare il percorso',
+    noPath: 'Nessun percorso disponibile',
+    duplicated: 'Duplicata «{name}»',
   },
   working: {
     titlePh: 'Titolo stima',
@@ -986,6 +1002,7 @@ const en: MessageTree = {
     unsavedF: 'Unsaved',
     cancel: 'Cancel',
     confirm: 'Confirm',
+    duplicate: 'Duplicate',
   },
   columns: {
     name: 'Name',
@@ -1083,7 +1100,7 @@ const en: MessageTree = {
     aim: 'Estimate project effort without wrestling Excel',
   },
   library: {
-    lede: 'Open and search estimates saved in HowLong format',
+    lede: 'Your saved estimates in HowLong',
     searchPh: 'Search by title or client…',
     searchAria: 'Search estimates',
     refresh: 'Refresh',
@@ -1111,6 +1128,13 @@ const en: MessageTree = {
     exportZipHint: 'Multiple estimates will be exported as a single ZIP file with separate files',
     noneSelected: 'Select at least one estimate',
     lastSavedBy: 'Saved by {user} · {when}',
+    showPath: 'Show path',
+    pathTitle: 'Library path',
+    copyPath: 'Copy path',
+    pathCopied: 'Path copied',
+    pathCopyFailed: 'Failed to copy path',
+    noPath: 'No path available',
+    duplicated: 'Duplicated «{name}»',
   },
   working: {
     titlePh: 'Estimate title',
