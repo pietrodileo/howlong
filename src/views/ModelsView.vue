@@ -919,8 +919,8 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 v-for="key in tableColumnKeys"
                 :key="key"
                 class="resizable"
-                :class="{ collapsed: cols.collapsed[key], 'center-th': key === 'ctg' }"
-                :style="key !== 'actions' ? cols.styleFor(key) : undefined"
+                :class="{ collapsed: cols.collapsed[key] && key !== 'actions', 'center-th': key === 'ctg' }"
+                :style="cols.styleFor(key)"
                 v-tip="key !== 'actions' ? headerTitle(key) : null"
                 draggable="true"
                 @dblclick="onHeaderDblClick(key)"
@@ -930,7 +930,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 @dragend="cols.onColDragEnd"
               >
                 <div class="th-inner th-drag">
-                  <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
+                  <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
                   <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
                 </div>
                 <span
@@ -1090,36 +1090,33 @@ function setMacroApplyContingency(id: string, value: boolean) {
                   v-else-if="key === 'actions'"
                   class="row-actions"
                   :style="cols.styleFor('actions')"
-                  :class="{ collapsed: cols.collapsed.actions }"
                 >
-                  <template v-if="!cols.collapsed.actions">
-                    <button
-                      v-if="isTopLevel(a) && a.kind !== 'formula'"
-                      type="button"
-                      class="ghost"
-                      v-tip="t('working.addTask')"
-                      @click="addSubtask(a.id)"
-                    >
-                      {{ t('working.addTask') }}
-                    </button>
-                    <IconBtn
-                      v-if="a.kind === 'formula'"
-                      kind="edit"
-                      :label="t('models.editFormula')"
-                      @click="openFormulaEditor(a.id)"
-                    />
-                    <IconBtn
-                      v-if="isTopLevel(a)"
-                      kind="duplicate"
-                      :label="t('working.duplicateItem')"
-                      @click="duplicateMacro(a.id)"
-                    />
-                    <IconBtn
-                      kind="delete"
-                      :label="t('common.delete')"
-                      @click="removeMacro(a.id)"
-                    />
-                  </template>
+                  <button
+                    v-if="isTopLevel(a) && a.kind !== 'formula'"
+                    type="button"
+                    class="ghost"
+                    v-tip="t('working.addTask')"
+                    @click="addSubtask(a.id)"
+                  >
+                    {{ t('working.addTask') }}
+                  </button>
+                  <IconBtn
+                    v-if="a.kind === 'formula'"
+                    kind="edit"
+                    :label="t('models.editFormula')"
+                    @click="openFormulaEditor(a.id)"
+                  />
+                  <IconBtn
+                    v-if="isTopLevel(a)"
+                    kind="duplicate"
+                    :label="t('working.duplicateItem')"
+                    @click="duplicateMacro(a.id)"
+                  />
+                  <IconBtn
+                    kind="delete"
+                    :label="t('common.delete')"
+                    @click="removeMacro(a.id)"
+                  />
                 </td>
               </template>
             </tr>
@@ -1748,6 +1745,7 @@ th.collapsed {
 .row-actions {
   white-space: nowrap;
   overflow: visible;
+  background: var(--surface);
 }
 
 .row-actions .ghost {

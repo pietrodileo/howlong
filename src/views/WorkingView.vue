@@ -811,7 +811,7 @@ function onHeaderDblClick(key: ColumnKey) {
               v-for="key in tableColumnKeys"
               :key="key"
               class="resizable"
-              :class="{ collapsed: cols.collapsed[key] }"
+              :class="{ collapsed: cols.collapsed[key] && key !== 'actions' }"
               :style="cols.styleFor(key)"
               v-tip="headerTitle(key)"
               draggable="true"
@@ -831,10 +831,11 @@ function onHeaderDblClick(key: ColumnKey) {
                 >
                   {{ allMacrosExpanded ? '▾' : '▸' }}
                 </button>
-                <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
+                <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
                 <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
               </div>
               <span
+                v-if="key !== 'actions'"
                 class="col-resizer"
                 draggable="false"
                 @mousedown="cols.startResize(key, $event)"
@@ -1778,7 +1779,7 @@ th.collapsed {
 
 .name-cell {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.25rem;
   min-width: 0;
 }
@@ -1814,6 +1815,9 @@ th.collapsed {
 }
 
 .task-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
   text-align: center;
   color: var(--line-strong);
@@ -1821,6 +1825,9 @@ th.collapsed {
 }
 
 .formula-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
   text-align: center;
   font-weight: 700;
@@ -1829,7 +1836,9 @@ th.collapsed {
 }
 
 .collapse-spacer {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
   flex-shrink: 0;
 }
@@ -1877,6 +1886,7 @@ th.collapsed {
 .row-actions {
   white-space: nowrap;
   overflow: visible;
+  background: var(--surface);
 }
 
 .row-actions .ghost {

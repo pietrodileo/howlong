@@ -251,6 +251,7 @@ label.field textarea:focus,
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-soft);
+  scrollbar-gutter: stable;
 }
 
 .data-table {
@@ -348,6 +349,9 @@ label.field textarea:focus,
 }
 
 .drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   width: 1.1rem;
   border: none;

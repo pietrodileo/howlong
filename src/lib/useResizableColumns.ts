@@ -44,7 +44,6 @@ export const TOGGLEABLE_COLUMNS: ColumnKey[] = [
   'override',
   'tags',
   'notes',
-  'actions',
 ];
 
 export const MODEL_TOGGLEABLE_COLUMNS: ModelColumnKey[] = [
@@ -52,7 +51,6 @@ export const MODEL_TOGGLEABLE_COLUMNS: ModelColumnKey[] = [
   'hours',
   'ctg',
   'tags',
-  'actions',
 ];
 
 const DEFAULT_WIDTHS: Record<ColumnKey, number> = {
@@ -362,6 +360,7 @@ function useColumnLayout<K extends string>(options: {
   }
 
   function toggleCollapse(key: K) {
+    if (key === lockedKey || key === 'actions') return;
     if (collapsed[key]) {
       collapsed[key] = false;
       widths[key] = savedWidths[key] || defaultWidths[key];
