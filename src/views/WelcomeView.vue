@@ -20,6 +20,16 @@ const recentEstimates = computed(() => {
   return library.sorted.slice(0, 5); // Show up to 5 most recent estimates
 });
 
+// Random welcome phrase from the phrases array
+const welcomePhrase = computed(() => {
+  const phrases = t('welcome.phrases');
+  if (Array.isArray(phrases) && phrases.length > 0) {
+    const index = Math.floor(Math.random() * phrases.length);
+    return phrases[index];
+  }
+  return '';
+});
+
 // Model selection dropdown
 const newMenuOpen = ref(false);
 
@@ -108,6 +118,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   <div class="welcome">
     <header class="welcome-header">
       <h1 class="welcome-title">{{ t('welcome.title') }}</h1>
+      <p v-if="welcomePhrase" class="welcome-subtitle">{{ welcomePhrase }}</p>
     </header>
 
     <div class="welcome-actions">
@@ -202,13 +213,22 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 }
 
 .welcome-title {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.5rem;
   font-family: var(--font-brand);
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.2;
   color: var(--ink);
+}
+
+.welcome-subtitle {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-style: italic;
+  max-width: 420px;
 }
 
 .welcome-description {
