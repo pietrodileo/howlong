@@ -329,15 +329,8 @@ function onDocPointerDown(e: PointerEvent) {
 }
 
 onMounted(() => {
-  // Ensure we have an active document session
-  if (!docs.hasSessions) {
-    const m = defaultModel.value ?? modelList.value[0] ?? null;
-    if (m) {
-      docs.createFromModel(m);
-    } else {
-      docs.createEmpty();
-    }
-  } else {
+  // If we have sessions, sync with the active one
+  if (docs.hasSessions) {
     syncWithDocuments();
   }
   document.addEventListener('pointerdown', onDocPointerDown);
@@ -470,6 +463,8 @@ function doClose() {
     ui.navigate('welcome');
   }
 }
+
+
 
 async function doReload() {
   const path = estimate.filePath;

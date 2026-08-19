@@ -7,6 +7,7 @@ import WorkingView from './views/WorkingView.vue';
 import { useSettingsStore } from './stores/settings';
 import { useModelsStore } from './stores/models';
 import { useLibraryStore } from './stores/library';
+import { useDocumentsStore } from './stores/documents';
 import { useUiStore, type AppView } from './stores/ui';
 import { useI18n } from './i18n/useI18n';
 import { applyTheme } from './lib/appearance';
@@ -23,6 +24,7 @@ const APP_VERSION = '0.4.0';
 const settings = useSettingsStore();
 const models = useModelsStore();
 const library = useLibraryStore();
+const docs = useDocumentsStore();
 const ui = useUiStore();
 const { t } = useI18n();
 
@@ -32,6 +34,8 @@ function onActivateDocument() {
   // We just need to ensure we're in working view
   ui.navigate('working');
 }
+
+
 
 const pageTitle = computed(() => {
   const keys: Record<AppView, string> = {
@@ -60,6 +64,13 @@ onMounted(async () => {
     ui.notify(settings.lastError, true);
   }
 });
+
+// Watch for when there are no sessions and we're in working view - go to welcome
+watch(() => docs.hasSessions, (hasSessions) => {
+  if (!hasSessions && ui.currentView === 'working') {
+    ui.navigate('welcome');
+  }
+});
 </script>
 
 <template>
@@ -83,8 +94,8 @@ onMounted(async () => {
       </header>
 
       <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome' }">
-        <WelcomeView v-if="ui.currentView === 'welcome'" />
-        <WorkingView v-else-if="ui.currentView === 'working'" />
+        <WelcomeView v-if="ui.currentView === 'welcome' || (ui.currentView === 'working' && !docs.hasSessions)" />
+        <WorkingView v-else-if="ui.currentView === 'working' && docs.hasSessions" />
         <LibraryView v-else-if="ui.currentView === 'library'" />
         <ModelsView v-else-if="ui.currentView === 'models'" />
         <CompareView v-else-if="ui.currentView === 'compare'" />

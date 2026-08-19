@@ -2,8 +2,10 @@
 import { computed, ref } from 'vue';
 import ConfirmModal from './ConfirmModal.vue';
 import { useDocumentsStore } from '../stores/documents';
+import { useModelsStore } from '../stores/models';
 import { useUiStore } from '../stores/ui';
 import { useI18n } from '../i18n/useI18n';
+import { storeToRefs } from 'pinia';
 
 const emit = defineEmits<{
   'activate': [sessionId: string]
@@ -11,6 +13,8 @@ const emit = defineEmits<{
 }>();
 
 const docs = useDocumentsStore();
+const modelsStore = useModelsStore();
+const { defaultModel } = storeToRefs(modelsStore);
 const ui = useUiStore();
 const { t } = useI18n();
 
@@ -54,8 +58,17 @@ function confirmClose() {
   }
 }
 
-function goToWelcome() {
-  ui.navigate('welcome');
+function onNewEstimate() {
+  const m = defaultModel.value ?? modelsStore.models[0] ?? null;
+  if (!m) {
+    ui.notify(t('working.noModelAvail'), true);
+    return;
+  }
+  // Create new session directly
+  const sessionId = docs.createFromModel(m);
+  docs.activate(sessionId);
+  // Navigate to working view
+  ui.navigate('working');
 }
 </script>
 
@@ -71,22 +84,24 @@ function goToWelcome() {
       @cancel="cancelClose"
       @confirm="confirmClose"
     />
-    <!-- Welcome tab (persistent, not closable) -->
+    
+    <!-- New estimate button -->
     <button 
       type="button" 
-      class="tab welcome-tab"
-      :class="{ active: !docs.hasSessions }"
-      @click="goToWelcome"
-      v-tip="t('nav.welcome')"
-      :aria-label="t('nav.welcome')"
+      class="tab new-tab"
+      @click="onNewEstimate"
+      v-tip="t('working.newFrom')"
+      :aria-label="t('working.newFrom')"
     >
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3.5 9.5l8-5.5 8 5.5v7a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2v-7Z" />
-        <path d="M9.5 9.5v7" />
-        <path d="M14.5 9.5v7" />
-        <path d="M19.5 12.5h-15" />
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          d="M8 2.5v11M2.5 8h11"
+        />
       </svg>
-      <span>{{ t('nav.welcome') }}</span>
     </button>
 
     <!-- Document tabs -->
@@ -235,13 +250,14 @@ function goToWelcome() {
   display: block;
 }
 
-.welcome-tab {
+.new-tab {
   border-right: 1px solid var(--line);
   margin-right: 0.5rem;
   padding-right: 1rem;
 }
 
-.welcome-tab.active {
-  color: var(--ink);
+.new-tab:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 </style>

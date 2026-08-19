@@ -24,7 +24,6 @@ const username = computed(() => settingsStore.settings.username?.trim() || '');
 const nav = computed(() =>
   (
     [
-      { id: 'welcome' as const, icon: 'home' as const, key: 'nav.welcome' },
       { id: 'working' as const, icon: 'estimate' as const, key: 'nav.working' },
       { id: 'library' as const, icon: 'library' as const, key: 'nav.library' },
       { id: 'models' as const, icon: 'models' as const, key: 'nav.models' },
@@ -154,26 +153,9 @@ onUnmounted(() => {
         @click="go(item.id)"
       >
         <span class="mark" aria-hidden="true">
-          <!-- Home: casa -->
-          <svg
-            v-if="item.icon === 'home'"
-            viewBox="0 0 24 24"
-            width="15"
-            height="15"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M3.5 9.5l8-5.5 8 5.5v7a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2v-7Z" />
-            <path d="M9.5 9.5v7" />
-            <path d="M14.5 9.5v7" />
-            <path d="M19.5 12.5h-15" />
-          </svg>
           <!-- Stima: tabella -->
           <svg
-            v-else-if="item.icon === 'estimate'"
+            v-if="item.icon === 'estimate'"
             viewBox="0 0 24 24"
             width="15"
             height="15"
