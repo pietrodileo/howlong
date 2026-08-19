@@ -14,7 +14,7 @@ const modelsStore = useModelsStore();
 const library = useLibraryStore();
 const docs = useDocumentsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
-const { t } = useI18n();
+const { t, tList } = useI18n();
 
 const recentEstimates = computed(() => {
   return library.sorted.slice(0, 5); // Show up to 5 most recent estimates
@@ -22,7 +22,7 @@ const recentEstimates = computed(() => {
 
 // Random welcome phrase from the phrases array
 const welcomePhrase = computed(() => {
-  const phrases = t('welcome.phrases');
+  const phrases = tList('welcome.phrases');
   if (Array.isArray(phrases) && phrases.length > 0) {
     const index = Math.floor(Math.random() * phrases.length);
     return phrases[index];
