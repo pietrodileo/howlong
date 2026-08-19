@@ -582,27 +582,14 @@ async function onExportFromMenu(
           {{ t('common.reload') }}
         </button>
         <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
-        <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
-        <button
-          v-else-if="lastAudit"
-          type="button"
-          class="audit-meta"
-          :aria-label="t('working.auditHistoryOpen')"
-          @click="auditHistoryOpen = true"
-        >
-          {{
-            t('working.lastSavedBy', {
-              user: lastAudit.username,
-              when: lastAuditWhen,
-            })
-          }}
-        </button>
-        <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
       </div>
     </header>
 
     <div class="preview-head">
-      <h1 class="estimate-title">{{ estimate.clientTitle }}</h1>
+      <div class="title-status-row">
+        <h1 class="estimate-title">{{ estimate.clientTitle }}</h1>
+        <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
+      </div>
       <p v-if="estimate.estimate.meta.clientLabel" class="muted">
         {{ estimate.estimate.meta.clientLabel }}
       </p>
@@ -733,11 +720,14 @@ async function onExportFromMenu(
                 'show-th': key === 'show',
                 'delta-col-head': key === 'delta',
                 'actions-th': key === 'actions',
+                ...cols.colDragClass(key),
               }"
               :style="cols.styleFor(key)"
               v-tip="headerTitle(key)"
+              :data-column-key="key"
               draggable="true"
               @dblclick="onHeaderDblClick(key)"
+              @pointerdown="cols.onColPointerDown(key, $event)"
               @dragstart="cols.onColDragStart(key, $event)"
               @dragover="cols.onColDragOver(key, $event)"
               @drop="cols.onColDrop(key, $event)"
@@ -769,6 +759,7 @@ async function onExportFromMenu(
           <tr
             v-for="line in visibleManagerLines"
             :key="line.item.id"
+            :data-row-id="line.item.id"
             :class="[
               {
                 macro: line.isMacro,
@@ -813,6 +804,7 @@ async function onExportFromMenu(
                     draggable="true"
                     v-tip="t('common.dragRow')"
                     :aria-label="t('common.dragRow')"
+                    @pointerdown="rowDrag.onPointerDown(line.item.id, $event)"
                     @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                     @dragend="rowDrag.onDragEnd"
                   >⋮⋮</span>
@@ -1024,11 +1016,14 @@ async function onExportFromMenu(
                 :class="{
                   collapsed: clientCols.collapsed[key],
                   'show-th': key === 'subs',
+                  ...clientCols.colDragClass(key),
                 }"
                 :style="clientCols.styleFor(key)"
                 v-tip="clientOutputHeaderTitle(key)"
+                :data-column-key="key"
                 draggable="true"
                 @dblclick="onClientOutputHeaderDblClick(key)"
+                @pointerdown="clientCols.onColPointerDown(key, $event)"
                 @dragstart="clientCols.onColDragStart(key, $event)"
                 @dragover="clientCols.onColDragOver(key, $event)"
                 @drop="clientCols.onColDrop(key, $event)"
@@ -1080,6 +1075,7 @@ async function onExportFromMenu(
             <tr
               v-for="line in visibleClientLines"
               :key="line.item.id"
+              :data-row-id="line.item.id"
               :class="rowDrag.rowClass(line.item.id)"
               @dragover="rowDrag.onDragOver(line.item.id, $event)"
               @dragleave="rowDrag.onDragLeave(line.item.id)"
@@ -1117,6 +1113,7 @@ async function onExportFromMenu(
                       draggable="true"
                       v-tip="t('common.dragRow')"
                       :aria-label="t('common.dragRow')"
+                      @pointerdown="rowDrag.onPointerDown(line.item.id, $event)"
                       @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                       @dragend="rowDrag.onDragEnd"
                     >⋮⋮</span>
@@ -1236,6 +1233,19 @@ async function onExportFromMenu(
       :entries="estimate.estimate.auditHistory ?? []"
       @close="auditHistoryOpen = false"
     />
+
+    <footer class="audit-footer">
+      <button
+        v-if="lastAudit"
+        type="button"
+        class="audit-meta"
+        :aria-label="t('working.auditHistoryOpen')"
+        @click="auditHistoryOpen = true"
+      >
+        {{ t('working.lastSavedBy', { user: lastAudit.username, when: lastAuditWhen }) }}
+      </button>
+      <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
+    </footer>
   </div>
 </template>
 
@@ -1263,45 +1273,18 @@ async function onExportFromMenu(
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
   align-items: center;
+  column-gap: 0.5rem;
+  row-gap: 0.35rem;
+  overflow: visible;
+  min-height: 2.25rem;
+  padding-left: 0;
 }
 
 .dirty {
-  margin-left: auto;
   color: var(--warn);
   font-size: 0.8rem;
   font-weight: 500;
-}
-
-.audit-meta {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 500;
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-}
-
-.audit-meta:hover,
-.audit-meta:focus-visible {
-  color: var(--ink);
-  text-decoration: underline;
-  outline: none;
-}
-
-span.audit-meta {
-  cursor: default;
-}
-
-span.audit-meta:hover,
-span.audit-meta:focus-visible {
-  text-decoration: none;
-  color: var(--muted);
 }
 
 .fields {
@@ -1324,6 +1307,8 @@ span.audit-meta:focus-visible {
 
 .estimate-title {
   margin: 0;
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-display, inherit);
   font-size: 1.5rem;
   font-weight: 600;
@@ -1335,6 +1320,13 @@ span.audit-meta:focus-visible {
   margin: 0.25rem 0 0;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.title-status-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .section-title {
@@ -1639,7 +1631,7 @@ th.collapsed {
 
 .name-cell {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.25rem;
   min-width: 0;
 }
@@ -1681,7 +1673,9 @@ th.collapsed {
 }
 
 .collapse-spacer {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
   flex-shrink: 0;
 }
@@ -1843,5 +1837,13 @@ tr.overridden td {
 
 .muted {
   color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  .title-status-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
 }
 </style>

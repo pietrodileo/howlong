@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-export type AppView = 'working' | 'library' | 'models' | 'settings';
+export type AppView = 'working' | 'library' | 'models' | 'compare' | 'settings';
 export type SettingsSection = 'folder';
 
 const SIDEBAR_KEY = 'howlong.sidebarCollapsed';

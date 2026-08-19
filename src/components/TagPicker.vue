@@ -236,11 +236,11 @@ watch(open, (v) => {
   gap: 0.25rem;
   width: 100%;
   min-height: 2rem;
-  padding: 0.2rem 0.35rem;
+  padding: 0.5rem 0.65rem;
   font: inherit;
   text-align: left;
   color: var(--ink);
-  background: var(--surface);
+  background: var(--page-soft);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   cursor: pointer;

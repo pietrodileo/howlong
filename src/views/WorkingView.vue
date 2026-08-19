@@ -702,21 +702,6 @@ function onHeaderDblClick(key: ColumnKey) {
           </button>
           <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
           <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
-          <button
-            v-else-if="lastAudit"
-            type="button"
-            class="audit-meta"
-            :aria-label="t('working.auditHistoryOpen')"
-            @click="auditHistoryOpen = true"
-          >
-            {{
-              t('working.lastSavedBy', {
-                user: lastAudit.username,
-                when: lastAuditWhen,
-              })
-            }}
-          </button>
-          <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
         </div>
       </div>
     </header>
@@ -826,11 +811,13 @@ function onHeaderDblClick(key: ColumnKey) {
               v-for="key in tableColumnKeys"
               :key="key"
               class="resizable"
-              :class="{ collapsed: cols.collapsed[key] }"
+              :class="{ collapsed: cols.collapsed[key] && key !== 'actions', ...cols.colDragClass(key) }"
               :style="cols.styleFor(key)"
               v-tip="headerTitle(key)"
+              :data-column-key="key"
               draggable="true"
               @dblclick="onHeaderDblClick(key)"
+              @pointerdown="cols.onColPointerDown(key, $event)"
               @dragstart="cols.onColDragStart(key, $event)"
               @dragover="cols.onColDragOver(key, $event)"
               @drop="cols.onColDrop(key, $event)"
@@ -846,10 +833,11 @@ function onHeaderDblClick(key: ColumnKey) {
                 >
                   {{ allMacrosExpanded ? '▾' : '▸' }}
                 </button>
-                <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
+                <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
                 <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
               </div>
               <span
+                v-if="key !== 'actions'"
                 class="col-resizer"
                 draggable="false"
                 @mousedown="cols.startResize(key, $event)"
@@ -861,6 +849,7 @@ function onHeaderDblClick(key: ColumnKey) {
         <tbody>
           <template v-for="line in estimate.visibleLines" :key="line.item.id">
             <tr
+              :data-row-id="line.item.id"
               :class="[
                 {
                   macro: line.isMacro && !line.isFormula,
@@ -890,6 +879,7 @@ function onHeaderDblClick(key: ColumnKey) {
                       draggable="true"
                       v-tip="t('common.dragRow')"
                       :aria-label="t('common.dragRow')"
+                      @pointerdown="rowDrag.onPointerDown(line.item.id, $event)"
                       @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                       @dragend="rowDrag.onDragEnd"
                     >⋮⋮</span>
@@ -1196,6 +1186,19 @@ function onHeaderDblClick(key: ColumnKey) {
       :entries="estimate.estimate.auditHistory ?? []"
       @close="auditHistoryOpen = false"
     />
+
+    <footer class="audit-footer">
+      <button
+        v-if="lastAudit"
+        type="button"
+        class="audit-meta"
+        :aria-label="t('working.auditHistoryOpen')"
+        @click="auditHistoryOpen = true"
+      >
+        {{ t('working.lastSavedBy', { user: lastAudit.username, when: lastAuditWhen }) }}
+      </button>
+      <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
+    </footer>
   </div>
 </template>
 
@@ -1332,10 +1335,6 @@ function onHeaderDblClick(key: ColumnKey) {
   overflow: visible;
   min-height: 2.25rem;
   padding-left: 0;
-}
-
-.chrome-row .dirty {
-  margin-left: auto;
 }
 
 .estimate-settings {
@@ -1634,36 +1633,6 @@ function onHeaderDblClick(key: ColumnKey) {
   font-weight: 500;
 }
 
-.audit-meta {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 500;
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-}
-
-.audit-meta:hover,
-.audit-meta:focus-visible {
-  color: var(--ink);
-  text-decoration: underline;
-  outline: none;
-}
-
-span.audit-meta {
-  cursor: default;
-}
-
-span.audit-meta:hover,
-span.audit-meta:focus-visible {
-  text-decoration: none;
-  color: var(--muted);
-}
-
 .summary-row {
   display: flex;
   flex-wrap: wrap;
@@ -1814,7 +1783,7 @@ th.collapsed {
 
 .name-cell {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.25rem;
   min-width: 0;
 }
@@ -1850,6 +1819,9 @@ th.collapsed {
 }
 
 .task-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
   text-align: center;
   color: var(--line-strong);
@@ -1857,6 +1829,9 @@ th.collapsed {
 }
 
 .formula-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
   text-align: center;
   font-weight: 700;
@@ -1865,7 +1840,9 @@ th.collapsed {
 }
 
 .collapse-spacer {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
   flex-shrink: 0;
 }
@@ -1913,6 +1890,7 @@ th.collapsed {
 .row-actions {
   white-space: nowrap;
   overflow: visible;
+  background: var(--surface);
 }
 
 .row-actions .ghost {

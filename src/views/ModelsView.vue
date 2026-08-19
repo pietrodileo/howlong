@@ -2,9 +2,11 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useModelsStore } from '../stores/models';
 import { useUiStore } from '../stores/ui';
+import { useSettingsStore } from '../stores/settings';
 import { exportModel, openModelFiles } from '../lib/io';
 import { isTauri } from '../lib/tauri';
 import { newId } from '../lib/ids';
+import { nextCopyName } from '../lib/copyName';
 import {
   useModelResizableColumns,
   type ModelColumnKey,
@@ -26,6 +28,7 @@ import { MODEL_ICON_OPTIONS, type FormulaAggregate, type ModelIcon as ModelIconI
 
 const models = useModelsStore();
 const ui = useUiStore();
+const settings = useSettingsStore();
 const { t } = useI18n();
 const cols = useModelResizableColumns();
 
@@ -327,6 +330,43 @@ function addSubtask(macroId: string) {
   });
   collapsedMacros.value.delete(macroId);
   collapsedMacros.value = new Set(collapsedMacros.value);
+  models.setMacroActivities(next);
+}
+
+function duplicateMacro(id: string) {
+  const m = current.value;
+  if (!m) return;
+  const macro = m.macroActivities.find((a) => a.id === id);
+  if (!macro) return;
+
+  const existingNames = m.macroActivities.map((a) => a.name);
+  const locale = settings.settings.locale === 'en' ? 'en' : 'it';
+  const newName = nextCopyName(macro.name, existingNames, locale);
+
+  const next = [...m.macroActivities];
+  const newIdValue = newId(macro.parentId ? 'task' : macro.kind === 'formula' ? 'formula' : 'macro');
+  const duplicated: MacroActivity = {
+    ...macro,
+    id: newIdValue,
+    name: newName,
+    // Clear parent if duplicating a top-level macro
+    parentId: isTopLevel(macro) ? null : macro.parentId,
+  };
+
+  // If duplicating a top-level macro with children, duplicate children too
+  if (isTopLevel(macro)) {
+    const children = m.macroActivities.filter((a) => a.parentId === id);
+    const childrenDuplicates = children.map((child) => ({
+      ...child,
+      id: newId('task'),
+      parentId: newIdValue,
+      name: nextCopyName(child.name, existingNames, locale),
+    }));
+    next.push(duplicated, ...childrenDuplicates);
+  } else {
+    next.push(duplicated);
+  }
+
   models.setMacroActivities(next);
 }
 
@@ -734,64 +774,67 @@ function setMacroApplyContingency(id: string, value: boolean) {
             :placeholder="t('models.namePh')"
             @input="models.updateSelected({ name: ($event.target as HTMLInputElement).value })"
           />
+          <span v-if="models.isDefault(current.id)" class="default-badge" v-tip="t('models.defaultBadge')">
+            <span class="star">★</span> {{ t('common.default') }}
+          </span>
+          <button
+            v-else
+            type="button"
+            class="model-action-btn default-btn"
+            v-tip="t('models.setDefault')"
+            @click="setAsDefault"
+          >
+            <span class="star">★</span> {{ t('models.setDefault') }}
+          </button>
+          <div class="chrome-btn-group">
+            <span v-if="models.currentDirty" class="dirty">{{ t('common.unsaved') }}</span>
+            <button type="button" class="model-action-btn save-btn" v-tip="t('models.saveModel')" @click="save">{{ t('common.save') }}</button>
+            <button
+              type="button"
+              class="model-action-btn delete-btn"
+              v-tip="t('models.deleteModel')"
+              @click="onDeleteModel"
+            >
+              {{ t('common.delete') }}
+            </button>
+            <button type="button" class="model-action-btn export-btn" v-tip="t('models.exportModel')" @click="onExport">
+              {{ t('common.export') }}
+            </button>
+          </div>
         </div>
 
         <div class="chrome">
-          <button type="button" class="primary" @click="save">{{ t('common.save') }}</button>
-          <button
-            type="button"
-            class="danger"
-            v-tip="t('models.deleteModel')"
-            @click="onDeleteModel"
-          >
-            {{ t('common.delete') }}
-          </button>
-          <button
-            v-if="!models.isDefault(current.id)"
-            type="button"
-            class="ghost"
-            @click="setAsDefault"
-          >
-            {{ t('models.setDefault') }}
-          </button>
-          <span v-else class="default-hint">{{ t('models.defaultBadge') }}</span>
-
-          <span class="chrome-sep" aria-hidden="true" />
-
-          <button type="button" class="ghost" @click="onExport">
-            {{ t('common.export') }}
-          </button>
-
-          <span class="chrome-sep" aria-hidden="true" />
-
-          <label
-            class="inline-field"
-            v-tip="t('models.hoursPerDayTitle')"
-          >
-            {{ t('working.oneDayEq') }}
-            <span class="pct-wrap">
-              <input
-                type="number"
-                min="1"
-                max="24"
-                step="0.5"
-                :value="current.hoursPerDay ?? 8"
-                @input="models.updateSelected({ hoursPerDay: Math.min(24, Math.max(1, Number(($event.target as HTMLInputElement).value) || 8)) })"
-              />
-              <span>{{ t('common.ore') }}</span>
-            </span>
-          </label>
-
-          <label class="inline-field id-field">
-            ID
-            <input
-              class="id-input"
-              :value="current.id"
-              @input="models.updateSelected({ id: ($event.target as HTMLInputElement).value })"
-            />
-          </label>
-
-          <span v-if="models.dirty" class="dirty">{{ t('common.unsaved') }}</span>
+          <div class="chrome-row chrome-config">
+            <div class="chrome-settings">
+              <label
+                class="inline-field"
+                v-tip="t('models.hoursPerDayTitle')"
+              >
+                {{ t('working.oneDayEq') }}
+                <span class="pct-wrap">
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    step="0.5"
+                    :value="current.hoursPerDay ?? 8"
+                    @input="models.updateSelected({ hoursPerDay: Math.min(24, Math.max(1, Number(($event.target as HTMLInputElement).value) || 8)) })"
+                  />
+                  <span>{{ t('common.ore') }}</span>
+                </span>
+              </label>
+            </div>
+            <div class="chrome-settings">
+              <label class="inline-field id-field" v-tip="t('models.modelIdTitle')">
+                ID
+                <input
+                  class="id-input"
+                  :value="current.id"
+                  @input="models.updateSelected({ id: ($event.target as HTMLInputElement).value })"
+                />
+              </label>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -876,21 +919,24 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 v-for="key in tableColumnKeys"
                 :key="key"
                 class="resizable"
-                :class="{ collapsed: cols.collapsed[key], 'center-th': key === 'ctg' }"
+                :class="{ collapsed: cols.collapsed[key] && key !== 'actions', 'center-th': key === 'ctg', ...cols.colDragClass(key) }"
                 :style="cols.styleFor(key)"
-                v-tip="headerTitle(key)"
+                v-tip="key !== 'actions' ? headerTitle(key) : null"
+                :data-column-key="key"
                 draggable="true"
                 @dblclick="onHeaderDblClick(key)"
+                @pointerdown="cols.onColPointerDown(key, $event)"
                 @dragstart="cols.onColDragStart(key, $event)"
                 @dragover="cols.onColDragOver(key, $event)"
                 @drop="cols.onColDrop(key, $event)"
                 @dragend="cols.onColDragEnd"
               >
                 <div class="th-inner th-drag">
-                  <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
+                  <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
                   <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
                 </div>
                 <span
+                  v-if="key !== 'actions'"
                   class="col-resizer"
                   draggable="false"
                   @mousedown="cols.startResize(key, $event)"
@@ -903,6 +949,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
             <tr
               v-for="a in orderedActivities"
               :key="a.id"
+              :data-row-id="a.id"
               :class="[
                 {
                   formula: a.kind === 'formula',
@@ -931,6 +978,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                       draggable="true"
                       v-tip="t('common.dragRow')"
                       :aria-label="t('common.dragRow')"
+                      @pointerdown="rowDrag.onPointerDown(a.id, $event)"
                       @dragstart="rowDrag.onDragStart(a.id, $event)"
                       @dragend="rowDrag.onDragEnd"
                     >⋮⋮</span>
@@ -1046,29 +1094,33 @@ function setMacroApplyContingency(id: string, value: boolean) {
                   v-else-if="key === 'actions'"
                   class="row-actions"
                   :style="cols.styleFor('actions')"
-                  :class="{ collapsed: cols.collapsed.actions }"
                 >
-                  <template v-if="!cols.collapsed.actions">
-                    <button
-                      v-if="isTopLevel(a) && a.kind !== 'formula'"
-                      type="button"
-                      class="ghost"
-                      @click="addSubtask(a.id)"
-                    >
-                      {{ t('working.addTask') }}
-                    </button>
-                    <IconBtn
-                      v-if="a.kind === 'formula'"
-                      kind="edit"
-                      :label="t('models.editFormula')"
-                      @click="openFormulaEditor(a.id)"
-                    />
-                    <IconBtn
-                      kind="delete"
-                      :label="t('common.delete')"
-                      @click="removeMacro(a.id)"
-                    />
-                  </template>
+                  <button
+                    v-if="isTopLevel(a) && a.kind !== 'formula'"
+                    type="button"
+                    class="ghost"
+                    v-tip="t('working.addTask')"
+                    @click="addSubtask(a.id)"
+                  >
+                    {{ t('working.addTask') }}
+                  </button>
+                  <IconBtn
+                    v-if="a.kind === 'formula'"
+                    kind="edit"
+                    :label="t('models.editFormula')"
+                    @click="openFormulaEditor(a.id)"
+                  />
+                  <IconBtn
+                    v-if="isTopLevel(a)"
+                    kind="duplicate"
+                    :label="t('working.duplicateItem')"
+                    @click="duplicateMacro(a.id)"
+                  />
+                  <IconBtn
+                    kind="delete"
+                    :label="t('common.delete')"
+                    @click="removeMacro(a.id)"
+                  />
                 </td>
               </template>
             </tr>
@@ -1140,7 +1192,7 @@ aside {
 .list-resizer {
   position: absolute;
   top: 0;
-  right: -0.7rem;
+  right: -5px;
   width: 10px;
   height: 100%;
   cursor: col-resize;
@@ -1173,6 +1225,10 @@ aside {
   flex-wrap: wrap;
   gap: 0.35rem;
   margin-bottom: 0.65rem;
+}
+
+.aside-head .ghost {
+  font-size: 0.85rem;
 }
 
 .aside-head .toggle {
@@ -1311,6 +1367,37 @@ li.active .mark {
   flex-shrink: 0;
 }
 
+.default-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.default-badge .star {
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.model-action-btn.default-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 1.9rem;
+  padding: 0 0.75rem;
+}
+
+.model-action-btn.default-btn .star {
+  font-size: 0.85rem;
+}
+
 .editor {
   display: flex;
   flex-direction: column;
@@ -1323,12 +1410,14 @@ li.active .mark {
 .editor .table-shell {
   flex: 1 1 auto;
   max-height: min(60vh, 520px);
+  overflow: auto;
+  background: var(--page-soft);
 }
 
 .hero {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0;
   overflow: visible;
 }
 
@@ -1337,6 +1426,9 @@ li.active .mark {
   align-items: center;
   gap: 0.65rem;
   min-width: 0;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.55rem;
+  border-bottom: 1px solid var(--line);
 }
 
 .title-input {
@@ -1438,7 +1530,10 @@ li.active .mark {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  padding: 0.15rem 0 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
 }
 
 .cats-head {
@@ -1450,11 +1545,12 @@ li.active .mark {
 }
 
 .cats-label {
+  font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 .cat-add {
@@ -1482,6 +1578,7 @@ li.active .mark {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  padding: 0.25rem 0;
 }
 
 .chip {
@@ -1545,11 +1642,12 @@ li.active .mark {
 
 .ctg-title {
   margin: 0;
+  font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 .ctg-lede {
@@ -1682,38 +1780,122 @@ th.collapsed {
 
 .row-actions {
   white-space: nowrap;
-  overflow: visible;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.row-actions .ghost {
+  margin-right: 0.15rem;
 }
 
 .row-actions :deep(.icon-btn) {
-  margin-right: 0.15rem;
+  margin-right: 0.1rem;
+  vertical-align: middle;
 }
 
 .chrome {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.55rem;
+  flex-direction: column;
+  gap: 0.55rem;
+  align-items: flex-start;
   overflow: visible;
 }
 
-.chrome-sep {
-  width: 1px;
-  height: 1.15rem;
-  background: var(--line);
-  flex-shrink: 0;
+.chrome-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
 }
 
-.default-hint {
-  font-size: 0.8rem;
+.chrome-config {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.chrome-settings {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
+  display: flex;
+  align-items: center;
+  min-width: 12rem;
+  flex: 1;
+}
+
+/* Button group in title row */
+.title-row .chrome-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+/* Custom action buttons with very soft colored backgrounds and visible borders */
+.model-action-btn {
+  height: 1.9rem;
+  padding: 0 0.85rem;
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 550;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.model-action-btn.save-btn {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.model-action-btn.save-btn:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.model-action-btn.delete-btn {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+}
+
+.model-action-btn.delete-btn:hover {
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+.model-action-btn.export-btn {
+  background: transparent;
   color: var(--muted);
+  border-color: transparent;
+}
+
+.model-action-btn.export-btn:hover {
+  color: var(--ink-soft);
+  background: var(--accent-glow);
+}
+
+.model-action-btn.default-btn {
+  background: transparent;
+  color: var(--muted);
+  border-color: transparent;
+  height: 1.9rem;
+  padding: 0 0.85rem;
+}
+
+.model-action-btn.default-btn:hover {
+  color: var(--ink-soft);
+  background: var(--accent-glow);
 }
 
 .dirty {
-  margin-left: auto;
   color: var(--warn);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 500;
+  margin-right: 0.55rem;
 }
 
 .export-menu {
@@ -1760,6 +1942,11 @@ th.collapsed {
   white-space: nowrap;
 }
 
+.chrome-settings .inline-field {
+  color: var(--ink-soft);
+  margin: 0;
+}
+
 .pct-wrap {
   display: inline-flex;
   align-items: center;
@@ -1791,12 +1978,13 @@ th.collapsed {
 }
 
 .id-input {
-  width: 100%;
-  min-width: 14rem;
-  border: none;
-  border-bottom: 1px solid transparent;
-  background: transparent;
-  padding: 0.15rem 0;
+  width: auto;
+  max-width: 14rem;
+  min-width: 8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 0.35rem 0.45rem;
   color: var(--muted);
   font-weight: 400;
   font-size: 0.85rem;
@@ -1805,7 +1993,7 @@ th.collapsed {
 
 .id-input:hover,
 .id-input:focus {
-  border-bottom-color: var(--line-strong);
+  border-color: var(--line-strong);
   color: var(--ink);
   outline: none;
 }
@@ -1817,7 +2005,7 @@ th.collapsed {
 
 .name-cell {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.35rem;
   min-width: 0;
 }
@@ -1836,11 +2024,11 @@ th.collapsed {
   background: transparent;
   color: var(--muted);
   width: 1.4rem;
-  flex: 0 0 auto;
   padding: 0;
   font-size: 0.85rem;
   line-height: 1;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .collapse:hover {
@@ -1848,18 +2036,21 @@ th.collapsed {
 }
 
 .collapse-spacer {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
-  flex: 0 0 auto;
+  flex-shrink: 0;
 }
 
 .task-mark {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
-  flex: 0 0 auto;
   text-align: center;
-  color: var(--muted);
-  font-weight: 700;
+  color: var(--line-strong);
+  flex-shrink: 0;
 }
 
 .cat {
@@ -1879,7 +2070,10 @@ tr.sub td {
 }
 
 .formula-mark {
-  width: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
   text-align: center;
   font-weight: 700;
   color: var(--accent);
@@ -1900,7 +2094,7 @@ tr.sub td {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin-top: 0.15rem;
 }
 
 .empty {

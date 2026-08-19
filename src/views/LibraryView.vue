@@ -13,12 +13,14 @@ import { toErrorMessage } from '../lib/errors';
 import { formatAuditDateTime } from '../lib/formatAuditDate';
 import { isTauri } from '../lib/tauri';
 import type { ModelIcon } from '../models/model';
+import { useCompareStore } from '../stores/compare';
 import { useEstimateStore } from '../stores/estimate';
 import { useLibraryStore, type LibraryEntry } from '../stores/library';
 import { useUiStore } from '../stores/ui';
 
 const library = useLibraryStore();
 const estimate = useEstimateStore();
+const compare = useCompareStore();
 const ui = useUiStore();
 const { t } = useI18n();
 
@@ -84,6 +86,12 @@ function selectAllFiltered() {
 
 function clearSelection() {
   selected.value = new Set();
+}
+
+function onCompare() {
+  if (selected.value.size < 2) return;
+  compare.replaceSelection([...selected.value]);
+  ui.navigate('compare');
 }
 
 function openEntry(entry: LibraryEntry) {
@@ -288,6 +296,15 @@ onUnmounted(() => {
         @click="ui.navigate('settings', { section: 'folder' })"
       >
         {{ t('library.changeFolder') }}
+      </button>
+      <button
+        type="button"
+        class="ghost"
+        v-tip="t('compare.compareHint')"
+        :disabled="selectedCount < 2"
+        @click="onCompare"
+      >
+        {{ t('compare.compareAction') }}
       </button>
     </div>
 

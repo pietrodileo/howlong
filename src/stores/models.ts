@@ -23,12 +23,20 @@ export const useModelsStore = defineStore('models', () => {
   const selectedId = ref<string | null>(null);
   const lastError = ref<string | null>(null);
   const dirty = ref(false);
+  /** Set of model IDs that have unsaved changes */
+  const dirtyIds = ref<Set<string>>(new Set());
   /** Id su disco prima di un rename in corso (per cancellare il file vecchio al save). */
   const pendingIdRenameFrom = ref<string | null>(null);
 
   function selected(): Model | null {
     return models.value.find((m) => m.id === selectedId.value) ?? null;
   }
+
+  /** Returns true if the current model has unsaved changes */
+  const currentDirty = computed(() => {
+    const current = selected();
+    return current && dirtyIds.value.has(current.id);
+  });
 
   const defaultModel = computed((): Model | null => {
     const settings = useSettingsStore();
@@ -54,6 +62,7 @@ export const useModelsStore = defineStore('models', () => {
 
   async function loadAll() {
     lastError.value = null;
+    dirtyIds.value.clear();
     if (!isTauri()) {
       models.value = [structuredClone(DEFAULT_MODEL)];
       selectedId.value = DEFAULT_MODEL.id;
@@ -97,6 +106,7 @@ export const useModelsStore = defineStore('models', () => {
       selectedId.value = DEFAULT_MODEL.id;
       const settings = useSettingsStore();
       settings.settings.lastModelId = DEFAULT_MODEL.id;
+      dirtyIds.value.clear();
     }
   }
 
@@ -132,6 +142,7 @@ export const useModelsStore = defineStore('models', () => {
     }
     pendingIdRenameFrom.value = null;
     dirty.value = false;
+    dirtyIds.value.delete(selectedId.value!);
     return true;
   }
 
@@ -142,6 +153,7 @@ export const useModelsStore = defineStore('models', () => {
     selectedId.value = model.id;
     pendingIdRenameFrom.value = null;
     dirty.value = true;
+    dirtyIds.value.add(model.id);
   }
 
   function duplicateSelected(): Model | null {
@@ -172,6 +184,7 @@ export const useModelsStore = defineStore('models', () => {
     selectedId.value = copy.id;
     pendingIdRenameFrom.value = null;
     dirty.value = true;
+    dirtyIds.value.add(copy.id);
     return copy;
   }
 
@@ -193,6 +206,9 @@ export const useModelsStore = defineStore('models', () => {
       }
     }
     dirty.value = true;
+    if (selectedId.value) {
+      dirtyIds.value.add(selectedId.value);
+    }
   }
 
   function setMacroActivities(macros: Model['macroActivities']) {
@@ -279,6 +295,7 @@ export const useModelsStore = defineStore('models', () => {
     models.value.push(data);
     selectedId.value = data.id;
     dirty.value = true;
+    dirtyIds.value.add(data.id);
     lastError.value = null;
     return true;
   }
@@ -296,6 +313,7 @@ export const useModelsStore = defineStore('models', () => {
     selectedId.value = models.value[0]?.id ?? null;
     pendingIdRenameFrom.value = null;
     dirty.value = false;
+    dirtyIds.value.delete(id);
     lastError.value = null;
 
     if (isTauri()) {
@@ -344,6 +362,7 @@ export const useModelsStore = defineStore('models', () => {
     selectedId.value = preferred;
     settings.settings.lastModelId = preferred;
     dirty.value = false;
+    dirtyIds.value.clear();
     lastError.value = null;
 
     if (!isTauri()) return true;
@@ -377,6 +396,8 @@ export const useModelsStore = defineStore('models', () => {
     selectedId,
     lastError,
     dirty,
+    dirtyIds,
+    currentDirty,
     selected,
     defaultModel,
     isDefault,

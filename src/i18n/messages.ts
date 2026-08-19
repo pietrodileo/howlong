@@ -5,12 +5,34 @@ export type MessageTree = {
     working: string;
     library: string;
     models: string;
+    compare: string;
     settings: string;
     about: string;
     expandSidebar: string;
     collapseSidebar: string;
     resizeSidebar: string;
     navigation: string;
+  };
+  compare: {
+    backToLibrary: string;
+    title: string;
+    lede: string;
+    loading: string;
+    selectAtLeastTwo: string;
+    availableEstimates: string;
+    searchEstimates: string;
+    searchEstimatesAria: string;
+    selectAllVisible: string;
+    clearSelection: string;
+    selectedCount: string;
+    estimatesSelected: string;
+    loadingComparison: string;
+    noEstimatesAvailable: string;
+    partialLoadWarning: string;
+    compareAction: string;
+    compareHint: string;
+    item: string;
+    total: string;
   };
   common: {
     save: string;
@@ -224,6 +246,7 @@ export type MessageTree = {
     unsavedDiscard: string;
   };
   models: {
+    lede: string;
     listAria: string;
     searchAria: string;
     catsAria: string;
@@ -247,7 +270,10 @@ export type MessageTree = {
     resizeList: string;
     namePh: string;
     deleteModel: string;
+    saveModel: string;
+    exportModel: string;
     setDefault: string;
+    modelIdTitle: string;
     iconLabel: string;
     icon_letter: string;
     icon_layers: string;
@@ -432,12 +458,34 @@ const it: MessageTree = {
     working: 'Stima',
     library: 'Libreria',
     models: 'Modelli',
+    compare: 'Confronta',
     settings: 'Impostazioni',
     about: 'About',
     expandSidebar: 'Apri barra laterale',
     collapseSidebar: 'Chiudi barra laterale',
     resizeSidebar: 'Ridimensiona navigazione',
     navigation: 'Navigazione',
+  },
+  compare: {
+    backToLibrary: 'Torna a Libreria',
+    title: 'Confronta stime',
+    lede: 'Seleziona due o più stime per confrontarle',
+    loading: 'Caricamento...',
+    selectAtLeastTwo: 'Seleziona almeno due stime per confrontarle',
+    availableEstimates: 'Stime disponibili',
+    searchEstimates: 'Cerca stime...',
+    searchEstimatesAria: 'Cerca tra le stime disponibili',
+    selectAllVisible: 'Seleziona tutte',
+    clearSelection: 'Deseleziona tutte',
+    selectedCount: '{n} selezionate',
+    estimatesSelected: 'stime selezionate',
+    loadingComparison: 'Caricamento confronto...',
+    noEstimatesAvailable: 'Nessuna stima disponibile',
+    partialLoadWarning: 'Alcune stime non sono state caricate correttamente',
+    compareAction: 'Confronta',
+    compareHint: 'Confronta le stime selezionate',
+    item: 'Voce',
+    total: 'Totale',
   },
   common: {
     save: 'Salva',
@@ -508,10 +556,9 @@ const it: MessageTree = {
     appearanceLight: 'Chiaro',
     appearanceDark: 'Scuro',
     username: 'Nome utente',
-    usernameHelp: 'Nome dell\'utente che sta usando HowLong',
+    usernameHelp: 'Il tuo nome utente in HowLong',
     usernamePh: 'username',
-    usernameDesktopHint:
-      'Di default viene usato il nome dell\'account del PC',
+    usernameDesktopHint: 'Predefinito: nome utente del PC',
     info: 'Informazioni',
     infoBody:
       'Dove HowLong? salva i suoi file sul PC',
@@ -532,10 +579,8 @@ const it: MessageTree = {
     folderLoaded: 'Caricate {n} stime dalla cartella',
     folderEmpty: 'Cartella vuota — nessuna stima HowLong trovata',
     importExport: 'Import / Export',
-    tipImport:
-      '**Import** — Importa e sostituisce le **impostazioni** e i **modelli** nella cartella workspace attiva.',
-    tipExport:
-      '**Export** — Esporta **impostazioni** e **modelli**.',
+    tipImport: '**Import:** Importa e sostituisce impostazioni e modelli nella cartella workspace attiva.',
+    tipExport: '**Export:** Esporta impostazioni e modelli.',
     saved: 'Impostazioni salvate',
     importOk: 'Settings importati',
     importOkFull: 'Importati impostazioni e {count} modelli',
@@ -553,13 +598,13 @@ const it: MessageTree = {
     sectionWorkspace: 'Import / export workspace',
     estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
     presentationIntro: 'Definisce la visibilità predefinita delle colonne nella vista Presentazione.',
-    managerViewLegend: 'Vista manager (modifica)',
-    clientOutputLegend: 'Output cliente (anteprima / export)',
+    managerViewLegend: 'Vista manager',
+    clientOutputLegend: 'Vista cliente',
     defaultManagerHideNotes: 'Nascondi note',
     defaultManagerHideTags: 'Nascondi etichette',
     defaultClientHideNotes: 'Nascondi note',
     defaultClientHideTags: 'Nascondi etichette',
-    exportFilenameLegend: 'Segmenti aggiunti al nome file (dopo titolo e tipo).',
+    exportFilenameLegend: 'Segmenti aggiunti al nome del file',
     exportIncludeDate: 'Data',
     exportIncludeDateHint: 'Formato yyyy-mm-dd',
     exportIncludeTime: 'Ora',
@@ -577,7 +622,7 @@ const it: MessageTree = {
     refresh: 'Aggiorna',
     changeFolder: 'Cartella…',
     loading: 'Caricamento…',
-    empty: 'Nessuna stima salvata. Usa Salva nella vista Stima.',
+    empty: 'Nessuna stima salvata.',
     noResults: 'Nessun risultato',
     desktopOnly: 'Disponibile solo nell\'app desktop.',
     opened: 'Aperta «{name}»',
@@ -615,13 +660,13 @@ const it: MessageTree = {
     clientViewTitle: 'Anteprima presentabile della stima corrente',
     presentationView: 'Anteprima cliente',
     unit: 'Unità',
-    hoursPerDayTitle: 'Ore in un giorno-uomo per questa stima',
+    hoursPerDayTitle: 'Ore in un giorno lavorativo',
     base: 'Base',
     ctgSumTitle: 'Somma di ore × % su ogni voce operativa',
     total: 'Totale',
     addMacro: 'Aggiungi Macro',
     addFormula: '+ Voce derivata',
-    addFormulaTitle: 'Ore = aggregazione delle voci scelte × %. Dettagli nel dialog.',
+    addFormulaTitle: 'Ore = aggregazione delle voci scelte × %',
     addTask: '+ Task',
     editFormula: 'Modifica voce derivata',
     duplicateItem: 'Duplica',
@@ -659,6 +704,7 @@ const it: MessageTree = {
     unsavedDiscard: 'Scarta e continua',
   },
   models: {
+    lede: 'Gestisci modelli per le tue stime',
     listAria: 'Elenco modelli',
     searchAria: 'Cerca modello',
     catsAria: 'Categorie del modello',
@@ -670,19 +716,22 @@ const it: MessageTree = {
     newModel: 'Nuovo modello',
     newShort: 'Nuovo',
     import: 'Importa',
-    importHint: 'Importa uno o più modelli JSON (app desktop)',
+    importHint: 'Importa uno o più modelli JSON',
     importOk: 'Importati {n} modelli',
     importPartial: 'Importati {ok} modelli; {fail} errori',
     importBad: 'Modello non valido',
-    desktopOnly: 'L\'import modelli è disponibile solo nell\'app desktop (non nel browser).',
+    desktopOnly: 'L\'import modelli è disponibile solo nell\'app desktop.',
     expandList: 'Espandi elenco',
     collapseList: 'Comprimi elenco',
     searchPh: 'Cerca modello…',
     noResults: 'Nessun risultato',
-    resizeList: 'Trascina per ridimensionare · doppio click per comprimere/espandere',
+    resizeList: 'Doppio click per comprimere/espandere',
     namePh: 'Nome modello',
+    saveModel: 'Salva questo modello',
+    exportModel: 'Esporta questo modello',
     deleteModel: 'Elimina questo modello',
     setDefault: 'Imposta default',
+    modelIdTitle: 'ID univoco del modello',
     iconLabel: 'Icona',
     icon_letter: 'Prima lettera del nome',
     icon_layers: 'Layers',
@@ -710,7 +759,7 @@ const it: MessageTree = {
     icon_link: 'Link',
     icon_database: 'Database',
     icon_briefcase: 'Valigetta',
-    hoursPerDayTitle: 'Ore in un giorno-uomo per le stime create da questo modello',
+    hoursPerDayTitle: 'Ore in un giorno lavorativo',
     catsLabel: 'Categorie disponibili',
     newCatPh: 'Nuova categoria',
     addCat: 'Aggiungi',
@@ -727,13 +776,13 @@ const it: MessageTree = {
     howCalc: 'Come si calcola',
     howHint: 'es. 10 h al 20% → 12 h',
     howP1: 'Questa % CTG si applica alle ore delle voci con flag CTG attivo nella tabella:',
-    howFormula: 'CTG = ore × (% ÷ 100)  ·  totale = ore + CTG',
+    howFormula: 'CTG = ore × (% ÷ 100)  |  totale = ore + CTG',
     howP2: 'Esempio: 10 h al 20% → +2 h → totale 12 h. Se il flag CTG è spento, quella voce resta senza contingency.',
     hoursDefault: 'Ore default',
-    ctgColTitle: 'Applica contingency a questa voce. Doppio click: collassa/espandi',
+    ctgColTitle: 'Applica contingency a questa voce',
     addMacro: 'Aggiungi macro-attività',
     addFormula: '+ Voce derivata',
-    addFormulaTitle: 'Ore = aggregazione delle voci scelte × %. Dettagli nel dialog.',
+    addFormulaTitle: 'Ore = aggregazione delle voci scelte × %',
     empty: 'Nessun modello. Creane uno nuovo.',
     invalid: 'Modello non valido',
     saved: 'Modello salvato',
@@ -751,8 +800,8 @@ const it: MessageTree = {
   },
   client: {
     backToEstimate: 'Torna alla stima',
-    titleLabel: 'Titolo presentabile',
-    titlePh: 'Lascia vuoto per usare il titolo stima',
+    titleLabel: 'Titolo stima presentata al cliente',
+    titlePh: 'Lascia vuoto per usare il titolo della stima',
     rounding: 'Arrotondamento',
     roundNone: 'Nessuno',
     roundCeil05: 'Per eccesso 0,5',
@@ -766,9 +815,9 @@ const it: MessageTree = {
     hideTagsClient: 'Nascondi etichette',
     managerSectionTitle: 'Vista manager',
     managerSectionLede:
-      'Arrotonda, mostra/nascondi voci e ritocca i totali da presentare al cliente senza alterare la stima originale.',
-    managerViewLegend: 'Vista manager (modifica)',
-    clientOutputLegend: 'Output cliente (anteprima / export)',
+      'Modifica le voci e ritocca i totali da presentare al cliente senza alterare la stima originale.',
+    managerViewLegend: 'Vista manager',
+    clientOutputLegend: 'Vista cliente',
     clientSectionLede:
       'Anteprima di ciò verrà esposto al cliente',
     notesOpen: 'Click: apri e modifica la nota',
@@ -786,8 +835,7 @@ const it: MessageTree = {
     macroRollup: 'Nasconde o rende visibili i sotto-task nell\'export',
     macroDetail: 'Mostra sotto-task nell\'export',
     exported: 'Vista cliente esportata ({format}): {path}',
-    editHint:
-      'I valori modificati dall\'utente saranno visibili nell\'export Excel/YAML. La stima di lavoro originale non verrà modificata.',
+    editHint:'',
     reset: 'Reset',
     resetHint: 'Ripristina i valori calcolati (arrotondamento incluso)',
     resetOk: 'Valori vista cliente ripristinati',
@@ -797,11 +845,11 @@ const it: MessageTree = {
     editedMark: 'Valore ritoccato',
     showCol: 'Incluso',
     showHint:
-      'Togli questa voce dalla stima cliente (ore e sottovoci incluse). Togliendo, le ore escono dal totale.',
+      'Rimuovi questa voce dalla stima cliente (ore e sottovoci incluse).',
     hiddenRow: 'Nascosta',
     redistribute: 'Ripartiziona',
     redistributeHint:
-      'Nasconde questa voce e distribuisce le sue ore sulle altre voci ancora mostrate (in proporzione)',
+      'Nasconde questa voce e distribuisce le sue ore sulle altre voci ancora attive',
     redistributeOk: 'Ore ripartite sulle altre voci',
     redistributeFail: 'Nessuna altra voce su cui ripartire',
     compare: 'Confronto',
@@ -877,12 +925,34 @@ const en: MessageTree = {
     working: 'Estimate',
     library: 'Library',
     models: 'Models',
+    compare: 'Compare',
     settings: 'Settings',
     about: 'About',
     expandSidebar: 'Open sidebar',
     collapseSidebar: 'Close sidebar',
     resizeSidebar: 'Resize navigation',
     navigation: 'Navigation',
+  },
+  compare: {
+    backToLibrary: 'Back to Library',
+    title: 'Compare Estimates',
+    lede: 'Select two or more estimates to compare them',
+    loading: 'Loading...',
+    selectAtLeastTwo: 'Select at least two estimates to compare',
+    availableEstimates: 'Available Estimates',
+    searchEstimates: 'Search estimates...',
+    searchEstimatesAria: 'Search available estimates',
+    selectAllVisible: 'Select all',
+    clearSelection: 'Clear selection',
+    selectedCount: '{n} selected',
+    estimatesSelected: 'estimates selected',
+    loadingComparison: 'Loading comparison...',
+    noEstimatesAvailable: 'No estimates available',
+    partialLoadWarning: 'Some estimates failed to load',
+    compareAction: 'Compare',
+    compareHint: 'Compare selected estimates',
+    item: 'Item',
+    total: 'Total',
   },
   common: {
     save: 'Save',
@@ -953,10 +1023,9 @@ const en: MessageTree = {
     appearanceLight: 'Light',
     appearanceDark: 'Dark',
     username: 'Username',
-    usernameHelp: 'User name using HowLong',
+    usernameHelp: 'Your username in HowLong',
     usernamePh: 'username',
-    usernameDesktopHint:
-      'By default, the PC account name is used',
+    usernameDesktopHint: 'Default value: PC username',
     info: 'About',
     infoBody:
       'This shows where HowLong? stores its files on your PC. CTG and hours/day are set on the model or estimate. Settings export also includes your models.',
@@ -977,10 +1046,8 @@ const en: MessageTree = {
     folderLoaded: 'Loaded {n} estimates from the folder',
     folderEmpty: 'Empty folder — no HowLong estimates found',
     importExport: 'Import / Export',
-    tipImport:
-      '**Import** — Import and replace **settings** and **models** in the active workspace folder.',
-    tipExport:
-      '**Export** — Export **settings** and **models**.',
+    tipImport: '**Import:** Import and replace settings and models in the active workspace folder.',
+    tipExport: '**Export:** Export settings and models.',
     saved: 'Settings saved',
     importOk: 'Settings imported',
     importOkFull: 'Imported settings and {count} models',
@@ -998,13 +1065,13 @@ const en: MessageTree = {
     sectionWorkspace: 'Workspace import / export',
     estimateColumnsIntro: 'Columns shown when you open an estimate.',
     presentationIntro: 'Defines the default visibility of columns in the Presentation view.',
-    managerViewLegend: 'Manager view (edit)',
-    clientOutputLegend: 'Client output (preview / export)',
+    managerViewLegend: 'Manager view',
+    clientOutputLegend: 'Client view',
     defaultManagerHideNotes: 'Hide notes',
     defaultManagerHideTags: 'Hide labels',
     defaultClientHideNotes: 'Hide notes',
     defaultClientHideTags: 'Hide labels',
-    exportFilenameLegend: 'Extra segments in the export filename (after title and type).',
+    exportFilenameLegend: 'Extra segments in the export filename',
     exportIncludeDate: 'Date',
     exportIncludeDateHint: 'Format yyyy-mm-dd',
     exportIncludeTime: 'Time',
@@ -1022,7 +1089,7 @@ const en: MessageTree = {
     refresh: 'Refresh',
     changeFolder: 'Folder…',
     loading: 'Loading…',
-    empty: 'No saved estimates yet. Use Save in the Estimate view',
+    empty: 'No saved estimates yet',
     noResults: 'No results',
     desktopOnly: 'Available only in the desktop app',
     opened: 'Opened «{name}»',
@@ -1060,13 +1127,13 @@ const en: MessageTree = {
     clientViewTitle: 'Presentable preview of the current estimate',
     presentationView: 'Client preview',
     unit: 'Unit',
-    hoursPerDayTitle: 'Hours in a person-day for this estimate',
+    hoursPerDayTitle: 'Hours in a working day',
     base: 'Base',
     ctgSumTitle: 'Sum of hours × % on each operational line',
     total: 'Total',
     addMacro: 'Add Macro',
     addFormula: '+ Calculated item',
-    addFormulaTitle: 'Hours = aggregation of selected lines × %. Details in the dialog.',
+    addFormulaTitle: 'Hours = aggregation of selected lines × %',
     addTask: '+ Task',
     editFormula: 'Edit calculated item',
     duplicateItem: 'Duplicate',
@@ -1103,6 +1170,7 @@ const en: MessageTree = {
     unsavedDiscard: 'Discard and continue',
   },
   models: {
+    lede: 'Manage your models for estimates',
     listAria: 'Model list',
     searchAria: 'Search model',
     catsAria: 'Model categories',
@@ -1114,19 +1182,22 @@ const en: MessageTree = {
     newModel: 'New model',
     newShort: 'New',
     import: 'Import',
-    importHint: 'Import one or more model JSON files (desktop app)',
+    importHint: 'Import one or more model JSON files',
     importOk: 'Imported {n} models',
     importPartial: 'Imported {ok} models; {fail} failed',
     importBad: 'Invalid model',
-    desktopOnly: 'Model import is available only in the desktop app (not in the browser).',
+    desktopOnly: 'Model import is available only in the desktop app.',
     expandList: 'Expand list',
     collapseList: 'Collapse list',
     searchPh: 'Search model…',
     noResults: 'No results',
-    resizeList: 'Drag to resize · double-click to collapse/expand',
+    resizeList: 'Double-click to collapse/expand',
     namePh: 'Model name',
+    saveModel: 'Save this model',
+    exportModel: 'Export this model',
     deleteModel: 'Delete this model',
     setDefault: 'Set as default',
+    modelIdTitle: 'Unique model ID',
     iconLabel: 'Icon',
     icon_letter: 'First letter of the name',
     icon_layers: 'Layers',
@@ -1154,7 +1225,7 @@ const en: MessageTree = {
     icon_link: 'Link',
     icon_database: 'Database',
     icon_briefcase: 'Briefcase',
-    hoursPerDayTitle: 'Hours in a person-day for estimates from this model',
+    hoursPerDayTitle: 'Hours in a working day',
     catsLabel: 'Available categories',
     newCatPh: 'New category',
     addCat: 'Add',
@@ -1171,13 +1242,13 @@ const en: MessageTree = {
     howCalc: 'How it works',
     howHint: 'e.g. 10 h at 20% → 12 h',
     howP1: 'This CTG % applies to hours of lines with the CTG flag on in the table:',
-    howFormula: 'CTG = hours × (% ÷ 100)  ·  total = hours + CTG',
+    howFormula: 'CTG = hours × (% ÷ 100)  |  total = hours + CTG',
     howP2: 'Example: 10 h at 20% → +2 h → total 12 h. If CTG is off, that line has no contingency.',
     hoursDefault: 'Default hours',
-    ctgColTitle: 'Apply contingency to this line. Double-click: collapse/expand',
+    ctgColTitle: 'Apply contingency to this line',
     addMacro: 'Add macro activity',
     addFormula: '+ Calculated item',
-    addFormulaTitle: 'Hours = aggregation of selected lines × %. Details in the dialog.',
+    addFormulaTitle: 'Hours = aggregation of selected lines × %',
     empty: 'No model. Create a new one.',
     invalid: 'Invalid model',
     saved: 'Model saved',
@@ -1195,7 +1266,7 @@ const en: MessageTree = {
   },
   client: {
     backToEstimate: 'Back to estimate',
-    titleLabel: 'Presentation title',
+    titleLabel: 'Estimate title presented to client',
     titlePh: 'Leave empty to use estimate title',
     rounding: 'Rounding',
     roundNone: 'None',
@@ -1210,9 +1281,9 @@ const en: MessageTree = {
     hideTagsClient: 'Hide labels',
     managerSectionTitle: 'Manager view',
     managerSectionLede:
-      'Round, show/hide lines and tweak totals to present to the client without changing the original estimate.',
-    managerViewLegend: 'Manager view (edit)',
-    clientOutputLegend: 'Client output (preview / export)',
+      'Modify lines and tweak totals to present to the client without changing the original estimate.',
+    managerViewLegend: 'Manager view',
+    clientOutputLegend: 'Client view',
     clientSectionLede:
       'Preview of what will be presented to the client',
     notesOpen: 'Click: open and edit the note',
@@ -1230,8 +1301,7 @@ const en: MessageTree = {
     macroRollup: 'Hide or show sub-tasks in export',
     macroDetail: 'Show sub-tasks in export',
     exported: 'Client view exported ({format}): {path}',
-    editHint:
-      'User edits will be visible in the Excel/YAML export. The working estimate stays unchanged.',
+    editHint:'',
     reset: 'Reset',
     resetHint: 'Restore calculated values (including rounding)',
     resetOk: 'Client view values restored',
@@ -1244,7 +1314,7 @@ const en: MessageTree = {
     hiddenRow: 'Hidden',
     redistribute: 'Redistribute',
     redistributeHint:
-      'Hide this line and spread its hours across the other still-shown lines (proportionally)',
+      'Hide this line and spread its hours across the other active lines',
     redistributeOk: 'Hours redistributed to other lines',
     redistributeFail: 'No other line to redistribute onto',
     compare: 'Compare',

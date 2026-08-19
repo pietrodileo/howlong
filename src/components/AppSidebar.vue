@@ -27,6 +27,7 @@ const nav = computed(() =>
       { id: 'working' as const, icon: 'estimate' as const, key: 'nav.working' },
       { id: 'library' as const, icon: 'library' as const, key: 'nav.library' },
       { id: 'models' as const, icon: 'models' as const, key: 'nav.models' },
+      { id: 'compare' as const, icon: 'compare' as const, key: 'nav.compare' },
       { id: 'settings' as const, icon: 'settings' as const, key: 'nav.settings' },
     ] as const
   ).map((item) => ({ ...item, label: t(item.key) })),
@@ -198,6 +199,22 @@ onUnmounted(() => {
             <path d="M12 3.5 20 8l-8 4.5L4 8l8-4.5Z" />
             <path d="M4 12.5 12 17l8-4.5" />
             <path d="M4 16.5 12 21l8-4.5" />
+          </svg>
+          <!-- Confronta: frecce -->
+          <svg
+            v-else-if="item.icon === 'compare'"
+            viewBox="0 0 24 24"
+            width="15"
+            height="15"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M18 12H6" />
+            <path d="M6 12l3-3m-3 3l3 3" />
+            <path d="M18 12l-3-3m3 3l-3 3" />
           </svg>
           <!-- Impostazioni: ingranaggio -->
           <svg

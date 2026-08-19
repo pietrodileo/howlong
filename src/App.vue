@@ -15,8 +15,9 @@ import { applyTheme } from './lib/appearance';
 const LibraryView = defineAsyncComponent(() => import('./views/LibraryView.vue'));
 const ModelsView = defineAsyncComponent(() => import('./views/ModelsView.vue'));
 const SettingsView = defineAsyncComponent(() => import('./views/SettingsView.vue'));
+const CompareView = defineAsyncComponent(() => import('./views/CompareView.vue'));
 
-const APP_VERSION = '0.2.0';
+const APP_VERSION = '0.3.0';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -30,6 +31,7 @@ const pageTitle = computed(() => {
     working: 'nav.working',
     library: 'nav.library',
     models: 'nav.models',
+    compare: 'nav.compare',
     settings: 'nav.settings',
   };
   return t(keys[ui.currentView]);
@@ -64,10 +66,16 @@ onMounted(async () => {
 
     <div class="workspace">
       <TitleBar />
-      <header v-if="ui.currentView === 'library' || ui.currentView === 'models'" class="topbar">
+      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare'" class="topbar">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">
           {{ t('library.lede') }}
+        </p>
+        <p v-else-if="ui.currentView === 'models'" class="sub">
+          {{ t('models.lede') }}
+        </p>
+        <p v-else-if="ui.currentView === 'compare'" class="sub">
+          {{ t('compare.lede') }}
         </p>
       </header>
 
@@ -75,6 +83,7 @@ onMounted(async () => {
         <WorkingView v-if="ui.currentView === 'working'" />
         <LibraryView v-else-if="ui.currentView === 'library'" />
         <ModelsView v-else-if="ui.currentView === 'models'" />
+        <CompareView v-else-if="ui.currentView === 'compare'" />
         <SettingsView v-else-if="ui.currentView === 'settings'" />
       </main>
     </div>
