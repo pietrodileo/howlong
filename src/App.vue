@@ -6,7 +6,6 @@ import TitleBar from './components/TitleBar.vue';
 import WorkingView from './views/WorkingView.vue';
 import { useSettingsStore } from './stores/settings';
 import { useModelsStore } from './stores/models';
-import { useEstimateStore } from './stores/estimate';
 import { useLibraryStore } from './stores/library';
 import { useUiStore, type AppView } from './stores/ui';
 import { useI18n } from './i18n/useI18n';
@@ -16,18 +15,20 @@ const LibraryView = defineAsyncComponent(() => import('./views/LibraryView.vue')
 const ModelsView = defineAsyncComponent(() => import('./views/ModelsView.vue'));
 const SettingsView = defineAsyncComponent(() => import('./views/SettingsView.vue'));
 const CompareView = defineAsyncComponent(() => import('./views/CompareView.vue'));
+const WelcomeView = defineAsyncComponent(() => import('./views/WelcomeView.vue'));
+const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTabs.vue'));
 
 const APP_VERSION = '0.3.0';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
-const estimate = useEstimateStore();
 const library = useLibraryStore();
 const ui = useUiStore();
 const { t } = useI18n();
 
 const pageTitle = computed(() => {
   const keys: Record<AppView, string> = {
+    welcome: 'nav.welcome',
     working: 'nav.working',
     library: 'nav.library',
     models: 'nav.models',
@@ -48,12 +49,6 @@ onMounted(async () => {
   applyTheme(settings.settings.theme === 'dark' ? 'dark' : 'light');
   await models.loadAll();
   await library.loadAll();
-  const starter = models.defaultModel;
-  if (starter) {
-    estimate.newFromModel(starter);
-  } else {
-    estimate.newEmpty();
-  }
   if (settings.lastError) {
     ui.notify(settings.lastError, true);
   }
@@ -66,6 +61,7 @@ onMounted(async () => {
 
     <div class="workspace">
       <TitleBar />
+      <DocumentTabs v-if="ui.currentView === 'working'" />
       <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare'" class="topbar">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">
@@ -79,8 +75,9 @@ onMounted(async () => {
         </p>
       </header>
 
-      <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' }">
-        <WorkingView v-if="ui.currentView === 'working'" />
+      <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome' }">
+        <WelcomeView v-if="ui.currentView === 'welcome'" />
+        <WorkingView v-else-if="ui.currentView === 'working'" />
         <LibraryView v-else-if="ui.currentView === 'library'" />
         <ModelsView v-else-if="ui.currentView === 'models'" />
         <CompareView v-else-if="ui.currentView === 'compare'" />

@@ -2,6 +2,7 @@ import type { Locale } from '../models/settings';
 
 export type MessageTree = {
   nav: {
+    welcome: string;
     working: string;
     library: string;
     models: string;
@@ -39,6 +40,7 @@ export type MessageTree = {
     open: string;
     reload: string;
     noFileOpen: string;
+    close: string;
     export: string;
     import: string;
     delete: string;
@@ -67,6 +69,7 @@ export type MessageTree = {
     unsavedF: string;
     cancel: string;
     confirm: string;
+    start: string;
   };
   columns: {
     name: string;
@@ -160,6 +163,15 @@ export type MessageTree = {
     version: string;
     aim: string;
   };
+  welcome: {
+    title: string;
+    description: string;
+    newEstimate: string;
+    openEstimate: string;
+    openLibrary: string;
+    recentTitle: string;
+    noRecent: string;
+  };
   library: {
     lede: string;
     searchPh: string;
@@ -252,6 +264,13 @@ export type MessageTree = {
     unsavedTitle: string;
     unsavedBody: string;
     unsavedDiscard: string;
+    untitled: string;
+  };
+  tabs: {
+    closeConfirm: string;
+    closeDirtyTitle: string;
+    closeDirtyBody: string;
+    closeDirtyDiscard: string;
   };
   models: {
     lede: string;
@@ -463,6 +482,7 @@ export type MessageTree = {
 
 const it: MessageTree = {
   nav: {
+    welcome: 'Benvenuto',
     working: 'Stima',
     library: 'Libreria',
     models: 'Modelli',
@@ -473,6 +493,15 @@ const it: MessageTree = {
     collapseSidebar: 'Chiudi barra laterale',
     resizeSidebar: 'Ridimensiona navigazione',
     navigation: 'Navigazione',
+  },
+  welcome: {
+    title: 'Benvenuto in HowLong',
+    description: 'Crea una nuova stima, apri una stima esistente o esplora la libreria.',
+    newEstimate: 'Nuova stima',
+    openEstimate: 'Apri stima',
+    openLibrary: 'Vai alla libreria',
+    recentTitle: 'Stime recenti',
+    noRecent: 'Nessuna stima recente',
   },
   compare: {
     backToLibrary: 'Torna a Libreria',
@@ -500,6 +529,7 @@ const it: MessageTree = {
     open: 'Apri',
     reload: 'Aggiorna',
     noFileOpen: 'Nessun file salvato. Salva prima una stima per poterla aprire.',
+    close: 'Chiudi',
     export: 'Esporta',
     import: 'Importa',
     delete: 'Elimina',
@@ -528,6 +558,7 @@ const it: MessageTree = {
     cancel: 'Annulla',
     confirm: 'Conferma',
     duplicate: 'Duplica',
+    start: 'Inizia',
   },
   columns: {
     name: 'Nome',
@@ -718,6 +749,13 @@ const it: MessageTree = {
     unsavedBody:
       'La stima attuale ha modifiche non salvate. Se continui verranno perse.',
     unsavedDiscard: 'Scarta e continua',
+    untitled: 'Senza titolo',
+  },
+  tabs: {
+    closeConfirm: 'Chiudere questa scheda?',
+    closeDirtyTitle: 'Modifiche non salvate',
+    closeDirtyBody: 'Questa stima ha modifiche non salvate. Se chiudi la scheda, le modifiche verranno perse.',
+    closeDirtyDiscard: 'Scarta e chiudi',
   },
   models: {
     lede: 'Gestisci modelli per le tue stime',
@@ -938,6 +976,7 @@ const it: MessageTree = {
 
 const en: MessageTree = {
   nav: {
+    welcome: 'Welcome',
     working: 'Estimate',
     library: 'Library',
     models: 'Models',
@@ -948,6 +987,15 @@ const en: MessageTree = {
     collapseSidebar: 'Close sidebar',
     resizeSidebar: 'Resize navigation',
     navigation: 'Navigation',
+  },
+  welcome: {
+    title: 'Welcome to HowLong',
+    description: 'Create a new estimate, open an existing one, or browse the library.',
+    newEstimate: 'New Estimate',
+    openEstimate: 'Open Estimate',
+    openLibrary: 'Go to Library',
+    recentTitle: 'Recent Estimates',
+    noRecent: 'No recent estimates',
   },
   compare: {
     backToLibrary: 'Back to Library',
@@ -975,6 +1023,7 @@ const en: MessageTree = {
     open: 'Open',
     reload: 'Reload',
     noFileOpen: 'No file saved. Save a first estimate to open it.',
+    close: 'Close',
     export: 'Export',
     import: 'Import',
     delete: 'Delete',
@@ -1003,6 +1052,7 @@ const en: MessageTree = {
     cancel: 'Cancel',
     confirm: 'Confirm',
     duplicate: 'Duplicate',
+    start: 'Get started',
   },
   columns: {
     name: 'Name',
@@ -1192,6 +1242,13 @@ const en: MessageTree = {
     unsavedBody:
       'The current estimate has unsaved changes. If you continue they will be lost.',
     unsavedDiscard: 'Discard and continue',
+    untitled: 'Untitled',
+  },
+  tabs: {
+    closeConfirm: 'Close this tab?',
+    closeDirtyTitle: 'Unsaved changes',
+    closeDirtyBody: 'This estimate has unsaved changes. If you close the tab, changes will be lost.',
+    closeDirtyDiscard: 'Discard and close',
   },
   models: {
     lede: 'Manage your models for estimates',

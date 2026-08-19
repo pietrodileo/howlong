@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-export type AppView = 'working' | 'library' | 'models' | 'compare' | 'settings';
+export type AppView = 'welcome' | 'working' | 'library' | 'models' | 'compare' | 'settings';
 export type SettingsSection = 'folder';
 
 const SIDEBAR_KEY = 'howlong.sidebarCollapsed';
@@ -24,7 +24,7 @@ function loadSidebarWidth(): number {
 }
 
 export const useUiStore = defineStore('ui', () => {
-  const currentView = ref<AppView>('working');
+  const currentView = ref<AppView>('welcome');
   const settingsSection = ref<SettingsSection | null>(null);
   const aboutOpen = ref(false);
   const toast = ref<string | null>(null);

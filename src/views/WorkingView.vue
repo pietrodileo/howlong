@@ -371,6 +371,17 @@ async function onReload() {
   requestIfClean(() => doReload());
 }
 
+function onClose() {
+  requestIfClean(() => doClose());
+}
+
+function doClose() {
+  // Clear the current estimate and go to welcome
+  estimate.newEmpty();
+  estimate.markSaved(null);
+  ui.navigate('welcome');
+}
+
 async function doReload() {
   const path = estimate.filePath;
   if (!path) {
@@ -700,6 +711,7 @@ function onHeaderDblClick(key: ColumnKey) {
           >
             {{ t('common.reload') }}
           </button>
+          <button type="button" class="ghost" @click="onClose">{{ t('common.close') }}</button>
           <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
           <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
         </div>
