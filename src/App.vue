@@ -79,7 +79,7 @@ watch(() => docs.hasSessions, (hasSessions) => {
 
     <div class="workspace">
       <TitleBar />
-      <DocumentTabs v-if="ui.currentView === 'working'" @activate="onActivateDocument" />
+      <DocumentTabs v-if="ui.currentView === 'working' && docs.hasSessions" @activate="onActivateDocument" />
       <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare'" class="topbar">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">

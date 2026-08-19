@@ -85,7 +85,7 @@ function onNewEstimate() {
       @confirm="confirmClose"
     />
 
-    <!-- Document tabs -->
+    <!-- Document tabs and new button in same container -->
     <div class="tabs-scroll">
       <button 
         v-for="session in tabs" 
@@ -112,26 +112,26 @@ function onNewEstimate() {
           </svg>
         </button>
       </button>
-    </div>
 
-    <!-- New estimate button (on the right) -->
-    <button 
-      type="button" 
-      class="new-tab"
-      @click="onNewEstimate"
-      v-tip="t('working.newFrom')"
-      :aria-label="t('working.newFrom')"
-    >
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-        <path
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          d="M8 2.5v11M2.5 8h11"
-        />
-      </svg>
-    </button>
+      <!-- New estimate button (on the right of tabs) -->
+      <button 
+        type="button" 
+        class="new-tab"
+        @click="onNewEstimate"
+        v-tip="t('working.newFrom')"
+        :aria-label="t('working.newFrom')"
+      >
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            d="M8 2.5v11M2.5 8h11"
+          />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -277,9 +277,9 @@ function onNewEstimate() {
   justify-content: center;
   width: 32px;
   height: 32px;
-  margin: 2px 4px 0 4px;
+  margin: 2px 0;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px 8px 0 0;
   background: var(--surface);
   color: var(--muted);
   cursor: pointer;
