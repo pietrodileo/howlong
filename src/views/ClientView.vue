@@ -1625,7 +1625,7 @@ th.collapsed {
 
 .name-cell {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.25rem;
   min-width: 0;
 }
@@ -1667,7 +1667,9 @@ th.collapsed {
 }
 
 .collapse-spacer {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
   flex-shrink: 0;
 }

@@ -2003,7 +2003,7 @@ th.collapsed {
 
 .name-cell {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.35rem;
   min-width: 0;
 }
@@ -2022,11 +2022,11 @@ th.collapsed {
   background: transparent;
   color: var(--muted);
   width: 1.4rem;
-  flex: 0 0 auto;
   padding: 0;
   font-size: 0.85rem;
   line-height: 1;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .collapse:hover {
@@ -2034,18 +2034,21 @@ th.collapsed {
 }
 
 .collapse-spacer {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
-  flex: 0 0 auto;
+  flex-shrink: 0;
 }
 
 .task-mark {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.4rem;
-  flex: 0 0 auto;
   text-align: center;
-  color: var(--muted);
-  font-weight: 700;
+  color: var(--line-strong);
+  flex-shrink: 0;
 }
 
 .cat {
@@ -2065,7 +2068,10 @@ tr.sub td {
 }
 
 .formula-mark {
-  width: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
   text-align: center;
   font-weight: 700;
   color: var(--accent);
