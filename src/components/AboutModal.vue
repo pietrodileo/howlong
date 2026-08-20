@@ -1,13 +1,42 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from '../i18n/useI18n';
 
-defineProps<{
+const props = defineProps<{
   open: boolean;
   version: string;
 }>();
 
 const emit = defineEmits<{ close: [] }>();
-const { t } = useI18n();
+const { t, tQuotes } = useI18n();
+
+const randomQuote = ref<ReturnType<typeof tQuotes>[number] | null>(null);
+
+function pickQuote() {
+  const quotes = tQuotes('welcome.quotes');
+  if (quotes.length === 0) {
+    randomQuote.value = null;
+    return;
+  }
+
+  const candidates = quotes.length > 1
+    ? quotes.filter((quote) => quote !== randomQuote.value)
+    : quotes;
+  randomQuote.value = candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (!props.open || (!e.ctrlKey && !e.metaKey) || e.key.toLowerCase() !== 'w') return;
+  e.preventDefault();
+  emit('close');
+}
+
+watch(() => props.open, (open) => {
+  if (open) pickQuote();
+}, { immediate: true });
+
+onMounted(() => window.addEventListener('keydown', onKeydown));
+onUnmounted(() => window.removeEventListener('keydown', onKeydown));
 </script>
 
 <template>
@@ -32,6 +61,14 @@ const { t } = useI18n();
       </header>
 
       <p class="aim">{{ t('about.aim') }}</p>
+
+      <figure v-if="randomQuote" class="quote">
+        <blockquote>“{{ randomQuote.text }}”</blockquote>
+        <figcaption>
+          {{ randomQuote.author }}, {{ randomQuote.year }}
+          <cite v-if="randomQuote.book"> · {{ randomQuote.book }}</cite>
+        </figcaption>
+      </figure>
 
       <dl class="meta">
         <div>
@@ -99,6 +136,32 @@ header h2 {
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.quote {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 0 0.85rem 1rem;
+  border-left: 3px solid var(--accent);
+}
+
+.quote blockquote {
+  margin: 0;
+  color: var(--ink-soft);
+  font-family: var(--font-brand);
+  font-size: 0.95rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.quote figcaption {
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.quote cite {
+  font-style: italic;
 }
 
 .aim {

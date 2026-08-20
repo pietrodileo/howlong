@@ -560,9 +560,14 @@ async function onExportFromMenu(
 <template>
   <div class="client">
     <header class="top">
-      <button type="button" class="ghost back" @click="emit('back')">
-        ← {{ t('client.backToEstimate') }}
-      </button>
+      <div class="title-status-row">
+        <h1
+          class="estimate-title"
+          :class="{ 'is-placeholder': !estimate.clientTitle.trim() }"
+        >
+          {{ estimate.clientTitle.trim() || t('working.untitled') }}
+        </h1>
+      </div>
       <div class="toolbar">
         <button
           type="button"
@@ -581,18 +586,38 @@ async function onExportFromMenu(
         >
           {{ t('common.reload') }}
         </button>
-        <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
+        <button type="button" class="primary save-action" @click="onSave">
+          {{ t('common.save') }}
+          <span
+            v-if="estimate.dirty"
+            class="save-dirty-dot"
+            role="status"
+            :aria-label="t('common.unsavedF')"
+            v-tip="t('common.unsavedF')"
+          />
+        </button>
       </div>
     </header>
 
     <div class="preview-head">
-      <div class="title-status-row">
-        <h1 class="estimate-title">{{ estimate.clientTitle }}</h1>
-        <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
-      </div>
       <p v-if="estimate.estimate.meta.clientLabel" class="muted">
         {{ estimate.estimate.meta.clientLabel }}
       </p>
+      <div class="client-status-row">
+        <button type="button" class="ghost back" @click="emit('back')">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+            <path
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M13 8H3m0 0 4-4M3 8l4 4"
+            />
+          </svg>
+          <span>{{ t('client.backToEstimate') }}</span>
+        </button>
+      </div>
     </div>
 
     <div class="fields">
@@ -1267,7 +1292,16 @@ async function onExportFromMenu(
 }
 
 .back {
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-inline: 0.55rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.back svg {
+  flex-shrink: 0;
 }
 
 .toolbar {
@@ -1287,6 +1321,21 @@ async function onExportFromMenu(
   font-weight: 500;
 }
 
+.save-action {
+  position: relative;
+}
+
+.save-dirty-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--page);
+  border-radius: 50%;
+  background: var(--warn);
+}
+
 .fields {
   display: flex;
   flex-wrap: wrap;
@@ -1302,6 +1351,13 @@ async function onExportFromMenu(
 }
 
 .preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
   margin: 0;
 }
 
@@ -1309,11 +1365,16 @@ async function onExportFromMenu(
   margin: 0;
   flex: 1;
   min-width: 0;
-  font-family: var(--font-display, inherit);
-  font-size: 1.5rem;
-  font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+  font-family: var(--font-brand);
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--muted);
+}
+
+.estimate-title.is-placeholder {
+  color: var(--muted);
 }
 
 .preview-head .muted {
@@ -1323,10 +1384,19 @@ async function onExportFromMenu(
 }
 
 .title-status-row {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
-  align-items: flex-end;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.client-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
 }
 
 .section-title {
@@ -1585,6 +1655,7 @@ async function onExportFromMenu(
 
 .table-shell {
   overflow: auto;
+  max-width: 100%;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1592,8 +1663,8 @@ async function onExportFromMenu(
 
 .sheet {
   table-layout: fixed;
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: 42rem;
 }
 
 .resizable {

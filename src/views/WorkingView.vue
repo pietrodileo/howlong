@@ -27,10 +27,9 @@ import {
   inputUnitToHours,
   type EffortUnit,
 } from '../lib/rounding';
-import { exportEstimate, openEstimateFile } from '../lib/io';
+import { exportEstimate } from '../lib/io';
 import { readTextFile, isTauri } from '../lib/tauri';
 import { importEstimateText } from '../lib/import';
-import { isDialogCancelled, isDialogDesktopOnly } from '../lib/dialogResult';
 import { toErrorMessage } from '../lib/errors';
 import { resolveAppliesContingency } from '../lib/applyContingency';
 import { useLibraryStore } from '../stores/library';
@@ -51,7 +50,7 @@ import { useI18n } from '../i18n/useI18n';
 const estimate = useEstimateStore();
 const docs = useDocumentsStore();
 const modelsStore = useModelsStore();
-const { models: modelList, defaultModel } = storeToRefs(modelsStore);
+const { models: modelList } = storeToRefs(modelsStore);
 const settings = useSettingsStore();
 const library = useLibraryStore();
 const ui = useUiStore();
@@ -104,6 +103,8 @@ const lastAuditWhen = computed(() => {
   return formatAuditDateTime(lastAudit.value.at);
 });
 
+const isUnsaved = computed(() => estimate.dirty || docs.activeSession?.dirty === true);
+
 const auditHistoryOpen = ref(false);
 
 const rowDrag = useRowDragReorder({
@@ -121,7 +122,6 @@ const tableColumnKeys = computed(() =>
 const columnsMenuOpen = ref(false);
 const ctgCompareOpen = ref(false);
 const exportMenuOpen = ref(false);
-const newMenuOpen = ref(false);
 /** Id di una voce già in lista in modifica. */
 const formulaEditId = ref<string | null>(null);
 /** Voce in editor note (modal). */
@@ -181,10 +181,6 @@ function onDeleteItem(id: string) {
     action: () => estimate.removeItem(id),
   });
 }
-
-const defaultModelLabel = computed(
-  () => defaultModel.value?.name ?? t('working.pickModel'),
-);
 
 const effortUnit = computed(
   () => estimate.estimate.meta.unit as EffortUnit,
@@ -315,17 +311,43 @@ const pickerColumns = computed(() =>
   }),
 );
 
-function closeFloatingMenus(except?: 'new' | 'export' | 'columns') {
-  if (except !== 'new') newMenuOpen.value = false;
+function closeFloatingMenus(except?: 'export' | 'columns') {
   if (except !== 'export') exportMenuOpen.value = false;
   if (except !== 'columns') columnsMenuOpen.value = false;
 }
 
 function onDocPointerDown(e: PointerEvent) {
   const t = e.target as HTMLElement | null;
-  if (!t?.closest?.('.new-menu')) newMenuOpen.value = false;
   if (!t?.closest?.('.export-menu')) exportMenuOpen.value = false;
   if (!t?.closest?.('.col-picker')) columnsMenuOpen.value = false;
+}
+
+function onEstimateKeydown(e: KeyboardEvent) {
+  if (!e.ctrlKey && !e.metaKey) return;
+
+  const key = e.key.toLowerCase();
+  if (key !== 's' && key !== 't' && key !== 'w') return;
+
+  e.preventDefault();
+  if (key === 's') {
+    void onSave();
+    return;
+  }
+
+  if (key === 't') {
+    const model = modelsStore.defaultModel ?? modelList.value[0] ?? null;
+    if (!model) {
+      ui.notify(t('working.noModelAvail'), true);
+      return;
+    }
+    modelsStore.selectedId = model.id;
+    const sessionId = docs.createFromModel(model);
+    docs.activate(sessionId);
+    ui.navigate('working');
+    return;
+  }
+
+  requestIfClean(() => docs.closeActive());
 }
 
 onMounted(() => {
@@ -334,6 +356,7 @@ onMounted(() => {
     syncWithDocuments();
   }
   document.addEventListener('pointerdown', onDocPointerDown);
+  window.addEventListener('keydown', onEstimateKeydown);
 });
 
 // Watch for active session changes and sync estimate store
@@ -350,7 +373,10 @@ watch(() => [estimate.estimate, estimate.dirty, estimate.filePath], () => {
   }
 }, { deep: true });
 
-onUnmounted(() => document.removeEventListener('pointerdown', onDocPointerDown));
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocPointerDown);
+  window.removeEventListener('keydown', onEstimateKeydown);
+});
 
 const allMacrosExpanded = computed(() => {
   const macros = estimate.totals.lines.filter((l) => l.isMacro && l.hasChildren);
@@ -368,102 +394,15 @@ function toggleAllMacros() {
   }
 }
 
-function onNewFromDefault() {
-  const m = defaultModel.value ?? modelList.value[0] ?? null;
-  if (!m) {
-    ui.notify(t('working.noModelAvail'), true);
-    return;
-  }
-  onNewFromModelId(m.id);
-}
-
-function toggleNewMenu() {
-  const next = !newMenuOpen.value;
-  closeFloatingMenus('new');
-  newMenuOpen.value = next;
-}
-
 function toggleExportMenu() {
   const next = !exportMenuOpen.value;
   closeFloatingMenus('export');
   exportMenuOpen.value = next;
 }
 
-function onNewFromModelId(id: string) {
-  requestIfClean(() => doNewFromModelId(id));
-}
-
-function doNewFromModelId(id: string) {
-  const m = modelList.value.find((x) => x.id === id);
-  if (!m) {
-    ui.notify(t('working.modelNotFound'), true);
-    return;
-  }
-  modelsStore.selectedId = id;
-  
-  // Create new session in documents store
-  const sessionId = docs.createFromModel(m);
-  docs.activate(sessionId);
-  
-  // Sync estimate store with new session
-  syncWithDocuments();
-  
-  clientPreview.value = false;
-  newMenuOpen.value = false;
-  ui.notify(t('working.newEstimateFrom', { name: m.name }));
-}
-
-async function onOpen() {
-  requestIfClean(() => doOpen());
-}
-
-async function doOpen() {
-  const result = await openEstimateFile();
-  if (!result.ok) {
-    if (!isDialogCancelled(result)) {
-      ui.notify(
-        isDialogDesktopOnly(result) ? t('library.desktopOnly') : result.error,
-        true,
-      );
-    }
-    return;
-  }
-  
-  // Open in documents store
-  const sessionId = await docs.openFromFile(result.data, result.path);
-  docs.activate(sessionId);
-  
-  // Sync estimate store with opened session
-  syncWithDocuments();
-  
-  clientPreview.value = false;
-  ui.notify(t('working.opened'));
-}
-
 async function onReload() {
   requestIfClean(() => doReload());
 }
-
-function onClose() {
-  requestIfClean(() => doClose());
-}
-
-function doClose() {
-  // Sync current estimate state to documents before closing
-  syncToDocuments();
-  
-  // Close the active session
-  docs.closeActive();
-  
-  // Clear estimate store
-  estimate.newEmpty();
-  estimate.markSaved(null);
-  
-  if (!docs.hasSessions) {
-    ui.navigate('welcome');
-  }
-}
-
 
 
 async function doReload() {
@@ -691,113 +630,72 @@ function onHeaderDblClick(key: ColumnKey) {
         </div>
 
         <div class="title-promo">
-          <div class="export-menu">
+          <div class="chrome-row">
+            <div class="export-menu">
+              <button
+                type="button"
+                class="ghost"
+                :aria-expanded="exportMenuOpen"
+                @click.stop="toggleExportMenu"
+              >
+                {{ t('common.export') }} ▾
+              </button>
+              <div v-if="exportMenuOpen" class="menu" role="menu" @pointerdown.stop>
+                <button
+                  type="button"
+                  role="menuitem"
+                  v-tip="t('export.aiHint')"
+                  @click="onExport('yaml'); exportMenuOpen = false"
+                >
+                  {{ t('export.ai') }}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  v-tip="t('export.excelHint')"
+                  @click="onExport('xlsx'); exportMenuOpen = false"
+                >
+                  {{ t('export.excel') }}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  v-tip="t('export.backupHint')"
+                  @click="onExport('json'); exportMenuOpen = false"
+                >
+                  {{ t('export.backup') }}
+                </button>
+              </div>
+            </div>
             <button
               type="button"
               class="ghost"
-              :aria-expanded="exportMenuOpen"
-              @click.stop="toggleExportMenu"
+              v-tip="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
+              @click="onReload"
             >
-              {{ t('common.export') }} ▾
+              {{ t('common.reload') }}
             </button>
-            <div v-if="exportMenuOpen" class="menu" role="menu" @pointerdown.stop>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.aiHint')"
-                @click="onExport('yaml'); exportMenuOpen = false"
-              >
-                {{ t('export.ai') }}
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.excelHint')"
-                @click="onExport('xlsx'); exportMenuOpen = false"
-              >
-                {{ t('export.excel') }}
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.backupHint')"
-                @click="onExport('json'); exportMenuOpen = false"
-              >
-                {{ t('export.backup') }}
-              </button>
-            </div>
+            <button type="button" class="primary save-action" @click="onSave">
+              {{ t('common.save') }}
+              <span
+                v-if="isUnsaved"
+                class="save-dirty-dot"
+                role="status"
+                :aria-label="t('common.unsavedF')"
+                v-tip="t('common.unsavedF')"
+              />
+            </button>
           </div>
-          <button
-            type="button"
-            class="ghost presentation-view-btn"
-            v-tip="t('working.clientViewTitle')"
-            @click="clientPreview = true"
-          >
-            {{ t('working.presentationView') }}
-          </button>
-        </div>
-      </div>
-
-      <div class="chrome">
-        <div class="chrome-row">
-          <div class="new-menu">
-            <div class="split">
-              <button
-                type="button"
-                class="ghost new-main"
-                v-tip="t('working.newFrom', { name: defaultModelLabel })"
-                @click="onNewFromDefault"
-              >
-                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-                  <path
-                    d="M8 2.5v11M2.5 8h11"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                  />
-                </svg>
-                <span class="new-label">{{ defaultModelLabel }}</span>
-              </button>
-              <button
-                type="button"
-                class="ghost new-caret"
-                :aria-expanded="newMenuOpen"
-                :aria-label="t('working.pickModel')"
-                v-tip="t('working.pickModel')"
-                @click.stop="toggleNewMenu"
-              >
-                ▾
-              </button>
-            </div>
-            <div v-if="newMenuOpen" class="menu new-panel" role="menu" @pointerdown.stop>
-              <p class="menu-title">{{ t('working.newFromModel') }}</p>
-              <button
-                v-for="m in modelList"
-                :key="m.id"
-                type="button"
-                class="model-pick"
-                role="menuitem"
-                @click="onNewFromModelId(m.id)"
-              >
-                <span class="model-name">{{ m.name }}</span>
-                <span v-if="modelsStore.isDefault(m.id)" class="badge">{{ t('common.default') }}</span>
-              </button>
-              <p v-if="modelList.length === 0" class="empty">{{ t('working.noModels') }}</p>
-            </div>
+          <div class="chrome-row">
+            <button
+              type="button"
+              class="ghost presentation-view-btn"
+              v-tip="t('working.clientViewTitle')"
+              @click="clientPreview = true"
+            >
+              {{ t('working.presentationView') }}
+            </button>
           </div>
-          <button type="button" class="ghost" @click="onOpen">{{ t('common.open') }}</button>
-          <button
-            type="button"
-            class="ghost"
-            v-tip="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
-            @click="onReload"
-          >
-            {{ t('common.reload') }}
-          </button>
-          <button type="button" class="ghost" @click="onClose">{{ t('common.close') }}</button>
-          <button type="button" class="primary" @click="onSave">{{ t('common.save') }}</button>
-          <span v-if="estimate.dirty" class="dirty">{{ t('common.unsavedF') }}</span>
         </div>
       </div>
     </header>
@@ -863,20 +761,41 @@ function onHeaderDblClick(key: ColumnKey) {
 
         <button
           type="button"
-          class="ghost"
+          class="ghost ctg-compare-trigger"
           :aria-expanded="ctgCompareOpen"
+          :aria-label="t('ctg.compare')"
+          v-tip="t('ctg.compare')"
           @click="ctgCompareOpen = !ctgCompareOpen"
         >
-          {{ t('ctg.compare') }}
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+            <path
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M2.5 5h8m0 0L8.5 3M10.5 5 8.5 7M13.5 11h-8m0 0 2 2m-2-2 2-2"
+            />
+          </svg>
         </button>
         <div class="col-picker">
           <button
             type="button"
-            class="ghost"
+            class="ghost columns-trigger"
             :aria-expanded="columnsMenuOpen"
+            :aria-label="t('common.columnsVisible')"
+            v-tip="t('common.columnsVisible')"
             @click.stop="columnsMenuOpen = !columnsMenuOpen"
           >
-            {{ t('common.columns') }}
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                d="M3 2.5v11M8 2.5v11M13 2.5v11"
+              />
+            </svg>
           </button>
           <div v-if="columnsMenuOpen" class="col-menu" role="menu" @pointerdown.stop>
             <p class="col-menu-title">{{ t('common.columnsVisible') }}</p>
@@ -1337,9 +1256,8 @@ function onHeaderDblClick(key: ColumnKey) {
 
 .title-promo {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 0.45rem;
   flex-shrink: 0;
   padding-top: 0.2rem;
@@ -1348,12 +1266,14 @@ function onHeaderDblClick(key: ColumnKey) {
 .client-label-input {
   width: 100%;
   max-width: 28rem;
-  margin-left: calc(2.4rem + 0.65rem);
+  margin-left: calc(2.2rem + 0.65rem);
+  margin-top: 0.45rem;
   box-sizing: border-box;
   border: none;
   border-bottom: 1px solid transparent;
   background: transparent;
-  padding: 0.12rem 0;
+  height: 2.25rem;
+  padding: 0;
   font-size: 0.9rem;
   color: var(--muted);
 }
@@ -1372,6 +1292,7 @@ function onHeaderDblClick(key: ColumnKey) {
 .presentation-view-btn {
   font-weight: 600;
   color: var(--ink-soft);
+  white-space: nowrap;
 }
 
 .presentation-view-btn:hover {
@@ -1386,8 +1307,8 @@ function onHeaderDblClick(key: ColumnKey) {
 }
 
 .title-row :deep(.icon-trigger) {
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 2.2rem;
+  height: 2.2rem;
 }
 
 .title-input {
@@ -1398,8 +1319,8 @@ function onHeaderDblClick(key: ColumnKey) {
   background: transparent;
   padding: 0;
   font-family: var(--font-brand);
-  font-size: clamp(1.45rem, 2.2vw, 1.95rem);
-  font-weight: 600;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 500;
   letter-spacing: -0.03em;
   color: var(--ink);
   line-height: 1.2;
@@ -1541,33 +1462,6 @@ function onHeaderDblClick(key: ColumnKey) {
 
 .split:hover {
   background: var(--accent-glow);
-}
-
-.new-main,
-.new-caret {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border-color: transparent !important;
-  background: transparent !important;
-}
-
-.new-main {
-  max-width: 180px;
-  padding-right: 0.35rem;
-}
-
-.new-caret {
-  padding-left: 0.25rem;
-  padding-right: 0.45rem;
-  color: var(--muted);
-}
-
-.new-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
 }
 
 .menu-title {
@@ -1729,6 +1623,21 @@ function onHeaderDblClick(key: ColumnKey) {
   font-weight: 500;
 }
 
+.save-action {
+  position: relative;
+}
+
+.save-dirty-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--page);
+  border-radius: 50%;
+  background: var(--warn);
+}
+
 .summary-row {
   display: flex;
   flex-wrap: wrap;
@@ -1785,6 +1694,15 @@ function onHeaderDblClick(key: ColumnKey) {
 
 .col-picker {
   position: relative;
+}
+
+.columns-trigger,
+.ctg-compare-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
 }
 
 .summary-actions {

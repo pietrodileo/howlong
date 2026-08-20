@@ -2,7 +2,7 @@ import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
 import type { Locale } from '../models/settings';
-import { translate, translateList } from './messages';
+import { translate, translateList, translateQuotes } from './messages';
 
 export function useI18n() {
   const settings = useSettingsStore();
@@ -22,5 +22,9 @@ export function useI18n() {
     return translateList(locale.value, path);
   }
 
-  return { locale, t, tList, setLocale };
+  function tQuotes(path: string) {
+    return translateQuotes(locale.value, path);
+  }
+
+  return { locale, t, tList, tQuotes, setLocale };
 }

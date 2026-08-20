@@ -20,21 +20,22 @@ const recentEstimates = computed(() => {
   return library.sorted.slice(0, 5); // Show up to 5 most recent estimates
 });
 
-// Random welcome phrase from the phrases array
-const welcomePhrase = computed(() => {
-  const phrases = tList('welcome.phrases');
-  if (Array.isArray(phrases) && phrases.length > 0) {
-    const index = Math.floor(Math.random() * phrases.length);
-    return phrases[index];
-  }
-  return '';
-});
+// Random welcome header phrase
+const welcomeHeader = ref('');
 
 // Model selection dropdown
 const newMenuOpen = ref(false);
+const searchQuery = ref('');
+
+// Filtered models for search
+const filteredModels = computed(() => {
+  const query = searchQuery.value.toLowerCase();
+  return models.value.filter(m => m.name.toLowerCase().includes(query));
+});
 
 function closeNewMenu() {
   newMenuOpen.value = false;
+  searchQuery.value = '';
 }
 
 function toggleNewMenu() {
@@ -50,6 +51,12 @@ function onPointerDown(e: PointerEvent) {
 
 onMounted(() => {
   document.addEventListener('pointerdown', onPointerDown);
+  // Select random welcome header phrase
+  const phrases = tList('welcome.headerPhrases');
+  if (Array.isArray(phrases) && phrases.length > 0) {
+    const index = Math.floor(Math.random() * phrases.length);
+    welcomeHeader.value = phrases[index];
+  }
 });
 
 onUnmounted(() => {
@@ -117,8 +124,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 <template>
   <div class="welcome">
     <header class="welcome-header">
-      <h1 class="welcome-title">{{ t('welcome.title') }}</h1>
-      <p v-if="welcomePhrase" class="welcome-subtitle">{{ welcomePhrase }}</p>
+      <h1 class="welcome-title">{{ welcomeHeader }}</h1>
     </header>
 
     <div class="welcome-actions">
@@ -148,19 +154,28 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
             </button>
           </div>
           <div v-if="newMenuOpen" class="menu new-panel" role="menu" @pointerdown.stop>
-            <p class="menu-title">{{ t('working.newFromModel') }}</p>
-            <button
-              v-for="m in models"
-              :key="m.id"
-              type="button"
-              class="model-pick"
-              role="menuitem"
-              @click="onNewFromModelId(m.id)"
-            >
-              <span class="model-name">{{ m.name }}</span>
-              <span v-if="modelsStore.isDefault(m.id)" class="badge">{{ t('common.default') }}</span>
-            </button>
-            <p v-if="models.length === 0" class="empty">{{ t('working.noModels') }}</p>
+            <div class="model-search-wrapper">
+              <input
+                type="text"
+                v-model="searchQuery"
+                class="model-search"
+                :placeholder="t('working.searchModel')"
+              />
+            </div>
+            <div class="model-list-scrollable">
+              <button
+                v-for="m in filteredModels"
+                :key="m.id"
+                type="button"
+                class="model-pick"
+                role="menuitem"
+                @click="onNewFromModelId(m.id)"
+              >
+                <span class="model-name">{{ m.name }}</span>
+                <span v-if="modelsStore.isDefault(m.id)" class="badge">{{ t('common.default') }}</span>
+              </button>
+              <p v-if="filteredModels.length === 0" class="empty">{{ t('working.noModels') }}</p>
+            </div>
           </div>
         </div>
         <div class="action-buttons">
@@ -222,15 +237,6 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   color: var(--ink);
 }
 
-.welcome-subtitle {
-  margin: 0 0 1rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-  line-height: 1.5;
-  font-style: italic;
-  max-width: 420px;
-}
-
 .welcome-description {
   margin: 0;
   color: var(--muted);
@@ -246,6 +252,11 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 }
 
 .action-group {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   margin-bottom: 2.5rem;
 }
 
@@ -263,12 +274,21 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   position: relative;
   display: flex;
   justify-content: center;
-  margin-bottom: 0.75rem;
 }
 
 .split {
   display: flex;
   position: relative;
+}
+
+.split .action-btn:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.split .new-caret {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 .new-caret {
@@ -288,7 +308,8 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  min-width: 200px;
+  min-width: 220px;
+  max-width: 300px;
   margin-top: 0.5rem;
   padding: 0.5rem;
   border: 1px solid var(--line);
@@ -296,6 +317,36 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   background: var(--surface);
   box-shadow: var(--shadow-menu);
   z-index: 40;
+  display: flex;
+  flex-direction: column;
+}
+
+.model-search-wrapper {
+  padding: 0.25rem 0.5rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  margin: 0 -0.5rem 0.5rem;
+}
+
+.model-search {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page);
+  color: var(--ink);
+  font-size: 0.8rem;
+  transition: border-color 0.15s ease;
+}
+
+.model-search:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.model-list-scrollable {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .menu-title {
@@ -388,8 +439,8 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 }
 
 .action-btn.primary:hover {
-  background: var(--accent-dark);
-  border-color: var(--accent-dark);
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .action-btn svg {

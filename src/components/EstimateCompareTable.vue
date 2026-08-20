@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { formatEffort, type EffortUnit } from '../lib/rounding';
+import { computeTotals } from '../lib/contingency';
 import type { Estimate, LineItem } from '../models/estimate';
 import { useI18n } from '../i18n/useI18n';
 
@@ -148,6 +149,10 @@ function formatTotal(estimate: Estimate): string {
   return formatEffort(getEstimateTotal(estimate), effortUnit.value, hoursPerDaySetting.value);
 }
 
+function formatContingency(estimate: Estimate): string {
+  return formatEffort(computeTotals(estimate).totalContingency, effortUnit.value, hoursPerDaySetting.value);
+}
+
 // Categories
 const categories = computed(() => getAllCategories());
 
@@ -199,6 +204,9 @@ function setUnit(unit: EffortUnit) {
             <th v-for="(est, index) in estimates" :key="`${est.meta.id}-${index}`" scope="col">
               <span class="est-name">{{ est.meta.title }}</span>
               <span class="est-client">{{ est.meta.clientLabel || '—' }}</span>
+              <span class="est-ctg-percent">
+                {{ t('compare.contingencyPercent', { percent: String(est.contingency.percent) }) }}
+              </span>
             </th>
           </tr>
         </thead>
@@ -243,6 +251,12 @@ function setUnit(unit: EffortUnit) {
             <th scope="row">{{ t('compare.total') }}</th>
             <td v-for="(est, index) in estimates" :key="`${est.meta.id}-${index}`" class="total-value">
               <strong>{{ formatTotal(est) }}</strong>
+            </td>
+          </tr>
+          <tr class="contingency-row">
+            <th scope="row">{{ t('compare.contingency') }}</th>
+            <td v-for="(est, index) in estimates" :key="`${est.meta.id}-${index}`" class="contingency-value">
+              {{ formatContingency(est) }}
             </td>
           </tr>
         </tfoot>
@@ -324,6 +338,21 @@ function setUnit(unit: EffortUnit) {
   top: 0;
 }
 
+.est-name,
+.est-client,
+.est-ctg-percent {
+  display: block;
+}
+
+.est-ctg-percent {
+  margin-top: 0.2rem;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
 .category-header {
   padding: 0.45rem 0.75rem !important;
   background: var(--page-soft) !important;
@@ -337,6 +366,16 @@ function setUnit(unit: EffortUnit) {
 .category-row td,
 .category-row th {
   border-bottom: none !important;
+}
+
+.contingency-row th,
+.contingency-row td {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.contingency-value {
+  font-variant-numeric: tabular-nums;
 }
 
 .item-name {

@@ -307,6 +307,7 @@ function useColumnLayout<K extends string>(options: {
   const pointerColStartY = ref<number>(0);
   const pointerColDragActive = ref<boolean>(false);
   const dragOverColKey = ref<K | null>(null);
+  const nativeColDragKey = ref<K | null>(null);
 
   // Drag threshold in pixels to distinguish between click and drag
   const DRAG_THRESHOLD = 5;
@@ -376,7 +377,7 @@ function useColumnLayout<K extends string>(options: {
   }
 
   function styleFor(key: K): Record<string, string> {
-    const w = displayWidth(key);
+      const w = Math.max(displayWidth(key), MIN_WIDTH);
     return {
       width: `${w}px`,
       minWidth: `${w}px`,
@@ -523,6 +524,8 @@ function useColumnLayout<K extends string>(options: {
       return;
     }
     colDragKey = key;
+    nativeColDragKey.value = key;
+    dragOverColKey.value = null;
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', key);
@@ -536,6 +539,7 @@ function useColumnLayout<K extends string>(options: {
     }
     if (!colDragKey || colDragKey === targetKey) return;
     e.preventDefault();
+    dragOverColKey.value = targetKey;
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
   }
 
@@ -548,12 +552,16 @@ function useColumnLayout<K extends string>(options: {
     const dragKey =
       colDragKey ?? ((e.dataTransfer?.getData('text/plain') as K | undefined) || null);
     colDragKey = null;
+    nativeColDragKey.value = null;
+    dragOverColKey.value = null;
     if (!dragKey || dragKey === targetKey) return;
     if (!keys.includes(dragKey)) return;
     reorderColumn(dragKey, targetKey);
   }
 
   function onColDragEnd() {
+    nativeColDragKey.value = null;
+    dragOverColKey.value = null;
     if (!pointerColDragActive.value) {
       colDragKey = null;
     }
@@ -561,8 +569,9 @@ function useColumnLayout<K extends string>(options: {
 
   function colDragClass(key: K): Record<string, boolean> {
     return {
-      'col-dragging': pointerColDragKey.value === key,
-      'col-drag-over': dragOverColKey.value === key && pointerColDragKey.value !== key,
+      'col-dragging': pointerColDragKey.value === key || nativeColDragKey.value === key,
+      'col-drag-over': dragOverColKey.value === key &&
+        pointerColDragKey.value !== key && nativeColDragKey.value !== key,
     };
   }
 

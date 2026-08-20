@@ -118,6 +118,18 @@ export const useDocumentsStore = defineStore('documents', () => {
     activeId.value = sessionId;
   }
 
+  function reorderSessions(dragId: SessionId, targetId: SessionId, before = true): void {
+    if (dragId === targetId) return;
+    const from = sessions.value.findIndex((session) => session.sessionId === dragId);
+    if (from < 0 || sessions.value.findIndex((session) => session.sessionId === targetId) < 0) return;
+
+    const next = [...sessions.value];
+    const [moved] = next.splice(from, 1);
+    const targetIndex = next.findIndex((session) => session.sessionId === targetId);
+    next.splice(targetIndex + (before ? 0 : 1), 0, moved);
+    sessions.value = next;
+  }
+
   // Mark a session as active
   function markActive(sessionId: SessionId): void {
     activeId.value = sessionId;
@@ -249,6 +261,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     createFromModel,
     openFromFile,
     activate,
+    reorderSessions,
     markActive,
     updateSessionEstimate,
     updateSessionMeta,
