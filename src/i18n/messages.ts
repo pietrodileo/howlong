@@ -1,7 +1,15 @@
 import type { Locale } from '../models/settings';
 
+export type Quote = {
+  author: string;
+  year: number;
+  text: string;
+  book?: string;
+};
+
 export type MessageTree = {
   nav: {
+    welcome: string;
     working: string;
     library: string;
     models: string;
@@ -33,12 +41,15 @@ export type MessageTree = {
     compareHint: string;
     item: string;
     total: string;
+    contingency: string;
+    contingencyPercent: string;
   };
   common: {
     save: string;
     open: string;
     reload: string;
     noFileOpen: string;
+    close: string;
     export: string;
     import: string;
     delete: string;
@@ -67,6 +78,7 @@ export type MessageTree = {
     unsavedF: string;
     cancel: string;
     confirm: string;
+    start: string;
   };
   columns: {
     name: string;
@@ -160,6 +172,19 @@ export type MessageTree = {
     version: string;
     aim: string;
   };
+  welcome: {
+    title: string;
+    headerPhrases: string[];
+    phrases: string[];
+    quotes: Quote[];
+    description: string;
+    newEstimate: string;
+    openEstimate: string;
+    openLibrary: string;
+    recentTitle: string;
+    noRecent: string;
+    recentUpdated: string;
+  };
   library: {
     lede: string;
     searchPh: string;
@@ -205,6 +230,7 @@ export type MessageTree = {
     notesModalHint: string;
     newFrom: string;
     pickModel: string;
+    searchModel: string;
     newFromModel: string;
     noModels: string;
     clientPh: string;
@@ -252,6 +278,13 @@ export type MessageTree = {
     unsavedTitle: string;
     unsavedBody: string;
     unsavedDiscard: string;
+    untitled: string;
+  };
+  tabs: {
+    closeConfirm: string;
+    closeDirtyTitle: string;
+    closeDirtyBody: string;
+    closeDirtyDiscard: string;
   };
   models: {
     lede: string;
@@ -463,6 +496,7 @@ export type MessageTree = {
 
 const it: MessageTree = {
   nav: {
+    welcome: 'Benvenuto',
     working: 'Stima',
     library: 'Libreria',
     models: 'Modelli',
@@ -473,6 +507,253 @@ const it: MessageTree = {
     collapseSidebar: 'Chiudi barra laterale',
     resizeSidebar: 'Ridimensiona navigazione',
     navigation: 'Navigazione',
+  },
+  welcome: {
+    title: 'Benvenuto in HowLong',
+    headerPhrases: [
+      'Cosa facciamo oggi?',
+      'Il tempo passa',
+      'Da dove iniziamo?',
+      'Quanto ci vuole?',
+      'Ogni secondo conta',
+      'Pronti a iniziare?',
+      'Su cosa lavoriamo oggi?',
+      'Da dove cominciamo?',
+      'Qualche nuova idea su cui lavorare?',
+      'Cosa facciamo?',
+      'Mettiamoci al lavoro',
+      'Cosa c\'è in programma?',
+      'Un passo alla volta',
+      'È ora di iniziare',
+      'Su cosa ci concentriamo?',
+      'Un nuovo giorno, un nuovo compito',
+      'Qual è il prossimo punto?',
+      'Facciamo qualche passo avanti',
+      'Quando vuoi, sono pronto',
+      'Diamoci da fare',
+      'Come passerai il tuo tempo?',
+      'Partiamo dall\'inizio',
+      'Fai il primo passo',
+      'Vediamo cosa possiamo fare',
+      'Oggi è un buon giorno per iniziare',
+      'Rimbocchiamoci le maniche',
+      'Qual è la prima cosa da fare?',
+      'Focalizziamoci sui prossimi obiettivi',
+      'Concentriamoci',
+      'Diamoci dentro',
+      'Diamo il via alle operazioni',
+    ],
+    phrases: [
+      'Ogni stima comincia da un momento ben speso.',
+      'Il tempo si misura meglio quando lo si rende visibile.',
+      'Una buona stima lascia spazio al lavoro che conta.',
+      'Conta il tempo, chiarisci il lavoro.',
+      'Anche il tempo incerto merita una stima.',
+      'Le ore passano. Le buone stime restano.',
+      'Dare un nome al tempo è il primo passo per governarlo.',
+      'Una clessidra non corre: rende il tempo leggibile.',
+      'Stimare è trasformare il tempo in una decisione.',
+      'Il tempo del progetto inizia da qui.',
+      'Più chiarezza nelle ore, meno sorprese dopo.',
+      'Ogni attività ha il suo tempo. Diamogli forma.',
+      'Il futuro è incerto, ma il lavoro si può stimare.',
+      'Misura le ore. Proteggi il margine.',
+      'Il tempo ben contato diventa lavoro ben organizzato.',
+      'Una stima alla volta, il progetto prende forma.',
+      'Dalla clessidra alla consegna: rendiamo visibile il tempo.',
+      'Quando il tempo è chiaro, anche il prossimo passo lo è.',
+      'Stimare il tempo è prendersi cura del lavoro.',
+      'Cominciamo dalle ore che abbiamo davanti.',
+    ],
+    quotes: [
+      {
+        author: 'Albert Einstein',
+        year: 1955,
+        text: 'Il tempo è una grande illusione.',
+        book: 'Lettera di condoglianze a Michele Besso',
+      },
+      {
+        author: 'Lucio Annio Seneca',
+        year: 49,
+        text: 'Non abbiamo poco tempo, ma ne perdiamo molto.',
+        book: 'De brevitate vitae',
+      },
+      {
+        author: 'Richard Feynman',
+        year: 1964,
+        text: 'Il tempo è ciò che accade quando non accade nient\'altro.',
+        book: 'La fisica di Feynman',
+      },
+      {
+        author: 'Delmore Schwartz',
+        year: 1933,
+        text: 'Il tempo è il fuoco in cui bruciamo.',
+        book: 'Calm\'s Death',
+      },
+      {
+        author: 'Charles Darwin',
+        year: 1846,
+        text: 'Un uomo che osa sprecare un\'ora di tempo non ha scoperto il valore della vita.',
+        book: 'Diari e lettere personali',
+      },
+      {
+        author: 'Benjamin Franklin',
+        year: 1748,
+        text: 'Il tempo è denaro.',
+        book: 'Consigli per un giovane mercante',
+      },
+      {
+        author: 'Annie Dillard',
+        year: 1989,
+        text: 'Il modo in cui spendiamo i nostri giorni è, naturalmente, il modo in cui spendiamo la nostra vita.',
+        book: 'Il fulgore del Grembiule',
+      },
+      {
+        author: 'William Gibson',
+        year: 1993,
+        text: 'Il futuro è già qui, è solo distribuito in modo non uniforme.',
+        book: 'Intervista NPR',
+      },
+      {
+        author: 'Albert Einstein',
+        year: 1916,
+        text: 'Il tempo e lo spazio non sono condizioni in cui viviamo, ma modi in cui pensiamo.',
+        book: 'Sulla teoria della relatività',
+      },
+      {
+        author: 'Albert Einstein',
+        year: 1915,
+        text: 'Il tempo scorre più lentamente dove c\'è più gravità o dove ci si muove più velocemente.',
+        book: 'Teoria della Relatività Generale',
+      },
+      {
+        author: 'Richard Feynman',
+        year: 1963,
+        text: 'Nello studio della fisica, il tempo è semplicemente la variabile t che rende le equazioni capaci di descrivere il cambiamento.',
+        book: 'Lezioni di fisica di Feynman',
+      },
+      {
+        author: 'Tennessee Williams',
+        year: 1944,
+        text: 'Il tempo è la distanza più lunga tra due luoghi.',
+        book: 'Lo zoo di vetro',
+      },
+      {
+        author: 'Samuel Richardson',
+        year: 1748,
+        text: 'Il tempo è un tessuto di cui la vita è fatta.',
+        book: 'Clarissa',
+      },
+      {
+        author: 'Gabriel García Márquez',
+        year: 1967,
+        text: 'Gli uomini non passano il tempo: è il tempo che passa gli uomini.',
+        book: 'Cent\'anni di solitudine',
+      },
+      {
+        author: 'Lucio Annio Seneca',
+        year: 49,
+        text: 'Ognuno di noi ha tutto il tempo del mondo, ma ci accorgiamo che è poco solo quando sta finendo.',
+        book: 'Epistulae morales ad Lucilium',
+      },
+      {
+        author: 'John Archibald Wheeler',
+        year: 1970,
+        text: 'Il tempo è ciò che impedisce a tutto di accadere nello stesso momento.',
+        book: 'Seminari di fisica teorica',
+      },
+      {
+        author: 'Harvey Mackay',
+        year: 1988,
+        text: 'Il tempo è gratuito, ma è inestimabile. Non puoi possederlo, ma puoi usarlo. Non puoi tenerlo, ma puoi spenderlo.',
+        book: 'Dig Your Well Before You\'re Thirsty',
+      },
+      {
+        author: 'Mark Twain',
+        year: 1890,
+        text: 'Non rimandare a domani quello che puoi fare dopodomani.',
+        book: 'Aforismi e scritti umoristici',
+      },
+      {
+        author: 'Marcel Proust',
+        year: 1913,
+        text: 'Il tempo scorre alla rovescia solo nei sogni e nei ricordi.',
+        book: 'Alla ricerca del tempo perduto',
+      },
+      {
+        author: 'Jorge Luis Borges',
+        year: 1944,
+        text: 'Il tempo è l\'invenzione più bizzarra che l\'umanità abbia cercato di misurare con gli ingranaggi.',
+        book: 'Finzioni',
+      },
+      {
+        author: 'Honoré de Balzac',
+        year: 1830,
+        text: 'Dà a tutte le cose il loro tempo; il tempo è il capitale di chi ha solo la sua intelligenza.',
+        book: 'La pelle di zigrino',
+      },
+      {
+        author: 'H. Jackson Brown Jr.',
+        year: 1991,
+        text: 'Non dire che hai poco tempo. Hai esattamente lo stesso numero di ore al giorno che è stato dato a Michelangelo, a Leonardo da Vinci, a Madre Teresa, a Thomas Edison e ad Albert Einstein.',
+        book: 'Life\'s Little Instruction Book',
+      },
+      {
+        author: 'William Shakespeare',
+        year: 1599,
+        text: 'Ci lamentiamo che i giorni siano pochi e lamentiamo che i giorni scorrano così in fretta; ma nessuno sa fare a meno di questo spreco.',
+        book: 'Enrico IV, Parte II',
+      },
+      {
+        author: 'Jean-Jacques Rousseau',
+        year: 1762,
+        text: 'Ognuno calcola il prezzo di ogni merce, ma nessuno calcola il prezzo del tempo, sebbene sia la cosa più preziosa da spendere.',
+        book: 'Emilio o dell\'educazione',
+      },
+      {
+        author: 'Henri Bergson',
+        year: 1889,
+        text: 'Misurare il tempo con gli orologi è come misurare lo spazio con un righello. Il vero valore del tempo si misura in ciò che proviamo e in ciò che creiamo.',
+        book: 'Saggio sui dati immediati della coscienza',
+      },
+      {
+        author: 'David Bowie',
+        year: 1971,
+        text: 'Il tempo può cambiarmi, ma non posso tracciare il tempo.',
+        book: 'Changes',
+      },
+      {
+        author: 'Oasis',
+        year: 1994,
+        text: 'Col tempo, il tempo dirà.',
+        book: 'Talk Tonight',
+      },
+      {
+        author: 'Lewis Carroll',
+        year: 1865,
+        text: 'Se tu conoscessi il tempo bene quanto me, non faresti spreco di parole parlando di perdite di tempo. Il tempo è un amico prezioso se sai come accompagnarlo.',
+        book: 'Le avventure di Alice nel Paese delle Meraviglie',
+      },
+      {
+        author: 'Marcel Proust',
+        year: 1913,
+        text: 'I giorni sono forse identici per un orologio, ma per un uomo ogni ticchettio può custodire la riscoperta di un mondo interiore.',
+        book: 'Alla ricerca del tempo perduto',
+      },
+      {
+        author: 'Albert Einstein',
+        year: 1916,
+        text: 'L\'orologio non misura il tempo assoluto dell\'universo; segna soltanto il ritmo armonioso del nostro viaggio nello spazio-tempo.',
+        book: 'Relatività: Esposizione divulgativa',
+      },
+    ],
+    description: 'Crea una nuova stima, apri una stima esistente o esplora la libreria.',
+    newEstimate: 'Nuova stima',
+    openEstimate: 'Apri file',
+    openLibrary: 'Vai alla libreria',
+    recentTitle: 'Aperti di recente',
+    noRecent: 'Nessuna stima aperta di recente',
+    recentUpdated: 'Aggiornata il: {date}',
   },
   compare: {
     backToLibrary: 'Torna a Libreria',
@@ -494,12 +775,15 @@ const it: MessageTree = {
     compareHint: 'Confronta le stime selezionate',
     item: 'Voce',
     total: 'Totale',
+    contingency: 'Contingency',
+    contingencyPercent: 'CTG: {percent}%',
   },
   common: {
     save: 'Salva',
     open: 'Apri',
     reload: 'Aggiorna',
     noFileOpen: 'Nessun file salvato. Salva prima una stima per poterla aprire.',
+    close: 'Chiudi',
     export: 'Esporta',
     import: 'Importa',
     delete: 'Elimina',
@@ -528,6 +812,7 @@ const it: MessageTree = {
     cancel: 'Annulla',
     confirm: 'Conferma',
     duplicate: 'Duplica',
+    start: 'Inizia',
   },
   columns: {
     name: 'Nome',
@@ -669,6 +954,7 @@ const it: MessageTree = {
     notesModalHint: 'Puoi andare a capo. Ctrl+Invio per salvare.',
     newFrom: 'Nuova stima da «{name}»',
     pickModel: 'Scegli modello',
+    searchModel: 'Cerca modello...',
     newFromModel: 'Nuova stima da modello',
     noModels: 'Nessun modello. Creane uno in Modelli.',
     clientPh: 'Cliente',
@@ -718,6 +1004,13 @@ const it: MessageTree = {
     unsavedBody:
       'La stima attuale ha modifiche non salvate. Se continui verranno perse.',
     unsavedDiscard: 'Scarta e continua',
+    untitled: 'Senza titolo',
+  },
+  tabs: {
+    closeConfirm: 'Chiudere questa scheda?',
+    closeDirtyTitle: 'Modifiche non salvate',
+    closeDirtyBody: 'La stima «{name}» ha modifiche non salvate. Se chiudi la scheda, le modifiche verranno perse.',
+    closeDirtyDiscard: 'Scarta e chiudi',
   },
   models: {
     lede: 'Gestisci modelli per le tue stime',
@@ -749,7 +1042,7 @@ const it: MessageTree = {
     setDefault: 'Imposta default',
     modelIdTitle: 'ID univoco del modello',
     iconLabel: 'Icona',
-    icon_letter: 'Prima lettera del nome',
+    icon_letter: 'Iniziale',
     icon_layers: 'Layers',
     icon_table: 'Tabella',
     icon_folder: 'Cartella',
@@ -846,7 +1139,7 @@ const it: MessageTree = {
     presentedHours: 'Ore (h)',
     presentedDays: 'Giorni (D)',
     macroPresentation: 'Presentazione al cliente',
-    macroSubsCol: 'Sottotask',
+    macroSubsCol: 'Sub',
     hideSubsCol: 'Nascondi colonna Sub-task',
     macroRollup: 'Nasconde o rende visibili i sotto-task nell\'export',
     macroDetail: 'Mostra sotto-task nell\'export',
@@ -938,6 +1231,7 @@ const it: MessageTree = {
 
 const en: MessageTree = {
   nav: {
+    welcome: 'Welcome',
     working: 'Estimate',
     library: 'Library',
     models: 'Models',
@@ -948,6 +1242,254 @@ const en: MessageTree = {
     collapseSidebar: 'Close sidebar',
     resizeSidebar: 'Resize navigation',
     navigation: 'Navigation',
+  },
+  welcome: {
+    title: 'Welcome to HowLong',
+    headerPhrases: [
+      'What shall we do today?',
+      'Time is passing',
+      'Where do we start?',
+      'How long will it take?',
+      'Every second counts',
+      'Ready to start?',
+      'What are we working on today?',
+      'Where do we begin?',
+      'Any new ideas to work on?',
+      'What comes next?',
+      'Let\'s get started',
+      'What\'s on the agenda?',
+      'One step at a time',
+      'Time to get started',
+      'What are we focusing on?',
+      'A new day, a new task',
+      'What\'s next on your list?',
+      'Let\'s make some progress',
+      'Ready when you are',
+      'Let\'s get to work',
+      'How will you spend your time?',
+      'Let\'s start from the beginning',
+      'Take the first step',
+      'Let\'s see what we can do',
+      'Today is a good day to start',
+      'Roll up your sleeves',
+      'What\'s the first task?',
+      'Let\'s tackle the work ahead',
+      'Let\'s make the most of our time',
+      'What\'s the plan for today?',
+      'Focus on what matters',
+      'Let\'s make every moment count',
+    ],
+    phrases: [
+      'Every estimate begins with a moment well spent.',
+      'Time is easier to measure when you make it visible.',
+      'A good estimate leaves room for the work that matters.',
+      'Count the time, clarify the work.',
+      'Even uncertain time deserves an estimate.',
+      'Hours pass. Good estimates remain.',
+      'Naming time is the first step toward guiding it.',
+      'An hourglass does not rush: it makes time readable.',
+      'Estimating turns time into a decision.',
+      'The project\'s time starts here.',
+      'More clarity in the hours, fewer surprises later.',
+      'Every task has its time. Let\'s give it shape.',
+      'The future is uncertain, but work can be estimated.',
+      'Measure the hours. Protect the margin.',
+      'Time well counted becomes work well organized.',
+      'One estimate at a time, the project takes shape.',
+      'From hourglass to delivery: make time visible.',
+      'When time is clear, the next step is too.',
+      'Estimating time is taking care of the work.',
+      'Let\'s start with the hours ahead.',
+    ],
+    quotes: [
+      {
+        author: 'Albert Einstein',
+        year: 1955,
+        text: 'Time is a stubborn illusion.',
+        book: 'Letter of condolence to Michele Besso',
+      },
+      {
+        author: 'Lucius Annaeus Seneca',
+        year: 49,
+        text: 'It is not that we have a short time to live, but that we waste a lot of it.',
+        book: 'On the Shortness of Life',
+      },
+      {
+        author: 'Richard Feynman',
+        year: 1964,
+        text: 'Time is what happens when nothing else happens.',
+        book: 'The Feynman Lectures on Physics',
+      },
+      {
+        author: 'Delmore Schwartz',
+        year: 1933,
+        text: 'Time is the fire in which we burn.',
+        book: "Calm's Death",
+      },
+      {
+        author: 'Charles Darwin',
+        year: 1846,
+        text: 'A man who dares to waste one hour of time has not discovered the value of life.',
+        book: 'Personal Diaries and Letters',
+      },
+      {
+        author: 'Benjamin Franklin',
+        year: 1748,
+        text: 'Time is money.',
+        book: 'Advice to a Young Tradesman',
+      },
+      {
+        author: 'Annie Dillard',
+        year: 1989,
+        text: 'How we spend our days is, of course, how we spend our lives.',
+        book: 'The Writing Life',
+      },
+      {
+        author: 'William Gibson',
+        year: 1993,
+        text: "The future is already here - it's just not very evenly distributed.",
+        book: 'NPR Interview',
+      },
+      {
+        author: 'Albert Einstein',
+        year: 1916,
+        text: 'Time and space are not conditions in which we live, but modes in which we think.',
+        book: 'Relativity: The Special and the General Theory',
+      },
+      {
+        author: 'Albert Einstein',
+        year: 1915,
+        text: 'Time runs slower where gravity is stronger or where one moves faster.',
+        book: 'General Theory of Relativity',
+      },
+      {
+        author: 'Richard Feynman',
+        year: 1963,
+        text: 'In the study of physics, time is simply the variable t that allows equations to describe change.',
+        book: 'The Feynman Lectures on Physics',
+      },
+      {
+        author: 'Tennessee Williams',
+        year: 1944,
+        text: 'Time is the longest distance between two places.',
+        book: 'The Glass Menagerie',
+      },
+      {
+        author: 'Samuel Richardson',
+        year: 1748,
+        text: 'Time is a tissue of which life is made.',
+        book: 'Clarissa',
+      },
+      {
+        author: 'Gabriel García Márquez',
+        year: 1967,
+        text: 'Men do not pass time: it is time that passes men.',
+        book: 'One Hundred Years of Solitude',
+      },
+      {
+        author: 'Lucius Annaeus Seneca',
+        year: 49,
+        text: 'Each of us has all the time in the world, but we only realize it is short when it is running out.',
+        book: 'Letters from a Stoic',
+      },
+      {
+        author: 'John Archibald Wheeler',
+        year: 1970,
+        text: 'Time is what prevents everything from happening at once.',
+        book: 'Theoretical Physics Seminars',
+      },
+      {
+        author: 'Harvey Mackay',
+        year: 1988,
+        text: "Time is free, but it's priceless. You can't own it, but you can use it. You can't keep it, but you can spend it.",
+        book: "Dig Your Well Before You're Thirsty",
+      },
+      {
+        author: 'Mark Twain',
+        year: 1890,
+        text: 'Never put off till tomorrow what you can do the day after tomorrow.',
+        book: 'Aphorisms and Humorous Writings',
+      },
+      {
+        author: 'Marcel Proust',
+        year: 1913,
+        text: 'Time flows backward only in dreams and memories.',
+        book: 'In Search of Lost Time',
+      },
+      {
+        author: 'Jorge Luis Borges',
+        year: 1944,
+        text: 'Time is the bizzarest invention that humanity has tried to measure with gears.',
+        book: 'Ficciones',
+      },
+      {
+        author: 'Honoré de Balzac',
+        year: 1830,
+        text: 'Give all things their time; time is the capital of he who has only his intelligence.',
+        book: 'The Magic Skin',
+      },
+      {
+        author: 'H. Jackson Brown Jr.',
+        year: 1991,
+        text: "Don't say you don't have enough time. You have exactly the same number of hours per day that were given to Michelangelo, Leonardo da Vinci, Mother Teresa, Thomas Edison, and Albert Einstein.",
+        book: "Life's Little Instruction Book",
+      },
+      {
+        author: 'William Shakespeare',
+        year: 1599,
+        text: 'We cry that the days are few and lament that the days flit so fast; but none can do without this waste.',
+        book: 'Henry IV, Part 2',
+      },
+      {
+        author: 'Jean-Jacques Rousseau',
+        year: 1762,
+        text: 'Everyone calculates the price of every commodity, but no one calculates the price of time, although it is the most precious thing to spend.',
+        book: 'Emile, or On Education',
+      },
+      {
+        author: 'Henri Bergson',
+        year: 1889,
+        text: 'Measuring time with clocks is like measuring space with a ruler. The true value of time is measured in what we feel and what we create.',
+        book: 'Time and Free Will',
+      },
+      {
+        author: 'David Bowie',
+        year: 1971,
+        text: "Time may change me, but I can't trace time.",
+        book: 'Changes',
+      },
+      {
+        author: 'Oasis',
+        year: 1994,
+        text: 'In time, time will tell.',
+        book: 'Talk Tonight',
+      },
+      {
+        author: 'Lewis Carroll',
+        year: 1865,
+        text: "If you knew Time as well as I do, you wouldn't talk about wasting it. Time is a precious friend if you know how to accompany it.",
+        book: "Alice's Adventures in Wonderland",
+      },
+      {
+        author: 'Marcel Proust',
+        year: 1913,
+        text: 'Days may be identical to a clock, but for a man every tick can hold the rediscovery of an inner world.',
+        book: 'In Search of Lost Time',
+      },
+      {
+        author: 'Albert Einstein',
+        year: 1916,
+        text: 'The clock does not measure the absolute time of the universe; it merely marks the harmonious rhythm of our journey through space-time.',
+        book: 'Relativity: The Special and the General Theory',
+      },
+    ],
+    description: 'Create a new estimate, open an existing one, or browse the library.',
+    newEstimate: 'New Estimate',
+    openEstimate: 'Open File',
+    openLibrary: 'Go to Library',
+    recentTitle: 'Opened recently',
+    noRecent: 'No recent estimates opened',
+    recentUpdated: 'Updated: {date}',
   },
   compare: {
     backToLibrary: 'Back to Library',
@@ -969,12 +1511,15 @@ const en: MessageTree = {
     compareHint: 'Compare selected estimates',
     item: 'Item',
     total: 'Total',
+    contingency: 'Contingency',
+    contingencyPercent: 'CTG: {percent}%',
   },
   common: {
     save: 'Save',
     open: 'Open',
     reload: 'Reload',
     noFileOpen: 'No file saved. Save a first estimate to open it.',
+    close: 'Close',
     export: 'Export',
     import: 'Import',
     delete: 'Delete',
@@ -1003,6 +1548,7 @@ const en: MessageTree = {
     cancel: 'Cancel',
     confirm: 'Confirm',
     duplicate: 'Duplicate',
+    start: 'Get started',
   },
   columns: {
     name: 'Name',
@@ -1144,6 +1690,7 @@ const en: MessageTree = {
     notesModalHint: 'Line breaks are kept. Ctrl+Enter to save.',
     newFrom: 'New estimate from «{name}»',
     pickModel: 'Choose model',
+    searchModel: 'Search model...',
     newFromModel: 'New estimate from model',
     noModels: 'No models. Create one in Models',
     clientPh: 'Client',
@@ -1192,6 +1739,13 @@ const en: MessageTree = {
     unsavedBody:
       'The current estimate has unsaved changes. If you continue they will be lost.',
     unsavedDiscard: 'Discard and continue',
+    untitled: 'Untitled',
+  },
+  tabs: {
+    closeConfirm: 'Close this tab?',
+    closeDirtyTitle: 'Unsaved changes',
+    closeDirtyBody: 'The estimate «{name}» has unsaved changes. If you close the tab, changes will be lost.',
+    closeDirtyDiscard: 'Discard and close',
   },
   models: {
     lede: 'Manage your models for estimates',
@@ -1223,7 +1777,7 @@ const en: MessageTree = {
     setDefault: 'Set as default',
     modelIdTitle: 'Unique model ID',
     iconLabel: 'Icon',
-    icon_letter: 'First letter of the name',
+    icon_letter: 'Initial',
     icon_layers: 'Layers',
     icon_table: 'Table',
     icon_folder: 'Folder',
@@ -1320,7 +1874,7 @@ const en: MessageTree = {
     presentedHours: 'Hours (h)',
     presentedDays: 'Days (D)',
     macroPresentation: 'Client presentation',
-    macroSubsCol: 'Subtasks',
+    macroSubsCol: 'Subs',
     hideSubsCol: 'Hide sub-tasks column',
     macroRollup: 'Hide or show sub-tasks in export',
     macroDetail: 'Show sub-tasks in export',
@@ -1425,4 +1979,26 @@ export function translate(locale: Locale, path: string, vars?: Record<string, st
     }
   }
   return out;
+}
+
+export function translateList(locale: Locale, path: string): string[] {
+  const parts = path.split('.');
+  let cur: unknown = messages[locale] ?? messages.it;
+  for (const p of parts) {
+    if (cur == null || typeof cur !== 'object') return [];
+    cur = (cur as Record<string, unknown>)[p];
+  }
+  return Array.isArray(cur) && cur.every((item) => typeof item === 'string')
+    ? cur
+    : [];
+}
+
+export function translateQuotes(locale: Locale, path: string): Quote[] {
+  const parts = path.split('.');
+  let cur: unknown = messages[locale] ?? messages.it;
+  for (const p of parts) {
+    if (cur == null || typeof cur !== 'object') return [];
+    cur = (cur as Record<string, unknown>)[p];
+  }
+  return Array.isArray(cur) ? cur as Quote[] : [];
 }

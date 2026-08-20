@@ -218,7 +218,7 @@ onUnmounted(() => {
           </svg>
           <!-- Impostazioni: ingranaggio -->
           <svg
-            v-else
+            v-else-if="item.icon === 'settings'"
             viewBox="0 0 24 24"
             width="15"
             height="15"

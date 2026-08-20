@@ -25,7 +25,7 @@
   --page: #eceff4;
   --page-soft: #f6f7fa;
   --accent: #2b3d55;
-  --accent-hover: #1f2d40;
+  --accent-hover: #405a78;
   --accent-soft: #e9eef5;
   --accent-glow: rgba(43, 61, 85, 0.08);
   --on-accent: #f8f9fb;
@@ -268,12 +268,26 @@ label.field textarea:focus,
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
-  white-space: nowrap;
+  line-height: 1.25;
   background: var(--table-head);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.data-table th:hover {
+  background: var(--accent-soft);
+  border-bottom-color: var(--accent);
+  color: var(--accent);
 }
 
 .data-table th:not(:first-child) {
   border-left: 1px solid color-mix(in srgb, var(--line-strong) 55%, transparent);
+}
+
+.data-table th .th-inner > span {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .data-table td {
@@ -392,8 +406,10 @@ th.col-dragging {
 }
 
 th.col-drag-over {
-  border-top: 2px solid var(--primary);
-  background-color: rgba(0, 0, 0, 0.05);
+  border-left-color: transparent !important;
+  border-bottom-color: var(--line-strong) !important;
+  background-color: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 body.col-dragging {
