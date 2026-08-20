@@ -8,6 +8,8 @@ import { useDocumentsStore } from '../stores/documents';
 import { useI18n } from '../i18n/useI18n';
 import { openEstimateFile } from '../lib/io';
 import { isDialogCancelled, isDialogDesktopOnly } from '../lib/dialogResult';
+import ModelIcon from '../components/ModelIcon.vue';
+import type { LibraryEntry } from '../stores/library';
 
 const ui = useUiStore();
 const modelsStore = useModelsStore();
@@ -16,8 +18,38 @@ const docs = useDocumentsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
 const { t, tList } = useI18n();
 
+const RECENT_OPEN_KEY = 'howlong:recentOpen';
+
+function getRecentOpenPaths(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_OPEN_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addRecentOpenPath(path: string): void {
+  const recent = getRecentOpenPaths();
+  const next = [path, ...recent.filter((p) => p !== path)].slice(0, 5);
+  try {
+    localStorage.setItem(RECENT_OPEN_KEY, JSON.stringify(next));
+  } catch {
+    // ignore localStorage errors
+  }
+}
+
 const recentEstimates = computed(() => {
-  return library.sorted.slice(0, 5); // Show up to 5 most recent estimates
+  const recentPaths = getRecentOpenPaths();
+  const entries = library.entries;
+  const fromRecent = recentPaths
+    .map((path) => entries.find((e) => e.path === path))
+    .filter((e): e is LibraryEntry => e !== undefined);
+  const recentSet = new Set(fromRecent.map((entry) => entry.path));
+  const fallback = library.sorted
+    .filter((entry) => !recentSet.has(entry.path))
+    .slice(0, Math.max(0, 5 - fromRecent.length));
+  return [...fromRecent, ...fallback].slice(0, 5);
 });
 
 // Random welcome header phrase
@@ -101,6 +133,7 @@ async function onOpenEstimate() {
   }
   const sessionId = await docs.openFromFile(result.data, result.path);
   docs.activate(sessionId);
+  if (result.path) addRecentOpenPath(result.path);
   ui.navigate('working');
 }
 
@@ -108,8 +141,7 @@ function onOpenLibrary() {
   ui.navigate('library');
 }
 
-async function onOpenRecent(entry: { path: string; title: string; clientLabel: string; updatedAt: string }) {
-  // Load the estimate from the library by path
+async function onOpenRecent(entry: LibraryEntry) {
   const result = await library.loadEstimate(entry.path);
   if (!result.ok) {
     ui.notify(result.error, true);
@@ -117,6 +149,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   }
   const sessionId = await docs.openFromFile(result.data, entry.path);
   docs.activate(sessionId);
+  addRecentOpenPath(entry.path);
   ui.navigate('working');
 }
 </script>
@@ -201,12 +234,16 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
         <ul class="recent-list">
           <li v-for="est in recentEstimates" :key="est.path" class="recent-item">
             <button class="recent-btn" @click="onOpenRecent(est)">
+              <ModelIcon :icon="est.icon" :name="est.title" :size="15" />
               <span class="recent-name">{{ est.title || t('working.untitled') }}</span>
-              <span class="recent-date">{{ new Date(est.updatedAt).toLocaleDateString() }}</span>
+              <span class="recent-date">
+                {{ t('welcome.recentUpdated', { date: new Date(est.updatedAt).toLocaleDateString() }) }}
+              </span>
             </button>
           </li>
         </ul>
       </div>
+      <p v-else class="recent-empty">{{ t('welcome.noRecent') }}</p>
     </div>
   </div>
 </template>
@@ -284,6 +321,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 .split .action-btn:first-child {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+  border-right: 1px solid var(--muted) !important;
 }
 
 .split .new-caret {
@@ -299,6 +337,7 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 
 .new-caret:hover {
   border-color: var(--accent);
+  border-left-color: var(--accent);
   background: var(--accent);
   color: var(--on-accent);
 }
@@ -448,7 +487,14 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 }
 
 .recent-group {
-  margin-bottom: 1.5rem;
+  width: min(100%, 600px);
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.15rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  text-align: left;
 }
 
 .recent-list {
@@ -457,8 +503,17 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
+  gap: 0.25rem;
+}
+
+.recent-group .action-title {
+  margin-bottom: 0.65rem;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: left;
+  text-transform: none;
 }
 
 .recent-item {
@@ -468,30 +523,41 @@ async function onOpenRecent(entry: { path: string; title: string; clientLabel: s
 .recent-btn {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
   width: 100%;
-  max-width: 500px;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
   color: var(--ink);
   cursor: pointer;
+  font-size: 0.9rem;
   text-align: left;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease;
 }
 
 .recent-btn:hover {
-  border-color: var(--accent);
   background: var(--accent-subtle);
 }
 
 .recent-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 500;
 }
 
 .recent-date {
-  font-size: 0.85rem;
+  flex-shrink: 0;
+  font-size: 0.8rem;
   color: var(--muted);
+}
+
+.recent-empty {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
 }
 </style>

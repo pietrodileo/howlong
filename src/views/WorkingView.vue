@@ -77,10 +77,10 @@ function syncToDocuments(): void {
     const session = docs.activeSession;
     if (session) {
       docs.updateSessionEstimate(session.sessionId, estimate.estimate);
-      if (estimate.filePath) {
-        docs.markSaved(session.sessionId, estimate.filePath);
-      } else {
+      if (estimate.dirty) {
         docs.markDirty(session.sessionId);
+      } else if (estimate.filePath) {
+        docs.markSaved(session.sessionId, estimate.filePath);
       }
       // Sync collapsed macros
       docs.sessions = docs.sessions.map(s => {
@@ -326,7 +326,7 @@ function onEstimateKeydown(e: KeyboardEvent) {
   if (!e.ctrlKey && !e.metaKey) return;
 
   const key = e.key.toLowerCase();
-  if (key !== 's' && key !== 't' && key !== 'w') return;
+  if (key !== 's' && key !== 't' && key !== 'w' && key !== 'e') return;
 
   e.preventDefault();
   if (key === 's') {
@@ -344,6 +344,11 @@ function onEstimateKeydown(e: KeyboardEvent) {
     const sessionId = docs.createFromModel(model);
     docs.activate(sessionId);
     ui.navigate('working');
+    return;
+  }
+
+  if (key === 'e') {
+    clientPreview.value = !clientPreview.value;
     return;
   }
 
@@ -1170,38 +1175,6 @@ function onHeaderDblClick(key: ColumnKey) {
       </button>
     </div>
 
-    <FormulaEditor
-      v-if="editingFormulaItem"
-      :item="editingFormulaItem"
-      :candidates="estimate.estimate.items"
-      @close="closeFormulaEditor"
-      @save="onSaveFormula"
-    />
-
-    <NotesEditor
-      :open="notesEditItem != null"
-      :item-name="notesEditItem?.name ?? ''"
-      :notes="notesEditItem?.notes ?? ''"
-      @close="closeNotesEditor"
-      @save="onSaveNotes"
-    />
-
-    <ConfirmModal
-      :open="confirmOpen"
-      :title="pendingConfirm?.title ?? ''"
-      :message="pendingConfirm?.message ?? ''"
-      :confirm-label="pendingConfirm?.confirmLabel"
-      danger
-      @cancel="cancelConfirm"
-      @confirm="runConfirm"
-    />
-
-    <AuditHistoryModal
-      :open="auditHistoryOpen"
-      :entries="estimate.estimate.auditHistory ?? []"
-      @close="auditHistoryOpen = false"
-    />
-
     <footer class="audit-footer">
       <button
         v-if="lastAudit"
@@ -1215,6 +1188,38 @@ function onHeaderDblClick(key: ColumnKey) {
       <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
     </footer>
   </div>
+
+  <FormulaEditor
+    v-if="editingFormulaItem"
+    :item="editingFormulaItem"
+    :candidates="estimate.estimate.items"
+    @close="closeFormulaEditor"
+    @save="onSaveFormula"
+  />
+
+  <NotesEditor
+    :open="notesEditItem != null"
+    :item-name="notesEditItem?.name ?? ''"
+    :notes="notesEditItem?.notes ?? ''"
+    @close="closeNotesEditor"
+    @save="onSaveNotes"
+  />
+
+  <ConfirmModal
+    :open="confirmOpen"
+    :title="pendingConfirm?.title ?? ''"
+    :message="pendingConfirm?.message ?? ''"
+    :confirm-label="pendingConfirm?.confirmLabel"
+    danger
+    @cancel="cancelConfirm"
+    @confirm="runConfirm"
+  />
+
+  <AuditHistoryModal
+    :open="auditHistoryOpen"
+    :entries="estimate.estimate.auditHistory ?? []"
+    @close="auditHistoryOpen = false"
+  />
 </template>
 
 <style scoped>

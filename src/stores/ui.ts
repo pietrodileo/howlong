@@ -85,7 +85,9 @@ export const useUiStore = defineStore('ui', () => {
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
       toast.value = null;
-    }, 4500);
+      toastError.value = false;
+      toastTimer = null;
+    }, 3000);
   }
 
   function dismissToast() {
