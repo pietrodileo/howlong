@@ -59,7 +59,7 @@ function onWindowChange() {
 }
 
 function onTabShortcut(event: KeyboardEvent) {
-  if (!event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+  if ((!event.ctrlKey && !event.metaKey) || event.altKey || event.shiftKey) return;
   if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
   event.preventDefault();
   event.stopPropagation();

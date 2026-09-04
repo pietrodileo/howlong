@@ -90,7 +90,7 @@ export const useUiStore = defineStore('ui', () => {
       toastError.value = false;
       toastFilePath.value = null;
       toastTimer = null;
-    }, 3000);
+    }, filePath ? 6000 : 3000);
   }
 
   function dismissToast() {

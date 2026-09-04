@@ -212,7 +212,7 @@ main.flush {
   right: 1.25rem;
   max-width: min(400px, calc(100vw - 2rem));
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.55rem;
   background: var(--toast-bg);
   color: var(--toast-fg);
@@ -228,7 +228,6 @@ main.flush {
   flex: 1;
   min-width: 0;
   line-height: 1.4;
-  padding: 0.15rem 0;
 }
 
 .toast-dismiss {
@@ -250,11 +249,19 @@ main.flush {
 .toast-open {
   flex-shrink: 0;
   align-self: center;
-  padding: .3rem .55rem;
-  border-color: currentColor;
-  background: transparent;
+  min-height: 1.8rem;
+  padding: .3rem .65rem;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, currentColor 10%, transparent);
   color: inherit;
   font-size: .78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.toast-open:hover {
+  background: color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .toast-dismiss:hover {
