@@ -25,6 +25,10 @@ export async function deleteFile(path: string): Promise<void> {
   await invoke('delete_file', { path });
 }
 
+export async function openFilePath(path: string): Promise<void> {
+  await invoke('open_file_path', { path });
+}
+
 export async function ensureAppDefaults(): Promise<string> {
   return invoke<string>('ensure_app_defaults');
 }

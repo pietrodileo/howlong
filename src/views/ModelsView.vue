@@ -3,6 +3,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useModelsStore } from '../stores/models';
 import { useUiStore } from '../stores/ui';
 import { useSettingsStore } from '../stores/settings';
+import DisclosureIcon from '../components/DisclosureIcon.vue';
 import { exportModel, openModelFiles } from '../lib/io';
 import { isTauri } from '../lib/tauri';
 import { newId } from '../lib/ids';
@@ -216,7 +217,7 @@ async function onExport() {
   if (!m) return;
   try {
     const path = await exportModel(m);
-    if (path) ui.notify(t('models.exported', { path }));
+    if (path) ui.notify(t('models.exported', { path }), false, path);
   } catch (e) {
     ui.notify(toErrorMessage(e), true);
   }
@@ -900,7 +901,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
             :aria-expanded="ctgHelpOpen"
             @click="ctgHelpOpen = !ctgHelpOpen"
           >
-            <span>{{ ctgHelpOpen ? '▾' : '▸' }} {{ t('models.howCalc') }}</span>
+            <span class="info-label"><DisclosureIcon :expanded="ctgHelpOpen" /> {{ t('models.howCalc') }}</span>
             <span class="info-hint">{{ t('models.howHint') }}</span>
           </button>
           <div v-show="ctgHelpOpen" class="how">
@@ -990,7 +991,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                       :aria-label="isCollapsed(a.id) ? t('common.expand') : t('common.collapse')"
                       @click="toggleMacroCollapse(a.id)"
                     >
-                      {{ isCollapsed(a.id) ? '▸' : '▾' }}
+                      <DisclosureIcon :expanded="!isCollapsed(a.id)" />
                     </button>
                     <span
                       v-else-if="a.kind === 'formula'"
@@ -1690,6 +1691,8 @@ li.active .mark {
   border-color: var(--line-strong);
   color: var(--ink);
 }
+
+.info-label { display: inline-flex; align-items: center; gap: .3rem; }
 
 .info-hint {
   font-size: 0.78rem;

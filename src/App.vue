@@ -11,6 +11,8 @@ import { useDocumentsStore } from './stores/documents';
 import { useUiStore, type AppView } from './stores/ui';
 import { useI18n } from './i18n/useI18n';
 import { applyTheme } from './lib/appearance';
+import { isTauri, openFilePath } from './lib/tauri';
+import { toErrorMessage } from './lib/errors';
 
 const LibraryView = defineAsyncComponent(() => import('./views/LibraryView.vue'));
 const ModelsView = defineAsyncComponent(() => import('./views/ModelsView.vue'));
@@ -28,6 +30,17 @@ const library = useLibraryStore();
 const docs = useDocumentsStore();
 const ui = useUiStore();
 const { t } = useI18n();
+
+async function openToastFile() {
+  const path = ui.toastFilePath;
+  if (!path) return;
+  try {
+    await openFilePath(path);
+    ui.dismissToast();
+  } catch (error) {
+    ui.notify(toErrorMessage(error), true);
+  }
+}
 
 // Handle document tab activation
 function onActivateDocument() {
@@ -116,6 +129,12 @@ watch(() => docs.hasSessions, (hasSessions) => {
       role="status"
     >
       <p class="toast-msg">{{ ui.toast }}</p>
+      <button
+        v-if="ui.toastFilePath && isTauri()"
+        type="button"
+        class="toast-open"
+        @click="openToastFile"
+      >{{ t('welcome.openEstimate') }}</button>
       <button
         type="button"
         class="toast-dismiss"
@@ -226,6 +245,16 @@ main.flush {
   color: inherit;
   opacity: 0.72;
   cursor: pointer;
+}
+
+.toast-open {
+  flex-shrink: 0;
+  align-self: center;
+  padding: .3rem .55rem;
+  border-color: currentColor;
+  background: transparent;
+  color: inherit;
+  font-size: .78rem;
 }
 
 .toast-dismiss:hover {

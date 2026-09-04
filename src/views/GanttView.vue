@@ -4,6 +4,8 @@ import { useDocumentsStore } from '../stores/documents';
 import { useEstimateStore } from '../stores/estimate';
 import { useUiStore } from '../stores/ui';
 import { useSettingsStore } from '../stores/settings';
+import { useLibraryStore } from '../stores/library';
+import DisclosureIcon from '../components/DisclosureIcon.vue';
 import { useModelsStore } from '../stores/models';
 import { storeToRefs } from 'pinia';
 import { useI18n } from '../i18n/useI18n';
@@ -19,6 +21,7 @@ import {
   parseDate,
 } from '../lib/gantt';
 import { exportGanttXlsx } from '../lib/io';
+import { toErrorMessage } from '../lib/errors';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import IconBtn from '../components/IconBtn.vue';
 
@@ -29,6 +32,7 @@ const docs = useDocumentsStore();
 const estimate = useEstimateStore();
 const ui = useUiStore();
 const settings = useSettingsStore();
+const library = useLibraryStore();
 const modelsStore = useModelsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
 const { t, locale } = useI18n();
@@ -44,6 +48,7 @@ const ganttShell = ref<HTMLElement | null>(null);
 const pendingDelete = ref<LineItem | null>(null);
 const newMenuOpen = ref(false);
 const modelSearch = ref('');
+const activityWidth = ref(500);
 
 const filteredModels = computed(() => {
   const query = modelSearch.value.trim().toLowerCase();
@@ -59,8 +64,72 @@ function onDocumentPointerDown(event: PointerEvent) {
   if (!(event.target as HTMLElement | null)?.closest('.new-estimate-menu')) closeNewMenu();
 }
 
-onMounted(() => document.addEventListener('pointerdown', onDocumentPointerDown));
-onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerDown));
+function adjustActivityWidth(delta: number) {
+  activityWidth.value = Math.min(700, Math.max(340, activityWidth.value + delta));
+}
+
+function startColumnResize(event: PointerEvent) {
+  event.preventDefault();
+  const startX = event.clientX;
+  const startWidth = activityWidth.value;
+  const onMove = (moveEvent: PointerEvent) => {
+    activityWidth.value = Math.min(700, Math.max(340, startWidth + moveEvent.clientX - startX));
+  };
+  const onUp = () => {
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+  };
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp, { once: true });
+}
+
+function toggleActivityWidth() {
+  activityWidth.value = activityWidth.value > 400 ? 340 : 500;
+}
+
+async function saveEstimate() {
+  try {
+    const { path, data } = await library.saveEstimate(estimate.estimate);
+    estimate.estimate.meta.updatedAt = data.meta.updatedAt;
+    estimate.estimate.auditHistory = data.auditHistory;
+    estimate.markSaved(path);
+    const session = docs.activeSession;
+    if (session) {
+      docs.updateSessionEstimate(session.sessionId, estimate.estimate);
+      docs.markSaved(session.sessionId, path);
+    }
+    ui.notify(t('working.saved', { path }));
+  } catch (error) {
+    ui.notify(toErrorMessage(error), true);
+  }
+}
+
+function onGanttKeydown(event: KeyboardEvent) {
+  if ((!event.ctrlKey && !event.metaKey) || event.altKey || event.shiftKey) return;
+  const key = event.key.toLowerCase();
+  if (key !== 's' && key !== 't') return;
+  event.preventDefault();
+  if (key === 's') {
+    void saveEstimate();
+    return;
+  }
+  const model = defaultModel.value ?? models.value[0] ?? null;
+  if (!model) {
+    ui.notify(t('working.noModelAvail'), true);
+    return;
+  }
+  modelsStore.selectedId = model.id;
+  docs.createFromModel(model);
+}
+
+onMounted(() => {
+  document.addEventListener('pointerdown', onDocumentPointerDown);
+  window.addEventListener('keydown', onGanttKeydown);
+});
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocumentPointerDown);
+  window.removeEventListener('keydown', onGanttKeydown);
+});
 
 watch(
   () => docs.activeSession?.sessionId,
@@ -81,8 +150,12 @@ watch(toMonth, (value) => {
 
 const rangeStart = computed(() => `${fromMonth.value}-01`);
 const rangeEnd = computed(() => monthEnd(`${toMonth.value}-01`));
+const weekendDays = computed(() => [
+  ...(settings.settings.ganttWeekendSunday ? [0] : []),
+  ...(settings.settings.ganttWeekendSaturday ? [6] : []),
+]);
 const timelineDays = computed(() =>
-  listDays(rangeStart.value, rangeEnd.value, scale.value === 'month' || showWeekends.value),
+  listDays(rangeStart.value, rangeEnd.value, scale.value === 'month' || showWeekends.value, weekendDays.value),
 );
 const cellWidth = computed(() => scale.value === 'day' ? 38 : 5);
 const timelineWidth = computed(() => timelineDays.value.length * cellWidth.value);
@@ -247,8 +320,9 @@ async function exportXlsx() {
       to: rangeEnd.value,
       scale: scale.value,
       includeWeekends: showWeekends.value,
+      weekendDays: weekendDays.value,
     }, settings.settings);
-    if (path) ui.notify(t('gantt.exported', { path }));
+    if (path) ui.notify(t('gantt.exported', { path }), false, path);
   } catch (error) {
     ui.notify(error instanceof Error ? error.message : String(error), true);
   } finally {
@@ -334,13 +408,28 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
     </div>
 
     <div ref="ganttShell" class="gantt-shell">
-      <div class="gantt-grid" :style="{ '--timeline-w': `${timelineWidth}px` }">
+      <div class="gantt-grid" :class="{ narrow: activityWidth < 420 }" :style="{ '--timeline-w': `${timelineWidth}px`, '--activity-w': `${activityWidth}px` }">
         <div class="activity-head">
           <input
             class="estimate-title-input"
             :value="estimate.estimate.meta.title"
             :aria-label="t('gantt.estimateTitle')"
             @input="updateEstimateTitle(($event.target as HTMLInputElement).value)"
+          />
+          <span
+            class="column-resizer"
+            role="separator"
+            tabindex="0"
+            aria-orientation="vertical"
+            :aria-label="t('gantt.resizeActivityColumn')"
+            :aria-valuemin="340"
+            :aria-valuemax="700"
+            :aria-valuenow="activityWidth"
+            :title="t('gantt.resizeActivityColumn')"
+            @pointerdown="startColumnResize"
+            @dblclick="toggleActivityWidth"
+            @keydown.left.prevent="adjustActivityWidth(-20)"
+            @keydown.right.prevent="adjustActivityWidth(20)"
           />
         </div>
         <div class="timeline-head" :style="{ width: `${timelineWidth}px` }">
@@ -377,9 +466,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
                 :aria-label="collapsed.has(item.id) ? t('common.expand') : t('common.collapse')"
                 @click="toggleMacro(item.id)"
               >
-                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-                  <path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+                <DisclosureIcon :expanded="!collapsed.has(item.id)" />
               </button>
               <span v-else class="chevron-spacer" />
               <input
@@ -490,9 +577,12 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .gantt-actions { justify-content: flex-end; margin-bottom: .55rem; }
 .gantt-help { margin-right: auto; color: var(--muted); font-size: .76rem; }
 .gantt-shell { overflow: auto; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--page-soft); max-height: calc(100vh - 245px); box-shadow: var(--shadow-soft); }
-.gantt-grid { display: grid; grid-template-columns: 500px var(--timeline-w); width: max-content; min-width: 100%; }
+.gantt-grid { display: grid; grid-template-columns: var(--activity-w) var(--timeline-w); width: max-content; min-width: 100%; }
 .activity-head, .timeline-head { position: sticky; top: 0; z-index: 4; height: 48px; background: var(--table-head); border-bottom: 1px solid var(--line-strong); }
-.activity-head { left: 0; z-index: 6; padding: .55rem .7rem; font-weight: 650; border-right: 1px solid var(--line); overflow: hidden; }
+.activity-head { left: 0; z-index: 6; padding: .55rem .7rem; font-weight: 650; border-right: 1px solid var(--line); }
+.column-resizer { position: absolute; inset-block: 0; right: -5px; width: 10px; cursor: col-resize; touch-action: none; }
+.column-resizer::after { content: ''; position: absolute; inset-block: 9px; left: 4px; width: 2px; border-radius: 2px; background: var(--line-strong); opacity: 0; transition: opacity .15s; }
+.column-resizer:hover::after, .column-resizer:focus::after { opacity: 1; background: var(--accent); }
 .estimate-title-input, .activity-name { min-width: 0; padding: .18rem .3rem; border: 1px solid transparent; background: transparent; color: var(--ink); font: inherit; }
 .estimate-title-input { width: 100%; font-weight: 650; }
 .estimate-title-input:hover, .activity-name:hover { border-color: var(--line); }
@@ -515,13 +605,13 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .chevron, .chevron-spacer { width: 1.5rem; flex: 0 0 1.5rem; }
 .chevron { display: grid; place-items: center; height: 1.5rem; padding: 0; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--muted); }
 .chevron:hover { border-color: var(--line); background: var(--page-soft); color: var(--ink); }
-.chevron svg { transition: transform .15s ease; }
-.chevron.collapsed svg { transform: rotate(-90deg); }
 .date-fields { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .3rem; padding-left: 1.75rem; }
 .dates, .row-actions { display: flex; align-items: center; gap: .3rem; min-width: 0; }
 .row-actions { flex: 0 0 auto; }
 .date-fields input[type='date'] { width: 7.75rem; height: 1.75rem; padding: .2rem .35rem; font-size: .72rem; }
 .date-fields input:disabled { opacity: .75; }
+.gantt-grid.narrow .date-fields input[type='date'] { width: 6.55rem; }
+.gantt-grid.narrow .macro-name { display: none; }
 .date-separator { color: var(--muted); }
 .color-picker { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: var(--radius-sm); }
 .color-picker:hover { background: var(--page-soft); }

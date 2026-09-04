@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DisclosureIcon from './DisclosureIcon.vue';
 import { computed, ref, watch } from 'vue';
 import type { FormulaAggregate, FormulaSpec } from '../models/model';
 import { resolveAppliesContingency } from '../lib/applyContingency';
@@ -129,7 +130,7 @@ function onSave() {
           :aria-expanded="helpOpen"
           @click="helpOpen = !helpOpen"
         >
-          <span>{{ helpOpen ? '▾' : '▸' }} {{ t('formula.howToggle') }}</span>
+          <span class="help-label"><DisclosureIcon :expanded="helpOpen" /> {{ t('formula.howToggle') }}</span>
           <span class="help-hint">{{ t('formula.howHint') }}</span>
         </button>
         <div v-if="helpOpen" class="how">
@@ -301,6 +302,8 @@ function onSave() {
   border-color: var(--line-strong);
   color: var(--ink);
 }
+
+.help-label { display: inline-flex; align-items: center; gap: .3rem; }
 
 .help-hint {
   font-size: 0.78rem;

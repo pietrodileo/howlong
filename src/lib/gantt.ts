@@ -38,11 +38,11 @@ export function addMonths(value: string, months: number): string {
   return formatDate(date);
 }
 
-export function listDays(from: string, to: string, includeWeekends = true): string[] {
+export function listDays(from: string, to: string, includeWeekends = true, weekendDays: number[] = [0, 6]): string[] {
   const days: string[] = [];
   for (let value = from; value <= to; value = addDays(value, 1)) {
     const weekday = parseDate(value).getUTCDay();
-    if (includeWeekends || (weekday !== 0 && weekday !== 6)) days.push(value);
+    if (includeWeekends || !weekendDays.includes(weekday)) days.push(value);
   }
   return days;
 }

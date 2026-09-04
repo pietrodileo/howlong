@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DisclosureIcon from './DisclosureIcon.vue';
 import { computed, ref } from 'vue';
 import { formatEffort, type EffortUnit } from '../lib/rounding';
 import { computeTotals } from '../lib/contingency';
@@ -18,6 +19,27 @@ const hoursPerDaySetting = ref<number>(8);
 
 // Track which macro items are collapsed
 const collapsedItems = ref<Set<string>>(new Set());
+
+const collapsibleMacroIds = computed(() => {
+  const ids = new Set<string>();
+  for (const estimate of props.estimates) {
+    const { macros, children } = getItemsByParent(estimate);
+    for (const macro of macros) {
+      if ((children.get(macro.id) ?? []).length > 0) ids.add(macro.id);
+    }
+  }
+  return [...ids];
+});
+
+const allMacrosExpanded = computed(() =>
+  collapsibleMacroIds.value.every((id) => !collapsedItems.value.has(id)),
+);
+
+function toggleAllMacros() {
+  collapsedItems.value = allMacrosExpanded.value
+    ? new Set(collapsibleMacroIds.value)
+    : new Set();
+}
 
 function toggleCollapse(itemId: string) {
   const newCollapsed = new Set(collapsedItems.value);
@@ -200,7 +222,22 @@ function setUnit(unit: EffortUnit) {
       <table class="compare-table">
         <thead>
           <tr>
-            <th scope="col">{{ t('compare.item') }}</th>
+            <th scope="col">
+              <span class="item-head">
+                <button
+                  v-if="collapsibleMacroIds.length"
+                  type="button"
+                  class="collapse-toggle"
+                  :aria-expanded="allMacrosExpanded"
+                  :aria-label="allMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
+                  v-tip="allMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
+                  @click="toggleAllMacros"
+                >
+                  <DisclosureIcon :expanded="allMacrosExpanded" />
+                </button>
+                {{ t('compare.item') }}
+              </span>
+            </th>
             <th v-for="(est, index) in estimates" :key="`${est.meta.id}-${index}`" scope="col">
               <span class="est-name">{{ est.meta.title }}</span>
               <span class="est-client">{{ est.meta.clientLabel || '—' }}</span>
@@ -228,7 +265,7 @@ function setUnit(unit: EffortUnit) {
                     :aria-label="isCollapsed(entry.item.id) ? t('common.expand') : t('common.collapse')"
                     @click.stop="toggleCollapse(entry.item.id)"
                   >
-                    {{ isCollapsed(entry.item.id) ? '▸' : '▾' }}
+                    <DisclosureIcon :expanded="!isCollapsed(entry.item.id)" />
                   </button>
                   <span v-else class="row-spacer"></span>
                   <span class="item-name-text">{{ entry.item.name }}</span>
@@ -386,6 +423,8 @@ function setUnit(unit: EffortUnit) {
   color: var(--ink-soft);
   white-space: nowrap;
 }
+
+.item-head { display: inline-flex; align-items: center; gap: .35rem; }
 
 .collapse-toggle {
   width: 1.4rem;

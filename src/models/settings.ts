@@ -35,6 +35,9 @@ export const SettingsSchema = z.object({
   }),
   exportIncludeDate: z.boolean().default(true),
   exportIncludeTime: z.boolean().default(true),
+  /** Giorni considerati weekend nella vista Gantt. */
+  ganttWeekendSaturday: z.boolean().default(true),
+  ganttWeekendSunday: z.boolean().default(true),
   /** Ore in un giorno-uomo (1 gg = N h). */
   hoursPerDay: z.number().min(1).max(24).default(8),
   /** UI language. */
@@ -77,6 +80,8 @@ export const DEFAULT_SETTINGS: Settings = {
   estimateColumnVisibility: { ...DEFAULT_ESTIMATE_COLUMN_VISIBILITY },
   exportIncludeDate: true,
   exportIncludeTime: true,
+  ganttWeekendSaturday: true,
+  ganttWeekendSunday: true,
   hoursPerDay: 8,
   locale: 'it',
   username: '',

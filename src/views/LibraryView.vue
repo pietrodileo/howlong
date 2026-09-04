@@ -334,6 +334,8 @@ async function onExport(format: EstimateExportFormat) {
         n: String(estimates.length),
         path: result.path,
       }),
+      false,
+      result.path,
     );
   } finally {
     busy.value = false;
@@ -418,10 +420,15 @@ onUnmounted(() => {
         </button>
         <button
           type="button"
-          class="ghost"
+          class="ghost settings-action-icon"
+          :aria-label="t('nav.settings')"
+          v-tip="t('nav.settings')"
           @click="ui.navigate('settings', { section: 'folder' })"
         >
-          {{ t('nav.settings') }}
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.9 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+          </svg>
         </button>
         <button
           type="button"
@@ -645,19 +652,20 @@ onUnmounted(() => {
   margin-left: auto;
 }
 
-.folder-btn {
-  display: flex;
+.action-right > button {
+  display: inline-grid;
+  place-items: center;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   padding: 0;
   flex-shrink: 0;
 }
 
-.folder-btn :deep(svg) {
-  width: 16px;
-  height: 16px;
+.action-right > button :deep(svg) {
+  width: 18px;
+  height: 18px;
 }
 
 .search:focus {
@@ -854,6 +862,7 @@ li.selected {
   cursor: pointer;
   color: inherit;
 }
+
 
 .open-meta:hover {
   background: var(--page-soft);

@@ -201,6 +201,7 @@ export type GanttExportOptions = {
   to: string;
   scale: 'day' | 'month';
   includeWeekends: boolean;
+  weekendDays?: number[];
 };
 
 function excelDate(value: string): Date {
@@ -232,7 +233,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   const macros = items.filter((item) => item.parentId == null);
   const slots: { label: Date; from: string; to: string }[] = [];
   if (options.scale === 'day') {
-    for (const day of listDays(options.from, options.to, options.includeWeekends)) {
+    for (const day of listDays(options.from, options.to, options.includeWeekends, options.weekendDays)) {
       slots.push({ label: excelDate(day), from: day, to: day });
     }
   } else {
@@ -257,11 +258,15 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   sheet.getRow(5).getCell(3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${palette[0][1]}` } };
   sheet.getRow(5).getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F4F7' } };
   const header = sheet.addRow(['Activity', 'Macro', 'Start', 'End', 'Status', ...slots.map((slot) => slot.label)]);
-  header.height = 28;
+  header.height = 32;
   header.eachCell((cell) => {
     cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } };
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2B3D55' } };
     cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = {
+      right: { style: 'thin', color: { argb: 'FF52657E' } },
+      bottom: { style: 'medium', color: { argb: 'FF1E2E43' } },
+    };
   });
   for (let index = 0; index < slots.length; index += 1) {
     header.getCell(6 + index).numFmt = options.scale === 'day' ? 'ddd dd' : 'mmm yyyy';
@@ -298,15 +303,26 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       if (!range) statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF4E5' } };
       for (let index = 0; index < slots.length; index += 1) {
         const slot = slots[index];
-        if (range && range.startDate <= slot.to && range.endDate >= slot.from) {
-          row.getCell(6 + index).fill = {
+        const timelineCell = row.getCell(6 + index);
+        const planned = range && range.startDate <= slot.to && range.endDate >= slot.from;
+        if (planned) {
+          timelineCell.fill = {
             type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${barColor}` },
           };
+        } else if (options.scale === 'day' && (options.weekendDays ?? [0, 6]).includes(slot.label.getDay())) {
+          timelineCell.fill = {
+            type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F5F8' },
+          };
         }
+        timelineCell.border = {
+          right: { style: 'thin', color: { argb: 'FFD1D7E0' } },
+          bottom: { style: 'thin', color: { argb: 'FFD1D7E0' } },
+        };
       }
       row.eachCell({ includeEmpty: true }, (cell) => {
-        cell.border = {
-          bottom: { style: 'thin', color: { argb: 'FFDDE2EA' } },
+        if (Number(cell.col) <= 5) cell.border = {
+          right: { style: 'thin', color: { argb: 'FFE3E7ED' } },
+          bottom: { style: 'thin', color: { argb: 'FFD1D7E0' } },
         };
         cell.alignment = { vertical: 'middle', wrapText: false };
         if (!cell.font?.name) cell.font = { ...cell.font, name: 'Arial' };
@@ -321,7 +337,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
 
   sheet.columns = [
     { width: 34 }, { width: 24 }, { width: 13 }, { width: 13 }, { width: 14 },
-    ...slots.map(() => ({ width: options.scale === 'day' ? 6 : 12 })),
+    ...slots.map(() => ({ width: options.scale === 'day' ? 8 : 12 })),
   ];
   sheet.getColumn(3).alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getColumn(4).alignment = { horizontal: 'center', vertical: 'middle' };
@@ -337,7 +353,9 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
   const hpd = estimate.meta.hoursPerDay || 8;
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'HowLong?';
-  const sheet = workbook.addWorksheet(clientOnly ? 'Client' : 'Estimate');
+  const sheet = workbook.addWorksheet(clientOnly ? 'Client' : 'Estimate', {
+    views: [{ state: 'frozen', ySplit: clientOnly ? 8 : 7, showGridLines: false }],
+  });
 
   sheet.addRow(['Title', v.title]);
   sheet.addRow(['Client', estimate.meta.clientLabel]);
@@ -346,7 +364,7 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
   sheet.addRow(['Contingency %', estimate.contingency.percent]);
   if (clientOnly) sheet.addRow(['Rounding', estimate.clientView.roundingMode]);
   sheet.addRow([]);
-  sheet.addRow([
+  const header = sheet.addRow([
     'Name',
     'Category',
     'Hours',
@@ -360,12 +378,24 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
     'Notes',
   ]);
 
+  header.height = 26;
+  header.eachCell((cell) => {
+    cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2B3D55' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  });
+  for (let rowIndex = 1; rowIndex <= (clientOnly ? 6 : 5); rowIndex += 1) {
+    const row = sheet.getRow(rowIndex);
+    row.getCell(1).font = { name: 'Arial', bold: true, color: { argb: 'FF2B3D55' } };
+    row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8EEF5' } };
+  }
+
   for (const line of v.lines) {
     const presented = presentationHours(line);
     const notes =
       clientOnly && estimate.clientView.hideClientNotes ? '' : line.item.notes;
     const indent = line.depth ? '  ' : '';
-    sheet.addRow([
+    const row = sheet.addRow([
       `${indent}${line.item.name}`,
       line.item.category,
       line.hoursBase,
@@ -378,6 +408,16 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
       hoursToDays(presented, hpd),
       notes,
     ]);
+    row.outlineLevel = line.depth ? 1 : 0;
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.fill = {
+        type: 'pattern', pattern: 'solid',
+        fgColor: { argb: line.depth ? 'FFF4F7FA' : 'FFDCE6F1' },
+      };
+      cell.border = { bottom: { style: 'thin', color: { argb: 'FFD6DCE5' } } };
+      cell.alignment = { vertical: 'middle' };
+    });
+    row.getCell(1).font = { name: 'Arial', bold: !line.depth, color: { argb: 'FF202938' } };
   }
 
   sheet.addRow([]);
@@ -401,6 +441,11 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
     hoursToDays(v.totalPresented, hpd),
   ]);
 
+  sheet.columns = [
+    { width: 34 }, { width: 18 }, { width: 12 }, { width: 12 }, { width: 12 },
+    { width: 12 }, { width: 15 }, { width: 15 }, { width: 16 }, { width: 16 }, { width: 38 },
+  ];
+  sheet.autoFilter = { from: { row: header.number, column: 1 }, to: { row: header.number, column: 11 } };
   return workbookToBuffer(workbook);
 }
 
@@ -413,28 +458,60 @@ export async function estimateToClientXlsx(estimate: Estimate): Promise<Uint8Arr
   const hpd = estimate.meta.hoursPerDay || 8;
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'HowLong?';
-  const sheet = workbook.addWorksheet('Client');
+  const sheet = workbook.addWorksheet('Client', {
+    views: [{ state: 'frozen', ySplit: 4, showGridLines: false }],
+  });
   sheet.addRow(['Title', estimate.clientView.titleOverride || estimate.meta.title]);
   sheet.addRow(['Client', estimate.meta.clientLabel]);
   sheet.addRow([]);
-  sheet.addRow([
+  const header = sheet.addRow([
     'Activity',
     ...(!estimate.clientView.hideClientTags ? ['Tag'] : []),
     ...(!estimate.clientView.hideClientNotes ? ['Notes'] : []),
     'Hours',
     'Days',
   ]);
+  header.height = 26;
+  header.eachCell((cell) => {
+    cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2B3D55' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  });
+  for (let rowIndex = 1; rowIndex <= 2; rowIndex += 1) {
+    const row = sheet.getRow(rowIndex);
+    row.getCell(1).font = { name: 'Arial', bold: true, color: { argb: 'FF2B3D55' } };
+    row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8EEF5' } };
+  }
   for (const line of lines) {
-    sheet.addRow([
+    const row = sheet.addRow([
       `${line.depth ? '  ' : ''}${line.item.name}`,
       ...(!estimate.clientView.hideClientTags ? [formatTagsList(line.item.tags)] : []),
       ...(!estimate.clientView.hideClientNotes ? [line.item.notes] : []),
       line.hoursPresented,
       hoursToDays(line.hoursPresented, hpd),
     ]);
+    row.outlineLevel = line.depth ? 1 : 0;
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.fill = {
+        type: 'pattern', pattern: 'solid',
+        fgColor: { argb: line.depth ? 'FFF4F7FA' : 'FFDCE6F1' },
+      };
+      cell.border = { bottom: { style: 'thin', color: { argb: 'FFD6DCE5' } } };
+      cell.alignment = { vertical: 'middle' };
+    });
+    row.getCell(1).font = { name: 'Arial', bold: !line.depth, color: { argb: 'FF202938' } };
   }
   sheet.addRow([]);
-  sheet.addRow(['Total', ...(!estimate.clientView.hideClientTags ? [''] : []), ...(!estimate.clientView.hideClientNotes ? [''] : []), totalPresented, hoursToDays(totalPresented, hpd)]);
+  const total = sheet.addRow(['Total', ...(!estimate.clientView.hideClientTags ? [''] : []), ...(!estimate.clientView.hideClientNotes ? [''] : []), totalPresented, hoursToDays(totalPresented, hpd)]);
+  total.eachCell({ includeEmpty: true }, (cell) => {
+    cell.font = { name: 'Arial', bold: true, color: { argb: 'FF2B3D55' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8EEF5' } };
+  });
+  const columnCount = header.cellCount;
+  sheet.columns = Array.from({ length: columnCount }, (_, index) => ({
+    width: index === 0 ? 34 : index >= columnCount - 2 ? 12 : 30,
+  }));
+  sheet.autoFilter = { from: { row: header.number, column: 1 }, to: { row: header.number, column: columnCount } };
   return workbookToBuffer(workbook);
 }
 

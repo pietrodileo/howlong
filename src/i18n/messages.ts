@@ -155,6 +155,10 @@ export type MessageTree = {
     sectionFolder: string;
     sectionWorkspace: string;
     sectionShortcuts: string;
+    sectionGantt: string;
+    ganttWeekendIntro: string;
+    saturday: string;
+    sunday: string;
     shortcutsIntro: string;
     shortcutSave: string;
     shortcutNewTab: string;
@@ -321,6 +325,7 @@ export type MessageTree = {
     macroDatesHint: string;
     doubleClickHint: string;
     estimateTitle: string;
+    resizeActivityColumn: string;
   };
   models: {
     lede: string;
@@ -928,7 +933,11 @@ const it: MessageTree = {
     sectionFolder: 'Workspace',
     sectionWorkspace: 'Import / export workspace',
     sectionShortcuts: 'Scorciatoie da tastiera',
-    shortcutsIntro: 'Ctrl funziona su tutte le piattaforme; su macOS funziona anche Cmd.',
+    sectionGantt: 'Gantt',
+    ganttWeekendIntro: 'Scegli quali giorni vengono trattati come weekend quando li nascondi nel Gantt.',
+    saturday: 'Sabato',
+    sunday: 'Domenica',
+    shortcutsIntro: 'Utilizza i tasti di scelta rapida per salvare, aprire e chiudere stime.',
     shortcutSave: 'Salva la stima corrente',
     shortcutNewTab: 'Apri una nuova scheda dal modello predefinito',
     shortcutCloseTab: 'Chiudi la scheda corrente',
@@ -1083,6 +1092,7 @@ const it: MessageTree = {
     macroDatesHint: 'Le date della macro sono calcolate dai sotto-task.',
     doubleClickHint: 'Doppio clic per pianificare in questo giorno.',
     estimateTitle: 'Titolo della stima',
+    resizeActivityColumn: 'Trascina per ridimensionare; doppio clic per comprimere',
   },
   models: {
     lede: 'Gestisci modelli per le tue stime',
@@ -1700,7 +1710,11 @@ const en: MessageTree = {
     sectionFolder: 'Workspace',
     sectionWorkspace: 'Workspace import / export',
     sectionShortcuts: 'Keyboard shortcuts',
-    shortcutsIntro: 'Ctrl works on every platform; on macOS, Cmd works too.',
+    sectionGantt: 'Gantt',
+    ganttWeekendIntro: 'Choose which days count as weekends when weekends are hidden in the Gantt.',
+    saturday: 'Saturday',
+    sunday: 'Sunday',
+    shortcutsIntro: 'Use keyboard shortcuts to save, open and close estimates.',
     shortcutSave: 'Save the current estimate',
     shortcutNewTab: 'Open a new tab from the default model',
     shortcutCloseTab: 'Close the current tab',
@@ -1854,6 +1868,7 @@ const en: MessageTree = {
     macroDatesHint: 'Macro dates are calculated from its sub-tasks.',
     doubleClickHint: 'Double-click to schedule on this day.',
     estimateTitle: 'Estimate title',
+    resizeActivityColumn: 'Drag to resize; double-click to collapse',
   },
   models: {
     lede: 'Manage your models for estimates',
