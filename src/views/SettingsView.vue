@@ -298,6 +298,10 @@ function onExportDateChange(checked: boolean) {
           <dt><kbd>Ctrl/Cmd</kbd><span>+</span><kbd>{{ shortcut[0] }}</kbd></dt>
           <dd>{{ t(`settings.${shortcut[1]}`) }}</dd>
         </template>
+        <dt><kbd>Ctrl</kbd><span>+</span><kbd>←</kbd></dt>
+        <dd>{{ t('settings.shortcutPreviousTab') }}</dd>
+        <dt><kbd>Ctrl</kbd><span>+</span><kbd>→</kbd></dt>
+        <dd>{{ t('settings.shortcutNextTab') }}</dd>
       </dl>
     </SettingsPanel>
 

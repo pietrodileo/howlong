@@ -142,7 +142,7 @@ async function importEstimateCsv(
 
   const now = nowIso();
   const estimate: Estimate = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     meta: {
       id: newId('est'),
       title: 'Stima importata CSV',
@@ -172,6 +172,7 @@ async function importEstimateCsv(
       macroPresentation: {},
     },
     auditHistory: [],
+    planning: { items: {} },
   };
   return parseEstimate(estimate);
 }

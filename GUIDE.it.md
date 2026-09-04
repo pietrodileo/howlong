@@ -1,6 +1,6 @@
 # Guida utente di HowLong?
 
-Questa guida descrive HowLong? `0.4.1` su Windows, macOS e Linux.
+Questa guida descrive HowLong? `0.5.0` su Windows, macOS e Linux.
 
 [README del progetto](README.md) · [English guide](GUIDE.en.md)
 
@@ -75,6 +75,7 @@ Azioni utili:
 - Aggiungi sotto-task sotto una macro; il totale della macro diventa la somma dei figli.
 - Duplica una riga per conservarne la configurazione. Duplicando una macro duplichi anche i figli.
 - Fai doppio clic su una nota per usare l'editor esteso; premi `Ctrl+Invio` per salvarla.
+- Usa `Ctrl+←` e `Ctrl+→` per passare alla scheda stima precedente o successiva senza salvarla.
 - Fai doppio clic sull'intestazione di una colonna per comprimerla o ripristinarla.
 - Applicare la CTG a una macro propaga l'impostazione ai sotto-task.
 
@@ -93,6 +94,19 @@ Le aggregazioni disponibili sono somma, media, minimo e massimo. Le formule non 
 Usa la contingency per rendere visibile il rischio senza modificare l'effort base. Scegli percentuale e modalità, quindi controlla i totali base, CTG e complessivo.
 
 Seleziona **Confronta CTG** per provare tre percentuali affiancate. **Usa** applica quella scelta alla sessione corrente; salva la stima per conservarla.
+
+## Pianificare con il Gantt
+
+Apri una stima, quindi scegli **Gantt** nella barra laterale.
+
+1. Usa **Da pianificare** per assegnare le prime date a una macro o sotto-attività.
+2. Modifica inizio e fine con i campi data oppure trascina e ridimensiona la barra.
+3. Passa tra **Giorni** e **Mesi** e limita la vista con i selettori Da/A.
+4. Disattiva **Mostra weekend** per nascondere sabato e domenica senza cambiare le date salvate.
+5. Comprimi una macro per nascondere temporaneamente le sue sotto-attività.
+6. Usa **Esporta XLSX** per creare un foglio con celle colorate che rispetta scala, intervallo e visibilità dei weekend correnti.
+
+Quando una macro contiene sotto-attività, il suo intervallo va automaticamente dal primo inizio all'ultima fine pianificata. Il Gantt non modifica ore, contingency o totali.
 
 ## Salvare, aprire e ricaricare
 

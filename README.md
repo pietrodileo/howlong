@@ -4,7 +4,7 @@
 
 HowLong? is a local-first desktop application for creating, comparing, and sharing project estimates without relying on spreadsheets. It combines reusable estimate models, contingency calculations, manager and client views, and multi-format exports in a lightweight native app.
 
-**Current version:** `0.4.1`
+**Current version:** `0.5.0`
 
 User guides: [English](GUIDE.en.md) · [Italiano](GUIDE.it.md)
 
@@ -17,6 +17,7 @@ All project data remains in local JSON files. No account, hosted service, or dat
 ## Features
 
 - Build estimates from reusable models and hierarchical work items.
+- Plan estimate activities on a day- or month-based Gantt timeline.
 - Apply contingency globally, by category, or by individual item.
 - Add derived formula rows for overhead, management, and related effort.
 - Maintain notes, tags, project metadata, and an audit history.
@@ -82,9 +83,10 @@ The browser mode is useful for interface work, but native filesystem and dialog 
 ```bash
 npm run build
 npm run smoke
+npm run smoke:gantt
 ```
 
-`npm run build` type-checks and bundles the frontend. `npm run smoke` checks the core contingency calculations.
+`npm run build` type-checks and bundles the frontend. The smoke commands check contingency and Gantt date calculations.
 
 ## Release builds
 
@@ -132,9 +134,9 @@ HowLong? follows semantic versioning in the form `x.y.z`:
 
 Examples:
 
-- `0.4.1` → `0.4.2` for a bug fix
-- `0.4.1` → `0.5.0` for a new feature
-- `0.4.1` → `1.0.0` for the first stable major release
+- `0.5.0` → `0.5.1` for a bug fix
+- `0.5.0` → `0.6.0` for a new feature
+- `0.5.0` → `1.0.0` for the first stable major release
 
 Keep the version synchronized in:
 

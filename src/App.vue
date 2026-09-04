@@ -16,10 +16,11 @@ const LibraryView = defineAsyncComponent(() => import('./views/LibraryView.vue')
 const ModelsView = defineAsyncComponent(() => import('./views/ModelsView.vue'));
 const SettingsView = defineAsyncComponent(() => import('./views/SettingsView.vue'));
 const CompareView = defineAsyncComponent(() => import('./views/CompareView.vue'));
+const GanttView = defineAsyncComponent(() => import('./views/GanttView.vue'));
 const WelcomeView = defineAsyncComponent(() => import('./views/WelcomeView.vue'));
 const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTabs.vue'));
 
-const APP_VERSION = '0.4.1';
+const APP_VERSION = '0.5.0';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -32,7 +33,7 @@ const { t } = useI18n();
 function onActivateDocument() {
   // The estimate store will be synced by WorkingView
   // We just need to ensure we're in working view
-  ui.navigate('working');
+  if (ui.currentView !== 'gantt') ui.navigate('working');
 }
 
 
@@ -41,6 +42,7 @@ const pageTitle = computed(() => {
   const keys: Record<AppView, string> = {
     welcome: 'nav.welcome',
     working: 'nav.working',
+    gantt: 'nav.gantt',
     library: 'nav.library',
     models: 'nav.models',
     compare: 'nav.compare',
@@ -79,8 +81,8 @@ watch(() => docs.hasSessions, (hasSessions) => {
 
     <div class="workspace">
       <TitleBar />
-      <DocumentTabs v-if="ui.currentView === 'working' && docs.hasSessions" @activate="onActivateDocument" />
-      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare'" class="topbar">
+      <DocumentTabs v-if="(ui.currentView === 'working' || ui.currentView === 'gantt') && docs.hasSessions" @activate="onActivateDocument" />
+      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare' || ui.currentView === 'gantt'" class="topbar">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">
           {{ t('library.lede') }}
@@ -91,11 +93,15 @@ watch(() => docs.hasSessions, (hasSessions) => {
         <p v-else-if="ui.currentView === 'compare'" class="sub">
           {{ t('compare.lede') }}
         </p>
+        <p v-else-if="ui.currentView === 'gantt'" class="sub">
+          {{ t('gantt.lede') }}
+        </p>
       </header>
 
       <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome' }">
         <WelcomeView v-if="ui.currentView === 'welcome' || (ui.currentView === 'working' && !docs.hasSessions)" />
         <WorkingView v-else-if="ui.currentView === 'working' && docs.hasSessions" />
+        <GanttView v-else-if="ui.currentView === 'gantt'" />
         <LibraryView v-else-if="ui.currentView === 'library'" />
         <ModelsView v-else-if="ui.currentView === 'models'" />
         <CompareView v-else-if="ui.currentView === 'compare'" />

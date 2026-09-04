@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Estimate, LineItem } from '../models/estimate';
+import type { Estimate, LineItem, PlanningRange } from '../models/estimate';
 import { parseEstimate } from '../models/estimate';
 import type { Model } from '../models/model';
 import type { FormulaAggregate } from '../models/model';
@@ -315,6 +315,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       applyContingency: true,
     });
     touch();
+    return id;
   }
 
   /** Voce derivata: aggregate(sourceIds) × percent. Default: tutte le macro operative top-level. */
@@ -409,8 +410,9 @@ export const useEstimateStore = defineStore('estimate', () => {
     collapsedMacros.value.delete(macroId);
     collapsedMacros.value = new Set(collapsedMacros.value);
 
-    estimate.value.items.push({
-      id: newId('task'),
+    const id = newId('task');
+    const item: LineItem = {
+      id,
       name: 'Nuovo sotto-task',
       hours: 0,
       category: macro.category,
@@ -421,8 +423,14 @@ export const useEstimateStore = defineStore('estimate', () => {
       tags: [],
       clientVisible: true,
       applyContingency: macro.applyContingency ?? true,
-    });
+    };
+    const lastChildIndex = estimate.value.items.reduce(
+      (last, candidate, index) => candidate.parentId === macroId ? index : last,
+      estimate.value.items.findIndex((candidate) => candidate.id === macroId),
+    );
+    estimate.value.items.splice(lastChildIndex + 1, 0, item);
     touch();
+    return id;
   }
 
   /** Duplica una voce; se è macro, clona anche i sotto-task. */
@@ -491,6 +499,9 @@ export const useEstimateStore = defineStore('estimate', () => {
   function removeItem(id: string) {
     const target = estimate.value.items.find((i) => i.id === id);
     if (!target) return;
+    const removedIds = target.parentId == null
+      ? new Set([id, ...estimate.value.items.filter((i) => i.parentId === id).map((i) => i.id)])
+      : new Set([id]);
     if (target.parentId == null) {
       estimate.value.items = estimate.value.items.filter(
         (i) => i.id !== id && i.parentId !== id,
@@ -500,6 +511,9 @@ export const useEstimateStore = defineStore('estimate', () => {
     } else {
       estimate.value.items = estimate.value.items.filter((i) => i.id !== id);
     }
+    const planned = { ...(estimate.value.planning?.items ?? {}) };
+    for (const removedId of removedIds) delete planned[removedId];
+    estimate.value.planning = { items: planned };
     // Pulisci riferimenti nelle formule
     for (const item of estimate.value.items) {
       if (item.formula?.sourceIds.includes(id)) {
@@ -528,6 +542,21 @@ export const useEstimateStore = defineStore('estimate', () => {
 
   function isCollapsed(id: string) {
     return collapsedMacros.value.has(id);
+  }
+
+  function setPlanningRange(id: string, range: PlanningRange | null) {
+    const item = estimate.value.items.find((row) => row.id === id);
+    if (!item || item.kind === 'formula' || item.kind === 'summary') return;
+    const items = { ...(estimate.value.planning?.items ?? {}) };
+    if (range) {
+      const startDate = range.startDate <= range.endDate ? range.startDate : range.endDate;
+      const endDate = range.startDate <= range.endDate ? range.endDate : range.startDate;
+      items[id] = { startDate, endDate };
+    } else {
+      delete items[id];
+    }
+    estimate.value.planning = { items };
+    touch();
   }
 
   function applySessionPercentAsDefault() {
@@ -584,6 +613,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     reorderItem,
     toggleMacro,
     isCollapsed,
+    setPlanningRange,
     applySessionPercentAsDefault,
     markSaved,
     touch,

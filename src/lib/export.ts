@@ -10,6 +10,7 @@ import {
   sumClientOutputPresented,
 } from './clientPresentation';
 import { computeTotals, type EstimateTotals } from './contingency';
+import { aggregateMacroRange, addMonths, listDays, monthEnd, monthStart } from './gantt';
 
 /** Formati export stima: backup app / AI / condivisione. */
 export type EstimateExportFormat = 'json' | 'yaml' | 'xlsx';
@@ -190,9 +191,148 @@ async function workbookToBuffer(workbook: {
   return new Uint8Array(buffer as ArrayBuffer);
 }
 
+async function loadExcelJs() {
+  const module = await import('exceljs');
+  return module.default ?? module;
+}
+
+export type GanttExportOptions = {
+  from: string;
+  to: string;
+  scale: 'day' | 'month';
+  includeWeekends: boolean;
+};
+
+function excelDate(value: string): Date {
+  return new Date(`${value}T00:00:00`);
+}
+
+/** Gantt colorato, separato dai calcoli di effort. */
+export async function ganttToXlsx(estimate: Estimate, options: GanttExportOptions): Promise<Uint8Array> {
+  const ExcelJS = await loadExcelJs();
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'HowLong?';
+  const sheet = workbook.addWorksheet('Gantt', {
+    properties: { defaultRowHeight: 20, tabColor: { argb: 'FF2B3D55' } },
+    views: [{ state: 'frozen', xSplit: 5, ySplit: 6, showGridLines: false, zoomScale: 90 }],
+    pageSetup: {
+      orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+      paperSize: 9, printTitlesRow: '1:6', printTitlesColumn: '1:5',
+      margins: { left: 0.25, right: 0.25, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 },
+    },
+    headerFooter: {
+      oddFooter: '&LHowLong?&CPage &P of &N&R&D',
+    },
+  });
+  const palette = [
+    ['2B3D55', 'C9D4E3'], ['5B4B73', 'D9D0E5'], ['35605A', 'C9DFDB'],
+    ['8A5A44', 'E7D4C8'], ['546A3A', 'D8E2C8'], ['7A4A5A', 'E5CDD5'],
+  ];
+  const items = estimate.items.filter((item) => item.kind !== 'formula' && item.kind !== 'summary');
+  const macros = items.filter((item) => item.parentId == null);
+  const slots: { label: Date; from: string; to: string }[] = [];
+  if (options.scale === 'day') {
+    for (const day of listDays(options.from, options.to, options.includeWeekends)) {
+      slots.push({ label: excelDate(day), from: day, to: day });
+    }
+  } else {
+    for (let month = monthStart(options.from); month <= options.to; month = addMonths(month, 1)) {
+      slots.push({ label: excelDate(month), from: month, to: monthEnd(month) });
+    }
+  }
+
+  sheet.addRow([estimate.meta.title]);
+  sheet.mergeCells(1, 1, 1, Math.max(5, 5 + slots.length));
+  sheet.getRow(1).height = 30;
+  sheet.getCell('A1').font = { name: 'Arial', bold: true, size: 18, color: { argb: 'FF2B3D55' } };
+  sheet.getCell('A1').alignment = { vertical: 'middle' };
+  sheet.addRow(['Client', estimate.meta.clientLabel || '—']);
+  sheet.addRow(['Range', excelDate(options.from), excelDate(options.to)]);
+  sheet.addRow(['Scale', options.scale === 'day' ? 'Days' : 'Months', 'Weekends', options.includeWeekends ? 'Shown' : 'Hidden']);
+  sheet.addRow(['Legend', 'Macro / aggregate', 'Planned activity', 'To schedule']);
+  sheet.getRow(3).getCell(2).numFmt = 'dd mmm yyyy';
+  sheet.getRow(3).getCell(3).numFmt = 'dd mmm yyyy';
+  sheet.getRow(5).getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${palette[0][0]}` } };
+  sheet.getRow(5).getCell(2).font = { color: { argb: 'FFFFFFFF' }, bold: true };
+  sheet.getRow(5).getCell(3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${palette[0][1]}` } };
+  sheet.getRow(5).getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F4F7' } };
+  const header = sheet.addRow(['Activity', 'Macro', 'Start', 'End', 'Status', ...slots.map((slot) => slot.label)]);
+  header.height = 28;
+  header.eachCell((cell) => {
+    cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2B3D55' } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+  });
+  for (let index = 0; index < slots.length; index += 1) {
+    header.getCell(6 + index).numFmt = options.scale === 'day' ? 'ddd dd' : 'mmm yyyy';
+  }
+
+  for (const [macroIndex, macro] of macros.entries()) {
+    const children = items.filter((item) => item.parentId === macro.id);
+    for (const item of [macro, ...children]) {
+      const aggregate = item.id === macro.id && children.length > 0;
+      const range = aggregate ? aggregateMacroRange(estimate, macro) : estimate.planning.items[item.id] ?? null;
+      const row = sheet.addRow([
+        `${item.parentId ? '  ' : ''}${item.name}`,
+        item.parentId ? macro.name : '',
+        range ? excelDate(range.startDate) : '',
+        range ? excelDate(range.endDate) : '',
+        range ? (aggregate ? 'Aggregate' : 'Planned') : 'To schedule',
+        ...slots.map(() => ''),
+      ]);
+      row.height = 22;
+      const [macroColor, subColor] = palette[macroIndex % palette.length];
+      const barColor = item.color?.slice(1).toUpperCase() ?? (item.parentId ? subColor : macroColor);
+      row.outlineLevel = item.parentId ? 1 : 0;
+      row.getCell(1).font = { name: 'Arial', bold: !item.parentId, color: { argb: 'FF202938' } };
+      row.getCell(2).font = { name: 'Arial', color: { argb: 'FF667085' } };
+      row.getCell(3).numFmt = 'dd mmm yyyy';
+      row.getCell(4).numFmt = 'dd mmm yyyy';
+      if (!item.parentId) {
+        for (let index = 1; index <= 5; index += 1) {
+          row.getCell(index).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7F8FA' } };
+        }
+      }
+      const statusCell = row.getCell(5);
+      statusCell.font = { name: 'Arial', italic: !range, color: { argb: range ? 'FF344054' : 'FF8A5A44' } };
+      if (!range) statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF4E5' } };
+      for (let index = 0; index < slots.length; index += 1) {
+        const slot = slots[index];
+        if (range && range.startDate <= slot.to && range.endDate >= slot.from) {
+          row.getCell(6 + index).fill = {
+            type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${barColor}` },
+          };
+        }
+      }
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.border = {
+          bottom: { style: 'thin', color: { argb: 'FFDDE2EA' } },
+        };
+        cell.alignment = { vertical: 'middle', wrapText: false };
+        if (!cell.font?.name) cell.font = { ...cell.font, name: 'Arial' };
+      });
+    }
+  }
+
+  if (!macros.length) {
+    const empty = sheet.addRow(['No activities']);
+    empty.getCell(1).font = { name: 'Arial', italic: true, color: { argb: 'FF667085' } };
+  }
+
+  sheet.columns = [
+    { width: 34 }, { width: 24 }, { width: 13 }, { width: 13 }, { width: 14 },
+    ...slots.map(() => ({ width: options.scale === 'day' ? 6 : 12 })),
+  ];
+  sheet.getColumn(3).alignment = { horizontal: 'center', vertical: 'middle' };
+  sheet.getColumn(4).alignment = { horizontal: 'center', vertical: 'middle' };
+  sheet.getColumn(5).alignment = { horizontal: 'center', vertical: 'middle' };
+  sheet.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: 5 + slots.length } };
+  return workbookToBuffer(workbook);
+}
+
 /** Excel per condivisione con persone. */
 export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Promise<Uint8Array> {
-  const ExcelJS = await import('exceljs');
+  const ExcelJS = await loadExcelJs();
   const v = visibleLines(estimate, clientOnly);
   const hpd = estimate.meta.hoursPerDay || 8;
   const workbook = new ExcelJS.Workbook();
@@ -266,7 +406,7 @@ export async function estimateToXlsx(estimate: Estimate, clientOnly = false): Pr
 
 /** Excel essenziale, pronto da condividere con il cliente. */
 export async function estimateToClientXlsx(estimate: Estimate): Promise<Uint8Array> {
-  const ExcelJS = await import('exceljs');
+  const ExcelJS = await loadExcelJs();
   const all = buildClientPresentedLines(estimate);
   const lines = filterLinesForClientOutput(all, estimate);
   const totalPresented = sumClientOutputPresented(lines);

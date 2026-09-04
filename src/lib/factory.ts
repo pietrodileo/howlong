@@ -50,7 +50,7 @@ export function createEstimateFromModel(model: Model, settings?: Settings): Esti
   }
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     meta: {
       id: newId('est'),
       title: `Nuova stima — ${model.name}`,
@@ -84,13 +84,14 @@ export function createEstimateFromModel(model: Model, settings?: Settings): Esti
       macroPresentation: {},
     },
     auditHistory: [],
+    planning: { items: {} },
   };
 }
 
 export function createEmptyEstimate(settings: Settings): Estimate {
   const now = nowIso();
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     meta: {
       id: newId('est'),
       title: 'Nuova stima',
@@ -120,6 +121,7 @@ export function createEmptyEstimate(settings: Settings): Estimate {
       macroPresentation: {},
     },
     auditHistory: [],
+    planning: { items: {} },
   };
 }
 

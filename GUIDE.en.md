@@ -1,6 +1,6 @@
 # HowLong? user guide
 
-This guide covers HowLong? `0.4.1` on Windows, macOS, and Linux.
+This guide covers HowLong? `0.5.0` on Windows, macOS, and Linux.
 
 [Project README](README.md) · [Guida italiana](GUIDE.it.md)
 
@@ -75,6 +75,7 @@ Useful actions:
 - Add subtasks below a macro; the macro total becomes the sum of its children.
 - Duplicate a row to preserve its configuration. Duplicating a macro also duplicates its children.
 - Double-click a note to use the larger editor; press `Ctrl+Enter` to save it.
+- Use `Ctrl+←` and `Ctrl+→` to switch to the previous or next estimate tab without saving it.
 - Double-click a column header to collapse or restore that column.
 - Applying CTG to a macro propagates the setting to its subtasks.
 
@@ -93,6 +94,19 @@ Supported aggregations are sum, average, minimum, and maximum. Formula items do 
 Use contingency to make risk visible without changing base effort. Choose the percentage and mode, then check the base, CTG, and combined totals.
 
 Select **Compare CTG** to test three percentages side by side. **Use** applies the chosen percentage to the current session; save the estimate to keep it.
+
+## Plan with the Gantt
+
+Open an estimate, then choose **Gantt** in the sidebar.
+
+1. Use **To schedule** to assign the first dates to a macro or sub-task.
+2. Edit start and end through the date fields, or drag and resize the bar.
+3. Switch between **Days** and **Months** and limit the view with the From/To selectors.
+4. Turn off **Show weekends** to hide Saturdays and Sundays without changing saved dates.
+5. Collapse a macro to temporarily hide its sub-tasks.
+6. Use **Export XLSX** to create a colored-cell worksheet matching the current scale, range, and weekend visibility.
+
+When a macro contains sub-tasks, its range automatically spans from the earliest planned start to the latest planned end. The Gantt does not change effort, contingency, or totals.
 
 ## Save, open, and reload
 

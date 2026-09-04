@@ -54,7 +54,7 @@ async function withAudit(estimate: Estimate): Promise<Estimate> {
   return appendAuditEntry(
     {
       ...estimate,
-      schemaVersion: 2 as const,
+      schemaVersion: 3 as const,
       meta: {
         ...estimate.meta,
         updatedAt: at,
