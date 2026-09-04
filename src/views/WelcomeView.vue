@@ -8,6 +8,7 @@ import { useDocumentsStore } from '../stores/documents';
 import { useI18n } from '../i18n/useI18n';
 import { openEstimateFile } from '../lib/io';
 import { isDialogCancelled, isDialogDesktopOnly } from '../lib/dialogResult';
+import { getRecentOpenPaths } from '../lib/recentOpen';
 import ModelIcon from '../components/ModelIcon.vue';
 import type { LibraryEntry } from '../stores/library';
 
@@ -18,38 +19,12 @@ const docs = useDocumentsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
 const { t, tList } = useI18n();
 
-const RECENT_OPEN_KEY = 'howlong:recentOpen';
-
-function getRecentOpenPaths(): string[] {
-  try {
-    const raw = localStorage.getItem(RECENT_OPEN_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function addRecentOpenPath(path: string): void {
-  const recent = getRecentOpenPaths();
-  const next = [path, ...recent.filter((p) => p !== path)].slice(0, 5);
-  try {
-    localStorage.setItem(RECENT_OPEN_KEY, JSON.stringify(next));
-  } catch {
-    // ignore localStorage errors
-  }
-}
-
 const recentEstimates = computed(() => {
   const recentPaths = getRecentOpenPaths();
   const entries = library.entries;
-  const fromRecent = recentPaths
+  return recentPaths
     .map((path) => entries.find((e) => e.path === path))
     .filter((e): e is LibraryEntry => e !== undefined);
-  const recentSet = new Set(fromRecent.map((entry) => entry.path));
-  const fallback = library.sorted
-    .filter((entry) => !recentSet.has(entry.path))
-    .slice(0, Math.max(0, 5 - fromRecent.length));
-  return [...fromRecent, ...fallback].slice(0, 5);
 });
 
 // Random welcome header phrase
@@ -133,7 +108,6 @@ async function onOpenEstimate() {
   }
   const sessionId = await docs.openFromFile(result.data, result.path);
   docs.activate(sessionId);
-  if (result.path) addRecentOpenPath(result.path);
   ui.navigate('working');
 }
 
@@ -149,7 +123,6 @@ async function onOpenRecent(entry: LibraryEntry) {
   }
   const sessionId = await docs.openFromFile(result.data, entry.path);
   docs.activate(sessionId);
-  addRecentOpenPath(entry.path);
   ui.navigate('working');
 }
 </script>

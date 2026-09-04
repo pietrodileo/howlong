@@ -4,6 +4,7 @@ import type { Estimate } from '../models/estimate';
 import type { Model } from '../models/model';
 import { createEmptyEstimate, createEstimateFromModel } from '../lib/factory';
 import { newId } from '../lib/ids';
+import { addRecentOpenPath } from '../lib/recentOpen';
 import { useSettingsStore } from './settings';
 
 export type SessionId = string;
@@ -89,6 +90,7 @@ export const useDocumentsStore = defineStore('documents', () => {
 
   // Open an estimate from a file
   async function openFromFile(estimateData: Estimate, filePath: string | null): Promise<SessionId> {
+    if (filePath) addRecentOpenPath(filePath);
     const sessionId = newId('session');
     
     const newSession: DocumentSession = {

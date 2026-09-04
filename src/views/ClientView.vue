@@ -668,7 +668,7 @@ async function onExportFromMenu(
             </strong>
           </div>
           <div class="stat">
-            <span>{{ t('common.ctg') }}</span>
+            <span>{{ t('common.ctg') }} · {{ estimate.estimate.contingency.percent }}%</span>
             <strong>
               <span>{{ formatHours(estimate.clientTotals.totalContingency) }} h</span>
               <span class="stat-days">{{ formatDays(estimate.clientTotals.totalContingency, hoursPerDay) }} D</span>
