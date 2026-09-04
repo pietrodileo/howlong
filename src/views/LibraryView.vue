@@ -5,6 +5,7 @@ import FolderPathModal from '../components/FolderPathModal.vue';
 import IconBtn from '../components/IconBtn.vue';
 import MetaIconPicker from '../components/MetaIconPicker.vue';
 import ModelIconComponent from '../components/ModelIcon.vue';
+import RefreshIcon from '../components/RefreshIcon.vue';
 import { useI18n } from '../i18n/useI18n';
 import type { EstimateExportFormat } from '../lib/export';
 import {
@@ -36,6 +37,7 @@ const selected = ref<Set<string>>(new Set());
 const exportMenuOpen = ref(false);
 const busy = ref(false);
 const showPathModal = ref(false);
+const refreshAnimating = ref(false);
 
 // Sort options
 type SortBy = 'title' | 'client' | 'updated';
@@ -115,6 +117,10 @@ function formatUpdated(iso: string): string {
 }
 
 async function refresh() {
+  refreshAnimating.value = true;
+  window.setTimeout(() => {
+    refreshAnimating.value = false;
+  }, 700);
   await library.loadAll();
   try {
     folderPath.value = await library.resolveDir();
@@ -181,7 +187,7 @@ function openEntry(entry: LibraryEntry) {
     ui.notify(t('library.opened', { name: result.data.meta.title }));
   };
 
-  if (!estimate.dirty) {
+  if (!docs.activeSession?.dirty) {
     void run();
     return;
   }
@@ -419,11 +425,13 @@ onUnmounted(() => {
         </button>
         <button
           type="button"
-          class="ghost"
+          class="ghost refresh-action"
           :disabled="library.loading || busy"
+          :aria-label="t('library.refresh')"
+          v-tip="t('library.refresh')"
           @click="refresh"
         >
-          {{ t('library.refresh') }}
+          <RefreshIcon :spinning="refreshAnimating || library.loading" />
         </button>
       </div>
     </div>

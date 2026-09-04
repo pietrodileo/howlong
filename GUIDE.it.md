@@ -99,7 +99,7 @@ Seleziona **Confronta CTG** per provare tre percentuali affiancate. **Usa** appl
 - **Salva** scrive la stima corrente nella Libreria e registra una voce nella cronologia.
 - **Apri** carica un file `.howlong.json` in una scheda documento.
 - **Aggiorna** scarta la copia in memoria e ricarica l'ultimo file salvato, chiedendo conferma quando necessario.
-- **Aperti di recente** mostra solo le stime della Libreria realmente aperte, dalla più recente, fino a cinque.
+- **Aperti di recente** mostra le stime della Libreria aperte oppure create e salvate, dalla più recente, fino a cinque.
 
 Se un file è già aperto, una nuova apertura attiva la scheda esistente invece di crearne un duplicato.
 

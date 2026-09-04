@@ -19,6 +19,7 @@ import { useEstimateStore } from './estimate';
 import { ensureUniqueEstimateId } from '../lib/estimateIdentity';
 import { toErrorMessage } from '../lib/errors';
 import { appendAuditEntry, resolveAuditUsername } from '../lib/auditUsername';
+import { addRecentOpenPath } from '../lib/recentOpen';
 import { resolveEstimatesDir } from '../lib/workspacePaths';
 
 export type LibraryEntry = {
@@ -122,6 +123,7 @@ export const useLibraryStore = defineStore('library', () => {
     const idx = entries.value.findIndex((e) => e.id === next.meta.id || e.path === path);
     if (idx >= 0) entries.value[idx] = entry;
     else entries.value.push(entry);
+    addRecentOpenPath(path);
     return { path, data: next };
   }
 

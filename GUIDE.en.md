@@ -99,7 +99,7 @@ Select **Compare CTG** to test three percentages side by side. **Use** applies t
 - **Save** writes the current estimate to the Library and records an audit entry.
 - **Open** loads a `.howlong.json` file into a document tab.
 - **Reload** discards the in-memory copy and reloads the last saved file after confirmation when needed.
-- **Opened recently** lists only Library estimates you actually opened, newest first, up to five.
+- **Opened recently** lists Library estimates you opened or created and saved, newest first, up to five.
 
 If a file is already open, opening it again activates its existing tab instead of creating a duplicate.
 
