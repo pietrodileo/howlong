@@ -41,10 +41,11 @@ const showWeekends = ref(true);
 const collapsed = ref<Set<string>>(new Set());
 const today = formatDate(new Date());
 const selectedDate = ref(today);
-const fromMonth = ref(monthStart(today).slice(0, 7));
-const toMonth = ref(addMonths(today, 2).slice(0, 7));
+const fromDate = ref(monthStart(today));
+const toDate = ref(monthEnd(addMonths(today, 2)));
 const exporting = ref(false);
 const ganttShell = ref<HTMLElement | null>(null);
+const ganttShellWidth = ref(0);
 const pendingDelete = ref<LineItem | null>(null);
 const newMenuOpen = ref(false);
 const modelSearch = ref('');
@@ -141,15 +142,34 @@ watch(
   { immediate: true },
 );
 
-watch(fromMonth, (value) => {
-  if (value > toMonth.value) toMonth.value = value;
+watch(ganttShell, (shell, _, onCleanup) => {
+  if (!shell) return;
+  const updateWidth = () => { ganttShellWidth.value = shell.clientWidth; };
+  const observer = new ResizeObserver(updateWidth);
+  updateWidth();
+  observer.observe(shell);
+  onCleanup(() => observer.disconnect());
+}, { flush: 'post' });
+
+watch(fromDate, (value) => {
+  if (value > toDate.value) toDate.value = value;
 });
-watch(toMonth, (value) => {
-  if (value < fromMonth.value) fromMonth.value = value;
+watch(toDate, (value) => {
+  if (value < fromDate.value) fromDate.value = value;
 });
 
-const rangeStart = computed(() => `${fromMonth.value}-01`);
-const rangeEnd = computed(() => monthEnd(`${toMonth.value}-01`));
+function updateRangeDate(bound: 'from' | 'to', event: Event) {
+  const input = event.currentTarget as HTMLInputElement;
+  const current = bound === 'from' ? fromDate : toDate;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.value)) {
+    input.value = current.value;
+    return;
+  }
+  current.value = input.value;
+}
+
+const rangeStart = fromDate;
+const rangeEnd = toDate;
 const weekendDays = computed(() => [
   ...(settings.settings.ganttWeekendSunday ? [0] : []),
   ...(settings.settings.ganttWeekendSaturday ? [6] : []),
@@ -157,7 +177,11 @@ const weekendDays = computed(() => [
 const timelineDays = computed(() =>
   listDays(rangeStart.value, rangeEnd.value, scale.value === 'month' || showWeekends.value, weekendDays.value),
 );
-const cellWidth = computed(() => scale.value === 'day' ? 38 : 5);
+const cellWidth = computed(() => {
+  if (scale.value === 'day') return 38;
+  const availableWidth = ganttShellWidth.value - activityWidth.value;
+  return Math.max(5, availableWidth / Math.max(1, timelineDays.value.length));
+});
 const timelineWidth = computed(() => timelineDays.value.length * cellWidth.value);
 const todayIndex = computed(() => timelineDays.value.indexOf(today));
 const selectedDateIndex = computed(() => timelineDays.value.indexOf(selectedDate.value));
@@ -288,8 +312,8 @@ function addSubtask(macroId: string) {
 
 async function goToday() {
   selectedDate.value = today;
-  fromMonth.value = monthStart(today).slice(0, 7);
-  toMonth.value = addMonths(today, 2).slice(0, 7);
+  fromDate.value = monthStart(today);
+  toDate.value = monthEnd(addMonths(today, 2));
   await nextTick();
   const shell = ganttShell.value;
   if (shell) shell.scrollLeft = Math.max(0, todayIndex.value * cellWidth.value);
@@ -388,12 +412,14 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
   <section v-if="docs.activeSession" class="gantt-view">
     <header class="gantt-head">
       <div class="gantt-controls">
-        <div class="segmented" role="group">
-          <button type="button" :class="{ active: scale === 'day' }" @click="scale = 'day'">{{ t('gantt.dayScale') }}</button>
-          <button type="button" :class="{ active: scale === 'month' }" @click="scale = 'month'">{{ t('gantt.monthScale') }}</button>
-        </div>
-        <label>{{ t('gantt.fromMonth') }} <input v-model="fromMonth" type="month" /></label>
-        <label>{{ t('gantt.toMonth') }} <input v-model="toMonth" type="month" /></label>
+        <label class="field range-field">
+          <span>{{ t('gantt.fromMonth') }}</span>
+          <input :value="fromDate" type="date" @change="updateRangeDate('from', $event)" />
+        </label>
+        <label class="field range-field">
+          <span>{{ t('gantt.toMonth') }}</span>
+          <input :value="toDate" type="date" @change="updateRangeDate('to', $event)" />
+        </label>
         <button type="button" class="ghost" @click="goToday">{{ t('gantt.today') }}</button>
         <label v-if="scale === 'day'" class="weekend-toggle"><input v-model="showWeekends" type="checkbox" /> {{ t('gantt.showWeekends') }}</label>
       </div>
@@ -401,6 +427,10 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 
     <div class="gantt-actions">
       <span class="gantt-help">{{ t('gantt.instructions') }}</span>
+      <div class="segmented" role="group">
+        <button type="button" :class="{ active: scale === 'day' }" @click="scale = 'day'">{{ t('gantt.dayScale') }}</button>
+        <button type="button" :class="{ active: scale === 'month' }" @click="scale = 'month'">{{ t('gantt.monthScale') }}</button>
+      </div>
       <button type="button" class="ghost" @click="setAllCollapsed(false)">{{ t('gantt.expandAll') }}</button>
       <button type="button" class="ghost" @click="setAllCollapsed(true)">{{ t('gantt.collapseAll') }}</button>
       <button type="button" class="ghost" @click="addMacro">{{ t('gantt.addMacro') }}</button>
@@ -425,7 +455,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
             :aria-valuemin="340"
             :aria-valuemax="700"
             :aria-valuenow="activityWidth"
-            :title="t('gantt.resizeActivityColumn')"
+            v-tip="t('gantt.resizeActivityColumn')"
             @pointerdown="startColumnResize"
             @dblclick="toggleActivityWidth"
             @keydown.left.prevent="adjustActivityWidth(-20)"
@@ -456,7 +486,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
         </div>
 
         <template v-for="(item, rowIndex) in visibleItems" :key="item.id">
-          <div class="activity-row" :class="{ sub: item.parentId, macro: !item.parentId, compact: !item.parentId && collapsed.has(item.id), alternate: rowIndex % 2 === 1 }">
+          <div class="activity-row" :class="{ sub: item.parentId, macro: !item.parentId, compact: !item.parentId && collapsed.has(item.id), planned: !!rangeFor(item), alternate: rowIndex % 2 === 1 }">
             <div class="activity-title">
               <button
                 v-if="!item.parentId"
@@ -464,6 +494,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
                 class="chevron"
                 :class="{ collapsed: collapsed.has(item.id) }"
                 :aria-label="collapsed.has(item.id) ? t('common.expand') : t('common.collapse')"
+                v-tip="collapsed.has(item.id) ? t('common.expand') : t('common.collapse')"
                 @click="toggleMacro(item.id)"
               >
                 <DisclosureIcon :expanded="!collapsed.has(item.id)" />
@@ -484,12 +515,12 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
                   <input type="date" :aria-label="t('gantt.startDate')" :value="rangeFor(item)?.startDate" :disabled="hasChildren(item)" @change="setStart(item, ($event.target as HTMLInputElement).value)" />
                   <span class="date-separator">–</span>
                   <input type="date" :aria-label="t('gantt.endDate')" :value="rangeFor(item)?.endDate" :disabled="hasChildren(item)" @change="setEnd(item, ($event.target as HTMLInputElement).value)" />
-                  <button v-if="!hasChildren(item)" type="button" class="clear" :title="t('gantt.clearDates')" @click="setRange(item, null)">×</button>
+                  <IconBtn v-if="!hasChildren(item)" kind="clear" :label="t('gantt.clearDates')" @click="setRange(item, null)" />
                 </template>
                 <button v-else type="button" class="schedule" :disabled="hasChildren(item)" :title="hasChildren(item) ? t('gantt.macroDatesHint') : undefined" @click="setRange(item, { startDate: selectedDate, endDate: selectedDate })">{{ t('gantt.unscheduled') }}</button>
               </div>
               <div class="row-actions">
-                <label class="color-picker" :title="t('gantt.color')">
+                <label class="color-picker" v-tip="t('gantt.color')">
                   <input type="color" :value="itemColor(item)" :aria-label="t('gantt.color')" @input="setItemColor(item, ($event.target as HTMLInputElement).value)" />
                 </label>
                 <IconBtn v-if="!item.parentId" kind="add" :label="t('gantt.addSubtask')" @click="addSubtask(item.id)" />
@@ -500,7 +531,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 
           <div
             class="timeline-row"
-            :class="{ compact: !item.parentId && collapsed.has(item.id), alternate: rowIndex % 2 === 1, schedulable: !rangeFor(item) && !hasChildren(item) }"
+            :class="{ compact: !item.parentId && collapsed.has(item.id), planned: !!rangeFor(item), alternate: rowIndex % 2 === 1, schedulable: !rangeFor(item) && !hasChildren(item) }"
             :style="{ width: `${timelineWidth}px`, backgroundSize: `${cellWidth}px 100%` }"
             :title="!rangeFor(item) && !hasChildren(item) ? t('gantt.doubleClickHint') : undefined"
             @dblclick="scheduleFromCell($event, item)"
@@ -568,8 +599,9 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .gantt-head { display: flex; justify-content: flex-end; margin-bottom: .8rem; }
 .gantt-empty p { margin: 0 0 1rem; color: var(--muted); font-size: 1rem; }
 .gantt-controls, .gantt-actions { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
-.gantt-controls label { display: flex; align-items: center; gap: .3rem; color: var(--muted); font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
-.gantt-controls input[type='month'] { width: 8.6rem; }
+.gantt-controls .range-field { align-items: flex-start; gap: .25rem; color: var(--muted); font-size: .68rem; font-weight: 600; line-height: 1; text-transform: uppercase; letter-spacing: .06em; }
+.gantt-controls .range-field input[type='date'] { width: 9.4rem; height: 2.35rem; padding: .45rem .65rem; color: var(--ink); font-size: .8rem; letter-spacing: 0; text-transform: none; }
+.gantt-controls .weekend-toggle { display: flex; align-items: center; gap: .4rem; color: var(--muted); font-size: .76rem; }
 .weekend-toggle { text-transform: none !important; letter-spacing: 0 !important; }
 .segmented { display: inline-flex; padding: 2px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .segmented button { border: 0; background: transparent; padding: .42rem .68rem; color: var(--muted); }
@@ -583,10 +615,10 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .column-resizer { position: absolute; inset-block: 0; right: -5px; width: 10px; cursor: col-resize; touch-action: none; }
 .column-resizer::after { content: ''; position: absolute; inset-block: 9px; left: 4px; width: 2px; border-radius: 2px; background: var(--line-strong); opacity: 0; transition: opacity .15s; }
 .column-resizer:hover::after, .column-resizer:focus::after { opacity: 1; background: var(--accent); }
-.estimate-title-input, .activity-name { min-width: 0; padding: .18rem .3rem; border: 1px solid transparent; background: transparent; color: var(--ink); font: inherit; }
+.estimate-title-input, .activity-name { min-width: 0; min-height: 2.2rem; padding: .45rem .4rem; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--ink); font: inherit; }
 .estimate-title-input { width: 100%; font-weight: 650; }
-.estimate-title-input:hover, .activity-name:hover { border-color: var(--line); }
-.estimate-title-input:focus, .activity-name:focus { border-color: var(--accent); background: var(--surface); outline: none; }
+.estimate-title-input:hover, .activity-name:hover { border-color: transparent; background: var(--page-soft); }
+.estimate-title-input:focus, .activity-name:focus { border-color: var(--line-strong); background: var(--surface); outline: none; box-shadow: 0 0 0 3px var(--accent-glow); }
 .timeline-head { display: flex; }
 .day-head, .month-head { flex: 0 0 auto; display: grid; place-items: center; padding: 0; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--muted); font-size: .68rem; font-weight: 400; text-transform: capitalize; overflow: hidden; white-space: nowrap; }
 .day-head:hover { background: var(--accent-subtle); color: var(--ink); }
@@ -594,6 +626,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .day-head.selected { color: var(--on-accent); background: var(--accent); font-weight: 700; }
 .activity-row { position: sticky; left: 0; z-index: 3; height: 76px; padding: .55rem .7rem; background: var(--surface); border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
 .activity-row.compact { height: 46px; padding-block: .45rem; }
+.activity-row.planned:not(.compact), .timeline-row.planned:not(.compact) { height: 92px; }
 .activity-row.compact .date-fields { display: none; }
 .activity-row.alternate { background: color-mix(in srgb, var(--page-soft) 72%, var(--surface)); }
 .activity-row.sub { padding-left: 1.6rem; }
@@ -610,7 +643,10 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .row-actions { flex: 0 0 auto; }
 .date-fields input[type='date'] { width: 7.75rem; height: 1.75rem; padding: .2rem .35rem; font-size: .72rem; }
 .date-fields input:disabled { opacity: .75; }
-.gantt-grid.narrow .date-fields input[type='date'] { width: 6.55rem; }
+.gantt-grid.narrow .date-fields { gap: .25rem; }
+.gantt-grid.narrow .dates { gap: .18rem; }
+.gantt-grid.narrow .row-actions { gap: .1rem; }
+.gantt-grid.narrow .date-fields input[type='date'] { width: 5.75rem; padding-inline: .25rem; }
 .gantt-grid.narrow .macro-name { display: none; }
 .date-separator { color: var(--muted); }
 .color-picker { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: var(--radius-sm); }
@@ -618,11 +654,11 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .color-picker input { width: 1rem; height: 1rem; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
 .color-picker input::-webkit-color-swatch-wrapper { padding: 0; }
 .color-picker input::-webkit-color-swatch { border: 1px solid var(--line-strong); border-radius: 50%; }
-.schedule, .clear { border: 0; background: transparent; color: var(--accent); padding: .2rem; font-size: .72rem; }
+.schedule { border: 0; background: transparent; color: var(--accent); padding: .2rem; font-size: .72rem; }
 .schedule:disabled { color: var(--muted); cursor: not-allowed; opacity: .55; }
-.clear { color: var(--muted); font-size: 1rem; }
 .timeline-row { position: relative; height: 76px; border-bottom: 1px solid var(--line); background-color: color-mix(in srgb, var(--page-soft) 84%, var(--surface)); background-image: linear-gradient(to right, color-mix(in srgb, var(--line) 72%, transparent) 1px, transparent 1px); }
 .timeline-row.compact { height: 46px; }
+.timeline-row.planned:not(.compact) .gantt-bar { top: 32px; }
 .timeline-row.compact .gantt-bar { top: 9px; }
 .timeline-row.alternate { background-color: var(--surface); }
 .timeline-row.schedulable { cursor: cell; }

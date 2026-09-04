@@ -42,9 +42,9 @@ async function saveContent(
   const suggested = `${defaultName}.${extensionFor(format)}`;
 
   if (!isTauri()) {
-    if (binary) downloadBrowser(suggested, binary, 'application/octet-stream');
-    else if (text) downloadBrowser(suggested, text, 'text/plain');
-    return suggested;
+    if (binary) return downloadBrowser(suggested, binary, 'application/octet-stream');
+    if (text) return downloadBrowser(suggested, text, 'text/plain');
+    return null;
   }
 
   const path = await saveFileDialog(filters, suggested);

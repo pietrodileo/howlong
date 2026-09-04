@@ -1,7 +1,7 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    kind: 'add' | 'edit' | 'delete' | 'duplicate';
+    kind: 'add' | 'edit' | 'delete' | 'duplicate' | 'clear';
     label: string;
     disabled?: boolean;
   }>(),
@@ -64,6 +64,20 @@ defineEmits<{ click: [e: MouseEvent] }>();
       <rect x="5.5" y="5.5" width="8" height="8" rx="1.2" />
       <path d="M10.5 5.5V4.2A1.2 1.2 0 0 0 9.3 3H3.7A1.2 1.2 0 0 0 2.5 4.2v5.6A1.2 1.2 0 0 0 3.7 11h1.8" />
     </svg>
+    <!-- Rimuovi / azzera -->
+    <svg
+      v-else-if="kind === 'clear'"
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      aria-hidden="true"
+    >
+      <path d="m4 4 8 8M12 4l-8 8" />
+    </svg>
     <!-- Cestino (outline pulito) -->
     <svg
       v-else
@@ -109,7 +123,8 @@ defineEmits<{ click: [e: MouseEvent] }>();
   border-color: var(--line);
 }
 
-.icon-btn.delete:hover:not(:disabled) {
+.icon-btn.delete:hover:not(:disabled),
+.icon-btn.clear:hover:not(:disabled) {
   color: var(--danger);
   background: var(--danger-soft);
   border-color: color-mix(in srgb, var(--danger) 25%, var(--line));

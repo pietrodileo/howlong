@@ -35,7 +35,8 @@ async function openToastFile() {
   const path = ui.toastFilePath;
   if (!path) return;
   try {
-    await openFilePath(path);
+    if (isTauri()) await openFilePath(path);
+    else window.open(path, '_blank', 'noopener,noreferrer');
     ui.dismissToast();
   } catch (error) {
     ui.notify(toErrorMessage(error), true);
@@ -130,7 +131,7 @@ watch(() => docs.hasSessions, (hasSessions) => {
     >
       <p class="toast-msg">{{ ui.toast }}</p>
       <button
-        v-if="ui.toastFilePath && isTauri()"
+        v-if="ui.toastFilePath"
         type="button"
         class="toast-open"
         @click="openToastFile"
