@@ -75,7 +75,7 @@ Useful actions:
 - Add subtasks below a macro; the macro total becomes the sum of its children.
 - Duplicate a row to preserve its configuration. Duplicating a macro also duplicates its children.
 - Double-click a note to use the larger editor; press `Ctrl+Enter` to save it.
-- Use `Ctrl+←` and `Ctrl+→` to switch to the previous or next estimate tab without saving it.
+- Use `Ctrl+←` / `Ctrl+→` on Windows and Linux, or `Cmd+←` / `Cmd+→` on macOS, to switch estimate tabs without saving.
 - Double-click a column header to collapse or restore that column.
 - Applying CTG to a macro propagates the setting to its subtasks.
 
@@ -101,12 +101,15 @@ Open an estimate, then choose **Gantt** in the sidebar.
 
 1. Use **To schedule** to assign the first dates to a macro or sub-task.
 2. Edit start and end through the date fields, or drag and resize the bar.
-3. Switch between **Days** and **Months** and limit the view with the From/To selectors.
-4. Turn off **Show weekends** to hide Saturdays and Sundays without changing saved dates.
+3. Switch between **Days** and **Months** and limit the view with the From/To date selectors. The monthly timeline expands to use the available board width.
+4. Turn off **Show weekends** to hide the days configured as weekends in **Settings → Gantt**, without changing saved dates.
 5. Collapse a macro to temporarily hide its sub-tasks.
-6. Use **Export XLSX** to create a colored-cell worksheet matching the current scale, range, and weekend visibility.
+6. Drag the divider between activity details and the timeline to resize the information column.
+7. Use **Export XLSX** to create a formatted, grid-based worksheet matching the current scale, range, and weekend visibility. Headings, macros, and sub-tasks use distinct styling.
 
 When a macro contains sub-tasks, its range automatically spans from the earliest planned start to the latest planned end. The Gantt does not change effort, contingency, or totals.
+
+`Ctrl/Cmd+S` saves and `Ctrl/Cmd+T` creates a new estimate tab from the default model while the Gantt is open. Tab-navigation shortcuts work there too.
 
 ## Save, open, and reload
 
@@ -154,6 +157,8 @@ Presentation overrides change how values are shown; they do not replace the esti
 | CSV | Simple tabular interchange |
 | ZIP | Exporting several Library estimates together |
 
+After a file export completes, use **Open** in the confirmation message to open the generated file. In browser development mode this opens the downloaded copy; the desktop app opens the saved filesystem path.
+
 Use **Settings → Export workspace** to back up settings and models. Estimate files live separately in the Library folder and should be backed up as well.
 
 ## Settings
@@ -162,6 +167,7 @@ Use **Settings → Export workspace** to back up settings and models. Estimate f
 - **Username:** identifies save actions in audit history.
 - **Estimates folder:** changes the folder scanned by the Library.
 - **Manager defaults:** controls whether notes and tags start hidden.
+- **Gantt weekends:** choose whether Saturday, Sunday, or both are treated as weekends when hidden from the timeline.
 - **Export filenames:** optionally include date and time segments.
 - **Workspace import/export:** transfers settings and models.
 

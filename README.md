@@ -17,15 +17,26 @@ All project data remains in local JSON files. No account, hosted service, or dat
 ## Features
 
 - Build estimates from reusable models and hierarchical work items.
-- Plan estimate activities on a day- or month-based Gantt timeline.
+- Plan estimate activities on an adaptive day- or month-based Gantt timeline with configurable weekend days.
 - Apply contingency globally, by category, or by individual item.
 - Add derived formula rows for overhead, management, and related effort.
 - Maintain notes, tags, project metadata, and an audit history.
 - Compare multiple estimates and contingency scenarios.
 - Present separate manager and client views.
 - Store estimates in a configurable local library.
-- Import and export JSON, YAML, XLSX, and CSV; export library selections as ZIP archives.
+- Import and export JSON, YAML, XLSX, and CSV; export library selections as ZIP archives and open generated files from the completion message.
+- Use keyboard shortcuts to save, create and close tabs, change views, and move between open estimate tabs.
 - Use the interface in English or Italian with light and dark themes.
+
+## Screenshots
+
+### Estimate editor
+
+![HowLong estimate editor](docs/images/estimate-view.jpg)
+
+### Gantt planning
+
+![HowLong Gantt planning view](docs/images/gantt-view.jpg)
 
 ## Technology
 
