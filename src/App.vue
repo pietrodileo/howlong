@@ -19,7 +19,7 @@ const CompareView = defineAsyncComponent(() => import('./views/CompareView.vue')
 const WelcomeView = defineAsyncComponent(() => import('./views/WelcomeView.vue'));
 const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTabs.vue'));
 
-const APP_VERSION = '0.4.0';
+const APP_VERSION = '0.4.1';
 
 const settings = useSettingsStore();
 const models = useModelsStore();

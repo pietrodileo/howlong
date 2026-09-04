@@ -11,6 +11,7 @@ import FormulaEditor, {
 import NotesEditor from '../components/NotesEditor.vue';
 import TagPicker from '../components/TagPicker.vue';
 import IconBtn from '../components/IconBtn.vue';
+import RefreshIcon from '../components/RefreshIcon.vue';
 import MetaIconPicker from '../components/MetaIconPicker.vue';
 import ClientView from './ClientView.vue';
 import type { FormulaAggregate, ModelIcon } from '../models/model';
@@ -122,6 +123,8 @@ const tableColumnKeys = computed(() =>
 const columnsMenuOpen = ref(false);
 const ctgCompareOpen = ref(false);
 const exportMenuOpen = ref(false);
+const reloading = ref(false);
+const reloadAnimating = ref(false);
 /** Id di una voce già in lista in modifica. */
 const formulaEditId = ref<string | null>(null);
 /** Voce in editor note (modal). */
@@ -406,6 +409,10 @@ function toggleExportMenu() {
 }
 
 async function onReload() {
+  reloadAnimating.value = true;
+  window.setTimeout(() => {
+    reloadAnimating.value = false;
+  }, 700);
   requestIfClean(() => doReload());
 }
 
@@ -420,6 +427,7 @@ async function doReload() {
     ui.notify(t('library.desktopOnly'), true);
     return;
   }
+  reloading.value = true;
   try {
     const text = await readTextFile(path);
     const result = await importEstimateText(text, 'json');
@@ -432,6 +440,8 @@ async function doReload() {
     ui.notify(t('working.reloaded'));
   } catch (e) {
     ui.notify(toErrorMessage(e), true);
+  } finally {
+    reloading.value = false;
   }
 }
 
@@ -674,11 +684,13 @@ function onHeaderDblClick(key: ColumnKey) {
             </div>
             <button
               type="button"
-              class="ghost"
+              class="ghost refresh-action"
+              :disabled="reloading"
+              :aria-label="t('common.reload')"
               v-tip="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
               @click="onReload"
             >
-              {{ t('common.reload') }}
+              <RefreshIcon :spinning="reloadAnimating || reloading" />
             </button>
             <button type="button" class="primary save-action" @click="onSave">
               {{ t('common.save') }}

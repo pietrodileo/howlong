@@ -1,242 +1,189 @@
-# Guida all’uso — HowLong?
+# Guida utente di HowLong?
 
-**Effort, made obvious.**
+Questa guida descrive HowLong? `0.4.1` su Windows, macOS e Linux.
 
-Guida pratica per stimare progetti con HowLong? (versione 0.1).  
-Autore: **Pietro Di Leo**.
+[README del progetto](README.md) · [English guide](GUIDE.en.md)
 
----
+## Avvio rapido
 
-## 1. Cos’è HowLong?
+1. Apri **Impostazioni**, scegli lingua e tema, quindi seleziona **Salva**.
+2. Apri **Modelli** e crea un modello per il tipo di lavoro da stimare.
+3. Torna in **Benvenuto** e crea una stima dal modello.
+4. Inserisci titolo, cliente, attività ed effort.
+5. Controlla contingency e visibilità cliente per ogni voce.
+6. Salva la stima nella Libreria.
+7. Apri **Vista cliente** prima di esportare materiale per il cliente.
 
-HowLong? è un’app **desktop** (Windows) per costruire **stime di progetto** in forma tabellare:
+## Come HowLong? organizza il lavoro
 
-- voci con ore (o giorni),
-- **contingency** (CTG, margine di rischio) visibile subito,
-- **modelli** riusabili,
-- **libreria** di stime sul PC,
-- **vista cliente** e **export** in più formati.
+| Concetto | Scopo |
+| --- | --- |
+| Modello | Punto di partenza riusabile con attività, default, tag e regole di contingency |
+| Stima | Documento specifico di progetto creato da un modello o da zero |
+| Libreria | Cartella locale che contiene le stime `.howlong.json` salvate |
+| Contingency (CTG) | Margine di rischio aggiunto alle attività selezionate |
+| Formula | Voce derivata calcolata da altre voci della stima |
+| Vista manager | Presentazione ed export interni con maggior dettaglio |
+| Vista cliente | Presentazione semplificata e arrotondata per il cliente |
 
-Non è Excel: è pensata per vedere in un colpo solo *base*, *CTG* e *totale con CTG*.
+Le modifiche rimangono nella sessione attiva finché non salvi. Esportare non equivale a salvare.
 
----
+## Navigazione
 
-## 2. Primi passi
+| Area | Usala per |
+| --- | --- |
+| Benvenuto | Creare o aprire stime e ritrovare i file aperti di recente |
+| Stima | Modificare la stima attiva e i suoi calcoli |
+| Libreria | Cercare, aprire, rinominare, confrontare, importare, esportare o eliminare stime |
+| Modelli | Creare e mantenere template di stima riusabili |
+| Confronta | Confrontare due o più stime salvate |
+| Impostazioni | Configurare lingua, tema, archiviazione, export e backup del workspace |
 
-1. Avvia HowLong? (installer Windows o `npm run tauri:dev` in sviluppo).
-2. Apri **Impostazioni** e scegli **lingua** (IT/EN) e **tema** (chiaro/scuro). Premi **Salva**.
-3. (Opzionale) Imposta una **cartella stime** personalizzata; altrimenti HowLong usa la cartella dati dell’app.
-4. Vai in **Modelli** e crea (o modifica) un modello di macro-attività.
-5. Torna in **Stima** e crea una nuova stima dal modello.
+## Creare e gestire i modelli
 
----
+1. Seleziona **Modelli** e crea un nuovo modello.
+2. Assegna un nome riconoscibile e un'icona.
+3. Aggiungi macro-attività ed eventuali sotto-task.
+4. Imposta effort predefinito, categorie e tag.
+5. Attiva **Applica CTG** solo sulle voci che devono ricevere contingency.
+6. Aggiungi formule per effort derivato, come project management o overhead.
+7. Imposta la contingency predefinita e salva il modello.
 
-## 3. Navigazione
+Le nuove stime ereditano struttura, icona, tag e default del modello. Le modifiche successive al modello non riscrivono automaticamente le stime esistenti.
 
-Barra laterale:
+## Costruire una stima
 
-| Voce | A cosa serve |
-|------|----------------|
-| **Stima** | Editor della stima corrente |
-| **Libreria** | Stime salvate sul PC |
-| **Modelli** | Template riusabili |
-| **Impostazioni** | Lingua, tema, cartella, import/export workspace |
-| **About** | Versione, aim, credit |
+### Dati della stima
 
----
+Imposta titolo, cliente, icona, unità di effort e ore per giorno. Le ore per giorno determinano la conversione tra ore e giorni-persona.
 
-## 4. Modelli
+### Voci di lavoro
 
-Un **modello** è lo scheletro di una stima: macro-attività, categorie, default di contingency, icona.
+| Campo | Significato |
+| --- | --- |
+| Nome | Descrizione dell'attività o del task |
+| Categoria | Gruppo organizzativo usato anche per la contingency per categoria |
+| Ore / Giorni | Effort base prima della contingency |
+| Applica CTG | Include la voce nel calcolo della contingency |
+| CTG custom % | Sostituisce la percentuale predefinita per una singola voce |
+| Note | Dettagli interni di supporto |
+| Tag | Etichette utili per ricerca o presentazione |
+| Cliente | Determina se la voce appare nella presentazione cliente |
 
-### Cosa fare
+Azioni utili:
 
-1. **Nuovo modello** → dai un nome e scegli un’**icona**.
-2. Aggiungi **macro-attività** (nome, categoria, ore default).
-3. Per ogni voce: spunta **Applica CTG** se deve ricevere la contingency globale.
-4. Aggiungi eventuali **voci derivate** (formule, es. Project Management = % su altre voci).
-5. Imposta % CTG di default e modalità (progetto / categorie / custom).
-6. **Salva** il modello.
-7. Usa **“usa per nuova stima”** (o il bottone Nuova in Stima) per generare una stima.
+- Aggiungi sotto-task sotto una macro; il totale della macro diventa la somma dei figli.
+- Duplica una riga per conservarne la configurazione. Duplicando una macro duplichi anche i figli.
+- Fai doppio clic su una nota per usare l'editor esteso; premi `Ctrl+Invio` per salvarla.
+- Fai doppio clic sull'intestazione di una colonna per comprimerla o ripristinarla.
+- Applicare la CTG a una macro propaga l'impostazione ai sotto-task.
 
-Le nuove stime **ereditano l’icona** del modello.
+### Formule
 
----
+Una formula calcola:
 
-## 5. Stima (Working)
+```text
+aggregazione(voci selezionate) × percentuale
+```
 
-È la vista di lavoro quotidiana.
+Le aggregazioni disponibili sono somma, media, minimo e massimo. Le formule non ricevono la contingency globale finché non attivi **Applica CTG**.
 
-### Intestazione
+### Contingency
 
-- **Icona** + **titolo** della stima (editabili).
-- Azioni: **Nuova** (da modello), **Apri**, **Salva** (in libreria), **Esporta**, **Vista cliente**.
+Usa la contingency per rendere visibile il rischio senza modificare l'effort base. Scegli percentuale e modalità, quindi controlla i totali base, CTG e complessivo.
 
-### Contingency al volo
+Seleziona **Confronta CTG** per provare tre percentuali affiancate. **Usa** applica quella scelta alla sessione corrente; salva la stima per conservarla.
 
-In alto puoi cambiare:
+## Salvare, aprire e ricaricare
 
-- **% CTG** della sessione,
-- **modalità** (intero progetto, solo categorie, custom),
-- **placement** (colonne in linea, riga separata, entrambi).
+- **Salva** scrive la stima corrente nella Libreria e registra una voce nella cronologia.
+- **Apri** carica un file `.howlong.json` in una scheda documento.
+- **Aggiorna** scarta la copia in memoria e ricarica l'ultimo file salvato, chiedendo conferma quando necessario.
+- **Aperti di recente** mostra le stime della Libreria aperte oppure create e salvate, dalla più recente, fino a cinque.
 
-I totali e le colonne si aggiornano subito.
+Se un file è già aperto, una nuova apertura attiva la scheda esistente invece di crearne un duplicato.
 
-### Tabella voci
+## Usare la Libreria
 
-Colonne tipiche:
+Cerca per titolo o cliente. Puoi modificare nome e icona di una stima salvata direttamente dall'elenco.
 
-| Colonna | Significato |
-|---------|-------------|
-| Nome | Macro o sotto-task |
-| Categoria | Raggruppamento |
-| Ore / Giorni | Effort base |
-| **Applica CTG** | Se la voce entra nel calcolo CTG |
-| CTG | Ore di contingency |
-| Con CTG | Base + CTG |
-| CTG custom % | Override % sulla singola voce |
-| Note | Testo libero |
-| Cliente | Visibile in vista cliente |
-| Azioni | Aggiungi task, duplica, elimina, modifica formula |
+Per confrontare le stime:
 
-Suggerimenti:
+1. Seleziona almeno due stime.
+2. Scegli **Confronta**.
+3. Controlla attività e totali allineati nella vista di confronto.
 
-- **Aggiungi sotto-task** da una macro: le ore della macro diventano somma dei figli.
-- **Duplica**: clona la riga (e i figli se è macro). Nome tipo `(copia)`, `(copia 2)`, …
-- **Note**: modifica in cella; **doppio click** apre un editor ampio (Ctrl+Invio per salvare).
-- **Colonne**: ridimensiona; doppio click sull’header per collassare.
-- **Applica CTG** su una macro: lo stato si propaga ai sotto-task.
+Per esportare più stime, selezionale e scegli il formato. Una selezione genera un file; più selezioni generano un archivio ZIP con un file per stima.
 
-### Voci derivate (formule)
+**Elimina** rimuove il file della stima. Usalo solo quando il file non serve più.
 
-Una voce **formula** calcola:
+## Preparare la presentazione cliente
 
-`aggregazione(voci scelte) × percentuale`
+Apri **Vista cliente** dalla stima attiva.
 
-Aggregazioni: somma, media, minimo, massimo.
+1. Controlla prima la sezione manager dettagliata.
+2. Nascondi note o tag interni quando necessario.
+3. Scegli ore o giorni e l'arrotondamento desiderato.
+4. Controlla quali attività sono visibili al cliente.
+5. Confronta valori calcolati e presentati se hai applicato override.
+6. Esporta la versione manager o cliente necessaria.
 
-Di default le formule **non** ricevono la CTG globale; spunta **Applica CTG** se serve.
+Gli override di presentazione cambiano come vengono mostrati i valori; non sostituiscono il calcolo base della stima.
 
-Usi tipici: Contingency separata, Project Management, overhead.
+## Import, export e backup
 
-### Confronta CTG
+| Formato | Uso consigliato |
+| --- | --- |
+| JSON HowLong | Backup portabile e reimportazione in HowLong? |
+| YAML | Revisione leggibile da persone o AI; non è un formato nativo di reimportazione |
+| XLSX | Condivisione con utenti di fogli di calcolo |
+| CSV | Scambio tabellare semplice |
+| ZIP | Export congiunto di più stime dalla Libreria |
 
-Dal summary, **Confronta CTG** apre tre scenari A/B/C (di default in ordine crescente, es. 10 / 20 / 30).  
-Puoi modificarli e premere **Usa** per applicare una % alla stima (solo sessione, finché non salvi).
+Usa **Impostazioni → Esporta workspace** per salvare impostazioni e modelli. I file delle stime risiedono separatamente nella cartella Libreria e devono essere inclusi nel backup.
 
-### Unità
+## Impostazioni
 
-Ore o giorni-uomo. Puoi impostare quante **ore = 1 giorno** per questa stima. I totali mostrano spesso sia **h** sia **D**.
+- **Lingua e aspetto:** scegli italiano o inglese e tema chiaro o scuro.
+- **Username:** identifica i salvataggi nella cronologia.
+- **Cartella stime:** cambia la cartella letta dalla Libreria.
+- **Default manager:** determina se note e tag partono nascosti.
+- **Nomi file export:** può aggiungere data e ora al nome.
+- **Import/export workspace:** trasferisce impostazioni e modelli.
 
----
+Salva le impostazioni dopo averle modificate. L'anteprima di tema o lingua non garantisce che la scelta sia stata memorizzata.
 
-## 6. Vista cliente
+## Risoluzione dei problemi
 
-Dalla Stima, apri **Vista cliente**.
+**Una stima salvata non appare in Libreria**
 
-Serve a presentare la stima in modo più “pulito”:
+Controlla la cartella stime attiva nelle Impostazioni, quindi aggiorna la Libreria.
 
-- solo voci marcate come visibili al cliente,
-- **arrotondamento** selezionabile,
-- unità ore/giorni,
-- totali presentati (h e D).
+**La contingency di una voce è zero**
 
-### Note in vista cliente
+Controlla **Applica CTG**, la modalità selezionata, i filtri categoria e gli override della voce.
 
-- Di default le note sono **nascoste** (`Nascondi note` attivo).
-- Se togli lo spunta: vedi un’anteprima; **click** apre l’editor e puoi modificare le note (utile in sessione con il cliente).
-- Lo stesso flag influenza anche l’export della vista cliente.
+**Il cliente non vede una voce**
 
-Export dedicato: **YAML** e **Excel**.
+Attiva l'impostazione **Cliente** della voce e controlla i filtri della vista cliente.
 
----
+**Note o tag non appaiono nell'export**
 
-## 7. Libreria
+Controlla i toggle di visibilità manager/cliente prima di esportare.
 
-Contiene i file `.howlong.json` salvati sul PC.
+**Le azioni native sui file non funzionano nel browser**
 
-### Gestione elenco
+Avvia l'app desktop con `npm run tauri:dev`; la modalità browser non offre i dialog filesystem di Tauri.
 
-- **Cerca** per titolo o cliente.
-- **Rinomina** direttamente nel campo nome (Invio / esci dal campo → salva).
-- Cambia **icona** con il picker.
-- **Apri** per caricare la stima in Working.
-- **Elimina** rimuove il file dalla cartella.
+**Un file JSON importato viene rifiutato**
 
-### Selezione, export, import
+Usa un export JSON HowLong. YAML, CSV e file JSON generici non sono equivalenti al formato nativo della stima.
 
-1. Seleziona una o più stime (checkbox; oppure Seleziona tutte).
-2. **Esporta** → JSON (HowLong), YAML o Excel:
-   - **1 stima** → un file,
-   - **2+ stime** → un **ZIP** con un file per stima.
-3. **Importa JSON** → scegli uno o più file HowLong; vengono copiati in libreria. Se l’id esiste già, ne viene creato uno nuovo.
+## Sicurezza dei dati
 
----
+- Salva prima di chiudere una scheda documento.
+- Esporta JSON HowLong quando serve un backup portabile della stima.
+- Esegui il backup sia del workspace sia della cartella Libreria configurata.
+- Considera le conferme di eliminazione e ricaricamento come azioni distruttive.
 
-## 8. Impostazioni
-
-| Impostazione | Effetto |
-|--------------|---------|
-| Lingua | Interfaccia IT o EN |
-| Aspetto | Tema chiaro / scuro |
-| Username | Etichetta del profilo settings |
-| Cartella stime | Dove vive la Libreria |
-| Import / Export | Workspace: settings + tutti i modelli |
-
-Ricorda di **Salvare** dopo le modifiche che vuoi rendere permanenti (lingua e tema hanno anteprima immediata).
-
----
-
-## 9. Formati file (quando usarli)
-
-| Formato | Quando |
-|--------|--------|
-| **JSON HowLong** | Backup / ripristino nell’app; import in Libreria |
-| **YAML** | Lettura umana o AI — **non** si re-importa come stima HowLong |
-| **Excel (XLSX)** | Condivisione con chi usa fogli di calcolo |
-| **CSV** | Scambio tabellare dove serve |
-| **ZIP** | Solo da Libreria, export di più stime insieme |
-
----
-
-## 10. Flusso consigliato (checklist)
-
-1. Prepara un **modello** con le macro tipiche del tuo lavoro.
-2. Crea una **stima** dal modello; metti titolo e icona.
-3. Compila ore / sotto-task / note.
-4. Regola la **CTG** e, se serve, **Confronta CTG**.
-5. Controlla flag **Applica CTG** e **Cliente** sulle voci.
-6. Apri la **vista cliente**, arrotonda, nascondi o mostra le note.
-7. **Salva** in Libreria.
-8. **Esporta** JSON (backup), YAML/Excel (condivisione), o da Libreria in ZIP se sono tante.
-
----
-
-## 11. Domande frequenti
-
-**Dov’è salvata la stima?**  
-In Libreria (cartella configurata o cartella dati app), file `{id}.howlong.json`.
-
-**Perché non vedo le note in vista cliente?**  
-Sono nascoste di default: togli **Nascondi note**.
-
-**La CTG non si applica a una voce?**  
-Controlla **Applica CTG** e la modalità (progetto / categorie / override).
-
-**Posso tornare indietro dopo Confronta CTG → Usa?**  
-“Usa” cambia la % di sessione; se non hai salvato, puoi ripristinare la % a mano o riaprire l’ultima versione salvata.
-
-**L’app funziona senza installazione desktop?**  
-Il frontend può aprirsi in browser in sviluppo, ma Salva / dialog / Libreria richiedono l’app Tauri.
-
----
-
-## 12. Aiuto e riferimenti
-
-- **README.md** — installazione, build, decisioni tecniche  
-- **SPEC.md** — requisiti e comportamento dettagliato  
-- **About** in app — versione e credit  
-
----
-
-*HowLong? — Pietro Di Leo*
+Per installazione, sviluppo, build di release e versioning, consulta il [README](README.md).

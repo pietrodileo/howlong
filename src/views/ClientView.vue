@@ -5,6 +5,7 @@ import { useUiStore } from '../stores/ui';
 import { useLibraryStore } from '../stores/library';
 import AuditHistoryModal from '../components/AuditHistoryModal.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
+import RefreshIcon from '../components/RefreshIcon.vue';
 import NotesEditor from '../components/NotesEditor.vue';
 import TagPicker from '../components/TagPicker.vue';
 import { useModelsStore } from '../stores/models';
@@ -74,6 +75,8 @@ const managerExportMenuOpen = ref(false);
 const clientExportMenuOpen = ref(false);
 const resetConfirmOpen = ref(false);
 const reloadConfirmOpen = ref(false);
+const reloading = ref(false);
+const reloadAnimating = ref(false);
 const auditHistoryOpen = ref(false);
 /** Solo UI: piega sotto-task in vista cliente (non tocca export). */
 const clientPreviewCollapsed = ref<Set<string>>(new Set());
@@ -240,6 +243,10 @@ async function onSave() {
 }
 
 function onReload() {
+  reloadAnimating.value = true;
+  window.setTimeout(() => {
+    reloadAnimating.value = false;
+  }, 700);
   if (!estimate.filePath) {
     ui.notify(t('common.noFileOpen'), true);
     return;
@@ -270,6 +277,7 @@ async function doReload() {
     ui.notify(t('library.desktopOnly'), true);
     return;
   }
+  reloading.value = true;
   try {
     const text = await readTextFile(path);
     const result = await importEstimateText(text, 'json');
@@ -281,6 +289,8 @@ async function doReload() {
     ui.notify(t('working.reloaded'));
   } catch (e) {
     ui.notify(toErrorMessage(e), true);
+  } finally {
+    reloading.value = false;
   }
 }
 
@@ -580,11 +590,13 @@ async function onExportFromMenu(
         </button>
         <button
           type="button"
-          class="ghost"
+          class="ghost refresh-action"
+          :disabled="reloading"
+          :aria-label="t('common.reload')"
           v-tip="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
           @click="onReload"
         >
-          {{ t('common.reload') }}
+          <RefreshIcon :spinning="reloadAnimating || reloading" />
         </button>
         <button type="button" class="primary save-action" @click="onSave">
           {{ t('common.save') }}
@@ -668,7 +680,7 @@ async function onExportFromMenu(
             </strong>
           </div>
           <div class="stat">
-            <span>{{ t('common.ctg') }}</span>
+            <span>{{ t('common.ctg') }} · {{ estimate.estimate.contingency.percent }}%</span>
             <strong>
               <span>{{ formatHours(estimate.clientTotals.totalContingency) }} h</span>
               <span class="stat-days">{{ formatDays(estimate.clientTotals.totalContingency, hoursPerDay) }} D</span>

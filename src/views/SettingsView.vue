@@ -286,6 +286,21 @@ function onExportDateChange(checked: boolean) {
       </div>
     </SettingsPanel>
 
+    <SettingsPanel :title="t('settings.sectionShortcuts')">
+      <p class="field-hint">{{ t('settings.shortcutsIntro') }}</p>
+      <dl class="shortcut-list">
+        <template v-for="shortcut in [
+          ['S', 'shortcutSave'],
+          ['T', 'shortcutNewTab'],
+          ['W', 'shortcutCloseTab'],
+          ['E', 'shortcutToggleView'],
+        ]" :key="shortcut[0]">
+          <dt><kbd>Ctrl/Cmd</kbd><span>+</span><kbd>{{ shortcut[0] }}</kbd></dt>
+          <dd>{{ t(`settings.${shortcut[1]}`) }}</dd>
+        </template>
+      </dl>
+    </SettingsPanel>
+
     <SettingsPanel :title="t('settings.sectionEstimate')">
       <p class="field-hint">{{ t('settings.estimateColumnsIntro') }}</p>
       <div class="option-grid columns-grid">
@@ -461,6 +476,36 @@ function onExportDateChange(checked: boolean) {
   letter-spacing: -0.03em;
   color: var(--ink);
   line-height: 1.2;
+}
+
+.shortcut-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.55rem 1rem;
+  align-items: center;
+  margin: 0.85rem 0 0;
+}
+
+.shortcut-list dt {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.shortcut-list dd {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.shortcut-list kbd {
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 0.3rem;
+  background: var(--surface);
+  box-shadow: 0 1px 0 var(--line);
+  color: var(--ink);
+  font: 600 0.75rem var(--font-ui);
 }
 
 .user-badge {

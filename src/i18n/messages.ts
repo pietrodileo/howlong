@@ -153,6 +153,12 @@ export type MessageTree = {
     sectionExport: string;
     sectionFolder: string;
     sectionWorkspace: string;
+    sectionShortcuts: string;
+    shortcutsIntro: string;
+    shortcutSave: string;
+    shortcutNewTab: string;
+    shortcutCloseTab: string;
+    shortcutToggleView: string;
     estimateColumnsIntro: string;
     presentationIntro: string;
     managerViewLegend: string;
@@ -890,6 +896,12 @@ const it: MessageTree = {
     sectionExport: 'Nome file export',
     sectionFolder: 'Workspace',
     sectionWorkspace: 'Import / export workspace',
+    sectionShortcuts: 'Scorciatoie da tastiera',
+    shortcutsIntro: 'Ctrl funziona su tutte le piattaforme; su macOS funziona anche Cmd.',
+    shortcutSave: 'Salva la stima corrente',
+    shortcutNewTab: 'Apri una nuova scheda dal modello predefinito',
+    shortcutCloseTab: 'Chiudi la scheda corrente',
+    shortcutToggleView: 'Passa tra vista stima e vista cliente',
     estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
     presentationIntro: 'Definisce la visibilità predefinita delle colonne nella vista Presentazione.',
     managerViewLegend: 'Vista manager',
@@ -1626,6 +1638,12 @@ const en: MessageTree = {
     sectionExport: 'Export filename',
     sectionFolder: 'Workspace',
     sectionWorkspace: 'Workspace import / export',
+    sectionShortcuts: 'Keyboard shortcuts',
+    shortcutsIntro: 'Ctrl works on every platform; on macOS, Cmd works too.',
+    shortcutSave: 'Save the current estimate',
+    shortcutNewTab: 'Open a new tab from the default model',
+    shortcutCloseTab: 'Close the current tab',
+    shortcutToggleView: 'Switch between estimate and client view',
     estimateColumnsIntro: 'Columns shown when you open an estimate.',
     presentationIntro: 'Defines the default visibility of columns in the Presentation view.',
     managerViewLegend: 'Manager view',

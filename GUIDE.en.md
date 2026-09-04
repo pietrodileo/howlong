@@ -1,242 +1,189 @@
-# User guide — HowLong?
+# HowLong? user guide
 
-**Effort, made obvious.**
+This guide covers HowLong? `0.4.1` on Windows, macOS, and Linux.
 
-Practical guide to estimating projects with HowLong? (version 0.1).  
-Author: **Pietro Di Leo**.
+[Project README](README.md) · [Guida italiana](GUIDE.it.md)
 
----
+## Quick start
 
-## 1. What is HowLong?
+1. Open **Settings**, choose your language and theme, then select **Save**.
+2. Open **Models** and create a model for the type of work you estimate.
+3. Return to **Welcome** and create an estimate from that model.
+4. Enter the project title, client, work items, and effort.
+5. Review contingency and client visibility for each item.
+6. Save the estimate to the Library.
+7. Open **Client view** before exporting anything for a client.
 
-HowLong? is a **desktop** app (Windows) for building **project estimates** as tables:
+## How HowLong? organizes your work
 
-- line items with hours (or days),
-- **contingency** (CTG, risk margin) visible at a glance,
-- reusable **models**,
-- an on-disk **library** of estimates,
-- a **client view** and **export** in several formats.
+| Concept | Purpose |
+| --- | --- |
+| Model | Reusable starting point containing activities, defaults, tags, and contingency rules |
+| Estimate | A project-specific working document created from a model or from scratch |
+| Library | The local folder containing saved `.howlong.json` estimates |
+| Contingency (CTG) | Risk allowance added to selected work items |
+| Formula | A derived item calculated from other estimate items |
+| Manager view | Detailed internal presentation and export view |
+| Client view | Simplified, rounded presentation intended for clients |
 
-It is not Excel: it is built so you always see *base*, *CTG*, and *total with CTG* side by side.
+Changes to an estimate remain in the active session until you save them. Exporting does not replace saving.
 
----
+## Navigation
 
-## 2. Getting started
+| Area | Use it to |
+| --- | --- |
+| Welcome | Create or open estimates and revisit recently opened files |
+| Estimate | Edit the active estimate and its calculations |
+| Library | Search, open, rename, compare, import, export, or delete saved estimates |
+| Models | Create and maintain reusable estimate templates |
+| Compare | Compare two or more saved estimates |
+| Settings | Configure language, theme, storage, exports, and workspace backups |
 
-1. Launch HowLong? (Windows installer, or `npm run tauri:dev` in development).
-2. Open **Settings** and pick **language** (IT/EN) and **theme** (light/dark). Click **Save**.
-3. (Optional) Set a custom **estimates folder**; otherwise HowLong uses the app data folder.
-4. Go to **Models** and create (or edit) a macro-activity model.
-5. Go to **Estimate** and create a new estimate from that model.
+## Create and maintain models
 
----
+1. Select **Models** and create a new model.
+2. Give it a recognizable name and icon.
+3. Add macro activities and optional subtasks.
+4. Set default effort, categories, and tags.
+5. Enable **Apply CTG** only for items that should receive contingency.
+6. Add formulas for derived effort such as project management or overhead.
+7. Set the model's default contingency and save it.
 
-## 3. Navigation
+New estimates inherit the model structure, icon, tags, and defaults. Later model changes do not silently rewrite existing estimates.
 
-Sidebar:
+## Build an estimate
 
-| Item | Purpose |
-|------|---------|
-| **Estimate** | Editor for the current estimate |
-| **Library** | Estimates saved on your PC |
-| **Models** | Reusable templates |
-| **Settings** | Language, theme, folder, workspace import/export |
-| **About** | Version, aim, credit |
+### Estimate details
 
----
+Set a clear title, client label, icon, effort unit, and hours per day. Hours per day controls conversion between hours and person-days.
 
-## 4. Models
+### Work items
 
-A **model** is the skeleton of an estimate: macro activities, categories, default contingency, icon.
+| Field | Meaning |
+| --- | --- |
+| Name | Activity or task description |
+| Category | Group used for organization and category-based contingency |
+| Hours / Days | Base effort before contingency |
+| Apply CTG | Includes the item in contingency calculations |
+| Custom CTG % | Overrides the default percentage for one item |
+| Notes | Internal supporting detail |
+| Tags | Searchable or presentational labels |
+| Client | Controls whether the item appears in the client presentation |
 
-### What to do
+Useful actions:
 
-1. **New model** → name it and pick an **icon**.
-2. Add **macro activities** (name, category, default hours).
-3. For each line: tick **Apply CTG** if it should receive global contingency.
-4. Add any **derived lines** (formulas, e.g. Project Management = % of other lines).
-5. Set default CTG % and mode (project / categories / custom).
-6. **Save** the model.
-7. Use **“use for new estimate”** (or New in Estimate) to spawn an estimate.
+- Add subtasks below a macro; the macro total becomes the sum of its children.
+- Duplicate a row to preserve its configuration. Duplicating a macro also duplicates its children.
+- Double-click a note to use the larger editor; press `Ctrl+Enter` to save it.
+- Double-click a column header to collapse or restore that column.
+- Applying CTG to a macro propagates the setting to its subtasks.
 
-New estimates **inherit the model’s icon**.
+### Formulas
 
----
+A formula calculates:
 
-## 5. Estimate (Working)
+```text
+aggregation(selected items) × percentage
+```
 
-This is the day-to-day workspace.
+Supported aggregations are sum, average, minimum, and maximum. Formula items do not receive global contingency unless **Apply CTG** is enabled for them.
 
-### Header
+### Contingency
 
-- Editable **icon** + **title**.
-- Actions: **New** (from model), **Open**, **Save** (to library), **Export**, **Client view**.
+Use contingency to make risk visible without changing base effort. Choose the percentage and mode, then check the base, CTG, and combined totals.
 
-### Live contingency
+Select **Compare CTG** to test three percentages side by side. **Use** applies the chosen percentage to the current session; save the estimate to keep it.
 
-At the top you can change:
+## Save, open, and reload
 
-- session **CTG %**,
-- **mode** (whole project, selected categories, custom),
-- **placement** (inline columns, separate row, or both).
+- **Save** writes the current estimate to the Library and records an audit entry.
+- **Open** loads a `.howlong.json` file into a document tab.
+- **Reload** discards the in-memory copy and reloads the last saved file after confirmation when needed.
+- **Opened recently** lists Library estimates you opened or created and saved, newest first, up to five.
 
-Totals and columns update immediately.
+If a file is already open, opening it again activates its existing tab instead of creating a duplicate.
 
-### Line table
+## Use the Library
 
-Typical columns:
+Search by title or client. You can edit a saved estimate's name or icon directly from the list.
 
-| Column | Meaning |
-|--------|---------|
-| Name | Macro or sub-task |
-| Category | Grouping |
-| Hours / Days | Base effort |
-| **Apply CTG** | Whether the line enters CTG calculation |
-| CTG | Contingency hours |
-| With CTG | Base + CTG |
-| Custom CTG % | Per-line % override |
-| Notes | Free text |
-| Client | Visible in client view |
-| Actions | Add task, duplicate, delete, edit formula |
+To compare estimates:
 
-Tips:
+1. Select at least two estimates.
+2. Choose **Compare**.
+3. Review aligned activities and totals in the comparison view.
 
-- **Add sub-task** under a macro: the macro hours become the sum of children.
-- **Duplicate**: clones the row (and children if it is a macro). Names like `(copy)`, `(copy 2)`, …
-- **Notes**: edit in-cell; **double-click** opens a larger editor (Ctrl+Enter to save).
-- **Columns**: resize; double-click a header to collapse.
-- **Apply CTG** on a macro: the flag cascades to sub-tasks.
+To export multiple estimates, select them and choose a format. One selection creates one file; multiple selections create a ZIP archive containing one file per estimate.
 
-### Derived lines (formulas)
+**Delete** removes the underlying estimate file. Use it only when the file is no longer needed.
 
-A **formula** line computes:
+## Prepare the client presentation
 
-`aggregation(selected lines) × percent`
+Open **Client view** from the active estimate.
 
-Aggregations: sum, average, min, max.
+1. Review the detailed manager section first.
+2. Hide internal notes or tags where appropriate.
+3. Choose hours or days and the desired rounding.
+4. Check which activities are client-visible.
+5. Compare calculated and presented values if overrides were applied.
+6. Export the manager or client version you need.
 
-By default formulas **do not** get global CTG; tick **Apply CTG** if needed.
+Presentation overrides change how values are shown; they do not replace the estimate's base calculation.
 
-Typical uses: separate Contingency line, Project Management, overhead.
+## Import, export, and backup
 
-### Compare CTG
+| Format | Best use |
+| --- | --- |
+| HowLong JSON | Portable backup and re-import into HowLong? |
+| YAML | Human-readable or AI-assisted review; not a native re-import format |
+| XLSX | Sharing with spreadsheet users |
+| CSV | Simple tabular interchange |
+| ZIP | Exporting several Library estimates together |
 
-From the summary, **Compare CTG** opens three A/B/C scenarios (defaults in ascending order, e.g. 10 / 20 / 30).  
-Edit them and press **Use** to apply a % to the estimate (session only until you save).
+Use **Settings → Export workspace** to back up settings and models. Estimate files live separately in the Library folder and should be backed up as well.
 
-### Units
+## Settings
 
-Hours or person-days. You can set how many **hours = 1 day** for this estimate. Totals often show both **h** and **D**.
+- **Language and appearance:** choose English or Italian and light or dark mode.
+- **Username:** identifies save actions in audit history.
+- **Estimates folder:** changes the folder scanned by the Library.
+- **Manager defaults:** controls whether notes and tags start hidden.
+- **Export filenames:** optionally include date and time segments.
+- **Workspace import/export:** transfers settings and models.
 
----
+Save settings after editing them. A theme or language preview does not guarantee the choice has been persisted.
 
-## 6. Client view
+## Troubleshooting
 
-From Estimate, open **Client view**.
+**A saved estimate is missing from the Library**
 
-Use it to present a cleaner version:
+Confirm the active estimates folder in Settings, then refresh the Library.
 
-- only lines marked client-visible,
-- selectable **rounding**,
-- hours/days unit,
-- presented totals (h and D).
+**Contingency is zero for an item**
 
-### Notes in client view
+Check **Apply CTG**, the selected contingency mode, category filters, and any item-level override.
 
-- Notes are **hidden by default** (`Hide notes` on).
-- If you uncheck it: you see a truncated preview; **click** opens the editor so you can edit notes (handy in a client meeting).
-- The same flag also affects client-view export.
+**A client cannot see an item**
 
-Dedicated export: **YAML** and **Excel**.
+Enable the item's **Client** setting and check the client-view visibility controls.
 
----
+**Notes or tags are absent from an export**
 
-## 7. Library
+Check the manager/client visibility toggles before exporting.
 
-Holds saved `.howlong.json` files on your PC.
+**Native file actions do not work in the browser**
 
-### Managing the list
+Run the desktop app with `npm run tauri:dev`; browser development mode does not provide Tauri filesystem dialogs.
 
-- **Search** by title or client.
-- **Rename** in the name field (Enter / blur → saves).
-- Change the **icon** with the picker.
-- **Open** loads the estimate into Working.
-- **Delete** removes the file from the folder.
+**An imported JSON file is rejected**
 
-### Selection, export, import
+Use a HowLong JSON export. YAML, CSV, and generic JSON files are not interchangeable with the native estimate format.
 
-1. Select one or more estimates (checkboxes, or Select all).
-2. **Export** → JSON (HowLong), YAML, or Excel:
-   - **1 estimate** → a single file,
-   - **2+ estimates** → one **ZIP** with one file per estimate.
-3. **Import JSON** → pick one or more HowLong files; they are copied into the library. If an id already exists, a new id is assigned.
+## Data safety
 
----
+- Save before closing a document tab.
+- Export HowLong JSON when you need a portable estimate backup.
+- Back up both the workspace and the configured Library folder.
+- Treat delete and reload confirmations as destructive actions.
 
-## 8. Settings
-
-| Setting | Effect |
-|---------|--------|
-| Language | UI IT or EN |
-| Appearance | Light / dark theme |
-| Username | Label for this settings profile |
-| Estimates folder | Where the Library lives |
-| Import / Export | Workspace: settings + all models |
-
-Remember to **Save** changes you want permanent (language and theme preview immediately).
-
----
-
-## 9. File formats (when to use which)
-
-| Format | When |
-|--------|------|
-| **HowLong JSON** | Backup / restore in the app; Library import |
-| **YAML** | Human or AI reading — **not** re-imported as a HowLong estimate |
-| **Excel (XLSX)** | Sharing with spreadsheet users |
-| **CSV** | Tabular exchange where needed |
-| **ZIP** | Library only: export several estimates together |
-
----
-
-## 10. Recommended flow (checklist)
-
-1. Prepare a **model** with your usual macros.
-2. Create an **estimate** from it; set title and icon.
-3. Fill hours / sub-tasks / notes.
-4. Tune **CTG** and, if useful, **Compare CTG**.
-5. Check **Apply CTG** and **Client** flags on lines.
-6. Open **Client view**, round, hide or show notes.
-7. **Save** to the Library.
-8. **Export** JSON (backup), YAML/Excel (sharing), or from Library as ZIP for many estimates.
-
----
-
-## 11. FAQ
-
-**Where is my estimate saved?**  
-In the Library (configured folder or app data), file `{id}.howlong.json`.
-
-**Why don’t I see notes in client view?**  
-They are hidden by default: turn off **Hide notes**.
-
-**CTG is not applied to a line?**  
-Check **Apply CTG** and the mode (project / categories / override).
-
-**Can I undo Compare CTG → Use?**  
-“Use” changes the session %; if you have not saved, restore the % manually or reopen the last saved version.
-
-**Does the app work without the desktop shell?**  
-The UI can run in a browser during development, but Save / dialogs / Library need the Tauri app.
-
----
-
-## 12. Help and references
-
-- **README.md** — setup, build, technical decisions  
-- **SPEC.md** — detailed requirements and behaviour  
-- **About** in the app — version and credit  
-
----
-
-*HowLong? — Pietro Di Leo*
+For installation, development, release builds, and versioning, see the [README](README.md).
