@@ -58,12 +58,11 @@ async function saveBytes(
   bytes: Uint8Array,
 ): Promise<string | null> {
   if (!isTauri()) {
-    downloadBrowser(
+    return downloadBrowser(
       filename,
       bytes,
       format === 'zip' ? 'application/zip' : 'application/octet-stream',
     );
-    return filename;
   }
   const filters =
     format === 'zip'
@@ -95,15 +94,18 @@ export async function exportLibraryEstimates(
         const text =
           format === 'xlsx' ? null : new TextDecoder().decode(built.bytes);
         if (format === 'xlsx') {
-          downloadBrowser(built.filename, built.bytes, 'application/octet-stream');
+          return { ok: true, path: downloadBrowser(built.filename, built.bytes, 'application/octet-stream') };
         } else if (text) {
-          downloadBrowser(
-            built.filename,
-            text,
-            format === 'json' ? 'application/json' : 'text/yaml',
-          );
+          return {
+            ok: true,
+            path: downloadBrowser(
+              built.filename,
+              text,
+              format === 'json' ? 'application/json' : 'text/yaml',
+            ),
+          };
         }
-        return { ok: true, path: built.filename };
+        return { ok: false, error: 'Export non disponibile' };
       }
       const filters = mimeFilters(format);
       const path = await saveFileDialog(filters, built.filename);

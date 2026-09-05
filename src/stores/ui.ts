@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-export type AppView = 'welcome' | 'working' | 'library' | 'models' | 'compare' | 'settings';
+export type AppView = 'welcome' | 'working' | 'gantt' | 'library' | 'models' | 'compare' | 'settings';
 export type SettingsSection = 'folder';
 
 const SIDEBAR_KEY = 'howlong.sidebarCollapsed';
@@ -29,6 +29,7 @@ export const useUiStore = defineStore('ui', () => {
   const aboutOpen = ref(false);
   const toast = ref<string | null>(null);
   const toastError = ref(false);
+  const toastFilePath = ref<string | null>(null);
   const sidebarCollapsed = ref(
     typeof localStorage !== 'undefined' && localStorage.getItem(SIDEBAR_KEY) === '1',
   );
@@ -79,15 +80,17 @@ export const useUiStore = defineStore('ui', () => {
     }
   }
 
-  function notify(message: string, isError = false) {
+  function notify(message: string, isError = false, filePath: string | null = null) {
     toast.value = message;
     toastError.value = isError;
+    toastFilePath.value = isError ? null : filePath;
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
       toast.value = null;
       toastError.value = false;
+      toastFilePath.value = null;
       toastTimer = null;
-    }, 3000);
+    }, filePath ? 6000 : 3000);
   }
 
   function dismissToast() {
@@ -97,6 +100,7 @@ export const useUiStore = defineStore('ui', () => {
     }
     toast.value = null;
     toastError.value = false;
+    toastFilePath.value = null;
   }
 
   return {
@@ -105,6 +109,7 @@ export const useUiStore = defineStore('ui', () => {
     aboutOpen,
     toast,
     toastError,
+    toastFilePath,
     sidebarCollapsed,
     sidebarWidth,
     navigate,

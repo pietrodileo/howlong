@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use tauri::Manager;
 
@@ -93,6 +94,23 @@ fn delete_file(path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn open_file_path(path: String) -> Result<(), String> {
+    let file = Path::new(&path);
+    if !file.is_file() {
+        return Err(format!("File non trovato: {path}"));
+    }
+    #[cfg(target_os = "macos")]
+    let mut command = Command::new("open");
+    #[cfg(target_os = "windows")]
+    let mut command = Command::new("explorer");
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut command = Command::new("xdg-open");
+    command.arg(&path).spawn()
+        .map(|_| ())
+        .map_err(|e| format!("Apertura fallita ({path}): {e}"))
+}
+
+#[tauri::command]
 fn read_binary_file(path: String) -> Result<Vec<u8>, String> {
     fs::read(&path).map_err(|e| format!("Lettura binaria fallita ({path}): {e}"))
 }
@@ -173,6 +191,7 @@ pub fn run() {
             write_binary_file,
             read_binary_file,
             delete_file,
+            open_file_path,
             ensure_app_defaults,
             ensure_dir,
             list_model_files,

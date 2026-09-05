@@ -11,15 +11,18 @@ import { useDocumentsStore } from './stores/documents';
 import { useUiStore, type AppView } from './stores/ui';
 import { useI18n } from './i18n/useI18n';
 import { applyTheme } from './lib/appearance';
+import { isTauri, openFilePath } from './lib/tauri';
+import { toErrorMessage } from './lib/errors';
 
 const LibraryView = defineAsyncComponent(() => import('./views/LibraryView.vue'));
 const ModelsView = defineAsyncComponent(() => import('./views/ModelsView.vue'));
 const SettingsView = defineAsyncComponent(() => import('./views/SettingsView.vue'));
 const CompareView = defineAsyncComponent(() => import('./views/CompareView.vue'));
+const GanttView = defineAsyncComponent(() => import('./views/GanttView.vue'));
 const WelcomeView = defineAsyncComponent(() => import('./views/WelcomeView.vue'));
 const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTabs.vue'));
 
-const APP_VERSION = '0.4.1';
+const APP_VERSION = '0.5.0';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -28,11 +31,23 @@ const docs = useDocumentsStore();
 const ui = useUiStore();
 const { t } = useI18n();
 
+async function openToastFile() {
+  const path = ui.toastFilePath;
+  if (!path) return;
+  try {
+    if (isTauri()) await openFilePath(path);
+    else window.open(path, '_blank', 'noopener,noreferrer');
+    ui.dismissToast();
+  } catch (error) {
+    ui.notify(toErrorMessage(error), true);
+  }
+}
+
 // Handle document tab activation
 function onActivateDocument() {
   // The estimate store will be synced by WorkingView
   // We just need to ensure we're in working view
-  ui.navigate('working');
+  if (ui.currentView !== 'gantt') ui.navigate('working');
 }
 
 
@@ -41,6 +56,7 @@ const pageTitle = computed(() => {
   const keys: Record<AppView, string> = {
     welcome: 'nav.welcome',
     working: 'nav.working',
+    gantt: 'nav.gantt',
     library: 'nav.library',
     models: 'nav.models',
     compare: 'nav.compare',
@@ -79,8 +95,8 @@ watch(() => docs.hasSessions, (hasSessions) => {
 
     <div class="workspace">
       <TitleBar />
-      <DocumentTabs v-if="ui.currentView === 'working' && docs.hasSessions" @activate="onActivateDocument" />
-      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare'" class="topbar">
+      <DocumentTabs v-if="(ui.currentView === 'working' || ui.currentView === 'gantt') && docs.hasSessions" @activate="onActivateDocument" />
+      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare' || ui.currentView === 'gantt'" class="topbar">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">
           {{ t('library.lede') }}
@@ -91,11 +107,15 @@ watch(() => docs.hasSessions, (hasSessions) => {
         <p v-else-if="ui.currentView === 'compare'" class="sub">
           {{ t('compare.lede') }}
         </p>
+        <p v-else-if="ui.currentView === 'gantt'" class="sub">
+          {{ t('gantt.lede') }}
+        </p>
       </header>
 
       <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome' }">
         <WelcomeView v-if="ui.currentView === 'welcome' || (ui.currentView === 'working' && !docs.hasSessions)" />
         <WorkingView v-else-if="ui.currentView === 'working' && docs.hasSessions" />
+        <GanttView v-else-if="ui.currentView === 'gantt'" />
         <LibraryView v-else-if="ui.currentView === 'library'" />
         <ModelsView v-else-if="ui.currentView === 'models'" />
         <CompareView v-else-if="ui.currentView === 'compare'" />
@@ -110,6 +130,12 @@ watch(() => docs.hasSessions, (hasSessions) => {
       role="status"
     >
       <p class="toast-msg">{{ ui.toast }}</p>
+      <button
+        v-if="ui.toastFilePath"
+        type="button"
+        class="toast-open"
+        @click="openToastFile"
+      >{{ t('welcome.openEstimate') }}</button>
       <button
         type="button"
         class="toast-dismiss"
@@ -187,7 +213,7 @@ main.flush {
   right: 1.25rem;
   max-width: min(400px, calc(100vw - 2rem));
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.55rem;
   background: var(--toast-bg);
   color: var(--toast-fg);
@@ -203,7 +229,6 @@ main.flush {
   flex: 1;
   min-width: 0;
   line-height: 1.4;
-  padding: 0.15rem 0;
 }
 
 .toast-dismiss {
@@ -220,6 +245,24 @@ main.flush {
   color: inherit;
   opacity: 0.72;
   cursor: pointer;
+}
+
+.toast-open {
+  flex-shrink: 0;
+  align-self: center;
+  min-height: 1.8rem;
+  padding: .3rem .65rem;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: inherit;
+  font-size: .78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.toast-open:hover {
+  background: color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .toast-dismiss:hover {

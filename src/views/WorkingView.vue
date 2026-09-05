@@ -19,6 +19,7 @@ import { useEstimateStore } from '../stores/estimate';
 import { useDocumentsStore } from '../stores/documents';
 import { useModelsStore } from '../stores/models';
 import { useSettingsStore } from '../stores/settings';
+import DisclosureIcon from '../components/DisclosureIcon.vue';
 import { useUiStore } from '../stores/ui';
 import {
   formatHours,
@@ -460,7 +461,7 @@ async function onSave() {
 async function onExport(format: EstimateExportFormat) {
   try {
     const path = await exportEstimate(estimate.estimate, format, 'estimate', settings.settings);
-    if (path) ui.notify(t('working.exported', { format: format.toUpperCase(), path }));
+    if (path) ui.notify(t('working.exported', { format: format.toUpperCase(), path }), false, path);
   } catch (e) {
     ui.notify(toErrorMessage(e), true);
   }
@@ -863,7 +864,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   :aria-label="allMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
                   @click.stop="toggleAllMacros"
                 >
-                  {{ allMacrosExpanded ? '▾' : '▸' }}
+                  <DisclosureIcon :expanded="allMacrosExpanded" />
                 </button>
                 <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
                 <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
@@ -923,7 +924,7 @@ function onHeaderDblClick(key: ColumnKey) {
                       :aria-label="estimate.isCollapsed(line.item.id) ? t('common.expand') : t('common.collapse')"
                       @click="estimate.toggleMacro(line.item.id)"
                     >
-                      {{ estimate.isCollapsed(line.item.id) ? '▸' : '▾' }}
+                      <DisclosureIcon :expanded="!estimate.isCollapsed(line.item.id)" />
                     </button>
                     <span
                       v-else-if="line.isFormula || isFormulaItem(line.item)"

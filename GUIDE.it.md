@@ -1,6 +1,6 @@
 # Guida utente di HowLong?
 
-Questa guida descrive HowLong? `0.4.1` su Windows, macOS e Linux.
+Questa guida descrive HowLong? `0.5.0` su Windows, macOS e Linux.
 
 [README del progetto](README.md) · [English guide](GUIDE.en.md)
 
@@ -75,6 +75,7 @@ Azioni utili:
 - Aggiungi sotto-task sotto una macro; il totale della macro diventa la somma dei figli.
 - Duplica una riga per conservarne la configurazione. Duplicando una macro duplichi anche i figli.
 - Fai doppio clic su una nota per usare l'editor esteso; premi `Ctrl+Invio` per salvarla.
+- Usa `Ctrl+←` / `Ctrl+→` su Windows e Linux, oppure `Cmd+←` / `Cmd+→` su macOS, per cambiare scheda senza salvare.
 - Fai doppio clic sull'intestazione di una colonna per comprimerla o ripristinarla.
 - Applicare la CTG a una macro propaga l'impostazione ai sotto-task.
 
@@ -93,6 +94,22 @@ Le aggregazioni disponibili sono somma, media, minimo e massimo. Le formule non 
 Usa la contingency per rendere visibile il rischio senza modificare l'effort base. Scegli percentuale e modalità, quindi controlla i totali base, CTG e complessivo.
 
 Seleziona **Confronta CTG** per provare tre percentuali affiancate. **Usa** applica quella scelta alla sessione corrente; salva la stima per conservarla.
+
+## Pianificare con il Gantt
+
+Apri una stima, quindi scegli **Gantt** nella barra laterale.
+
+1. Usa **Da pianificare** per assegnare le prime date a una macro o sotto-attività.
+2. Modifica inizio e fine con i campi data oppure trascina e ridimensiona la barra.
+3. Passa tra **Giorni** e **Mesi** e limita la vista con i selettori data Da/A. La timeline mensile si espande per usare lo spazio disponibile.
+4. Disattiva **Mostra weekend** per nascondere i giorni configurati come weekend in **Impostazioni → Gantt**, senza cambiare le date salvate.
+5. Comprimi una macro per nascondere temporaneamente le sue sotto-attività.
+6. Trascina il divisore tra i dettagli delle attività e la timeline per ridimensionare la colonna informativa.
+7. Usa **Esporta XLSX** per creare un foglio formattato e provvisto di griglia che rispetta scala, intervallo e visibilità dei weekend correnti. Intestazioni, macro e sotto-attività hanno stili distinti.
+
+Quando una macro contiene sotto-attività, il suo intervallo va automaticamente dal primo inizio all'ultima fine pianificata. Il Gantt non modifica ore, contingency o totali.
+
+Con il Gantt aperto, `Ctrl/Cmd+S` salva e `Ctrl/Cmd+T` crea una nuova scheda dal modello predefinito. Funzionano anche le scorciatoie per cambiare scheda.
 
 ## Salvare, aprire e ricaricare
 
@@ -140,6 +157,8 @@ Gli override di presentazione cambiano come vengono mostrati i valori; non sosti
 | CSV | Scambio tabellare semplice |
 | ZIP | Export congiunto di più stime dalla Libreria |
 
+Al termine di un export, usa **Apri** nel messaggio di conferma per aprire il file generato. Nella modalità browser viene aperta la copia scaricata; l'app desktop apre il percorso salvato sul filesystem.
+
 Usa **Impostazioni → Esporta workspace** per salvare impostazioni e modelli. I file delle stime risiedono separatamente nella cartella Libreria e devono essere inclusi nel backup.
 
 ## Impostazioni
@@ -148,6 +167,7 @@ Usa **Impostazioni → Esporta workspace** per salvare impostazioni e modelli. I
 - **Username:** identifica i salvataggi nella cronologia.
 - **Cartella stime:** cambia la cartella letta dalla Libreria.
 - **Default manager:** determina se note e tag partono nascosti.
+- **Weekend Gantt:** scegli se sabato, domenica o entrambi sono considerati weekend quando vengono nascosti dalla timeline.
 - **Nomi file export:** può aggiungere data e ora al nome.
 - **Import/export workspace:** trasferisce impostazioni e modelli.
 

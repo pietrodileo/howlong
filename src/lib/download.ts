@@ -3,7 +3,7 @@ export function downloadBrowser(
   filename: string,
   content: string | Uint8Array,
   mime: string,
-): void {
+): string {
   const blob =
     typeof content === 'string'
       ? new Blob([content], { type: mime })
@@ -13,5 +13,6 @@ export function downloadBrowser(
   a.href = url;
   a.download = filename;
   a.click();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return url;
 }

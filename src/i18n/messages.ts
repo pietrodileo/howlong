@@ -11,6 +11,7 @@ export type MessageTree = {
   nav: {
     welcome: string;
     working: string;
+    gantt: string;
     library: string;
     models: string;
     compare: string;
@@ -154,11 +155,17 @@ export type MessageTree = {
     sectionFolder: string;
     sectionWorkspace: string;
     sectionShortcuts: string;
+    sectionGantt: string;
+    ganttWeekendIntro: string;
+    saturday: string;
+    sunday: string;
     shortcutsIntro: string;
     shortcutSave: string;
     shortcutNewTab: string;
     shortcutCloseTab: string;
     shortcutToggleView: string;
+    shortcutPreviousTab: string;
+    shortcutNextTab: string;
     estimateColumnsIntro: string;
     presentationIntro: string;
     managerViewLegend: string;
@@ -291,6 +298,34 @@ export type MessageTree = {
     closeDirtyTitle: string;
     closeDirtyBody: string;
     closeDirtyDiscard: string;
+  };
+  gantt: {
+    title: string;
+    lede: string;
+    dayScale: string;
+    monthScale: string;
+    fromMonth: string;
+    toMonth: string;
+    today: string;
+    showWeekends: string;
+    expandAll: string;
+    collapseAll: string;
+    unscheduled: string;
+    startDate: string;
+    endDate: string;
+    clearDates: string;
+    color: string;
+    addMacro: string;
+    addSubtask: string;
+    noEstimate: string;
+    openLibrary: string;
+    exportXlsx: string;
+    exported: string;
+    instructions: string;
+    macroDatesHint: string;
+    doubleClickHint: string;
+    estimateTitle: string;
+    resizeActivityColumn: string;
   };
   models: {
     lede: string;
@@ -504,6 +539,7 @@ const it: MessageTree = {
   nav: {
     welcome: 'Benvenuto',
     working: 'Stima',
+    gantt: 'Gantt',
     library: 'Libreria',
     models: 'Modelli',
     compare: 'Confronta',
@@ -897,11 +933,17 @@ const it: MessageTree = {
     sectionFolder: 'Workspace',
     sectionWorkspace: 'Import / export workspace',
     sectionShortcuts: 'Scorciatoie da tastiera',
-    shortcutsIntro: 'Ctrl funziona su tutte le piattaforme; su macOS funziona anche Cmd.',
+    sectionGantt: 'Gantt',
+    ganttWeekendIntro: 'Scegli quali giorni vengono trattati come weekend quando li nascondi nel Gantt.',
+    saturday: 'Sabato',
+    sunday: 'Domenica',
+    shortcutsIntro: 'Utilizza i tasti di scelta rapida per salvare, aprire e chiudere stime.',
     shortcutSave: 'Salva la stima corrente',
     shortcutNewTab: 'Apri una nuova scheda dal modello predefinito',
     shortcutCloseTab: 'Chiudi la scheda corrente',
     shortcutToggleView: 'Passa tra vista stima e vista cliente',
+    shortcutPreviousTab: 'Passa alla scheda precedente',
+    shortcutNextTab: 'Passa alla scheda successiva',
     estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
     presentationIntro: 'Definisce la visibilità predefinita delle colonne nella vista Presentazione.',
     managerViewLegend: 'Vista manager',
@@ -998,8 +1040,8 @@ const it: MessageTree = {
     newEstimateFrom: 'Nuova stima da «{name}»',
     opened: 'Stima aperta',
     reloaded: 'Stima ricaricata dal file',
-    saved: 'Salvata: {path}',
-    exported: 'Esportata ({format}): {path}',
+    saved: 'Stima salvata',
+    exported: 'File {format} esportato',
     lastSavedBy: 'Ultimo salvataggio: {user} · {when}',
     auditHistoryTitle: 'Cronologia salvataggi',
     auditHistoryWhen: 'Data e ora',
@@ -1023,6 +1065,34 @@ const it: MessageTree = {
     closeDirtyTitle: 'Modifiche non salvate',
     closeDirtyBody: 'La stima «{name}» ha modifiche non salvate. Se chiudi la scheda, le modifiche verranno perse.',
     closeDirtyDiscard: 'Scarta e chiudi',
+  },
+  gantt: {
+    title: 'Pianificazione Gantt',
+    lede: 'Pianifica quando lavorare le attività, senza modificare le ore della stima.',
+    dayScale: 'Giorni',
+    monthScale: 'Mesi',
+    fromMonth: 'Da',
+    toMonth: 'A',
+    today: 'Oggi',
+    showWeekends: 'Mostra weekend',
+    expandAll: 'Espandi tutto',
+    collapseAll: 'Comprimi tutto',
+    unscheduled: 'Da pianificare',
+    startDate: 'Inizio',
+    endDate: 'Fine',
+    clearDates: 'Rimuovi date',
+    color: 'Colore attività',
+    addMacro: 'Aggiungi Macro',
+    addSubtask: 'Aggiungi sotto-task',
+    noEstimate: 'Apri o crea una stima per pianificarla.',
+    openLibrary: 'Apri libreria',
+    exportXlsx: 'Esporta XLSX',
+    exported: 'Gantt esportato',
+    instructions: 'Seleziona un giorno e clicca “Da pianificare”, oppure fai doppio clic su una cella vuota.',
+    macroDatesHint: 'Le date della macro sono calcolate dai sotto-task.',
+    doubleClickHint: 'Doppio clic per pianificare in questo giorno.',
+    estimateTitle: 'Titolo della stima',
+    resizeActivityColumn: 'Trascina per ridimensionare; doppio clic per comprimere',
   },
   models: {
     lede: 'Gestisci modelli per le tue stime',
@@ -1107,7 +1177,7 @@ const it: MessageTree = {
     empty: 'Nessun modello. Creane uno nuovo.',
     invalid: 'Modello non valido',
     saved: 'Modello salvato',
-    exported: 'Modello esportato: {path}',
+    exported: 'Modello esportato',
     defaultSet: 'Modello di default: «{name}»',
     needOneModel: 'Serve almeno un modello',
     deleteConfirm: 'Eliminare il modello «{name}»?',
@@ -1155,7 +1225,7 @@ const it: MessageTree = {
     hideSubsCol: 'Nascondi colonna Sub-task',
     macroRollup: 'Nasconde o rende visibili i sotto-task nell\'export',
     macroDetail: 'Mostra sotto-task nell\'export',
-    exported: 'Vista cliente esportata ({format}): {path}',
+    exported: 'Vista cliente esportata in {format}',
     editHint:'',
     reset: 'Reset',
     resetHint: 'Ripristina i valori calcolati (arrotondamento incluso)',
@@ -1245,6 +1315,7 @@ const en: MessageTree = {
   nav: {
     welcome: 'Welcome',
     working: 'Estimate',
+    gantt: 'Gantt',
     library: 'Library',
     models: 'Models',
     compare: 'Compare',
@@ -1639,11 +1710,17 @@ const en: MessageTree = {
     sectionFolder: 'Workspace',
     sectionWorkspace: 'Workspace import / export',
     sectionShortcuts: 'Keyboard shortcuts',
-    shortcutsIntro: 'Ctrl works on every platform; on macOS, Cmd works too.',
+    sectionGantt: 'Gantt',
+    ganttWeekendIntro: 'Choose which days count as weekends when weekends are hidden in the Gantt.',
+    saturday: 'Saturday',
+    sunday: 'Sunday',
+    shortcutsIntro: 'Use keyboard shortcuts to save, open and close estimates.',
     shortcutSave: 'Save the current estimate',
     shortcutNewTab: 'Open a new tab from the default model',
     shortcutCloseTab: 'Close the current tab',
     shortcutToggleView: 'Switch between estimate and client view',
+    shortcutPreviousTab: 'Switch to the previous tab',
+    shortcutNextTab: 'Switch to the next tab',
     estimateColumnsIntro: 'Columns shown when you open an estimate.',
     presentationIntro: 'Defines the default visibility of columns in the Presentation view.',
     managerViewLegend: 'Manager view',
@@ -1739,8 +1816,8 @@ const en: MessageTree = {
     newEstimateFrom: 'New estimate from «{name}»',
     opened: 'Estimate opened',
     reloaded: 'Estimate reloaded from file',
-    saved: 'Saved: {path}',
-    exported: 'Exported ({format}): {path}',
+    saved: 'Estimate saved',
+    exported: '{format} file exported',
     lastSavedBy: 'Last saved: {user} · {when}',
     auditHistoryTitle: 'Save history',
     auditHistoryWhen: 'Date and time',
@@ -1764,6 +1841,34 @@ const en: MessageTree = {
     closeDirtyTitle: 'Unsaved changes',
     closeDirtyBody: 'The estimate «{name}» has unsaved changes. If you close the tab, changes will be lost.',
     closeDirtyDiscard: 'Discard and close',
+  },
+  gantt: {
+    title: 'Gantt planning',
+    lede: 'Plan when activities happen without changing estimate effort.',
+    dayScale: 'Days',
+    monthScale: 'Months',
+    fromMonth: 'From',
+    toMonth: 'To',
+    today: 'Today',
+    showWeekends: 'Show weekends',
+    expandAll: 'Expand all',
+    collapseAll: 'Collapse all',
+    unscheduled: 'To schedule',
+    startDate: 'Start',
+    endDate: 'End',
+    clearDates: 'Clear dates',
+    color: 'Activity color',
+    addMacro: 'Add Macro',
+    addSubtask: 'Add sub-task',
+    noEstimate: 'Open or create an estimate to plan it.',
+    openLibrary: 'Open library',
+    exportXlsx: 'Export XLSX',
+    exported: 'Gantt exported',
+    instructions: 'Select a day and click “To schedule”, or double-click an empty cell.',
+    macroDatesHint: 'Macro dates are calculated from its sub-tasks.',
+    doubleClickHint: 'Double-click to schedule on this day.',
+    estimateTitle: 'Estimate title',
+    resizeActivityColumn: 'Drag to resize; double-click to collapse',
   },
   models: {
     lede: 'Manage your models for estimates',
@@ -1848,7 +1953,7 @@ const en: MessageTree = {
     empty: 'No model. Create a new one.',
     invalid: 'Invalid model',
     saved: 'Model saved',
-    exported: 'Model exported: {path}',
+    exported: 'Model exported',
     defaultSet: 'Default model: «{name}»',
     needOneModel: 'At least one model is required',
     deleteConfirm: 'Delete model «{name}»?',
@@ -1896,7 +2001,7 @@ const en: MessageTree = {
     hideSubsCol: 'Hide sub-tasks column',
     macroRollup: 'Hide or show sub-tasks in export',
     macroDetail: 'Show sub-tasks in export',
-    exported: 'Client view exported ({format}): {path}',
+    exported: 'Client view exported as {format}',
     editHint:'',
     reset: 'Reset',
     resetHint: 'Restore calculated values (including rounding)',

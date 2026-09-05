@@ -173,7 +173,7 @@ async function onImport() {
 async function onExport() {
   try {
     const path = await exportSettings(settings.settings, models.models);
-    if (path) ui.notify(`${t('settings.exported')}: ${path}`);
+    if (path) ui.notify(t('settings.exported'), false, path);
   } catch (e) {
     ui.notify(toErrorMessage(e), true);
   }
@@ -298,7 +298,25 @@ function onExportDateChange(checked: boolean) {
           <dt><kbd>Ctrl/Cmd</kbd><span>+</span><kbd>{{ shortcut[0] }}</kbd></dt>
           <dd>{{ t(`settings.${shortcut[1]}`) }}</dd>
         </template>
+        <dt><kbd>Ctrl/Cmd</kbd><span>+</span><kbd>←</kbd></dt>
+        <dd>{{ t('settings.shortcutPreviousTab') }}</dd>
+        <dt><kbd>Ctrl/Cmd</kbd><span>+</span><kbd>→</kbd></dt>
+        <dd>{{ t('settings.shortcutNextTab') }}</dd>
       </dl>
+    </SettingsPanel>
+
+    <SettingsPanel :title="t('settings.sectionGantt')">
+      <p class="field-hint">{{ t('settings.ganttWeekendIntro') }}</p>
+      <div class="lang-row">
+        <label class="lang-opt compact">
+          <input v-model="settings.settings.ganttWeekendSaturday" type="checkbox" />
+          <span>{{ t('settings.saturday') }}</span>
+        </label>
+        <label class="lang-opt compact">
+          <input v-model="settings.settings.ganttWeekendSunday" type="checkbox" />
+          <span>{{ t('settings.sunday') }}</span>
+        </label>
+      </div>
     </SettingsPanel>
 
     <SettingsPanel :title="t('settings.sectionEstimate')">

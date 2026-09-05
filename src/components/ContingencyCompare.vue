@@ -283,11 +283,13 @@ function applyScenario(index: 0 | 1 | 2) {
 
 .total-row td {
   background: color-mix(in srgb, var(--accent-soft) 55%, var(--surface));
+  text-align: center;
+  vertical-align: middle;
 }
 
 .apply {
-  display: inline-block;
-  margin-top: 0.35rem;
+  display: block;
+  margin: 0.35rem auto 0;
   padding: 0.2rem 0;
   font-size: 0.75rem;
 }

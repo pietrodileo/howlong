@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from 'vue';
+import DisclosureIcon from './DisclosureIcon.vue';
 
 const props = defineProps<{
   title: string;
@@ -33,7 +34,7 @@ watch(
   <details ref="root" class="settings-panel">
     <summary class="settings-panel-head">
       <span class="settings-panel-title">{{ title }}</span>
-      <span class="settings-panel-chev" aria-hidden="true">▸</span>
+      <span class="settings-panel-chev"><DisclosureIcon :expanded="true" /></span>
     </summary>
     <div v-if="intro" class="settings-panel-intro">{{ intro }}</div>
     <div class="settings-panel-body">
@@ -89,6 +90,7 @@ watch(
 .settings-panel-chev {
   font-size: 0.7rem;
   color: var(--muted);
+  transform: rotate(-90deg);
   transition: transform 0.15s ease, color 0.12s ease;
 }
 
@@ -97,9 +99,7 @@ watch(
   color: var(--ink-soft);
 }
 
-.settings-panel[open] .settings-panel-chev {
-  transform: rotate(90deg);
-}
+.settings-panel[open] .settings-panel-chev { transform: rotate(0); }
 
 .settings-panel-intro {
   margin: 0 0 0.65rem;

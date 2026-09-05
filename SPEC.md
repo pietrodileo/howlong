@@ -84,6 +84,7 @@ Stack: **Tauri** (non Electron).
 | **Library** | Elenco stime salvate; rinomina/icona; selezione multipla; export JSON/YAML/XLSX (ZIP se >1); import JSON HowLong |
 | **Working view** | Vista interna: ore base **e** ore con contingency **fianco a fianco** |
 | **Client view** | Vista separata “da mostrare al cliente”: arrotondamenti, eventuali nascoste note interne |
+| **Gantt** | Pianificazione temporale separata dall'effort, con scala giorni/mesi, weekend configurabili ed export XLSX |
 
 ### 4.2 Contingency — regole obbligatorie
 
@@ -230,6 +231,8 @@ export const SettingsSchema = z.object({
   defaultContingencyMode: z.enum(['project', 'categories', 'custom']).default('project'),
   defaultContingencyPlacement: z.enum(['inline', 'separate_line', 'both']).default('both'),
   defaultClientRoundingMode: z.enum(['none', 'ceil_0_5', 'ceil_1', 'round_1']).default('ceil_1'),
+  ganttWeekendSaturday: z.boolean().default(true),
+  ganttWeekendSunday: z.boolean().default(true),
   hoursPerDay: z.number().min(1).max(24).default(8),
   locale: z.enum(['it', 'en']).default('it'),
   username: z.string().default(''),
@@ -250,7 +253,9 @@ Defaults se file assente:
   "contingencyTargetCategories": ["Sviluppo", "Test"],
   "defaultContingencyMode": "project",
   "defaultContingencyPlacement": "both",
-  "defaultClientRoundingMode": "ceil_1"
+  "defaultClientRoundingMode": "ceil_1",
+  "ganttWeekendSaturday": true,
+  "ganttWeekendSunday": true
 }
 ```
 

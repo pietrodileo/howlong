@@ -58,16 +58,31 @@ function onWindowChange() {
   if (newMenuOpen.value) updateMenuPosition();
 }
 
+function onTabShortcut(event: KeyboardEvent) {
+  if ((!event.ctrlKey && !event.metaKey) || event.altKey || event.shiftKey) return;
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+  event.preventDefault();
+  event.stopPropagation();
+  const current = docs.sessions.findIndex((session) => session.sessionId === docs.activeId);
+  const next = current + (event.key === 'ArrowRight' ? 1 : -1);
+  const session = docs.sessions[next];
+  if (!session) return;
+  docs.activate(session.sessionId);
+  emit('activate', session.sessionId);
+}
+
 onMounted(() => {
   document.addEventListener('pointerdown', onDocumentPointerDown);
   window.addEventListener('resize', onWindowChange);
   window.addEventListener('scroll', onWindowChange, true);
+  window.addEventListener('keydown', onTabShortcut, true);
 });
 
 onUnmounted(() => {
   document.removeEventListener('pointerdown', onDocumentPointerDown);
   window.removeEventListener('resize', onWindowChange);
   window.removeEventListener('scroll', onWindowChange, true);
+  window.removeEventListener('keydown', onTabShortcut, true);
 });
 
 // Filtered models for search

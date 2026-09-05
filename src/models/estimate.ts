@@ -17,6 +17,8 @@ export const LineItemSchema = z.object({
   parentId: z.string().nullable().default(null),
   contingencyPercentOverride: z.number().min(0).max(100).nullable().default(null),
   notes: z.string().default(''),
+  /** Colore personalizzato della barra Gantt. */
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   /** Etichette brevi (stile Jira) per presentazione e filtri. */
   tags: z.array(z.string()).default([]),
   clientVisible: z.boolean().default(true),
@@ -73,8 +75,19 @@ export const AuditEntrySchema = z.object({
   username: z.string().min(1),
 });
 
+export const PlanningRangeSchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+}).refine((range) => range.endDate >= range.startDate, {
+  message: 'endDate must be on or after startDate',
+});
+
+export const EstimatePlanningSchema = z.object({
+  items: z.record(z.string(), PlanningRangeSchema).default({}),
+});
+
 export const EstimateSchema = z.object({
-  schemaVersion: z.union([z.literal(1), z.literal(2)]),
+  schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   meta: EstimateMetaSchema,
   modelId: z.string().optional(),
   contingency: EstimateContingencySchema,
@@ -93,13 +106,15 @@ export const EstimateSchema = z.object({
   }),
   /** Cronologia salvataggi: chi e quando. */
   auditHistory: z.array(AuditEntrySchema).default([]),
+  planning: EstimatePlanningSchema.default({ items: {} }),
 });
 
 export type LineItem = z.infer<typeof LineItemSchema>;
 export type AuditEntry = z.infer<typeof AuditEntrySchema>;
 export type Estimate = Omit<z.infer<typeof EstimateSchema>, 'schemaVersion'> & {
-  schemaVersion: 2;
+  schemaVersion: 3;
 };
+export type PlanningRange = z.infer<typeof PlanningRangeSchema>;
 export type EstimateContingency = z.infer<typeof EstimateContingencySchema>;
 export type ClientViewConfig = z.infer<typeof ClientViewSchema>;
 export type ClientLineOverride = z.infer<typeof ClientLineOverrideSchema>;
@@ -115,8 +130,9 @@ export function parseEstimate(data: unknown): { ok: true; data: Estimate } | { o
     ok: true,
     data: {
       ...rest,
-      schemaVersion: 2,
+      schemaVersion: 3,
       auditHistory: result.data.auditHistory ?? [],
+      planning: result.data.planning ?? { items: {} },
     },
   };
 }

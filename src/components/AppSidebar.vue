@@ -28,6 +28,7 @@ const nav = computed(() =>
       { id: 'library' as const, icon: 'library' as const, key: 'nav.library' },
       { id: 'models' as const, icon: 'models' as const, key: 'nav.models' },
       { id: 'compare' as const, icon: 'compare' as const, key: 'nav.compare' },
+      { id: 'gantt' as const, icon: 'gantt' as const, key: 'nav.gantt' },
       { id: 'settings' as const, icon: 'settings' as const, key: 'nav.settings' },
     ] as const
   ).map((item) => ({ ...item, label: t(item.key) })),
@@ -169,6 +170,21 @@ onUnmounted(() => {
             <path d="M3.5 9.5h17" />
             <path d="M3.5 14.5h17" />
             <path d="M9.5 9.5v10" />
+          </svg>
+          <!-- Gantt: timeline -->
+          <svg
+            v-else-if="item.icon === 'gantt'"
+            viewBox="0 0 24 24"
+            width="15"
+            height="15"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 5.5h16M7 3v5m10-5v5M4 9h16v11H4z" />
+            <path d="M7 12h6M10 16h7" />
           </svg>
           <!-- Libreria: cartella -->
           <svg

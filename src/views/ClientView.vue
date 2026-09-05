@@ -11,6 +11,7 @@ import TagPicker from '../components/TagPicker.vue';
 import { useModelsStore } from '../stores/models';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
+import DisclosureIcon from '../components/DisclosureIcon.vue';
 import {
   formatHours,
   formatDays,
@@ -551,7 +552,7 @@ async function onExport(format: EstimateExportFormat, view: 'manager' | 'client'
   try {
     const path = await exportEstimate(estimate.estimate, format, view, settings.settings);
     if (path) {
-      ui.notify(t('client.exported', { format: format.toUpperCase(), path }));
+      ui.notify(t('client.exported', { format: format.toUpperCase(), path }), false, path);
     }
   } catch (e) {
     ui.notify(toErrorMessage(e), true);
@@ -778,7 +779,7 @@ async function onExportFromMenu(
                   :aria-label="allMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
                   @click.stop="toggleAllMacros"
                 >
-                  {{ allMacrosExpanded ? '▾' : '▸' }}
+                  <DisclosureIcon :expanded="allMacrosExpanded" />
                 </button>
                 <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
                 <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
@@ -853,7 +854,7 @@ async function onExportFromMenu(
                     :aria-label="estimate.isCollapsed(line.item.id) ? t('common.expand') : t('common.collapse')"
                     @click="estimate.toggleMacro(line.item.id)"
                   >
-                    {{ estimate.isCollapsed(line.item.id) ? '▸' : '▾' }}
+                    <DisclosureIcon :expanded="!estimate.isCollapsed(line.item.id)" />
                   </button>
                   <span v-else class="collapse-spacer" aria-hidden="true" />
                   <span class="activity-name">{{ line.item.name }}</span>
@@ -1086,7 +1087,7 @@ async function onExportFromMenu(
                       v-tip="allClientPreviewMacrosExpanded ? t('working.collapseAll') : t('working.expandAll')"
                       @click.stop="toggleAllClientPreviewMacros"
                     >
-                      {{ allClientPreviewMacrosExpanded ? '▾' : '▸' }}
+                      <DisclosureIcon :expanded="allClientPreviewMacrosExpanded" />
                     </button>
                     <span v-if="!clientCols.collapsed[key]">{{ clientOutputColumnLabel(key) }}</span>
                     <span v-else class="abbr">{{ clientOutputColumnAbbr(key) }}</span>
@@ -1162,7 +1163,7 @@ async function onExportFromMenu(
                       :aria-label="isClientPreviewCollapsed(line.item.id) ? t('common.expand') : t('common.collapse')"
                       @click="toggleClientPreviewMacro(line.item.id)"
                     >
-                      {{ isClientPreviewCollapsed(line.item.id) ? '▸' : '▾' }}
+                      <DisclosureIcon :expanded="!isClientPreviewCollapsed(line.item.id)" />
                     </button>
                     <span v-else class="collapse-spacer" aria-hidden="true" />
                     <span class="activity-name">{{ line.item.name }}</span>
@@ -1773,12 +1774,14 @@ th.collapsed {
 
 .show-th {
   width: 3.5rem;
+  min-width: 4.5rem !important;
   text-align: center;
 }
 
 .show-cell {
   text-align: center;
   width: 3.5rem;
+  min-width: 4.5rem !important;
 }
 
 .center {

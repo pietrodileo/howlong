@@ -1,10 +1,11 @@
-import type { EstimateExportFormat } from './export';
+import type { EstimateExportFormat, GanttExportOptions } from './export';
 import {
   estimateToJson,
   estimateToAiYaml,
   estimateToXlsx,
   estimateToClientYaml,
   estimateToClientXlsx,
+  ganttToXlsx,
   modelToJson,
   extensionFor,
   mimeFilters,
@@ -41,9 +42,9 @@ async function saveContent(
   const suggested = `${defaultName}.${extensionFor(format)}`;
 
   if (!isTauri()) {
-    if (binary) downloadBrowser(suggested, binary, 'application/octet-stream');
-    else if (text) downloadBrowser(suggested, text, 'text/plain');
-    return suggested;
+    if (binary) return downloadBrowser(suggested, binary, 'application/octet-stream');
+    if (text) return downloadBrowser(suggested, text, 'text/plain');
+    return null;
   }
 
   const path = await saveFileDialog(filters, suggested);
@@ -86,6 +87,15 @@ export async function exportEstimate(
     case 'xlsx':
       return saveContent(base, format, null, view === 'client' ? await estimateToClientXlsx(estimate) : await estimateToXlsx(estimate, manager));
   }
+}
+
+export async function exportGanttXlsx(
+  estimate: Estimate,
+  options: GanttExportOptions,
+  settings?: Settings,
+): Promise<string | null> {
+  const base = exportName(estimate, 'gantt', settings);
+  return saveContent(base, 'xlsx', null, await ganttToXlsx(estimate, options));
 }
 
 export async function exportModel(model: Model): Promise<string | null> {
