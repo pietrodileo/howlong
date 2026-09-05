@@ -1,6 +1,6 @@
 # HowLong? user guide
 
-This guide covers HowLong? `0.5.0` on Windows, macOS, and Linux.
+This guide covers HowLong? `0.5.1` on Windows, macOS, and Linux.
 
 [Project README](README.md) · [Guida italiana](GUIDE.it.md)
 
@@ -76,6 +76,7 @@ Useful actions:
 - Duplicate a row to preserve its configuration. Duplicating a macro also duplicates its children.
 - Double-click a note to use the larger editor; press `Ctrl+Enter` to save it.
 - Use `Ctrl+←` / `Ctrl+→` on Windows and Linux, or `Cmd+←` / `Cmd+→` on macOS, to switch estimate tabs without saving.
+- Use `Ctrl+Z` / `Ctrl+Y` to undo or redo changes in the current tab. macOS also supports `Cmd+Z` / `Cmd+Shift+Z`.
 - Double-click a column header to collapse or restore that column.
 - Applying CTG to a macro propagates the setting to its subtasks.
 
@@ -109,7 +110,7 @@ Open an estimate, then choose **Gantt** in the sidebar.
 
 When a macro contains sub-tasks, its range automatically spans from the earliest planned start to the latest planned end. The Gantt does not change effort, contingency, or totals.
 
-`Ctrl/Cmd+S` saves and `Ctrl/Cmd+T` creates a new estimate tab from the default model while the Gantt is open. Tab-navigation shortcuts work there too.
+`Ctrl/Cmd+S` saves and `Ctrl/Cmd+T` creates a new estimate tab from the default model while the Gantt is open. Tab navigation and Undo/Redo shortcuts work there too.
 
 ## Save, open, and reload
 

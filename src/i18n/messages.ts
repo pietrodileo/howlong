@@ -166,6 +166,8 @@ export type MessageTree = {
     shortcutToggleView: string;
     shortcutPreviousTab: string;
     shortcutNextTab: string;
+    shortcutUndo: string;
+    shortcutRedo: string;
     estimateColumnsIntro: string;
     presentationIntro: string;
     managerViewLegend: string;
@@ -300,6 +302,7 @@ export type MessageTree = {
     closeDirtyDiscard: string;
   };
   gantt: {
+    navLabel: string;
     title: string;
     lede: string;
     dayScale: string;
@@ -944,6 +947,8 @@ const it: MessageTree = {
     shortcutToggleView: 'Passa tra vista stima e vista cliente',
     shortcutPreviousTab: 'Passa alla scheda precedente',
     shortcutNextTab: 'Passa alla scheda successiva',
+    shortcutUndo: 'Annulla l’ultima modifica nella scheda corrente',
+    shortcutRedo: 'Ripristina l’ultima modifica annullata',
     estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
     presentationIntro: 'Definisce la visibilità predefinita delle colonne nella vista Presentazione.',
     managerViewLegend: 'Vista manager',
@@ -1067,6 +1072,7 @@ const it: MessageTree = {
     closeDirtyDiscard: 'Scarta e chiudi',
   },
   gantt: {
+    navLabel: 'Pianifica',
     title: 'Pianificazione Gantt',
     lede: 'Pianifica quando lavorare le attività, senza modificare le ore della stima.',
     dayScale: 'Giorni',
@@ -1721,6 +1727,8 @@ const en: MessageTree = {
     shortcutToggleView: 'Switch between estimate and client view',
     shortcutPreviousTab: 'Switch to the previous tab',
     shortcutNextTab: 'Switch to the next tab',
+    shortcutUndo: 'Undo the last change in the current tab',
+    shortcutRedo: 'Redo the last undone change',
     estimateColumnsIntro: 'Columns shown when you open an estimate.',
     presentationIntro: 'Defines the default visibility of columns in the Presentation view.',
     managerViewLegend: 'Manager view',
@@ -1843,6 +1851,7 @@ const en: MessageTree = {
     closeDirtyDiscard: 'Discard and close',
   },
   gantt: {
+    navLabel: 'Plan',
     title: 'Gantt planning',
     lede: 'Plan when activities happen without changing estimate effort.',
     dayScale: 'Days',

@@ -1,6 +1,6 @@
 # Guida utente di HowLong?
 
-Questa guida descrive HowLong? `0.5.0` su Windows, macOS e Linux.
+Questa guida descrive HowLong? `0.5.1` su Windows, macOS e Linux.
 
 [README del progetto](README.md) · [English guide](GUIDE.en.md)
 
@@ -76,6 +76,7 @@ Azioni utili:
 - Duplica una riga per conservarne la configurazione. Duplicando una macro duplichi anche i figli.
 - Fai doppio clic su una nota per usare l'editor esteso; premi `Ctrl+Invio` per salvarla.
 - Usa `Ctrl+←` / `Ctrl+→` su Windows e Linux, oppure `Cmd+←` / `Cmd+→` su macOS, per cambiare scheda senza salvare.
+- Usa `Ctrl+Z` / `Ctrl+Y` per annullare o ripristinare le modifiche nella scheda corrente. macOS supporta anche `Cmd+Z` / `Cmd+Maiusc+Z`.
 - Fai doppio clic sull'intestazione di una colonna per comprimerla o ripristinarla.
 - Applicare la CTG a una macro propaga l'impostazione ai sotto-task.
 
@@ -109,7 +110,7 @@ Apri una stima, quindi scegli **Gantt** nella barra laterale.
 
 Quando una macro contiene sotto-attività, il suo intervallo va automaticamente dal primo inizio all'ultima fine pianificata. Il Gantt non modifica ore, contingency o totali.
 
-Con il Gantt aperto, `Ctrl/Cmd+S` salva e `Ctrl/Cmd+T` crea una nuova scheda dal modello predefinito. Funzionano anche le scorciatoie per cambiare scheda.
+Con il Gantt aperto, `Ctrl/Cmd+S` salva e `Ctrl/Cmd+T` crea una nuova scheda dal modello predefinito. Funzionano anche le scorciatoie per cambiare scheda e Annulla/Ripristina.
 
 ## Salvare, aprire e ricaricare
 

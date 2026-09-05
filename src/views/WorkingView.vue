@@ -63,11 +63,7 @@ const { t } = useI18n();
 function syncWithDocuments(): void {
   const session = docs.activeSession;
   if (session) {
-    estimate.setEstimate(session.estimate, session.filePath);
-    // Update dirty state
-    if (session.dirty !== estimate.dirty) {
-      estimate.touch();
-    }
+    estimate.restoreEstimate(session.estimate, session.filePath, session.dirty);
     // Sync collapsed macros
     estimate.collapsedMacros = new Set(session.collapsedMacros);
   }
@@ -327,9 +323,24 @@ function onDocPointerDown(e: PointerEvent) {
 }
 
 function onEstimateKeydown(e: KeyboardEvent) {
-  if (!e.ctrlKey && !e.metaKey) return;
+  if ((!e.ctrlKey && !e.metaKey) || e.altKey) return;
 
   const key = e.key.toLowerCase();
+  const historyAction = key === 'z' && !e.shiftKey
+    ? 'undo'
+    : (key === 'y' && e.ctrlKey && !e.shiftKey) || (key === 'z' && e.metaKey && e.shiftKey)
+      ? 'redo'
+      : null;
+  if (historyAction) {
+    e.preventDefault();
+    const session = docs.activeSession;
+    if (!session) return;
+    const restored = historyAction === 'undo' ? docs.undo(session.sessionId) : docs.redo(session.sessionId);
+    const current = docs.activeSession;
+    if (restored && current) estimate.restoreEstimate(restored, current.filePath, current.dirty);
+    return;
+  }
+  if (e.shiftKey) return;
   if (key !== 's' && key !== 't' && key !== 'w' && key !== 'e') return;
 
   e.preventDefault();
@@ -437,6 +448,8 @@ async function doReload() {
       return;
     }
     estimate.setEstimate(result.data, path);
+    const session = docs.activeSession;
+    if (session) docs.replaceSessionEstimate(session.sessionId, result.data, path);
     clientPreview.value = false;
     ui.notify(t('working.reloaded'));
   } catch (e) {

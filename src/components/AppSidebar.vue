@@ -28,7 +28,7 @@ const nav = computed(() =>
       { id: 'library' as const, icon: 'library' as const, key: 'nav.library' },
       { id: 'models' as const, icon: 'models' as const, key: 'nav.models' },
       { id: 'compare' as const, icon: 'compare' as const, key: 'nav.compare' },
-      { id: 'gantt' as const, icon: 'gantt' as const, key: 'nav.gantt' },
+      { id: 'gantt' as const, icon: 'gantt' as const, key: 'gantt.navLabel' },
       { id: 'settings' as const, icon: 'settings' as const, key: 'nav.settings' },
     ] as const
   ).map((item) => ({ ...item, label: t(item.key) })),

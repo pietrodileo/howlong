@@ -106,8 +106,23 @@ async function saveEstimate() {
 }
 
 function onGanttKeydown(event: KeyboardEvent) {
-  if ((!event.ctrlKey && !event.metaKey) || event.altKey || event.shiftKey) return;
+  if ((!event.ctrlKey && !event.metaKey) || event.altKey) return;
   const key = event.key.toLowerCase();
+  const historyAction = key === 'z' && !event.shiftKey
+    ? 'undo'
+    : (key === 'y' && event.ctrlKey && !event.shiftKey) || (key === 'z' && event.metaKey && event.shiftKey)
+      ? 'redo'
+      : null;
+  if (historyAction) {
+    event.preventDefault();
+    const session = docs.activeSession;
+    if (!session) return;
+    const restored = historyAction === 'undo' ? docs.undo(session.sessionId) : docs.redo(session.sessionId);
+    const current = docs.activeSession;
+    if (restored && current) estimate.restoreEstimate(restored, current.filePath, current.dirty);
+    return;
+  }
+  if (event.shiftKey) return;
   if (key !== 's' && key !== 't') return;
   event.preventDefault();
   if (key === 's') {
@@ -136,7 +151,7 @@ watch(
   () => docs.activeSession?.sessionId,
   () => {
     const session = docs.activeSession;
-    if (session) estimate.setEstimate(session.estimate, session.filePath);
+    if (session) estimate.restoreEstimate(session.estimate, session.filePath, session.dirty);
     collapsed.value = new Set();
   },
   { immediate: true },
@@ -624,9 +639,8 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .day-head:hover { background: var(--accent-subtle); color: var(--ink); }
 .day-head.today { color: var(--accent); background: var(--accent-subtle); font-weight: 700; }
 .day-head.selected { color: var(--on-accent); background: var(--accent); font-weight: 700; }
-.activity-row { position: sticky; left: 0; z-index: 3; height: 76px; padding: .55rem .7rem; background: var(--surface); border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
+.activity-row { position: sticky; left: 0; z-index: 3; height: 92px; padding: .55rem .7rem; background: var(--surface); border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
 .activity-row.compact { height: 46px; padding-block: .45rem; }
-.activity-row.planned:not(.compact), .timeline-row.planned:not(.compact) { height: 92px; }
 .activity-row.compact .date-fields { display: none; }
 .activity-row.alternate { background: color-mix(in srgb, var(--page-soft) 72%, var(--surface)); }
 .activity-row.sub { padding-left: 1.6rem; }
@@ -656,7 +670,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .color-picker input::-webkit-color-swatch { border: 1px solid var(--line-strong); border-radius: 50%; }
 .schedule { border: 0; background: transparent; color: var(--accent); padding: .2rem; font-size: .72rem; }
 .schedule:disabled { color: var(--muted); cursor: not-allowed; opacity: .55; }
-.timeline-row { position: relative; height: 76px; border-bottom: 1px solid var(--line); background-color: color-mix(in srgb, var(--page-soft) 84%, var(--surface)); background-image: linear-gradient(to right, color-mix(in srgb, var(--line) 72%, transparent) 1px, transparent 1px); }
+.timeline-row { position: relative; height: 92px; border-bottom: 1px solid var(--line); background-color: color-mix(in srgb, var(--page-soft) 84%, var(--surface)); background-image: linear-gradient(to right, color-mix(in srgb, var(--line) 72%, transparent) 1px, transparent 1px); }
 .timeline-row.compact { height: 46px; }
 .timeline-row.planned:not(.compact) .gantt-bar { top: 32px; }
 .timeline-row.compact .gantt-bar { top: 9px; }

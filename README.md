@@ -4,7 +4,7 @@
 
 HowLong? is a local-first desktop application for creating, comparing, and sharing project estimates without relying on spreadsheets. It combines reusable estimate models, contingency calculations, manager and client views, and multi-format exports in a lightweight native app.
 
-**Current version:** `0.5.0`
+**Current version:** `0.5.1`
 
 User guides: [English](GUIDE.en.md) · [Italiano](GUIDE.it.md)
 
@@ -145,9 +145,9 @@ HowLong? follows semantic versioning in the form `x.y.z`:
 
 Examples:
 
-- `0.5.0` → `0.5.1` for a bug fix
-- `0.5.0` → `0.6.0` for a new feature
-- `0.5.0` → `1.0.0` for the first stable major release
+- `0.5.1` → `0.5.2` for a bug fix
+- `0.5.1` → `0.6.0` for a new feature
+- `0.5.1` → `1.0.0` for the first stable major release
 
 Keep the version synchronized in:
 

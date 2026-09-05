@@ -40,10 +40,12 @@ import { toErrorMessage } from '../lib/errors';
 import { formatAuditDateTime } from '../lib/formatAuditDate';
 import { readTextFile, isTauri } from '../lib/tauri';
 import { importEstimateText } from '../lib/import';
+import { useDocumentsStore } from '../stores/documents';
 
 const NOTES_PREVIEW_MAX = 72;
 
 const estimate = useEstimateStore();
+const docs = useDocumentsStore();
 const ui = useUiStore();
 const settings = useSettingsStore();
 const library = useLibraryStore();
@@ -287,6 +289,8 @@ async function doReload() {
       return;
     }
     estimate.setEstimate(result.data, path);
+    const session = docs.activeSession;
+    if (session) docs.replaceSessionEstimate(session.sessionId, result.data, path);
     ui.notify(t('working.reloaded'));
   } catch (e) {
     ui.notify(toErrorMessage(e), true);
