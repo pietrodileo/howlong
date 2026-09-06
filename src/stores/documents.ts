@@ -6,6 +6,16 @@ import { createEmptyEstimate, createEstimateFromModel } from '../lib/factory';
 import { newId } from '../lib/ids';
 import { addRecentOpenPath } from '../lib/recentOpen';
 import { useSettingsStore } from './settings';
+import {
+  createEstimateHistory,
+  cloneEstimateSnapshot,
+  isEstimateHistoryDirty,
+  markEstimateHistorySaved,
+  recordEstimate,
+  redoEstimate,
+  undoEstimate,
+  type EstimateHistory,
+} from '../lib/estimateHistory';
 
 export type SessionId = string;
 
@@ -16,6 +26,7 @@ export interface DocumentSession {
   dirty: boolean;
   displayTitle: string;
   collapsedMacros: Set<string>;
+  history: EstimateHistory;
 }
 
 export const useDocumentsStore = defineStore('documents', () => {
@@ -62,6 +73,7 @@ export const useDocumentsStore = defineStore('documents', () => {
       dirty: false,
       displayTitle: 'Untitled',
       collapsedMacros: new Set(),
+      history: createEstimateHistory(estimate),
     };
     
     sessions.value = [...sessions.value, newSession];
@@ -81,6 +93,7 @@ export const useDocumentsStore = defineStore('documents', () => {
       dirty: false,
       displayTitle: model.name,
       collapsedMacros: new Set(),
+      history: createEstimateHistory(estimate),
     };
     
     sessions.value = [...sessions.value, newSession];
@@ -100,6 +113,7 @@ export const useDocumentsStore = defineStore('documents', () => {
       dirty: false,
       displayTitle: estimateData.meta.title || 'Untitled',
       collapsedMacros: new Set(),
+      history: createEstimateHistory(estimateData),
     };
     
     // Check if this file is already open
@@ -141,31 +155,67 @@ export const useDocumentsStore = defineStore('documents', () => {
   function updateSessionEstimate(sessionId: SessionId, estimate: Estimate): void {
     const index = sessions.value.findIndex(s => s.sessionId === sessionId);
     if (index !== -1) {
+      const session = sessions.value[index];
+      recordEstimate(session.history, estimate);
       sessions.value[index] = {
-        ...sessions.value[index],
-        estimate,
-        dirty: true,
+        ...session,
+        estimate: cloneEstimateSnapshot(estimate),
+        dirty: isEstimateHistoryDirty(session.history),
         displayTitle: estimate.meta.title || 'Untitled',
       };
     }
+  }
+
+  function replaceSessionEstimate(sessionId: SessionId, estimate: Estimate, filePath: string | null): void {
+    const index = sessions.value.findIndex(s => s.sessionId === sessionId);
+    if (index === -1) return;
+    sessions.value[index] = {
+      ...sessions.value[index],
+      estimate: cloneEstimateSnapshot(estimate),
+      filePath,
+      dirty: false,
+      displayTitle: estimate.meta.title || 'Untitled',
+      history: createEstimateHistory(estimate),
+    };
+  }
+
+  function undo(sessionId: SessionId): Estimate | null {
+    const index = sessions.value.findIndex(s => s.sessionId === sessionId);
+    if (index === -1) return null;
+    const session = sessions.value[index];
+    const restored = undoEstimate(session.history);
+    if (!restored) return null;
+    sessions.value[index] = {
+      ...session,
+      estimate: restored,
+      dirty: isEstimateHistoryDirty(session.history),
+      displayTitle: restored.meta.title || 'Untitled',
+    };
+    return cloneEstimateSnapshot(restored);
+  }
+
+  function redo(sessionId: SessionId): Estimate | null {
+    const index = sessions.value.findIndex(s => s.sessionId === sessionId);
+    if (index === -1) return null;
+    const session = sessions.value[index];
+    const restored = redoEstimate(session.history);
+    if (!restored) return null;
+    sessions.value[index] = {
+      ...session,
+      estimate: restored,
+      dirty: isEstimateHistoryDirty(session.history),
+      displayTitle: restored.meta.title || 'Untitled',
+    };
+    return cloneEstimateSnapshot(restored);
   }
 
   // Update a session's metadata
   function updateSessionMeta(sessionId: SessionId, metaUpdates: Partial<Estimate['meta']>): void {
     const index = sessions.value.findIndex(s => s.sessionId === sessionId);
     if (index !== -1) {
-      sessions.value[index] = {
-        ...sessions.value[index],
-        estimate: {
-          ...sessions.value[index].estimate,
-          meta: {
-            ...sessions.value[index].estimate.meta,
-            ...metaUpdates,
-          },
-        },
-        dirty: true,
-        displayTitle: metaUpdates.title || sessions.value[index].displayTitle,
-      };
+      const estimate = cloneEstimateSnapshot(sessions.value[index].estimate);
+      estimate.meta = { ...estimate.meta, ...metaUpdates };
+      updateSessionEstimate(sessionId, estimate);
     }
   }
 
@@ -173,6 +223,7 @@ export const useDocumentsStore = defineStore('documents', () => {
   function markSaved(sessionId: SessionId, filePath: string): void {
     const index = sessions.value.findIndex(s => s.sessionId === sessionId);
     if (index !== -1) {
+      markEstimateHistorySaved(sessions.value[index].history);
       sessions.value[index] = {
         ...sessions.value[index],
         filePath,
@@ -266,6 +317,9 @@ export const useDocumentsStore = defineStore('documents', () => {
     reorderSessions,
     markActive,
     updateSessionEstimate,
+    replaceSessionEstimate,
+    undo,
+    redo,
     updateSessionMeta,
     markSaved,
     markDirty,

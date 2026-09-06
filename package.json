@@ -1,7 +1,7 @@
 {
   "name": "howlong",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,8 @@
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "smoke": "tsx scripts/smoke-contingency.ts",
-    "smoke:gantt": "tsx scripts/smoke-gantt.ts"
+    "smoke:gantt": "tsx scripts/smoke-gantt.ts",
+    "smoke:history": "tsx scripts/smoke-history.ts"
   },
   "dependencies": {
     "@fontsource/literata": "^5.3.0",

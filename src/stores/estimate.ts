@@ -101,6 +101,19 @@ export const useEstimateStore = defineStore('estimate', () => {
     return true;
   }
 
+  function restoreEstimate(next: Estimate, path: string | null, isDirty: boolean) {
+    const parsed = parseEstimate(next);
+    if (!parsed.ok) {
+      lastError.value = parsed.error;
+      return false;
+    }
+    estimate.value = parsed.data;
+    filePath.value = path;
+    dirty.value = isDirty;
+    lastError.value = null;
+    return true;
+  }
+
   function newFromModel(model: Model) {
     setEstimate(createEstimateFromModel(model, settingsStore.settings));
   }
@@ -591,6 +604,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     clientTitle,
     hasClientOverrides,
     setEstimate,
+    restoreEstimate,
     newFromModel,
     newEmpty,
     updateMeta,

@@ -22,7 +22,7 @@ const GanttView = defineAsyncComponent(() => import('./views/GanttView.vue'));
 const WelcomeView = defineAsyncComponent(() => import('./views/WelcomeView.vue'));
 const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTabs.vue'));
 
-const APP_VERSION = '0.5.0';
+const APP_VERSION = '0.5.1';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -56,7 +56,7 @@ const pageTitle = computed(() => {
   const keys: Record<AppView, string> = {
     welcome: 'nav.welcome',
     working: 'nav.working',
-    gantt: 'nav.gantt',
+    gantt: 'gantt.navLabel',
     library: 'nav.library',
     models: 'nav.models',
     compare: 'nav.compare',

@@ -294,10 +294,13 @@ function onExportDateChange(checked: boolean) {
           ['T', 'shortcutNewTab'],
           ['W', 'shortcutCloseTab'],
           ['E', 'shortcutToggleView'],
+          ['Z', 'shortcutUndo'],
         ]" :key="shortcut[0]">
           <dt><kbd>Ctrl/Cmd</kbd><span>+</span><kbd>{{ shortcut[0] }}</kbd></dt>
           <dd>{{ t(`settings.${shortcut[1]}`) }}</dd>
         </template>
+        <dt><kbd>Ctrl+Y</kbd><span>/</span><kbd>Cmd+Shift+Z</kbd></dt>
+        <dd>{{ t('settings.shortcutRedo') }}</dd>
         <dt><kbd>Ctrl/Cmd</kbd><span>+</span><kbd>←</kbd></dt>
         <dd>{{ t('settings.shortcutPreviousTab') }}</dd>
         <dt><kbd>Ctrl/Cmd</kbd><span>+</span><kbd>→</kbd></dt>
