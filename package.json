@@ -19,7 +19,6 @@
     "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2",
-    "@tauri-apps/plugin-fs": "^2",
     "exceljs": "^4.4.0",
     "fflate": "^0.8.3",
     "papaparse": "^5.5.2",

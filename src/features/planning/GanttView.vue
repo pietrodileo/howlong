@@ -616,7 +616,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
         <div v-if="newMenuOpen" class="model-menu" role="menu" @pointerdown.stop>
           <input v-model="modelSearch" type="search" :placeholder="t('working.searchModel')" />
           <button v-for="model in filteredModels" :key="model.id" type="button" role="menuitem" @click="createEstimateFromModel(model.id)">
-            <span>{{ model.name }}</span>
+            <span class="model-name">{{ model.name }}</span>
             <span v-if="modelsStore.isDefault(model.id)" class="badge">{{ t('common.default') }}</span>
           </button>
           <p v-if="filteredModels.length === 0">{{ t('working.noModels') }}</p>
@@ -724,10 +724,11 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .new-estimate-caret { min-width: 2.1rem; padding-inline: .45rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 .model-menu { position: absolute; top: calc(100% + .4rem); left: 0; z-index: 40; width: 280px; padding: .5rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-menu); }
 .model-menu input { width: 100%; margin-bottom: .4rem; }
-.model-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: .5rem .65rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); text-align: left; }
+.model-menu button { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; min-width: 0; padding: .5rem .65rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); text-align: left; }
 .model-menu button:hover { background: var(--accent-subtle); }
 .model-menu p { margin: .4rem; color: var(--muted); }
-.badge { padding: .12rem .4rem; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: .65rem; text-transform: uppercase; }
+.model-menu .model-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge { flex-shrink: 0; padding: .12rem .4rem; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: .65rem; text-transform: uppercase; }
 @media (max-width: 900px) {
   .gantt-head { justify-content: flex-start; }
   .gantt-grid { grid-template-columns: 360px var(--timeline-w); }
