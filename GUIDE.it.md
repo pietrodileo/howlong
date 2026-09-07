@@ -43,6 +43,8 @@ Le modifiche rimangono nella sessione attiva finché non salvi. Esportare non eq
 
 ## Creare e gestire i modelli
 
+HowLong? include modelli standard in italiano e inglese pronti per creare nuove stime.
+
 1. Seleziona **Modelli** e crea un nuovo modello.
 2. Assegna un nome riconoscibile e un'icona.
 3. Aggiungi macro-attività ed eventuali sotto-task.

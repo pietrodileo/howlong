@@ -43,6 +43,8 @@ Changes to an estimate remain in the active session until you save them. Exporti
 
 ## Create and maintain models
 
+HowLong? includes Italian and English standard models as ready-to-use starting points.
+
 1. Select **Models** and create a new model.
 2. Give it a recognizable name and icon.
 3. Add macro activities and optional subtasks.

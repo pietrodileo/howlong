@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import defaultEnglishModelJson from '../../models/default.howlong_eng.json';
 import { normalizeModelInput } from '../domain/normalizeTags';
 import {
   ContingencyModeSchema,
@@ -124,6 +125,8 @@ export const DEFAULT_MODEL: Model = {
     placement: 'both',
   },
 };
+
+export const DEFAULT_ENGLISH_MODEL: Model = ModelSchema.parse(defaultEnglishModelJson);
 
 export function parseModel(data: unknown): { ok: true; data: Model } | { ok: false; error: string } {
   const result = ModelSchema.safeParse(normalizeModelInput(data));

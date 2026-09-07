@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "standard-model",
+  "name": "Standard model",
+  "macroActivities": [
+    { "id": "1", "name": "Analysis and documentation", "category": "Analysis", "defaultHours": 0, "kind": "operational" },
+    { "id": "2", "name": "Development", "category": "Development", "defaultHours": 0, "kind": "operational" },
+    { "id": "3", "name": "Test", "category": "Test", "defaultHours": 0, "kind": "operational" },
+    { "id": "4", "name": "Validation", "category": "Validation", "defaultHours": 0, "kind": "operational" },
+    { "id": "5", "name": "Release and monitoring", "category": "Release", "defaultHours": 0, "kind": "operational" }
+  ],
+  "categories": ["Analysis", "Development", "Test", "Validation", "Release"],
+  "contingency": {
+    "defaultPercent": 20,
+    "mode": "project",
+    "targetCategories": [],
+    "placement": "both"
+  }
+}

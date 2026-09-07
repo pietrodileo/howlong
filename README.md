@@ -16,7 +16,7 @@ All project data remains in local JSON files. No account, hosted service, or dat
 
 ## Features
 
-- Build estimates from reusable models and hierarchical work items.
+- Build estimates from reusable models and hierarchical work items, starting from the bundled Italian or English standard model.
 - Plan estimate activities on an adaptive day- or month-based Gantt timeline with configurable weekend days.
 - Analyze the open estimate with summary metrics, an interactive activity donut, and stacked base-versus-contingency bars in hours or days.
 - Drill into one macro's subtasks or selectively expand subtasks from several macros across both Analytics charts.
