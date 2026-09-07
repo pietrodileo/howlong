@@ -39,7 +39,7 @@ assert.equal(parseEstimate({
 
 const xlsx = await ganttToXlsx(estimate, {
   from: '2026-09-01',
-  to: '2026-09-30',
+  to: '2026-09-07',
   scale: 'day',
   includeWeekends: false,
 });
@@ -55,6 +55,24 @@ assert.equal(ganttSheet.getCell('F7').border.right?.style, 'thin');
 assert.equal(ganttSheet.getCell('I7').fill.type, 'pattern');
 assert.equal((ganttSheet.getCell('I8').fill as { fgColor?: { argb?: string } }).fgColor?.argb, 'FFC2410C');
 assert.equal(ganttSheet.getRow(8).outlineLevel, 1);
+assert.deepEqual(
+  ganttSheet.getRow(6).values.slice(6).map((value) => (value as Date).toISOString().slice(0, 10)),
+  ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-07'],
+);
+
+const weekendsShown = await ganttToXlsx({ ...estimate, planning: { items: {} } }, {
+  from: '2026-09-04',
+  to: '2026-09-07',
+  scale: 'day',
+  includeWeekends: true,
+});
+const weekendsWorkbook = new ExcelJS.Workbook();
+await weekendsWorkbook.xlsx.load(weekendsShown as unknown as ArrayBuffer);
+const weekendsSheet = weekendsWorkbook.getWorksheet('Gantt')!;
+const timelineFills = weekendsSheet.getRow(7).values.slice(6).map((_, index) =>
+  (weekendsSheet.getRow(7).getCell(6 + index).fill as { fgColor?: { argb?: string } }).fgColor?.argb,
+);
+assert.deepEqual(timelineFills, [undefined, 'FFF3F5F8', 'FFF3F5F8', undefined]);
 
 for (const [bytes, sheetName] of [
   [await estimateToXlsx(estimate), 'Estimate'],

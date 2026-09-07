@@ -204,8 +204,9 @@ export type GanttExportOptions = {
   weekendDays?: number[];
 };
 
+/** Convert an ISO calendar date without shifting it across time zones. */
 function excelDate(value: string): Date {
-  return new Date(`${value}T00:00:00`);
+  return new Date(`${value}T00:00:00Z`);
 }
 
 /** Gantt colorato, separato dai calcoli di effort. */
@@ -309,7 +310,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
           timelineCell.fill = {
             type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${barColor}` },
           };
-        } else if (options.scale === 'day' && (options.weekendDays ?? [0, 6]).includes(slot.label.getDay())) {
+        } else if (options.scale === 'day' && (options.weekendDays ?? [0, 6]).includes(slot.label.getUTCDay())) {
           timelineCell.fill = {
             type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F5F8' },
           };
