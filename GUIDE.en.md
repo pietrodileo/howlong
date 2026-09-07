@@ -1,6 +1,6 @@
 # HowLong? user guide
 
-This guide covers HowLong? `0.5.2` on Windows, macOS, and Linux.
+This guide covers HowLong? `0.6.0` on Windows, macOS, and Linux.
 
 [Project README](README.md) · [Guida italiana](GUIDE.it.md)
 
@@ -37,6 +37,8 @@ Changes to an estimate remain in the active session until you save them. Exporti
 | Library | Search, open, rename, compare, import, export, or delete saved estimates |
 | Models | Create and maintain reusable estimate templates |
 | Compare | Compare two or more saved estimates |
+| Plan | Schedule the open estimate on a Gantt timeline |
+| Analytics | Explore effort and contingency in the open estimate |
 | Settings | Configure language, theme, storage, exports, and workspace backups |
 
 ## Create and maintain models
@@ -98,7 +100,7 @@ Select **Compare CTG** to test three percentages side by side. **Use** applies t
 
 ## Plan with the Gantt
 
-Open an estimate, then choose **Gantt** in the sidebar.
+Open an estimate, then choose **Plan** in the sidebar.
 
 1. Use **To schedule** to assign the first dates to a macro or sub-task.
 2. Edit start and end through the date fields, or drag and resize the bar.
@@ -111,6 +113,20 @@ Open an estimate, then choose **Gantt** in the sidebar.
 When a macro contains sub-tasks, its range automatically spans from the earliest planned start to the latest planned end. The Gantt does not change effort, contingency, or totals.
 
 `Ctrl/Cmd+S` saves and `Ctrl/Cmd+T` creates a new estimate tab from the default model while the Gantt is open. Tab navigation and Undo/Redo shortcuts work there too.
+
+## Analyze the open estimate
+
+Open an estimate, then choose **Analytics** below **Plan** in the sidebar. Analytics reads the active estimate without changing or saving it.
+
+- Use the global **Hours / Days** selector to change every displayed effort value. Day conversion uses the estimate's hours-per-day setting.
+- Review the Base, Contingency, Base + contingency, and Contingency rate summary cards.
+- Use the donut's metric menu to display Base, Contingency, or Base + contingency. The combined value is selected by default.
+- Hover a donut segment to see its percentage and use the legend for the value and percentage together.
+- Click an expandable macro in the donut, legend, or horizontal bars to show only that macro's subtasks in both charts. Use **All macros** to return.
+- Open **Show tasks** to select one or more macros whose subtasks should replace the macro in both overview charts. Only macros with subtasks are offered; **Clear selection** restores the macro overview.
+- Read the horizontal stacked bars to compare base effort with its contingency component. Macro and subtask indicators show which rows can be explored and which rows are children.
+
+The task-selection state is temporary and isolated to the current open document. It resets when you switch documents. Layout and labels adapt when the sidebar or window reduces the available width.
 
 ## Save, open, and reload
 

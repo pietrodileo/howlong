@@ -330,6 +330,33 @@ export type MessageTree = {
     estimateTitle: string;
     resizeActivityColumn: string;
   };
+  analytics: {
+    navLabel: string;
+    title: string;
+    lede: string;
+    unit: string;
+    metric: string;
+    base: string;
+    contingency: string;
+    combined: string;
+    contingencyOnly: string;
+    contingencyRate: string;
+    macros: string;
+    subtasks: string;
+    effortDistribution: string;
+    allMacros: string;
+    donutAria: string;
+    legend: string;
+    baseVsContingency: string;
+    noMetricData: string;
+    noData: string;
+    noEstimate: string;
+    showTasks: string;
+    tasksSelected: string;
+    clearTasks: string;
+    clickForSubtasks: string;
+    subtaskOf: string;
+  };
   models: {
     lede: string;
     listAria: string;
@@ -1099,6 +1126,33 @@ const it: MessageTree = {
     doubleClickHint: 'Doppio clic per pianificare in questo giorno.',
     estimateTitle: 'Titolo della stima',
     resizeActivityColumn: 'Trascina per ridimensionare; doppio clic per comprimere',
+  },
+  analytics: {
+    navLabel: 'Analisi Dati',
+    title: 'Analytics',
+    lede: 'Esplora la distribuzione dell\'impegno e della contingency nella stima aperta.',
+    unit: 'Unità dei grafici',
+    metric: 'Metrica del grafico',
+    base: 'Base',
+    contingency: 'Solo contingency',
+    combined: 'Base + contingency',
+    contingencyOnly: 'Contingency',
+    contingencyRate: 'Incidenza contingency',
+    macros: 'Macro',
+    subtasks: 'Sotto-task',
+    effortDistribution: 'Distribuzione delle attività',
+    allMacros: 'Tutte le macro',
+    donutAria: 'Grafico ad anello della distribuzione dell\'impegno',
+    legend: 'Legenda del grafico',
+    baseVsContingency: 'Base e contingency',
+    noMetricData: 'Nessun valore per la metrica selezionata.',
+    noData: 'La stima non contiene attività incluse con un valore maggiore di zero.',
+    noEstimate: 'Apri o crea una stima per visualizzarne gli analytics.',
+    showTasks: 'Mostra task',
+    tasksSelected: 'Task: {count} macro',
+    clearTasks: 'Cancella selezione',
+    clickForSubtasks: 'Clicca per vedere i dettagli dei sotto-task',
+    subtaskOf: 'Sotto-task di {name}',
   },
   models: {
     lede: 'Gestisci modelli per le tue stime',
@@ -1878,6 +1932,33 @@ const en: MessageTree = {
     doubleClickHint: 'Double-click to schedule on this day.',
     estimateTitle: 'Estimate title',
     resizeActivityColumn: 'Drag to resize; double-click to collapse',
+  },
+  analytics: {
+    navLabel: 'Analytics',
+    title: 'Analytics',
+    lede: 'Explore effort and contingency distribution in the open estimate.',
+    unit: 'Chart unit',
+    metric: 'Chart metric',
+    base: 'Base',
+    contingency: 'Contingency only',
+    combined: 'Base + contingency',
+    contingencyOnly: 'Contingency',
+    contingencyRate: 'Contingency rate',
+    macros: 'Macros',
+    subtasks: 'Subtasks',
+    effortDistribution: 'Activity distribution',
+    allMacros: 'All macros',
+    donutAria: 'Donut chart of effort distribution',
+    legend: 'Chart legend',
+    baseVsContingency: 'Base and contingency',
+    noMetricData: 'No values for the selected metric.',
+    noData: 'This estimate has no included activities with a value above zero.',
+    noEstimate: 'Open or create an estimate to view its analytics.',
+    showTasks: 'Show tasks',
+    tasksSelected: 'Tasks: {count} macros',
+    clearTasks: 'Clear selection',
+    clickForSubtasks: 'Click to see subtask details',
+    subtaskOf: 'Subtask of {name}',
   },
   models: {
     lede: 'Manage your models for estimates',

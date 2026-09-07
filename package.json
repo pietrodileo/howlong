@@ -1,7 +1,7 @@
 {
   "name": "howlong",
   "private": true,
-  "version": "0.5.2",
+  "version": "0.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,8 @@
     "smoke": "tsx scripts/smoke-contingency.ts",
     "smoke:gantt": "tsx scripts/smoke-gantt.ts",
     "smoke:history": "tsx scripts/smoke-history.ts",
-    "smoke:documents": "node --import tsx scripts/smoke-document-sync.ts"
+    "smoke:documents": "node --import tsx scripts/smoke-document-sync.ts",
+    "smoke:analytics": "tsx scripts/smoke-analytics.ts"
   },
   "dependencies": {
     "@fontsource/literata": "^5.3.0",

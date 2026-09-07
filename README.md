@@ -2,9 +2,9 @@
 
 > Effort, made obvious.
 
-HowLong? is a local-first desktop application for creating, comparing, and sharing project estimates without relying on spreadsheets. It combines reusable estimate models, contingency calculations, manager and client views, and multi-format exports in a lightweight native app.
+HowLong? is a local-first desktop application for creating, analyzing, comparing, and sharing project estimates without relying on spreadsheets. It combines reusable estimate models, contingency calculations, interactive analytics, manager and client views, and multi-format exports in a lightweight native app.
 
-**Current version:** `0.5.2`
+**Current version:** `0.6.0`
 
 User guides: [English](GUIDE.en.md) · [Italiano](GUIDE.it.md)
 
@@ -18,6 +18,8 @@ All project data remains in local JSON files. No account, hosted service, or dat
 
 - Build estimates from reusable models and hierarchical work items.
 - Plan estimate activities on an adaptive day- or month-based Gantt timeline with configurable weekend days.
+- Analyze the open estimate with summary metrics, an interactive activity donut, and stacked base-versus-contingency bars in hours or days.
+- Drill into one macro's subtasks or selectively expand subtasks from several macros across both Analytics charts.
 - Apply contingency globally, by category, or by individual item.
 - Add derived formula rows for overhead, management, and related effort.
 - Maintain notes, tags, project metadata, and an audit history.
@@ -95,9 +97,10 @@ The browser mode is useful for interface work, but native filesystem and dialog 
 npm run build
 npm run smoke
 npm run smoke:gantt
+npm run smoke:analytics
 ```
 
-`npm run build` type-checks and bundles the frontend. The smoke commands check contingency and Gantt date calculations.
+`npm run build` type-checks and bundles the frontend. The smoke commands check contingency, Gantt date calculations, and Analytics graph projections.
 
 ## Release builds
 
@@ -154,7 +157,7 @@ Keep the version synchronized in:
 - `package.json` and `package-lock.json`
 - `src-tauri/Cargo.toml` and `src-tauri/Cargo.lock`
 - `src-tauri/tauri.conf.json`
-- `src/App.vue`, which displays the version in the About dialog
+- `src/app/App.vue`, which displays the version in the About dialog
 
 ## Repository layout
 
@@ -165,7 +168,7 @@ Contributor conventions and refactoring safeguards are documented in [AGENTS.md]
 ├── src/
 │   ├── app/            Application shell, navigation, localization, and global UI
 │   ├── domain/         Cross-feature calculations and data transformations
-│   ├── features/       Estimate, planning, comparison, models, library, and settings
+│   ├── features/       Estimate, planning, analytics, comparison, models, library, and settings
 │   ├── models/         Shared schemas and domain types
 │   ├── platform/       Tauri integration and file import/export
 │   └── shared/         Reusable components, composables, state, and small utilities

@@ -1,6 +1,6 @@
 # Guida utente di HowLong?
 
-Questa guida descrive HowLong? `0.5.2` su Windows, macOS e Linux.
+Questa guida descrive HowLong? `0.6.0` su Windows, macOS e Linux.
 
 [README del progetto](README.md) · [English guide](GUIDE.en.md)
 
@@ -37,6 +37,8 @@ Le modifiche rimangono nella sessione attiva finché non salvi. Esportare non eq
 | Libreria | Cercare, aprire, rinominare, confrontare, importare, esportare o eliminare stime |
 | Modelli | Creare e mantenere template di stima riusabili |
 | Confronta | Confrontare due o più stime salvate |
+| Pianifica | Pianificare la stima aperta su una timeline Gantt |
+| Analisi Dati | Esplorare effort e contingency della stima aperta |
 | Impostazioni | Configurare lingua, tema, archiviazione, export e backup del workspace |
 
 ## Creare e gestire i modelli
@@ -98,7 +100,7 @@ Seleziona **Confronta CTG** per provare tre percentuali affiancate. **Usa** appl
 
 ## Pianificare con il Gantt
 
-Apri una stima, quindi scegli **Gantt** nella barra laterale.
+Apri una stima, quindi scegli **Pianifica** nella barra laterale.
 
 1. Usa **Da pianificare** per assegnare le prime date a una macro o sotto-attività.
 2. Modifica inizio e fine con i campi data oppure trascina e ridimensiona la barra.
@@ -111,6 +113,20 @@ Apri una stima, quindi scegli **Gantt** nella barra laterale.
 Quando una macro contiene sotto-attività, il suo intervallo va automaticamente dal primo inizio all'ultima fine pianificata. Il Gantt non modifica ore, contingency o totali.
 
 Con il Gantt aperto, `Ctrl/Cmd+S` salva e `Ctrl/Cmd+T` crea una nuova scheda dal modello predefinito. Funzionano anche le scorciatoie per cambiare scheda e Annulla/Ripristina.
+
+## Analizzare la stima aperta
+
+Apri una stima, quindi scegli **Analisi Dati** sotto **Pianifica** nella barra laterale. La vista legge la stima attiva senza modificarla o salvarla.
+
+- Usa il selettore globale **Ore / Giorni** per cambiare tutti i valori di effort mostrati. La conversione in giorni usa le ore per giorno della stima.
+- Controlla le schede Base, Contingency, Base + contingency e Incidenza contingency.
+- Usa il menu del grafico ad anello per mostrare Base, Contingency oppure Base + contingency. Il valore complessivo è selezionato per default.
+- Passa il puntatore su un settore per visualizzarne la percentuale; la legenda mostra insieme valore e percentuale.
+- Seleziona una macro espandibile nel grafico, nella legenda o nelle barre orizzontali per mostrare i suoi sotto-task in entrambi i grafici. Usa **Tutte le macro** per tornare indietro.
+- Apri **Mostra task** per scegliere una o più macro da sostituire con i relativi sotto-task in entrambi i grafici panoramici. Il menu propone solo macro con sotto-task; **Cancella selezione** ripristina la vista per macro.
+- Usa le barre orizzontali sovrapposte per confrontare effort base e relativa contingency. Gli indicatori distinguono le macro esplorabili dai sotto-task.
+
+La selezione dei task è temporanea e isolata al documento aperto. Viene azzerata quando cambi documento. Layout ed etichette si adattano quando la barra laterale o la finestra riducono lo spazio disponibile.
 
 ## Salvare, aprire e ricaricare
 

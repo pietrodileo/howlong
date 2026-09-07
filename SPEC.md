@@ -27,7 +27,8 @@ L’app deve:
 5. Gestire **contingency** a livello progetto, per categoria, o **custom per voce**, con confronto fianco a fianco e cambio % **al volo**.
 6. Usare **modelli JSON** riusabili (macro-attività) per nuove stime.
 7. Avere una **vista cliente** separata (arrotondamenti / presentazione).
-8. Girare su **Windows 10/11** (priorità) e essere multi-OS (Linux; macOS opzionale).
+8. Analizzare la stima aperta con grafici interattivi di effort e contingency.
+9. Girare su **Windows 10/11** (priorità) e essere multi-OS (Linux; macOS opzionale).
 
 Stack: **Tauri** (non Electron).
 
@@ -85,6 +86,7 @@ Stack: **Tauri** (non Electron).
 | **Working view** | Vista interna: ore base **e** ore con contingency **fianco a fianco** |
 | **Client view** | Vista separata “da mostrare al cliente”: arrotondamenti, eventuali nascoste note interne |
 | **Gantt** | Pianificazione temporale separata dall'effort, con scala giorni/mesi, weekend configurabili ed export XLSX |
+| **Analytics** | Analisi non distruttiva della stima aperta con totali, distribuzione delle attività e confronto base/contingency |
 
 ### 4.2 Contingency — regole obbligatorie
 
@@ -197,7 +199,21 @@ Vista presentabile della **stima corrente**, aperta dal bottone in Stima (non un
 - Titolo presentabile (`titleOverride` o meta.title).
 - Export dedicato YAML / XLSX.
 
-### 4.6 Formati file
+### 4.6 Analytics
+
+Vista globale **Analisi Dati**, posizionata sotto **Pianifica** e disponibile quando una stima è aperta:
+
+- Quattro indicatori: Base, Contingency, Base + contingency e incidenza percentuale della contingency.
+- Selettore globale Ore/Giorni; la conversione usa `hoursPerDay` della stima.
+- Grafico ad anello SVG nativo con distribuzione iniziale per macro, percentuali al passaggio del puntatore e legenda con valore e percentuale.
+- Metrica selezionabile tra Base, Contingency e Base + contingency; il valore complessivo è il default.
+- Drill-down sincronizzato: click su una macro espandibile nell'anello, nella legenda o nelle barre mostra soltanto i suoi sotto-task in entrambi i grafici; un comando ripristina tutte le macro.
+- Menu **Mostra task**: seleziona più macro con sotto-task e sostituisce ciascuna macro scelta con i suoi figli nei due grafici panoramici. La selezione può essere cancellata, non è persistita e viene azzerata al cambio del documento attivo.
+- Barre orizzontali sovrapposte per confrontare base e contingency, con gli stessi drill-down, indicatori gerarchici e suggerimenti della legenda.
+- Layout responsive per barra laterale aperta, schede compatte e finestre strette.
+- Nessuna modifica ai valori, alla cronologia o allo stato salvato della stima.
+
+### 4.7 Formati file
 
 | Uso | Formato | Artefatti | Note |
 |-----|--------|-----------|------|
