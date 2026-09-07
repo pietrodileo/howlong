@@ -4,6 +4,35 @@ Questo manuale descrive HowLong? `0.6.0` su Windows, macOS e Linux.
 
 [README del progetto](../../README.md) · [English manual](GUIDE.en.md)
 
+## Indice
+
+- [1. Avvio rapido](#1-avvio-rapido)
+- [2. Workspace e navigazione](#2-workspace-e-navigazione)
+- [3. Impostazioni](#3-impostazioni)
+- [4. Modelli](#4-modelli)
+- [5. Editor della stima](#5-editor-della-stima)
+  - [Schede e stato](#schede-e-stato)
+  - [Intestazione e totali](#intestazione-e-totali)
+  - [Tabella attività](#tabella-attivita)
+  - [Elementi calcolati](#elementi-calcolati)
+  - [Confronto contingency](#confronto-contingency)
+- [6. Salvare, aprire, ricaricare e usare i recenti](#6-salvare-aprire-ricaricare-e-usare-i-recenti)
+- [7. Libreria](#7-libreria)
+- [8. Confrontare stime](#8-confrontare-stime)
+- [9. Pianificare con il Gantt](#9-pianificare-con-il-gantt)
+- [10. Analisi Dati](#10-analisi-dati)
+  - [Leggere la panoramica](#leggere-la-panoramica)
+  - [Espandere macro selezionate nella panoramica](#espandere-macro-selezionate-nella-panoramica)
+  - [Focalizzare una macro](#focalizzare-una-macro)
+- [11. Presentazione manager e cliente](#11-presentazione-manager-e-cliente)
+  - [Vista manager](#vista-manager)
+  - [Vista cliente](#vista-cliente)
+- [12. Import, export e backup](#12-import-export-e-backup)
+  - [Scegliere la vista sorgente](#scegliere-la-vista-sorgente)
+- [13. Scorciatoie da tastiera](#13-scorciatoie-da-tastiera)
+- [14. Cosa le schermate non mostrano o modificano](#14-cosa-le-schermate-non-mostrano-o-modificano)
+- [15. Risoluzione problemi e sicurezza](#15-risoluzione-problemi-e-sicurezza)
+
 ## 1. Avvio rapido
 
 1. Apri **Impostazioni**, scegli lingua, tema, username e workspace, quindi salva.

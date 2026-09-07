@@ -4,6 +4,35 @@ This manual covers HowLong? `0.6.0` on Windows, macOS, and Linux.
 
 [Project README](../../README.md) · [Manuale italiano](GUIDE.it.md)
 
+## Contents
+
+- [1. Quick start](#1-quick-start)
+- [2. Workspace and navigation](#2-workspace-and-navigation)
+- [3. Settings](#3-settings)
+- [4. Models](#4-models)
+- [5. Estimate editor](#5-estimate-editor)
+  - [Tabs and state](#tabs-and-state)
+  - [Header and totals](#header-and-totals)
+  - [Activity table](#activity-table)
+  - [Calculated items](#calculated-items)
+  - [Contingency comparison](#contingency-comparison)
+- [6. Save, open, reload, and recent files](#6-save-open-reload-and-recent-files)
+- [7. Library](#7-library)
+- [8. Compare estimates](#8-compare-estimates)
+- [9. Plan with the Gantt](#9-plan-with-the-gantt)
+- [10. Analytics](#10-analytics)
+  - [Read the overview](#read-the-overview)
+  - [Expand selected macros within the overview](#expand-selected-macros-within-the-overview)
+  - [Focus on one macro](#focus-on-one-macro)
+- [11. Manager and client presentation](#11-manager-and-client-presentation)
+  - [Manager view](#manager-view)
+  - [Client view](#client-view)
+- [12. Import, export, and backup](#12-import-export-and-backup)
+  - [Choose the source view](#choose-the-source-view)
+- [13. Keyboard shortcuts](#13-keyboard-shortcuts)
+- [14. What screens do not show or change](#14-what-screens-do-not-show-or-change)
+- [15. Troubleshooting and safety](#15-troubleshooting-and-safety)
+
 ## 1. Quick start
 
 1. Open **Settings**, choose language, theme, username, and workspace, then save.
