@@ -117,13 +117,13 @@ From an open document, use the plus in the tab bar to create a new estimate with
 
 ![Searchable model picker opened from the new-tab control](../images/shortcut_new_estimate_from_model.png)
 
-The picker marks the default model and keeps long names within the menu.
+The picker marks the default model.
 
 ![Estimate editor with multiple tabs, totals, macros, subtasks, notes, and a formula](../images/new_estimate_with_tabs.png)
 
 ### Tabs and state
 
-- Each tab is an independent session with its own undo/redo history.
+- Each tab is an independent session with its own undo/redo history (CTRL+Z, CTRL+Y).
 - The active tab has a dark underline. A dirty indicator means it differs from its saved revision.
 - Closing unsaved work requires confirmation.
 - Opening an already open file activates its existing tab instead of duplicating it.
@@ -230,7 +230,7 @@ Open an estimate and select **Analytics** below Plan. The Italian sidebar calls 
 - Horizontal bars show the same activities: solid is base and striped is contingency.
 - Values and percentages appear beside donut labels; hover a segment for its percentage.
 
-The donut metric menu offers Base, Contingency, and Base + contingency; combined is the default. A task icon appears only for macros with subtasks and its tooltip identifies them as explorable.
+The donut metric menu offers Base, Contingency, and Base + contingency; the latter is the default. A task icon appears only for macros with subtasks and its tooltip identifies them as explorable.
 
 ### Expand selected macros within the overview
 

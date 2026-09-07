@@ -117,13 +117,13 @@ Da un documento aperto usa il più nella barra delle schede per creare una nuova
 
 ![Menu ricercabile dei modelli aperto dal controllo nuova scheda](../images/shortcut_new_estimate_from_model.png)
 
-Il menu indica il modello predefinito e mantiene i nomi lunghi all'interno del riquadro.
+Il menu indica il modello predefinito.
 
 ![Editor con più schede, totali, macro, sotto-task, note e formula](../images/new_estimate_with_tabs.png)
 
 ### Schede e stato
 
-- Ogni scheda è una sessione indipendente, compresa la cronologia Annulla/Ripristina.
+- Ogni scheda è una sessione indipendente, compresa la cronologia Annulla/Ripristina (CTRL+Z, CTRL+Y).
 - La scheda attiva ha la sottolineatura scura. L'indicatore dirty segnala differenze dall'ultimo salvataggio.
 - Chiudere lavoro non salvato richiede conferma.
 - Aprire un file già presente attiva la scheda esistente senza duplicarla.
@@ -230,7 +230,7 @@ Apri una stima e seleziona **Analisi Dati** sotto Pianifica. La vista è in sola
 - Le barre mostrano le stesse attività: colore pieno per la base e tratteggio per la contingency.
 - Valori e percentuali appaiono nelle etichette; passa su un settore per la percentuale.
 
-Il menu metrica offre Base, Contingency e Base + contingency; il totale è il default. L'icona task appare solo sulle macro con sotto-task e il tooltip segnala che sono esplorabili.
+Il menu metrica offre Base, Contingency e Base + contingency; quest'ultimo è il default. L'icona task appare solo sulle macro con sotto-task e il tooltip segnala che sono esplorabili.
 
 ### Espandere macro selezionate nella panoramica
 
