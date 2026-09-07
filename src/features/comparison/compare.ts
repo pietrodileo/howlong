@@ -3,6 +3,11 @@ import { ref, computed } from 'vue';
 import type { Estimate } from '../../models/estimate';
 import { useLibraryStore } from '../library/library';
 
+/** Return the hours Compare displays for one line item. */
+export function comparisonItemHours(estimate: Estimate, itemId: string): number {
+  return estimate.items.find((item) => item.id === itemId)?.hours ?? 0;
+}
+
 /** Own selected comparison files and their loaded estimates. */
 export const useCompareStore = defineStore('compare', () => {
   const library = useLibraryStore();

@@ -3,6 +3,7 @@
  * Run: npx tsx scripts/smoke-contingency.ts
  */
 import { computeTotals } from '../src/domain/contingency';
+import { comparisonItemHours } from '../src/features/comparison/compare';
 import type { Estimate } from '../src/models/estimate';
 
 const estimate: Estimate = {
@@ -99,6 +100,24 @@ const nested: Estimate = {
       notes: '',
       clientVisible: true,
     },
+    {
+      id: 'f1',
+      name: 'Review',
+      hours: 0,
+      category: 'Analisi',
+      kind: 'formula',
+      parentId: null,
+      contingencyPercentOverride: null,
+      notes: '',
+      clientVisible: true,
+      formula: {
+        percent: 50,
+        sourceIds: ['m1'],
+        aggregate: 'sum',
+        includeFormulaSources: false,
+        applyGlobalContingency: false,
+      },
+    },
   ],
 };
 
@@ -108,6 +127,9 @@ if (nestedTotals.totalContingency !== 2) throw new Error(`nested ctg expected 2 
 const macroLine = nestedTotals.lines.find((l) => l.item.id === 'm1');
 if (!macroLine || macroLine.hoursBase !== 20 || macroLine.contributesToTotals) {
   throw new Error('macro should aggregate children and not double-count');
+}
+if (comparisonItemHours(nested, 'f1') !== 10) {
+  throw new Error('comparison should display computed formula hours');
 }
 
 console.log('smoke-contingency: OK');
