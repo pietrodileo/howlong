@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
 import { tagBorderColor } from '../tagColors';
 import { useI18n } from '../../app/i18n/useI18n';
 
@@ -32,6 +32,8 @@ const open = ref(false);
 const query = ref('');
 const rootEl = ref<HTMLElement | null>(null);
 const filterEl = ref<HTMLInputElement | null>(null);
+const menuEl = ref<HTMLElement | null>(null);
+const menuStyle = ref<Record<string, string>>({});
 
 const selected = computed(() => props.modelValue ?? []);
 
@@ -72,8 +74,28 @@ function toggleOpen() {
   open.value = !open.value;
   if (open.value) {
     query.value = '';
-    void nextTick(() => filterEl.value?.focus());
+    void nextTick(() => {
+      updateMenuPosition();
+      filterEl.value?.focus();
+    });
   }
+}
+
+/** Keep the teleported menu visible beside its trigger. */
+function updateMenuPosition() {
+  const root = rootEl.value;
+  const menu = menuEl.value;
+  if (!root || !menu) return;
+  const rect = root.getBoundingClientRect();
+  const width = Math.min(Math.max(240, rect.width), window.innerWidth - 16);
+  const menuHeight = Math.min(menu.offsetHeight, 224);
+  const spaceBelow = window.innerHeight - rect.bottom - 8;
+  const opensAbove = spaceBelow < menuHeight && rect.top > spaceBelow;
+  menuStyle.value = {
+    left: `${Math.max(8, Math.min(rect.left, window.innerWidth - width - 8))}px`,
+    top: `${Math.max(8, opensAbove ? rect.top - menuHeight - 4 : rect.bottom + 4)}px`,
+    width: `${width}px`,
+  };
 }
 
 function close() {
@@ -128,8 +150,21 @@ function onDocPointerDown(e: PointerEvent) {
 }
 
 watch(open, (v) => {
-  if (v) document.addEventListener('pointerdown', onDocPointerDown);
-  else document.removeEventListener('pointerdown', onDocPointerDown);
+  if (v) {
+    document.addEventListener('pointerdown', onDocPointerDown);
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', updateMenuPosition, true);
+  } else {
+    document.removeEventListener('pointerdown', onDocPointerDown);
+    window.removeEventListener('resize', updateMenuPosition);
+    window.removeEventListener('scroll', updateMenuPosition, true);
+  }
+});
+
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocPointerDown);
+  window.removeEventListener('resize', updateMenuPosition);
+  window.removeEventListener('scroll', updateMenuPosition, true);
 });
 </script>
 
@@ -183,7 +218,8 @@ watch(open, (v) => {
       <span class="chev" aria-hidden="true">▾</span>
     </button>
 
-    <div v-if="open" class="tag-menu" role="listbox" @pointerdown.stop>
+    <Teleport to="body">
+    <div v-if="open" ref="menuEl" class="tag-menu" :style="menuStyle" role="listbox" @pointerdown.stop>
       <input
         ref="filterEl"
         v-model="query"
@@ -216,6 +252,7 @@ watch(open, (v) => {
         </li>
       </ul>
     </div>
+    </Teleport>
   </div>
 </template>
 
@@ -308,12 +345,8 @@ watch(open, (v) => {
 }
 
 .tag-menu {
-  position: absolute;
-  z-index: 40;
-  top: calc(100% + 0.2rem);
-  left: 0;
-  right: 0;
-  min-width: 12rem;
+  position: fixed;
+  z-index: 1000;
   max-height: 14rem;
   overflow: auto;
   padding: 0.45rem;

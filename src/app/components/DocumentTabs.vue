@@ -58,8 +58,16 @@ function onWindowChange() {
   if (newMenuOpen.value) updateMenuPosition();
 }
 
+/** Handle document navigation and closing consistently across every view. */
 function onTabShortcut(event: KeyboardEvent) {
   if ((!event.ctrlKey && !event.metaKey) || event.altKey || event.shiftKey) return;
+  const key = event.key.toLowerCase();
+  if (key === 'w') {
+    event.preventDefault();
+    event.stopPropagation();
+    if (docs.activeId) closeTab(docs.activeId, event);
+    return;
+  }
   if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
   event.preventDefault();
   event.stopPropagation();
