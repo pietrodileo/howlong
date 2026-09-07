@@ -43,6 +43,7 @@ export type MessageTree = {
     item: string;
     total: string;
     contingency: string;
+    totalWithContingency: string;
     contingencyPercent: string;
   };
   common: {
@@ -848,6 +849,7 @@ const it: MessageTree = {
     item: 'Voce',
     total: 'Totale',
     contingency: 'Contingency',
+    totalWithContingency: 'Totale + CTG',
     contingencyPercent: 'CTG: {percent}%',
   },
   common: {
@@ -1655,6 +1657,7 @@ const en: MessageTree = {
     item: 'Item',
     total: 'Total',
     contingency: 'Contingency',
+    totalWithContingency: 'Total + CTG',
     contingencyPercent: 'CTG: {percent}%',
   },
   common: {

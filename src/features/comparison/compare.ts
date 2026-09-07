@@ -1,10 +1,13 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { computeTotals } from '../../domain/contingency';
 import type { Estimate } from '../../models/estimate';
 import { useLibraryStore } from '../library/library';
 
-/** Return the hours Compare displays for one line item. */
+/** Return the hours Compare displays for one line item (macros roll up children; formulas are computed). */
 export function comparisonItemHours(estimate: Estimate, itemId: string): number {
+  const line = computeTotals(estimate).lines.find((entry) => entry.item.id === itemId);
+  if (line) return line.hoursBase;
   return estimate.items.find((item) => item.id === itemId)?.hours ?? 0;
 }
 
@@ -82,6 +85,11 @@ export const useCompareStore = defineStore('compare', () => {
     }
   }
 
+  /** Reload the current selection from disk (e.g. after editing compared estimates elsewhere). */
+  async function refreshEstimates(): Promise<void> {
+    await loadEstimates(estimatePaths.value);
+  }
+
   return {
     estimatePaths,
     estimates,
@@ -92,6 +100,7 @@ export const useCompareStore = defineStore('compare', () => {
     hasComparableSelection,
     setEstimatePaths,
     loadEstimates,
+    refreshEstimates,
     selectPath,
     unselectPath,
     replaceSelection,

@@ -74,14 +74,11 @@ function clearSelection() {
   compare.clearSelection();
 }
 
-// Load library on mount
+// Reload library metadata and compared estimates whenever the view opens.
 onMounted(() => {
-  if (library.entries.length === 0) {
-    void library.loadAll();
-  }
-  // If there are paths but no estimates loaded, load them
-  if (estimatePaths.value.length > 0 && estimates.value.length === 0) {
-    void compare.loadEstimates(estimatePaths.value);
+  void library.loadAll();
+  if (estimatePaths.value.length > 0) {
+    void compare.refreshEstimates();
   }
 });
 

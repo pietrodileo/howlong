@@ -3,8 +3,10 @@ import DisclosureIcon from '../../shared/components/DisclosureIcon.vue';
 import { computed, ref } from 'vue';
 import { formatEffort, type EffortUnit } from '../../domain/rounding';
 import { computeTotals } from '../../domain/contingency';
+import { formulaLabel, isFormulaItem } from '../../domain/formulas';
 import type { Estimate, LineItem } from '../../models/estimate';
 import { useI18n } from '../../app/i18n/useI18n';
+import { comparisonItemHours } from './compare';
 
 const props = defineProps<{
   estimates: Estimate[];
@@ -115,29 +117,9 @@ function getCategoryItems(category: string): { item: LineItem; children: LineIte
   return result;
 }
 
-// Get the display value for an item
-function getDisplayValue(item: LineItem): string {
-  return formatEffort(item.hours, effortUnit.value, hoursPerDaySetting.value);
-}
-
-// Get children of an item from a specific estimate
-function getChildrenForEstimate(itemId: string, estimate: Estimate): LineItem[] {
-  const { children } = getItemsByParent(estimate);
-  return children.get(itemId) || [];
-}
-
-// Get total hours for a macro item (including children)
-function getMacroTotalHours(item: LineItem, estimate: Estimate): number {
-  const children = getChildrenForEstimate(item.id, estimate);
-  if (children.length === 0) {
-    return item.hours;
-  }
-  return children.reduce((sum, child) => sum + child.hours, item.hours);
-}
-
-// Get total display value for a macro item
-function getMacroTotalDisplayValue(item: LineItem, estimate: Estimate): string {
-  return formatEffort(getMacroTotalHours(item, estimate), effortUnit.value, hoursPerDaySetting.value);
+/** Format one row's hours for a specific estimate column. */
+function formatItemHours(estimate: Estimate, itemId: string): string {
+  return formatEffort(comparisonItemHours(estimate, itemId), effortUnit.value, hoursPerDaySetting.value);
 }
 
 // Check if an item has children in any estimate
@@ -151,28 +133,22 @@ function hasChildrenInAnyEstimate(itemId: string): boolean {
   return false;
 }
 
-// Get all items for total calculation
-function getAllItemsForTotal(estimate: Estimate): LineItem[] {
-  if (props.hideSubtasks) {
-    const { macros } = getItemsByParent(estimate);
-    return macros;
-  }
-  return estimate.items;
-}
-
-// Get total for an estimate
-function getEstimateTotal(estimate: Estimate): number {
-  const items = getAllItemsForTotal(estimate);
-  return items.reduce((sum, i) => sum + i.hours, 0);
-}
-
-// Format total display value
+/** Format the estimate base total (includes computed formula rows). */
 function formatTotal(estimate: Estimate): string {
-  return formatEffort(getEstimateTotal(estimate), effortUnit.value, hoursPerDaySetting.value);
+  return formatEffort(computeTotals(estimate).totalBase, effortUnit.value, hoursPerDaySetting.value);
 }
 
 function formatContingency(estimate: Estimate): string {
   return formatEffort(computeTotals(estimate).totalContingency, effortUnit.value, hoursPerDaySetting.value);
+}
+
+/** Format base total plus contingency for the compare footer. */
+function formatTotalWithContingency(estimate: Estimate): string {
+  return formatEffort(
+    computeTotals(estimate).totalWithContingency,
+    effortUnit.value,
+    hoursPerDaySetting.value,
+  );
 }
 
 // Categories
@@ -269,15 +245,17 @@ function setUnit(unit: EffortUnit) {
                   </button>
                   <span v-else class="row-spacer"></span>
                   <span class="item-name-text">{{ entry.item.name }}</span>
+                  <span
+                    v-if="entry.isMacro && isFormulaItem(entry.item) && entry.item.formula"
+                    class="formula-badge"
+                    v-tip="formulaLabel(entry.item.formula)"
+                  >
+                    {{ formulaLabel(entry.item.formula) }}
+                  </span>
                   <span v-if="!entry.item.clientVisible" class="hidden-tag">({{ t('client.hiddenRow') }})</span>
                 </td>
                 <td v-for="(est, estIndex) in estimates" :key="`${est.meta.id}-${estIndex}`" class="item-value">
-                  <template v-if="entry.isMacro">
-                    {{ getMacroTotalDisplayValue(entry.item, est) }}
-                  </template>
-                  <template v-else>
-                    {{ getDisplayValue(entry.item) }}
-                  </template>
+                  {{ formatItemHours(est, entry.item.id) }}
                 </td>
               </tr>
             </template>
@@ -294,6 +272,12 @@ function setUnit(unit: EffortUnit) {
             <th scope="row">{{ t('compare.contingency') }}</th>
             <td v-for="(est, index) in estimates" :key="`${est.meta.id}-${index}`" class="contingency-value">
               {{ formatContingency(est) }}
+            </td>
+          </tr>
+          <tr class="grand-total-row">
+            <th scope="row">{{ t('compare.totalWithContingency') }}</th>
+            <td v-for="(est, index) in estimates" :key="`${est.meta.id}-${index}`" class="grand-total-value">
+              <strong>{{ formatTotalWithContingency(est) }}</strong>
             </td>
           </tr>
         </tfoot>
@@ -415,6 +399,18 @@ function setUnit(unit: EffortUnit) {
   font-variant-numeric: tabular-nums;
 }
 
+.grand-total-row th,
+.grand-total-row td {
+  border-top: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--accent) 8%, var(--page-soft));
+  font-weight: 600;
+}
+
+.grand-total-value {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
 .item-name {
   display: flex;
   align-items: center;
@@ -502,6 +498,17 @@ function setUnit(unit: EffortUnit) {
   font-size: 0.75rem;
   color: var(--muted-soft);
   font-style: italic;
+}
+
+.formula-badge {
+  flex-shrink: 0;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
 }
 
 tr.item-row:hover td {

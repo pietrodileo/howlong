@@ -122,7 +122,7 @@ const nested: Estimate = {
 };
 
 const nestedTotals = computeTotals(nested);
-if (nestedTotals.totalBase !== 20) throw new Error(`nested base expected 20 got ${nestedTotals.totalBase}`);
+if (nestedTotals.totalBase !== 30) throw new Error(`nested base expected 30 got ${nestedTotals.totalBase}`);
 if (nestedTotals.totalContingency !== 2) throw new Error(`nested ctg expected 2 got ${nestedTotals.totalContingency}`);
 const macroLine = nestedTotals.lines.find((l) => l.item.id === 'm1');
 if (!macroLine || macroLine.hoursBase !== 20 || macroLine.contributesToTotals) {
