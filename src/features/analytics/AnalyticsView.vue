@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useDocumentsStore } from '../../shared/documents';
 import { useUiStore } from '../../app/ui';
 import { useI18n } from '../../app/i18n/useI18n';
+import { useModelsStore } from '../models/models';
 import { computeTotals } from '../../domain/contingency';
 import { formatEffort, type EffortUnit } from '../../domain/rounding';
 import { buildGraphEntries, graphValue, type GraphEntry, type GraphMode } from './graphData';
@@ -12,12 +14,16 @@ const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
 
 const documentsStore = useDocumentsStore();
 const ui = useUiStore();
+const modelsStore = useModelsStore();
+const { defaultModel, models } = storeToRefs(modelsStore);
 const { t } = useI18n();
 const unit = ref<EffortUnit>('hours');
 const mode = ref<GraphMode>('combined');
 const selectedMacroId = ref<string | null>(null);
 const hoveredEntryId = ref<string | null>(null);
 const expandedMacroIds = ref<Set<string>>(new Set());
+const newMenuOpen = ref(false);
+const modelSearch = ref('');
 
 const estimate = computed(() => documentsStore.activeSession?.estimate ?? null);
 const totals = computed(() => estimate.value ? computeTotals(estimate.value) : null);
@@ -34,6 +40,24 @@ const selectedMacroName = computed(() => {
 });
 const hoursPerDay = computed(() => estimate.value?.meta.hoursPerDay ?? 8);
 const maxCombined = computed(() => Math.max(0, ...entries.value.map((entry) => entry.combined)));
+const filteredModels = computed(() => {
+  const query = modelSearch.value.trim().toLowerCase();
+  return models.value.filter((model) => model.name.toLowerCase().includes(query));
+});
+
+/** Close the model picker and clear its search. */
+function closeNewMenu(): void {
+  newMenuOpen.value = false;
+  modelSearch.value = '';
+}
+
+/** Close the model picker when the user clicks outside it. */
+function onDocumentPointerDown(event: PointerEvent): void {
+  if (!(event.target as HTMLElement | null)?.closest('.new-estimate-menu')) closeNewMenu();
+}
+
+onMounted(() => document.addEventListener('pointerdown', onDocumentPointerDown));
+onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerDown));
 
 watch(() => documentsStore.activeId, () => {
   selectedMacroId.value = null;
@@ -90,10 +114,18 @@ function onToggleMacroExpansion(macroId: string): void {
   expandedMacroIds.value = next;
 }
 
-/** Create a blank estimate and move to its editor. */
-function onCreateEstimate(): void {
-  documentsStore.createEmpty();
+/** Create an estimate from the chosen or default model and open its editor. */
+function onCreateEstimate(model = defaultModel.value ?? models.value[0] ?? null): void {
+  const sessionId = model ? documentsStore.createFromModel(model) : documentsStore.createEmpty();
+  documentsStore.activate(sessionId);
+  closeNewMenu();
   ui.navigate('working');
+}
+
+/** Create an estimate from one model selected in the picker. */
+function onCreateEstimateFromModel(modelId: string): void {
+  const model = models.value.find((candidate) => candidate.id === modelId);
+  if (model) onCreateEstimate(model);
 }
 </script>
 
@@ -218,8 +250,26 @@ function onCreateEstimate(): void {
 
   <section v-else class="analytics-empty">
     <p>{{ t('analytics.noEstimate') }}</p>
-    <div>
-      <button type="button" class="primary" @click="onCreateEstimate">{{ t('welcome.newEstimate') }}</button>
+    <div class="empty-actions">
+      <div class="new-estimate-menu">
+        <div class="new-estimate-split">
+          <button type="button" class="primary new-estimate-main" @click="onCreateEstimate()">
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M8 2.5v11M2.5 8h11" />
+            </svg>
+            {{ t('welcome.newEstimate') }}
+          </button>
+          <button type="button" class="primary new-estimate-caret" :aria-expanded="newMenuOpen" :aria-label="t('working.pickModel')" @click.stop="newMenuOpen = !newMenuOpen">▾</button>
+        </div>
+        <div v-if="newMenuOpen" class="model-menu" role="menu" @pointerdown.stop>
+          <input v-model="modelSearch" type="search" :placeholder="t('working.searchModel')" />
+          <button v-for="model in filteredModels" :key="model.id" type="button" role="menuitem" @click="onCreateEstimateFromModel(model.id)">
+            <span class="model-name">{{ model.name }}</span>
+            <span v-if="modelsStore.isDefault(model.id)" class="badge">{{ t('common.default') }}</span>
+          </button>
+          <p v-if="filteredModels.length === 0">{{ t('working.noModels') }}</p>
+        </div>
+      </div>
       <button type="button" class="ghost" @click="ui.navigate('library')">{{ t('gantt.openLibrary') }}</button>
     </div>
   </section>
@@ -296,7 +346,18 @@ function onCreateEstimate(): void {
 .empty-chart.standalone { padding: 4rem 1rem; border: 1px dashed var(--line-strong); border-radius: var(--radius); }
 .analytics-empty { min-height: 100%; display: grid; place-content: center; justify-items: center; text-align: center; }
 .analytics-empty p { color: var(--muted); }
-.analytics-empty div { display: flex; gap: .6rem; }
+.empty-actions { display: flex; justify-content: center; gap: .55rem; }
+.new-estimate-menu { position: relative; }
+.new-estimate-split { display: flex; }
+.new-estimate-main { display: flex; align-items: center; gap: .4rem; border-radius: var(--radius-sm) 0 0 var(--radius-sm); border-right: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent); }
+.new-estimate-caret { min-width: 2.1rem; padding-inline: .45rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.model-menu { position: absolute; top: calc(100% + .4rem); left: 0; z-index: 40; width: 280px; padding: .5rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-menu); }
+.model-menu input { width: 100%; margin-bottom: .4rem; }
+.model-menu button { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; min-width: 0; padding: .5rem .65rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); text-align: left; }
+.model-menu button:hover { background: var(--accent-subtle); }
+.model-menu p { margin: .4rem; color: var(--muted); }
+.model-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge { flex-shrink: 0; padding: .12rem .4rem; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: .65rem; text-transform: uppercase; }
 @container (max-width: 540px) {
   .chart-heading { display: grid; }
   .chart-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
