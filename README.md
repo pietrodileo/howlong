@@ -4,9 +4,9 @@
 
 # HowLong?
 
-**Effort, made obvious.**
+**Clear project estimates, without the spreadsheet.**
 
-A local-first desktop app for creating, analyzing, comparing, and sharing project estimates — without spreadsheets. Reusable models, contingency, analytics, manager and client views, and multi-format exports in a lightweight native shell.
+HowLong? is a local-first desktop app for creating, analyzing, comparing, and sharing project estimates. It includes reusable models, contingency, analytics, separate manager and client views, and exports in several formats.
 
 <p>
   <img src="https://img.shields.io/badge/version-0.6.0-2ea043?style=flat-square" alt="version 0.6.0" />
@@ -29,7 +29,7 @@ A local-first desktop app for creating, analyzing, comparing, and sharing projec
 
 ## Why HowLong?
 
-Project estimates often begin in spreadsheets and become difficult to reuse, audit, and present. HowLong? keeps the calculation model structured while providing separate views for internal planning and client communication.
+Project estimates often begin in spreadsheets, where they can become difficult to reuse, audit, and present. HowLong? keeps the calculations structured and provides separate views for internal planning and client communication.
 
 All project data remains in local JSON files. No account, hosted service, or database is required.
 
@@ -37,7 +37,7 @@ All project data remains in local JSON files. No account, hosted service, or dat
 
 - Build estimates from reusable models and hierarchical work items, starting from the bundled Italian or English standard model.
 - Plan estimate activities on an adaptive day- or month-based Gantt timeline with configurable weekend days.
-- Analyze the open estimate with summary metrics, an interactive activity donut, and stacked base-versus-contingency bars in hours or days.
+- Analyze the open estimate with summary metrics, an interactive activity donut, and stacked bars that compare base effort with contingency in hours or days.
 - Drill into one macro's subtasks or selectively expand subtasks from several macros across both Analytics charts.
 - Apply contingency globally, by category, or by individual item.
 - Add derived formula rows for overhead, management, and related effort.
@@ -72,7 +72,7 @@ The estimate editor keeps multiple documents in tabs. It shows base effort, cont
 
 ![Estimate editor with multiple open tabs and hierarchical work items](docs/images/new_estimate_with_tabs.png)
 
-Planning places the same activities on a day- or month-based Gantt without changing their estimated effort. Analytics then explains how base effort and contingency are distributed.
+Planning places the same activities on a daily or monthly Gantt without changing their estimated effort. Analytics shows how base effort and contingency are distributed.
 
 
 | Planning                                                   | Analytics                                                                    |
@@ -137,7 +137,7 @@ Run only the browser-based frontend:
 npm run dev
 ```
 
-The browser mode is useful for interface work, but native filesystem and dialog features require Tauri.
+Browser mode is useful for interface work. Native filesystem features and dialogs require Tauri.
 
 ## Testing
 
@@ -240,7 +240,7 @@ Contributor conventions and refactoring safeguards are documented in [AGENTS.md]
 
 Settings, models, and estimates are stored locally. The default location is the Tauri application data directory for `com.pietrodileo.howlong`; the estimate library can be moved to a custom folder from Settings.
 
-The custom workspace can be placed inside a folder synchronized by OneDrive, Google Drive, Dropbox, or another folder-based synchronization service. Colleagues can then share models and estimate files through their existing file-sharing system. Each colleague must install the synchronization client and select the corresponding local synchronized folder in HowLong?. Avoid editing the same estimate simultaneously: HowLong? uses files and does not provide collaborative locking or real-time conflict resolution.
+You can place the custom workspace in a folder synchronized by OneDrive, Google Drive, Dropbox, or a similar service. Colleagues can share models and estimate files through the same service. Each person must install its synchronization client and select the corresponding local folder in HowLong?. Do not edit the same estimate at the same time. HowLong? uses files and has no collaborative locking or real-time conflict resolution.
 
 Estimate files use the `.howlong.json` suffix and remain human-readable and portable.
 

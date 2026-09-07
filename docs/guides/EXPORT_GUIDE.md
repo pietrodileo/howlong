@@ -1,6 +1,6 @@
 # HowLong? export guide
 
-Use this guide to choose the correct export for editing, internal review, automation, planning, or client delivery.
+This guide explains which export to use for editing, internal review, automation, planning, or client delivery.
 
 [Project README](../../README.md) · [English manual](GUIDE.en.md) · [Manuale italiano](GUIDE.it.md)
 
@@ -15,9 +15,9 @@ Use this guide to choose the correct export for editing, internal review, automa
 
 The three estimate exports answer different questions:
 
-1. **Estimate:** “What did the estimator calculate?”
-2. **Manager:** “What has the manager decided to present?”
-3. **Client:** “What should the client receive?”
+1. **Estimate:** "What did the estimator calculate?"
+2. **Manager:** "What has the manager decided to present?"
+3. **Client:** "What should the client receive?"
 
 Do not treat a Client export as a full backup. Hidden activities and internal detail may be absent by design.
 
@@ -25,7 +25,7 @@ Do not treat a Client export as a full backup. Hidden activities and internal de
 
 Create this export from the main Estimate screen. It is the most complete human-readable representation and reflects the estimator's working calculation.
 
-It includes the macro/subtask hierarchy, base hours, contingency, combined values, categories, formulas, and available notes and labels. Choose it when another estimator, project lead, or AI agent needs the reasoning behind the total—not only the final client number.
+It includes the macro/subtask hierarchy, base hours, contingency, combined values, categories, formulas, and available notes and labels. Choose it when another estimator, project lead, or AI agent needs the calculation behind the total, not only the final client number.
 
 Examples:
 
@@ -36,7 +36,7 @@ Examples:
 
 Create this export from the Manager section of Client preview. It reflects presentation decisions made after the original estimate: which rows are included, how values are rounded, any manual presented totals, and effort redistributed from a macro to its children.
 
-Use it as the internal approval copy or as an audit bridge between the estimator's calculation and the client-facing result. A delta in Manager view explains where the presented value differs from the calculated value. These presentation changes do not overwrite the original base calculation.
+Use it for internal approval or to trace the difference between the estimator's calculation and the client-facing result. A delta in Manager view shows where the presented value differs from the calculated value. These presentation changes do not overwrite the original base calculation.
 
 Example:
 
@@ -57,7 +57,7 @@ Examples:
 
 Create **Export XLSX** from Plan. This is a scheduling artifact, separate from all three effort presentations.
 
-The workbook follows the selected From/To range, Days/Months scale, weekend visibility, activity hierarchy, planned start/end dates, and Gantt colors. It is suited to timeline review and sharing. It does not replace the estimate: bar length expresses elapsed calendar time, not effort, and the export does not contain the full estimating model.
+The workbook uses the selected From/To range, Days/Months scale, weekend visibility, activity hierarchy, planned start/end dates, and Gantt colors. Use it to review or share a timeline. It does not replace the estimate: bar length expresses elapsed calendar time, not effort, and the export does not contain the full estimating model.
 
 ## Format guide
 
@@ -76,7 +76,7 @@ Saving and exporting JSON are related but different. **Save** updates the Librar
 
 The JSON is human-readable, but manual editing can make it invalid. Prefer editing inside HowLong? and use **Open File** or **Import JSON** to validate a transferred file.
 
-A custom HowLong? workspace can live in a local OneDrive, Google Drive, Dropbox, or similar synchronized folder. This lets colleagues share models and estimates through an existing file-based service. It is file synchronization, not live collaboration: wait for syncing to complete and coordinate ownership before editing, because simultaneous changes to the same `.howlong.json` file can create service-level conflict copies.
+You can place a custom HowLong? workspace in a local OneDrive, Google Drive, Dropbox, or similar synchronized folder. Colleagues can then share models and estimates through that service. This is file synchronization, not live collaboration. Wait for synchronization to finish and decide who will edit each file, because simultaneous changes to the same `.howlong.json` file can create conflict copies.
 
 ### YAML: structured input for AI agents
 
@@ -95,7 +95,7 @@ Always review an agent's proposed actions before allowing it to create or modify
 
 ### XLSX: human review and presentation
 
-XLSX is the best choice for people who want a formatted spreadsheet without using HowLong?. Choose the source view according to the audience: Estimate for technical detail, Manager for internal approval, Client for delivery, and Gantt for scheduling.
+Use XLSX when someone needs a formatted spreadsheet without HowLong?. Choose the source view for its audience: Estimate for technical detail, Manager for internal approval, Client for delivery, and Gantt for scheduling.
 
 An XLSX is a derived snapshot. Editing it does not update the HowLong estimate and it cannot be imported as the native document.
 

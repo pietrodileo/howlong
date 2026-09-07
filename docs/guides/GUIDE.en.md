@@ -53,7 +53,7 @@ The home screen appears when no estimate is active.
 - **New Estimate** uses the default model; its arrow opens the model picker.
 - **Open File** loads a `.howlong.json` estimate from another accessible location.
 - **Go to Library** opens the configured local estimate folder in HowLong?.
-- **Opened recently** shows up to five saved estimates, newest first. Hovering makes a clickable row explicit.
+- **Opened recently** shows up to five saved estimates, newest first. Hover over a row to see that you can open it.
 - The double-chevron beside the HowLong? heading collapses the sidebar. In compact mode, hover an icon to see its label.
 
 Plan and Analytics always use the active document tab. Without an open estimate, they ask you to create or open one.
@@ -88,7 +88,7 @@ Each heading expands its controls. Closed sections still contain settings.
 - **Workspace:** shows estimate/model locations. **Choose folder…** selects a custom location; **Use default** restores application data.
 - **Workspace import/export:** transfers settings and models. Estimates remain in the separate Library folder.
 
-You can select a local folder synchronized by OneDrive, Google Drive, Dropbox, or another folder-based service. Colleagues can use the corresponding synchronized folder to share models and estimates through that service. Everyone needs access to the shared folder and its desktop synchronization client. Allow synchronization to finish before opening another colleague's changes, and avoid editing the same estimate at the same time: HowLong? does not provide real-time co-authoring, file locking, or automatic conflict merging.
+You can select a local folder synchronized by OneDrive, Google Drive, Dropbox, or a similar service. Colleagues can share models and estimates through the corresponding synchronized folder. Everyone needs access to the folder and must install the service's desktop client. Wait for synchronization to finish before opening a colleague's changes, and do not edit the same estimate at the same time. HowLong? does not provide real-time co-authoring, file locking, or automatic conflict merging.
 
 Select **Save** after editing. A visible language or theme preview does not by itself confirm persistence.
 
@@ -116,7 +116,7 @@ From Home, select **New Estimate** or its arrow. From an open document, use the 
 
 ![Searchable model picker opened from the new-tab control](../images/shortcut_new_estimate_from_model.png)
 
-The picker identifies the default model. Long names stay within the menu.
+The picker marks the default model and keeps long names within the menu.
 
 ![Estimate editor with multiple tabs, totals, macros, subtasks, notes, and a formula](../images/new_estimate_with_tabs.png)
 
@@ -189,7 +189,7 @@ Open **Compare**, or select at least two Library rows and choose **Compare**.
 
 ![Comparison screen with estimate selection and aligned values](../images/compare.png)
 
-The left panel searches, sorts, and selects estimates. The right table aligns activities and places each estimate in a column. Category rows group work; chevrons expand subtasks. Choose hours or days and the hours-per-day conversion above the table. Bottom rows compare total base effort and contingency.
+Use the left panel to search, sort, and select estimates. The table on the right aligns activities, with one column for each estimate. Category rows group the work, and chevrons expand subtasks. Above the table, choose hours or days and set the hours-per-day conversion. The bottom rows compare total base effort and contingency.
 
 A blank cell means the aligned item is absent; it is not zero unless zero is displayed. Comparison is read-only and does not merge files.
 
@@ -213,7 +213,7 @@ Drag the divider to resize the activity panel, or collapse it to maximize the ti
 
 ![Compact Gantt with the activity panel collapsed](../images/gantt_2_compact.png)
 
-Compact mode keeps a narrow leading indicator column only where useful. Reopen the panel with the upper-left arrow. XLSX follows the visible scale, range, and weekend setting.
+In compact mode, a narrow first column keeps the useful indicators visible. Reopen the panel with the upper-left arrow. The XLSX export uses the visible scale, range, and weekend setting.
 
 ## 10. Analytics
 
@@ -265,7 +265,7 @@ These overrides change presentation only, not the original estimate calculation.
 
 ![Client view with chosen activities and simplified hours and days](../images/client_view.png)
 
-This is the actual simplified preview. It shows included activities and the chosen hierarchy. **Subs** controls whether children appear. Hours and days use presentation values and rounding. Notes and labels appear only when their visibility controls allow them. Review this section before delivery.
+The simplified preview shows the included activities and chosen hierarchy. **Subs** controls whether children appear. Hours and days use the presentation values and rounding settings. Notes and labels appear only when their visibility controls allow them. Review this section before delivery.
 
 Use **Back to estimate** to leave. Presentation changes remain in the active session until saved.
 
@@ -289,7 +289,7 @@ The [complete export guide](EXPORT_GUIDE.md) includes downloadable examples and 
 | XLSX | Human-readable snapshot from Estimate, Manager, Client, or Gantt |
 | ZIP | Container created for several Library exports |
 
-After export, select **Open** in the completion message. Desktop opens the saved filesystem path; browser mode opens its downloaded copy.
+After exporting, select **Open** in the completion message. The desktop app opens the saved file, while browser mode opens the downloaded copy.
 
 ![Export completion message with Open File action](../images/exported_element.png)
 
@@ -316,7 +316,7 @@ On macOS, use `Cmd` where shown as `Ctrl/Cmd`.
 | `Cmd+Shift+Z` | Redo | macOS |
 | `Ctrl+Enter` | Save extended note | While its editor is open |
 
-The Settings shortcut section is the in-app source of truth if a binding changes.
+If a binding changes, check the Keyboard shortcuts section in Settings for the current value.
 
 ## 14. What screens do not show or change
 

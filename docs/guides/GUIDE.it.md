@@ -53,7 +53,7 @@ La schermata iniziale appare quando nessuna stima è attiva.
 - **Nuova stima** usa il modello predefinito; la freccia apre la scelta del modello.
 - **Apri file** carica una stima `.howlong.json` da un percorso accessibile.
 - **Vai alla Libreria** apre in HowLong? la cartella locale configurata.
-- **Aperti di recente** mostra fino a cinque stime salvate, dalla più recente. Al passaggio del mouse la riga evidenzia che è selezionabile.
+- **Aperti di recente** mostra fino a cinque stime salvate, dalla più recente. Passa il mouse su una riga per vedere che puoi aprirla.
 - Il doppio chevron accanto al logo comprime la barra laterale. In modalità compatta passa il mouse su un'icona per leggerne il nome.
 
 Pianifica e Analisi Dati usano sempre la scheda documento attiva. Senza una stima aperta chiedono di crearne o aprirne una.
@@ -88,7 +88,7 @@ Ogni intestazione espande i propri controlli. Anche le sezioni chiuse contengono
 - **Workspace:** mostra i percorsi di stime e modelli. **Scegli cartella…** usa una posizione personalizzata; **Usa default** ripristina i dati applicazione.
 - **Import/export workspace:** trasferisce impostazioni e modelli. Le stime restano nella Libreria separata.
 
-Puoi selezionare una cartella locale sincronizzata da OneDrive, Google Drive, Dropbox o un altro servizio basato su cartelle. I colleghi possono usare la cartella sincronizzata corrispondente per condividere modelli e stime tramite quel servizio. Tutti devono avere accesso alla cartella condivisa e il relativo client desktop di sincronizzazione. Attendi il completamento della sincronizzazione prima di aprire le modifiche di un collega ed evita di modificare contemporaneamente la stessa stima: HowLong? non offre co-authoring in tempo reale, blocco dei file o risoluzione automatica dei conflitti.
+Puoi selezionare una cartella locale sincronizzata da OneDrive, Google Drive, Dropbox o un servizio simile. I colleghi possono condividere modelli e stime attraverso la cartella corrispondente. Tutti devono avere accesso alla cartella e installare il client desktop del servizio. Attendi il completamento della sincronizzazione prima di aprire le modifiche di un collega e non modificare la stessa stima nello stesso momento. HowLong? non offre co-authoring in tempo reale, blocco dei file o risoluzione automatica dei conflitti.
 
 Seleziona **Salva** dopo le modifiche. Un'anteprima visibile di lingua o tema non garantisce da sola la persistenza.
 
@@ -116,7 +116,7 @@ Dalla Home seleziona **Nuova stima** o la sua freccia. Da un documento aperto us
 
 ![Menu ricercabile dei modelli aperto dal controllo nuova scheda](../images/shortcut_new_estimate_from_model.png)
 
-Il menu indica il modello predefinito. I nomi lunghi restano all'interno del riquadro.
+Il menu indica il modello predefinito e mantiene i nomi lunghi all'interno del riquadro.
 
 ![Editor con più schede, totali, macro, sotto-task, note e formula](../images/new_estimate_with_tabs.png)
 
@@ -189,7 +189,7 @@ Apri **Confronta** oppure seleziona almeno due righe in Libreria e scegli **Conf
 
 ![Confronto con selezione stime e valori allineati](../images/compare.png)
 
-Il pannello sinistro cerca, ordina e seleziona. La tabella destra allinea le attività e assegna una colonna a ogni stima. Le categorie raggruppano il lavoro; i chevron espandono i figli. Sopra la tabella scegli ore o giorni e la conversione ore/giornata. In fondo confronti base totale e contingency.
+Usa il pannello sinistro per cercare, ordinare e selezionare le stime. La tabella a destra allinea le attività, con una colonna per ogni stima. Le categorie raggruppano il lavoro e i chevron espandono i figli. Sopra la tabella puoi scegliere ore o giorni e impostare la conversione ore/giornata. Le righe finali confrontano effort base totale e contingency.
 
 Una cella vuota indica che la voce è assente; non significa zero se lo zero non è scritto. La vista è in sola lettura e non unisce i file.
 
@@ -213,7 +213,7 @@ Trascina il divisore per ridimensionare il pannello attività o comprimilo per m
 
 ![Gantt compatto con pannello attività chiuso](../images/gantt_2_compact.png)
 
-La modalità compatta conserva una colonna stretta per gli indicatori utili. Riapri il pannello con la freccia in alto a sinistra. L'XLSX rispetta scala, intervallo e weekend visibili.
+In modalità compatta, una prima colonna stretta mantiene visibili gli indicatori utili. Riapri il pannello con la freccia in alto a sinistra. L'export XLSX usa la scala, l'intervallo e i weekend visibili.
 
 ## 10. Analisi Dati
 
@@ -265,7 +265,7 @@ Gli override cambiano solo la presentazione, non il calcolo originale. Nascondi 
 
 ![Vista cliente con attività scelte e valori semplificati](../images/client_view.png)
 
-Questa è l'anteprima semplificata effettiva. Mostra le attività incluse e la gerarchia scelta. **Sotto-task** decide se i figli appaiono. Ore e giorni usano valori presentati e arrotondamento. Note ed etichette appaiono solo se abilitate. Controlla questa sezione prima della consegna.
+L'anteprima semplificata mostra le attività incluse e la gerarchia scelta. **Sotto-task** decide se mostrare i figli. Ore e giorni usano i valori presentati e le impostazioni di arrotondamento. Note ed etichette appaiono solo se abilitate. Controlla questa sezione prima della consegna.
 
 Usa **Torna alla stima** per uscire. Le modifiche di presentazione restano nella sessione finché non salvi.
 
@@ -289,7 +289,7 @@ La [guida completa agli export](EXPORT_GUIDE.md) contiene esempi scaricabili e s
 | XLSX | Snapshot leggibile derivato da Stima, Manager, Cliente o Gantt |
 | ZIP | Contenitore per più export dalla Libreria |
 
-Dopo l'export seleziona **Apri** nel messaggio finale. Il desktop apre il percorso salvato; il browser apre la copia scaricata.
+Dopo l'export seleziona **Apri** nel messaggio finale. L'app desktop apre il file salvato, mentre il browser apre la copia scaricata.
 
 ![Messaggio di export completato con azione Apri file](../images/exported_element.png)
 
@@ -316,7 +316,7 @@ Su macOS usa `Cmd` dove è indicato `Ctrl/Cmd`.
 | `Cmd+Maiusc+Z` | Ripristina | macOS |
 | `Ctrl+Invio` | Salva nota estesa | Con editor aperto |
 
-La sezione Scorciatoie nelle Impostazioni è il riferimento interno se una combinazione cambia.
+Se una combinazione cambia, controlla la sezione Scorciatoie nelle Impostazioni per il valore aggiornato.
 
 ## 14. Cosa le schermate non mostrano o modificano
 
