@@ -29,6 +29,7 @@ const nav = computed(() =>
       { id: 'models' as const, icon: 'models' as const, key: 'nav.models' },
       { id: 'compare' as const, icon: 'compare' as const, key: 'nav.compare' },
       { id: 'gantt' as const, icon: 'gantt' as const, key: 'gantt.navLabel' },
+      { id: 'analytics' as const, icon: 'analytics' as const, key: 'analytics.navLabel' },
       { id: 'settings' as const, icon: 'settings' as const, key: 'nav.settings' },
     ] as const
   ).map((item) => ({ ...item, label: t(item.key) })),
@@ -185,6 +186,21 @@ onUnmounted(() => {
           >
             <path d="M4 5.5h16M7 3v5m10-5v5M4 9h16v11H4z" />
             <path d="M7 12h6M10 16h7" />
+          </svg>
+          <!-- Analytics: donut chart -->
+          <svg
+            v-else-if="item.icon === 'analytics'"
+            viewBox="0 0 24 24"
+            width="15"
+            height="15"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M11 3.5a8.5 8.5 0 1 0 8.5 8.5H11V3.5Z" />
+            <path d="M14 3.8a6.5 6.5 0 0 1 6.2 6.2H14V3.8Z" />
           </svg>
           <!-- Libreria: cartella -->
           <svg

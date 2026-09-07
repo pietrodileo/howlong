@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { DEFAULT_MODEL, type Model, parseModel } from '../../models/model';
+import { DEFAULT_ENGLISH_MODEL, DEFAULT_MODEL, type Model, parseModel } from '../../models/model';
 import { createBlankModel } from '../../domain/factory';
 import { newId } from '../../shared/ids';
 import {
@@ -64,7 +64,7 @@ export const useModelsStore = defineStore('models', () => {
     lastError.value = null;
     dirtyIds.value.clear();
     if (!isTauri()) {
-      models.value = [structuredClone(DEFAULT_MODEL)];
+      models.value = [structuredClone(DEFAULT_MODEL), structuredClone(DEFAULT_ENGLISH_MODEL)];
       selectedId.value = DEFAULT_MODEL.id;
       const settings = useSettingsStore();
       settings.settings.lastModelId = DEFAULT_MODEL.id;
@@ -102,7 +102,7 @@ export const useModelsStore = defineStore('models', () => {
       }
     } catch (e) {
       lastError.value = toErrorMessage(e);
-      models.value = [structuredClone(DEFAULT_MODEL)];
+      models.value = [structuredClone(DEFAULT_MODEL), structuredClone(DEFAULT_ENGLISH_MODEL)];
       selectedId.value = DEFAULT_MODEL.id;
       const settings = useSettingsStore();
       settings.settings.lastModelId = DEFAULT_MODEL.id;

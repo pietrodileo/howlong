@@ -37,6 +37,8 @@ const DEFAULT_MODEL: &str = r#"{
   }
 }"#;
 
+const DEFAULT_ENGLISH_MODEL: &str = include_str!("../../models/default.howlong_eng.json");
+
 fn app_data_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()
@@ -116,6 +118,7 @@ fn read_binary_file(path: String) -> Result<Vec<u8>, String> {
 }
 
 #[tauri::command]
+/// Create the application directories and seed any missing bundled defaults.
 fn ensure_app_defaults(app: tauri::AppHandle) -> Result<String, String> {
     let dir = app_data_path(&app)?;
     fs::create_dir_all(&dir).map_err(|e| format!("Creazione app data fallita: {e}"))?;
@@ -137,6 +140,12 @@ fn ensure_app_defaults(app: tauri::AppHandle) -> Result<String, String> {
     if !default_model.exists() {
         fs::write(&default_model, DEFAULT_MODEL)
             .map_err(|e| format!("Scrittura modello default fallita: {e}"))?;
+    }
+
+    let default_english_model = models_dir.join("default.howlong_eng.json");
+    if !default_english_model.exists() {
+        fs::write(&default_english_model, DEFAULT_ENGLISH_MODEL)
+            .map_err(|e| format!("Scrittura modello default inglese fallita: {e}"))?;
     }
 
     Ok(dir.to_string_lossy().to_string())

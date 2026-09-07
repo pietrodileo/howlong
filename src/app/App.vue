@@ -19,10 +19,11 @@ const ModelsView = defineAsyncComponent(() => import('../features/models/ModelsV
 const SettingsView = defineAsyncComponent(() => import('../features/settings/SettingsView.vue'));
 const CompareView = defineAsyncComponent(() => import('../features/comparison/CompareView.vue'));
 const GanttView = defineAsyncComponent(() => import('../features/planning/GanttView.vue'));
+const AnalyticsView = defineAsyncComponent(() => import('../features/analytics/AnalyticsView.vue'));
 const WelcomeView = defineAsyncComponent(() => import('./WelcomeView.vue'));
 const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTabs.vue'));
 
-const APP_VERSION = '0.5.2';
+const APP_VERSION = '0.6.0';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -43,11 +44,9 @@ async function openToastFile() {
   }
 }
 
-// Handle document tab activation
+/** Keep document-aware feature views open when the active session changes. */
 function onActivateDocument() {
-  // The estimate store will be synced by WorkingView
-  // We just need to ensure we're in working view
-  if (ui.currentView !== 'gantt') ui.navigate('working');
+  if (ui.currentView !== 'gantt' && ui.currentView !== 'analytics') ui.navigate('working');
 }
 
 
@@ -57,6 +56,7 @@ const pageTitle = computed(() => {
     welcome: 'nav.welcome',
     working: 'nav.working',
     gantt: 'gantt.navLabel',
+    analytics: 'analytics.title',
     library: 'nav.library',
     models: 'nav.models',
     compare: 'nav.compare',
@@ -95,8 +95,8 @@ watch(() => docs.hasSessions, (hasSessions) => {
 
     <div class="workspace">
       <TitleBar />
-      <DocumentTabs v-if="(ui.currentView === 'working' || ui.currentView === 'gantt') && docs.hasSessions" @activate="onActivateDocument" />
-      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare' || ui.currentView === 'gantt'" class="topbar">
+      <DocumentTabs v-if="(ui.currentView === 'working' || ui.currentView === 'gantt' || ui.currentView === 'analytics') && docs.hasSessions" @activate="onActivateDocument" />
+      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare' || ui.currentView === 'gantt' || ui.currentView === 'analytics'" class="topbar">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">
           {{ t('library.lede') }}
@@ -110,12 +110,16 @@ watch(() => docs.hasSessions, (hasSessions) => {
         <p v-else-if="ui.currentView === 'gantt'" class="sub">
           {{ t('gantt.lede') }}
         </p>
+        <p v-else-if="ui.currentView === 'analytics'" class="sub">
+          {{ t('analytics.lede') }}
+        </p>
       </header>
 
       <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome' }">
         <WelcomeView v-if="ui.currentView === 'welcome' || (ui.currentView === 'working' && !docs.hasSessions)" />
         <WorkingView v-else-if="ui.currentView === 'working' && docs.hasSessions" />
         <GanttView v-else-if="ui.currentView === 'gantt'" />
+        <AnalyticsView v-else-if="ui.currentView === 'analytics'" />
         <LibraryView v-else-if="ui.currentView === 'library'" />
         <ModelsView v-else-if="ui.currentView === 'models'" />
         <CompareView v-else-if="ui.currentView === 'compare'" />

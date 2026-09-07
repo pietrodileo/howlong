@@ -1,0 +1,27 @@
+title: New estimate, client 1
+client: null
+total:
+  hours: 114.70526315789473
+  days: 14.338157894736842
+activities:
+  - activity: Analysis and documentation
+    hours: 17
+    days: 2.125
+  - activity: Development
+    hours: 36
+    days: 4.5
+  - activity: Backend
+    hours: 30.063157894736843
+    days: 3.7578947368421054
+  - activity: Frontend
+    hours: 15.031578947368422
+    days: 1.8789473684210527
+  - activity: Test
+    hours: 15.031578947368422
+    days: 1.8789473684210527
+  - activity: Validation
+    hours: 7.515789473684211
+    days: 0.9394736842105263
+  - activity: Release and monitoring
+    hours: 30.06315789473684
+    days: 3.757894736842105
