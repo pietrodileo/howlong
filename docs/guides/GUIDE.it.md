@@ -112,7 +112,8 @@ Il modello predefinito controlla **Nuova stima** e la scorciatoia nuova scheda. 
 
 ## 5. Editor della stima
 
-Dalla Home seleziona **Nuova stima** o la sua freccia. Da un documento aperto usa il più nella barra delle schede o la freccia associata.
+Dalla Home seleziona **Nuova stima** per creare una nuova stima con il modello di default o scegli uno dei modelli dall'elenco.
+Da un documento aperto usa il più nella barra delle schede per creare una nuova stima con il modello standard, oppure, anche in questo caso, puoi scegliere uno dei modelli.
 
 ![Menu ricercabile dei modelli aperto dal controllo nuova scheda](../images/shortcut_new_estimate_from_model.png)
 

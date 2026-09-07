@@ -112,7 +112,8 @@ The default model controls plain **New Estimate** and the new-tab shortcut. Exis
 
 ## 5. Estimate editor
 
-From Home, select **New Estimate** or its arrow. From an open document, use the plus in the tab bar or its arrow.
+From Home, select **New Estimate** to create a new estimate with the default model, or pick a model from the list. 
+From an open document, use the plus in the tab bar to create a new estimate with the default model, or, as before, pick a model from the list.
 
 ![Searchable model picker opened from the new-tab control](../images/shortcut_new_estimate_from_model.png)
 
