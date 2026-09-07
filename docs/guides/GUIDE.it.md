@@ -258,15 +258,15 @@ Seleziona **Anteprima cliente** nell'intestazione della stima. La pagina contien
 
 ![Vista manager con inclusione, totali presentati, delta, note e redistribuzione](../images/manager_view.png)
 
-Imposta titolo cliente, arrotondamento e unità. Ogni riga mostra base e CTG calcolate, totale presentato modificabile e delta. Includi o escludi righe, modifica etichette e note e usa **Redistribuisci** per ripartire un totale macro tra i figli.
+Imposta titolo cliente, arrotondamento e unità. Ogni riga mostra base e CTG calcolate, totale presentato modificabile e delta. Includi o escludi righe, modifica etichette e note e usa **Redistribuisci** per ripartire un totale macro tra le altre voci della stima.
 
-Gli override cambiano solo la presentazione, non il calcolo originale. Nascondi note o etichette quando serve e usa il menu Export della sezione.
+Gli override cambiano solo i dati da presentare al cliente, non la stima originale. Nascondi note o etichette quando serve e usa il menu Export della sezione per esportare la stima ritoccata dal manager.
 
 ### Vista cliente
 
 ![Vista cliente con attività scelte e valori semplificati](../images/client_view.png)
 
-L'anteprima semplificata mostra le attività incluse e la gerarchia scelta. **Sotto-task** decide se mostrare i figli. Ore e giorni usano i valori presentati e le impostazioni di arrotondamento. Note ed etichette appaiono solo se abilitate. Controlla questa sezione prima della consegna.
+L'anteprima semplificata mostra le attività incluse e la gerarchia scelta. **Sotto-task** decide se mostrare i figli. Ore e giorni usano i valori presentati e le impostazioni di arrotondamento. Note ed etichette appaiono solo se abilitate. Controlla questa sezione prima della consegna. Il pulsante Export consente di esportare la stima da mostrare al cliente, ripulita da note, etichette, eventuali sottotask, con l'arrotondamento e le modifiche del manager già considerate.
 
 Usa **Torna alla stima** per uscire. Le modifiche di presentazione restano nella sessione finché non salvi.
 

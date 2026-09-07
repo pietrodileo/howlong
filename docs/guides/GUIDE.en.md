@@ -258,15 +258,15 @@ Select **Client preview** in the estimate header. The page contains two sections
 
 ![Manager view with visibility, presented totals, deltas, notes, and redistribution](../images/manager_view.png)
 
-Set the client-facing title, rounding, and unit. Each row shows calculated base and CTG, an editable presented total, and its delta. Include or exclude rows, adjust labels and notes, and use **Redistribute** to allocate a changed macro total among children.
+Set the client-facing title, rounding, and unit. Each row shows calculated base and CTG, an editable presented total, and its delta. Include or exclude rows, adjust labels and notes, and use **Redistribute** to allocate a changed macro total among the other elements within the estimate.
 
-These overrides change presentation only, not the original estimate calculation. Hide notes or labels as required and use the section's Export menu.
+These overrides change data presented to the client only, not the original estimate calculation. Hide notes or labels as required and use the section's Export menu the estimate modified by the manager.
 
 ### Client view
 
 ![Client view with chosen activities and simplified hours and days](../images/client_view.png)
 
-The simplified preview shows the included activities and chosen hierarchy. **Subs** controls whether children appear. Hours and days use the presentation values and rounding settings. Notes and labels appear only when their visibility controls allow them. Review this section before delivery.
+The simplified preview shows the included activities and chosen hierarchy. **Subs** controls whether children appear. Hours and days use the presentation values and rounding settings. Notes and labels appear only when their visibility controls allow them. Review this section before delivery. Export button allows to export the estimate to be presented to the client, cleaned by notes, labels, subtasks and already including manager edits.
 
 Use **Back to estimate** to leave. Presentation changes remain in the active session until saved.
 
