@@ -1,6 +1,6 @@
 # HowLong? user guide
 
-This guide covers HowLong? `0.5.1` on Windows, macOS, and Linux.
+This guide covers HowLong? `0.5.2` on Windows, macOS, and Linux.
 
 [Project README](README.md) · [Guida italiana](GUIDE.it.md)
 

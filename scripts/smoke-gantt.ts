@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
-import { createEmptyEstimate } from '../src/lib/factory';
-import { addDays, aggregateMacroRange, listDays } from '../src/lib/gantt';
-import { estimateToClientXlsx, estimateToXlsx, ganttToXlsx } from '../src/lib/export';
+import { createEmptyEstimate } from '../src/domain/factory';
+import { addDays, aggregateMacroRange, listDays } from '../src/domain/gantt';
+import { estimateToClientXlsx, estimateToXlsx, ganttToXlsx } from '../src/platform/files/export';
 import { parseEstimate } from '../src/models/estimate';
 import { DEFAULT_SETTINGS } from '../src/models/settings';
 import { createPinia, setActivePinia } from 'pinia';
-import { useEstimateStore } from '../src/stores/estimate';
+import { useEstimateStore } from '../src/features/estimate/estimate';
 
 const estimate = createEmptyEstimate(DEFAULT_SETTINGS);
 const macro = estimate.items[0];

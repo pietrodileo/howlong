@@ -2,7 +2,7 @@
  * Smoke test contingency (node --experimental-strip-types or tsx).
  * Run: npx tsx scripts/smoke-contingency.ts
  */
-import { computeTotals } from '../src/lib/contingency';
+import { computeTotals } from '../src/domain/contingency';
 import type { Estimate } from '../src/models/estimate';
 
 const estimate: Estimate = {

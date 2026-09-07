@@ -1,6 +1,6 @@
 [package]
 name = "howlong"
-version = "0.5.1"
+version = "0.5.2"
 description = "HowLong? — No More XLSX"
 authors = ["Pietro Di Leo"]
 edition = "2021"

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createEmptyEstimate } from '../src/lib/factory';
+import { createEmptyEstimate } from '../src/domain/factory';
 import {
   ESTIMATE_HISTORY_LIMIT,
   createEstimateHistory,
@@ -8,7 +8,7 @@ import {
   recordEstimate,
   redoEstimate,
   undoEstimate,
-} from '../src/lib/estimateHistory';
+} from '../src/domain/estimateHistory';
 import { DEFAULT_SETTINGS } from '../src/models/settings';
 
 function withTitle(title: string) {

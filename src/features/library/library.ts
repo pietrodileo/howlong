@@ -1,0 +1,239 @@
+import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
+import type { AuditEntry, Estimate } from '../../models/estimate';
+import { parseEstimate } from '../../models/estimate';
+import type { ModelIcon } from '../../models/model';
+import { estimateToJson } from '../../platform/files/export';
+import { nowIso } from '../../shared/ids';
+import {
+  deleteFile,
+  ensureDir,
+  isTauri,
+  joinPath,
+  listJsonFiles,
+  readTextFile,
+  writeTextFile,
+} from '../../platform/tauri';
+import { useSettingsStore } from '../settings/settings';
+import { useEstimateStore } from '../estimate/estimate';
+import { ensureUniqueEstimateId } from './estimateIdentity';
+import { toErrorMessage } from '../../shared/errors';
+import { appendAuditEntry, resolveAuditUsername } from '../../platform/auditUsername';
+import { addRecentOpenPath } from '../../platform/recentOpen';
+import { resolveEstimatesDir } from '../settings/workspacePaths';
+
+export type LibraryEntry = {
+  path: string;
+  id: string;
+  title: string;
+  clientLabel: string;
+  updatedAt: string;
+  icon: ModelIcon;
+  lastAudit: AuditEntry | null;
+};
+
+export { resolveEstimatesDir };
+
+function entryFromEstimate(estimate: Estimate, path: string): LibraryEntry {
+  const history = estimate.auditHistory ?? [];
+  return {
+    path,
+    id: estimate.meta.id,
+    title: estimate.meta.title,
+    clientLabel: estimate.meta.clientLabel || '',
+    updatedAt: estimate.meta.updatedAt,
+    icon: estimate.meta.icon ?? 'letter',
+    lastAudit: history.length > 0 ? history[history.length - 1]! : null,
+  };
+}
+
+async function withAudit(estimate: Estimate): Promise<Estimate> {
+  const settings = useSettingsStore();
+  const at = nowIso();
+  const username = await resolveAuditUsername(settings.settings.username);
+  return appendAuditEntry(
+    {
+      ...estimate,
+      schemaVersion: 3 as const,
+      meta: {
+        ...estimate.meta,
+        updatedAt: at,
+      },
+      auditHistory: estimate.auditHistory ?? [],
+    },
+    at,
+    username,
+  );
+}
+
+export const useLibraryStore = defineStore('library', () => {
+  const entries = ref<LibraryEntry[]>([]);
+  const lastError = ref<string | null>(null);
+  const loading = ref(false);
+
+  const sorted = computed(() =>
+    [...entries.value].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+  );
+
+  async function resolveDir(): Promise<string> {
+    return resolveEstimatesDir();
+  }
+
+  async function loadAll(): Promise<number> {
+    lastError.value = null;
+    if (!isTauri()) {
+      entries.value = [];
+      return 0;
+    }
+    loading.value = true;
+    try {
+      const dir = await resolveDir();
+      await ensureDir(dir);
+      const files = await listJsonFiles(dir);
+      const loaded: LibraryEntry[] = [];
+      for (const file of files) {
+        try {
+          const text = await readTextFile(file);
+          const parsed = parseEstimate(JSON.parse(text));
+          if (parsed.ok) loaded.push(entryFromEstimate(parsed.data, file));
+        } catch {
+          /* skip broken files */
+        }
+      }
+      entries.value = loaded;
+      return loaded.length;
+    } catch (e) {
+      lastError.value = toErrorMessage(e);
+      entries.value = [];
+      return 0;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function saveEstimate(estimate: Estimate): Promise<{ path: string; data: Estimate }> {
+    if (!isTauri()) {
+      throw new Error('Salvataggio libreria disponibile solo nell’app desktop');
+    }
+    const next = await withAudit(estimate);
+    const dir = await resolveDir();
+    const path = await joinPath(dir, `${next.meta.id}.howlong.json`);
+    await writeTextFile(path, estimateToJson(next));
+    const entry = entryFromEstimate(next, path);
+    const idx = entries.value.findIndex((e) => e.id === next.meta.id || e.path === path);
+    if (idx >= 0) entries.value[idx] = entry;
+    else entries.value.push(entry);
+    addRecentOpenPath(path);
+    return { path, data: next };
+  }
+
+  async function loadEstimate(
+    path: string,
+  ): Promise<{ ok: true; data: Estimate } | { ok: false; error: string }> {
+    try {
+      const text = await readTextFile(path);
+      const parsed = parseEstimate(JSON.parse(text));
+      if (!parsed.ok) return { ok: false, error: parsed.error };
+      return { ok: true, data: parsed.data };
+    } catch (e) {
+      return { ok: false, error: toErrorMessage(e) };
+    }
+  }
+
+  /** Aggiorna titolo/icona di una stima in libreria (e sincronizza se aperta). */
+  async function updateEntryMeta(
+    path: string,
+    patch: Partial<Pick<Estimate['meta'], 'title' | 'icon'>>,
+  ): Promise<{ ok: true } | { ok: false; error: string }> {
+    if (!isTauri()) {
+      return { ok: false, error: 'Modifica libreria disponibile solo nell’app desktop' };
+    }
+    const loaded = await loadEstimate(path);
+    if (!loaded.ok) return loaded;
+
+    const title =
+      patch.title !== undefined
+        ? patch.title.trim() || loaded.data.meta.title
+        : loaded.data.meta.title;
+    const patched: Estimate = {
+      ...loaded.data,
+      meta: {
+        ...loaded.data.meta,
+        ...patch,
+        title,
+      },
+    };
+    try {
+      const next = await withAudit(patched);
+      await writeTextFile(path, estimateToJson(next));
+      const entry = entryFromEstimate(next, path);
+      const idx = entries.value.findIndex((e) => e.path === path);
+      if (idx >= 0) entries.value[idx] = entry;
+
+      const estimateStore = useEstimateStore();
+      if (estimateStore.filePath === path) {
+        const wasDirty = estimateStore.dirty;
+        estimateStore.estimate.auditHistory = next.auditHistory;
+        estimateStore.updateMeta({
+          title: next.meta.title,
+          icon: next.meta.icon,
+          updatedAt: next.meta.updatedAt,
+        });
+        if (!wasDirty) estimateStore.markSaved(path);
+      }
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: toErrorMessage(e) };
+    }
+  }
+
+  async function removeEntry(path: string) {
+    if (!isTauri()) return;
+    await deleteFile(path);
+    entries.value = entries.value.filter((e) => e.path !== path);
+  }
+
+  /** Importa JSON HowLong in libreria (id nuovo se già presente). */
+  async function importFromPaths(paths: string[]): Promise<{
+    imported: number;
+    errors: string[];
+  }> {
+    const errors: string[] = [];
+    let imported = 0;
+    const existingIds = new Set(entries.value.map((e) => e.id));
+
+    for (const path of paths) {
+      const loaded = await loadEstimate(path);
+      if (!loaded.ok) {
+        errors.push(`${path}: ${loaded.error}`);
+        continue;
+      }
+      let data = loaded.data;
+      if (existingIds.has(data.meta.id)) {
+        data = ensureUniqueEstimateId(data, existingIds);
+      }
+      try {
+        const saved = await saveEstimate(data);
+        existingIds.add(saved.data.meta.id);
+        imported += 1;
+      } catch (e) {
+        errors.push(`${path}: ${toErrorMessage(e)}`);
+      }
+    }
+    return { imported, errors };
+  }
+
+  return {
+    entries,
+    sorted,
+    lastError,
+    loading,
+    resolveDir,
+    loadAll,
+    saveEstimate,
+    loadEstimate,
+    updateEntryMeta,
+    removeEntry,
+    importFromPaths,
+  };
+});

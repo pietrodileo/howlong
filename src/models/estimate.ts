@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { normalizeEstimateInput } from '../lib/normalizeTags';
+import { normalizeEstimateInput } from '../domain/normalizeTags';
 import {
   ContingencyModeSchema,
   ContingencyPlacementSchema,
