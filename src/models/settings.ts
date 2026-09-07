@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   DEFAULT_ESTIMATE_COLUMN_VISIBILITY,
   ESTIMATE_TOGGLEABLE_COLUMNS,
-} from '../lib/estimateColumns';
+} from '../features/settings/estimateColumns';
 
 const estimateColumnVisibilityShape = Object.fromEntries(
   ESTIMATE_TOGGLEABLE_COLUMNS.map((k) => [k, z.boolean().default(DEFAULT_ESTIMATE_COLUMN_VISIBILITY[k])]),

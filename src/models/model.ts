@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { normalizeModelInput } from '../lib/normalizeTags';
+import { normalizeModelInput } from '../domain/normalizeTags';
 import {
   ContingencyModeSchema,
   ContingencyPlacementSchema,
@@ -76,34 +76,7 @@ export const ModelIconSchema = z.enum([
 
 export type ModelIcon = z.infer<typeof ModelIconSchema>;
 
-export const MODEL_ICON_OPTIONS: ModelIcon[] = [
-  'letter',
-  'layers',
-  'table',
-  'folder',
-  'gear',
-  'star',
-  'bolt',
-  'check',
-  'code',
-  'chart',
-  'clipboard',
-  'calendar',
-  'users',
-  'flag',
-  'target',
-  'box',
-  'book',
-  'cloud',
-  'rocket',
-  'shield',
-  'grid',
-  'list',
-  'pen',
-  'link',
-  'database',
-  'briefcase',
-];
+export const MODEL_ICON_OPTIONS: ModelIcon[] = [...ModelIconSchema.options];
 
 export const ModelSchema = z.object({
   schemaVersion: z.literal(1),

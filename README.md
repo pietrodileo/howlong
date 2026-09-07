@@ -4,7 +4,7 @@
 
 HowLong? is a local-first desktop application for creating, comparing, and sharing project estimates without relying on spreadsheets. It combines reusable estimate models, contingency calculations, manager and client views, and multi-format exports in a lightweight native app.
 
-**Current version:** `0.5.1`
+**Current version:** `0.5.2`
 
 User guides: [English](GUIDE.en.md) · [Italiano](GUIDE.it.md)
 
@@ -158,15 +158,17 @@ Keep the version synchronized in:
 
 ## Repository layout
 
+Contributor conventions and refactoring safeguards are documented in [AGENTS.md](AGENTS.md).
+
 ```text
 .
 ├── src/
-│   ├── components/     Reusable Vue components
-│   ├── i18n/           English and Italian messages
-│   ├── lib/            Calculation, import, export, and I/O logic
-│   ├── models/         Domain schemas and types
-│   ├── stores/         Pinia application state
-│   └── views/          Main application screens
+│   ├── app/            Application shell, navigation, localization, and global UI
+│   ├── domain/         Cross-feature calculations and data transformations
+│   ├── features/       Estimate, planning, comparison, models, library, and settings
+│   ├── models/         Shared schemas and domain types
+│   ├── platform/       Tauri integration and file import/export
+│   └── shared/         Reusable components, composables, state, and small utilities
 ├── src-tauri/          Rust application and Tauri configuration
 ├── scripts/            Development, build, and smoke-test scripts
 ├── GUIDE.en.md         English user guide
