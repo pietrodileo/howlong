@@ -1,0 +1,225 @@
+{
+  "meta": {
+    "id": "est-ec7235cb",
+    "title": "Test",
+    "clientLabel": "Awesome Client",
+    "createdAt": "2026-09-08T08:52:36.457Z",
+    "updatedAt": "2026-09-08T08:55:00.718Z",
+    "unit": "hours",
+    "hoursPerDay": 8,
+    "icon": "rocket"
+  },
+  "modelId": "standard-model",
+  "contingency": {
+    "percent": 20,
+    "mode": "project",
+    "targetCategories": [
+      "Sviluppo",
+      "Test"
+    ],
+    "placement": "both"
+  },
+  "tagOptions": [],
+  "items": [
+    {
+      "id": "1",
+      "name": "Analysis and documentation",
+      "hours": 0,
+      "category": "Analysis",
+      "kind": "operational",
+      "parentId": null,
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "task-a93ba200",
+      "name": "Functional Analysis",
+      "hours": 2,
+      "category": "Analysis",
+      "kind": "operational",
+      "parentId": "1",
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "task-33a34ea6",
+      "name": "Call with clients",
+      "hours": 6,
+      "category": "Analysis",
+      "kind": "operational",
+      "parentId": "1",
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "task-d6907a88",
+      "name": "Technical Analysis",
+      "hours": 4,
+      "category": "Analysis",
+      "kind": "operational",
+      "parentId": "1",
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "2",
+      "name": "Development",
+      "hours": 0,
+      "category": "Development",
+      "kind": "operational",
+      "parentId": null,
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "task-22be2e14",
+      "name": "Front-end",
+      "hours": 10,
+      "category": "Development",
+      "kind": "operational",
+      "parentId": "2",
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "task-c0f4fa31",
+      "name": "Back-end ",
+      "hours": 4,
+      "category": "Development",
+      "kind": "operational",
+      "parentId": "2",
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "3",
+      "name": "Test",
+      "hours": 4,
+      "category": "Test",
+      "kind": "operational",
+      "parentId": null,
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "4",
+      "name": "Validation",
+      "hours": 2,
+      "category": "Validation",
+      "kind": "operational",
+      "parentId": null,
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "5",
+      "name": "Release and monitoring",
+      "hours": 4,
+      "category": "Release",
+      "kind": "operational",
+      "parentId": null,
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": true
+    },
+    {
+      "id": "formula-7eac896d",
+      "name": "Project Management",
+      "hours": 0,
+      "category": "PM",
+      "kind": "formula",
+      "parentId": null,
+      "contingencyPercentOverride": null,
+      "notes": "",
+      "tags": [],
+      "clientVisible": true,
+      "applyContingency": false,
+      "formula": {
+        "percent": 10,
+        "sourceIds": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "aggregate": "sum",
+        "includeFormulaSources": false,
+        "applyGlobalContingency": false
+      }
+    }
+  ],
+  "clientView": {
+    "roundingMode": "ceil_1",
+    "hideManagerNotes": false,
+    "hideManagerTags": false,
+    "hideClientNotes": true,
+    "hideClientTags": false,
+    "titleOverride": "",
+    "lineOverrides": {},
+    "macroPresentation": {}
+  },
+  "auditHistory": [
+    {
+      "at": "2026-09-08T08:52:45.245Z",
+      "username": "p.dileo"
+    },
+    {
+      "at": "2026-09-08T08:53:22.953Z",
+      "username": "p.dileo"
+    },
+    {
+      "at": "2026-09-08T08:53:57.808Z",
+      "username": "p.dileo"
+    },
+    {
+      "at": "2026-09-08T08:54:05.883Z",
+      "username": "p.dileo"
+    },
+    {
+      "at": "2026-09-08T08:54:23.414Z",
+      "username": "p.dileo"
+    },
+    {
+      "at": "2026-09-08T08:54:32.299Z",
+      "username": "p.dileo"
+    },
+    {
+      "at": "2026-09-08T08:55:00.718Z",
+      "username": "p.dileo"
+    }
+  ],
+  "planning": {
+    "items": {}
+  },
+  "schemaVersion": 3
+}

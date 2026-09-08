@@ -1,5 +1,3 @@
-
-
 ![HowLong? app icon](src-tauri/icons/icon.png)
 
 # HowLong?
@@ -8,7 +6,7 @@
 
 Local-first desktop app for building, planning, analyzing, comparing, and delivering project estimates. Data stays on your machine in JSON files — no account or cloud service.
 
-![version 0.6.0](https://img.shields.io/badge/version-0.6.0-2ea043?style=flat-square)![MIT License](https://img.shields.io/badge/license-MIT-2ea043?style=flat-square)![Tauri 2](https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square)![macOS, Windows, Linux](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat-square)
+![version 0.6.0](https://img.shields.io/badge/version-0.6.0-2ea043?style=flat-square)![MIT License](https://img.shields.io/badge/license-MIT-2ea043?style=flat-square)![Tauri 2](https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square)![macOS, Windows, Linux](<https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat-square>)
 
 [What it does](#what-it-does) ·
 [Features](#features) ·
@@ -17,13 +15,8 @@ Local-first desktop app for building, planning, analyzing, comparing, and delive
 [Get started](#get-started) ·
 English guide ·
 Guida italiana ·
-Export guide
-
-
 
 ---
-
-
 
 ## What it does
 
@@ -59,7 +52,6 @@ Everything is stored locally. Settings, models, and estimates live as JSON on di
 
 ## Export outputs
 
-
 | Source   | What you get                                              | Use when               |
 | -------- | --------------------------------------------------------- | ---------------------- |
 | Estimate | Full calculation: hierarchy, formulas, contingency, notes | Technical handover     |
@@ -67,19 +59,16 @@ Everything is stored locally. Settings, models, and estimates live as JSON on di
 | Client   | Only included activities and visible notes/labels         | Client delivery        |
 | Plan     | XLSX Gantt from the visible range, scale, and colors      | Timeline communication |
 
-
-
-| Format          | Role                                                                    |
-| --------------- | ----------------------------------------------------------------------- |
-| `.howlong.json` | Native editable estimate — the only format you can re-import            |
-| YAML            | Structured input for reviewed AI workflows (e.g. drafting Jira tickets) |
-| XLSX            | Human-readable snapshot from any source view above                      |
-| ZIP             | Multiple library exports in one archive                                 |
-
+| Format            | Role                                                                    |
+| ----------------- | ----------------------------------------------------------------------- |
+| `.howlong.json` | Native editable estimate — the only format you can re-import           |
+| YAML              | Structured input for reviewed AI workflows (e.g. drafting Jira tickets) |
+| XLSX              | Human-readable snapshot from any source view above                      |
+| ZIP               | Multiple library exports in one archive                                 |
 
 Export creates a **delivery copy**. It does not replace **Save**, which updates the working file in the Library. YAML and XLSX do not round-trip back into the app.
 
-Details, safety notes, and sample files: [export guide](docs/guides/EXPORT_GUIDE.md) · `[examples/](examples/)`
+Details, safety notes, screenshots, and sample files: [Italian manual](docs/guides/GUIDE.it.md) · `[examples/](examples/)`
 
 ## Screens
 
@@ -91,16 +80,13 @@ The editor runs multiple estimates in tabs with live base, contingency, and tota
 
 ![Estimate editor with multiple open tabs and hierarchical work items](docs/images/new_estimate_with_tabs.png)
 
-
 | Planning                                                   | Analytics                                                                    |
 | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | ![Day-based Gantt planning board](docs/images/gantt_1.png) | ![Analytics overview with donut and stacked bars](docs/images/analytics.png) |
 
-
 Full walkthrough (settings, shortcuts, formats, troubleshooting): [English manual](docs/guides/GUIDE.en.md) · [manuale italiano](docs/guides/GUIDE.it.md)
 
 ## Stack
-
 
 | Layer              | Technology              |
 | ------------------ | ----------------------- |
@@ -109,7 +95,6 @@ Full walkthrough (settings, shortcuts, formats, troubleshooting): [English manua
 | State / validation | Pinia, Zod              |
 | Spreadsheet export | ExcelJS                 |
 | Storage            | Local JSON files        |
-
 
 Uses the OS webview — no bundled Chromium.
 
@@ -138,26 +123,22 @@ npm run smoke:analytics
 
 Outputs land in `src-tauri/target/release/bundle/`. Build on the target OS (Windows installers on Windows, etc.).
 
-
-| Platform | Command                                      |
-| -------- | -------------------------------------------- |
-| Windows  | `scripts\build-windows.bat`                  |
+| Platform | Command                                             |
+| -------- | --------------------------------------------------- |
+| Windows  | `scripts\build-windows.bat`                       |
 | macOS    | `./scripts/build-macos.sh` → `.app` / `.dmg` |
-| Linux    | `./scripts/build-linux.sh`                   |
-| Any      | `npm run tauri build`                        |
-
+| Linux    | `./scripts/build-linux.sh`                        |
+| Any      | `npm run tauri build`                             |
 
 ## Versioning
 
 HowLong? follows semantic versioning in the form `x.y.z`:
 
-
-| Part | Name  | Increment when                                                     |
-| ---- | ----- | ------------------------------------------------------------------ |
-| `x`  | Major | A release introduces incompatible or fundamental product changes   |
-| `y`  | Minor | A release adds backward-compatible functionality                   |
-| `z`  | Patch | A release contains backward-compatible fixes or small improvements |
-
+| Part  | Name  | Increment when                                                     |
+| ----- | ----- | ------------------------------------------------------------------ |
+| `x` | Major | A release introduces incompatible or fundamental product changes   |
+| `y` | Minor | A release adds backward-compatible functionality                   |
+| `z` | Patch | A release contains backward-compatible fixes or small improvements |
 
 Examples:
 
@@ -187,7 +168,7 @@ Contributor rules: [AGENTS.md](AGENTS.md).
 │   └── shared/         Reusable UI and helpers
 ├── src-tauri/          Rust app and Tauri config
 ├── scripts/            Build and smoke tests
-├── docs/guides/        User and export guides
+├── docs/guides/        User guides
 ├── docs/images/        Guide screenshots
 └── package.json
 ```

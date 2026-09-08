@@ -1,0 +1,137 @@
+_note: HowLong? — readable export for AI / sharing. Not for re-import into the app.
+title: Test
+client: Awesome Client
+unit: hours
+hoursPerDay: 8
+contingencyPercent: 20
+totals:
+  base: 39.6
+  baseDays: 4.95
+  contingency: 7.2
+  contingencyDays: 0.9
+  withContingency: 46.800000000000004
+  withContingencyDays: 5.8500000000000005
+  presented: 46.800000000000004
+  presentedDays: 5.8500000000000005
+items:
+  - name: Analysis and documentation
+    category: Analysis
+    hours: 12
+    days: 1.5
+    contingency: 2.4000000000000004
+    contingencyDays: 0.30000000000000004
+    withContingency: 14.4
+    withContingencyDays: 1.8
+    presented: 14.4
+    presentedDays: 1.8
+    items:
+      - name: Functional Analysis
+        category: Analysis
+        hours: 2
+        days: 0.25
+        contingency: 0.4
+        contingencyDays: 0.05
+        withContingency: 2.4
+        withContingencyDays: 0.3
+        presented: 2.4
+        presentedDays: 0.3
+      - name: Call with clients
+        category: Analysis
+        hours: 6
+        days: 0.75
+        contingency: 1.2
+        contingencyDays: 0.15
+        withContingency: 7.2
+        withContingencyDays: 0.9
+        presented: 7.2
+        presentedDays: 0.9
+      - name: Technical Analysis
+        category: Analysis
+        hours: 4
+        days: 0.5
+        contingency: 0.8
+        contingencyDays: 0.1
+        withContingency: 4.8
+        withContingencyDays: 0.6
+        presented: 4.8
+        presentedDays: 0.6
+  - name: Development
+    category: Development
+    hours: 14
+    days: 1.75
+    contingency: 2.8
+    contingencyDays: 0.35
+    withContingency: 16.8
+    withContingencyDays: 2.1
+    presented: 16.8
+    presentedDays: 2.1
+    items:
+      - name: Front-end
+        category: Development
+        hours: 10
+        days: 1.25
+        contingency: 2
+        contingencyDays: 0.25
+        withContingency: 12
+        withContingencyDays: 1.5
+        presented: 12
+        presentedDays: 1.5
+      - name: "Back-end "
+        category: Development
+        hours: 4
+        days: 0.5
+        contingency: 0.8
+        contingencyDays: 0.1
+        withContingency: 4.8
+        withContingencyDays: 0.6
+        presented: 4.8
+        presentedDays: 0.6
+  - name: Test
+    category: Test
+    hours: 4
+    days: 0.5
+    contingency: 0.8
+    contingencyDays: 0.1
+    withContingency: 4.8
+    withContingencyDays: 0.6
+    presented: 4.8
+    presentedDays: 0.6
+  - name: Validation
+    category: Validation
+    hours: 2
+    days: 0.25
+    contingency: 0.4
+    contingencyDays: 0.05
+    withContingency: 2.4
+    withContingencyDays: 0.3
+    presented: 2.4
+    presentedDays: 0.3
+  - name: Release and monitoring
+    category: Release
+    hours: 4
+    days: 0.5
+    contingency: 0.8
+    contingencyDays: 0.1
+    withContingency: 4.8
+    withContingencyDays: 0.6
+    presented: 4.8
+    presentedDays: 0.6
+  - name: Project Management
+    category: PM
+    hours: 3.6
+    days: 0.45
+    contingency: 0
+    contingencyDays: 0
+    withContingency: 3.6
+    withContingencyDays: 0.45
+    presented: 3.6
+    presentedDays: 0.45
+    kind: calculated
+    percent: 10
+    aggregate: sum
+    of:
+      - Analysis and documentation
+      - Development
+      - Test
+      - Validation
+      - Release and monitoring
