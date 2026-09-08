@@ -478,6 +478,8 @@ export type MessageTree = {
     activity: string;
     presented: string;
     statPresentedTotal: string;
+    statEstimatorTotal: string;
+    statManagerTotal: string;
     statDelta: string;
     timeColumn: string;
     presentedHours: string;
@@ -1278,6 +1280,8 @@ const it: MessageTree = {
     activity: 'Attività',
     presented: 'Totale presentato',
     statPresentedTotal: 'Totale presentato',
+    statEstimatorTotal: 'Totale stimatore',
+    statManagerTotal: 'Totale manager',
     statDelta: 'Delta',
     timeColumn: 'Tempo',
     presentedHours: 'Ore (h)',
@@ -2085,6 +2089,8 @@ const en: MessageTree = {
     activity: 'Activity',
     presented: 'Presented total',
     statPresentedTotal: 'Presented total',
+    statEstimatorTotal: 'Estimator total',
+    statManagerTotal: 'Manager total',
     statDelta: 'Delta',
     timeColumn: 'Time',
     presentedHours: 'Hours (h)',

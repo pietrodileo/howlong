@@ -126,6 +126,10 @@ const effortUnitShort = computed(() =>
   effortUnit.value === 'days' ? 'D' : 'h',
 );
 
+const managerSummaryDeltaHours = computed(
+  () => estimate.clientTotals.totalPresented - estimate.clientBaselineTotals.totalWithContingency,
+);
+
 const tagOptions = computed(() => {
   const fromEstimate = estimate.estimate.tagOptions ?? [];
   const modelId = estimate.estimate.modelId;
@@ -176,6 +180,15 @@ function formatDeltaCell(hours: number | null): string {
   const v = effortInputValue(hours);
   if (v === 0) return '0';
   return v > 0 ? `+${v}` : String(v);
+}
+
+/** Format a signed Manager-summary difference in hours or days. */
+function formatSummaryDelta(hours: number, unit: EffortUnit): string {
+  const formatted = unit === 'days'
+    ? formatDays(hours, hoursPerDay.value)
+    : formatHours(hours);
+  if (formatted === '0' || formatted.startsWith('-')) return formatted;
+  return `+${formatted}`;
 }
 
 function isEditableInManager(line: { isMacro: boolean; hasChildren: boolean; item: { clientVisible: boolean } }): boolean {
@@ -691,11 +704,31 @@ async function onExportFromMenu(
               <span class="stat-days">{{ formatDays(estimate.clientTotals.totalContingency, hoursPerDay) }} D</span>
             </strong>
           </div>
+          <div class="stat">
+            <span>{{ t('client.statEstimatorTotal') }}</span>
+            <strong>
+              <span>{{ formatHours(estimate.clientBaselineTotals.totalWithContingency) }} h</span>
+              <span class="stat-days">{{ formatDays(estimate.clientBaselineTotals.totalWithContingency, hoursPerDay) }} D</span>
+            </strong>
+          </div>
           <div class="stat accent">
-            <span>{{ t('client.statPresentedTotal') }}</span>
+            <span>{{ t('client.statManagerTotal') }}</span>
             <strong>
               <span>{{ formatHours(estimate.clientTotals.totalPresented) }} h</span>
               <span class="stat-days">{{ formatDays(estimate.clientTotals.totalPresented, hoursPerDay) }} D</span>
+            </strong>
+          </div>
+          <div
+            class="stat delta"
+            :class="{
+              positive: managerSummaryDeltaHours > 0,
+              negative: managerSummaryDeltaHours < 0,
+            }"
+          >
+            <span>{{ t('client.statDelta') }}</span>
+            <strong>
+              <span>{{ formatSummaryDelta(managerSummaryDeltaHours, 'hours') }} h</span>
+              <span class="stat-days">{{ formatSummaryDelta(managerSummaryDeltaHours, 'days') }} D</span>
             </strong>
           </div>
         </div>
@@ -1635,6 +1668,16 @@ async function onExportFromMenu(
   font-size: 0.85rem;
   color: var(--accent);
   opacity: 0.75;
+}
+
+.stat.delta.positive strong,
+.stat.delta.positive .stat-days {
+  color: var(--accent);
+}
+
+.stat.delta.negative strong,
+.stat.delta.negative .stat-days {
+  color: var(--danger);
 }
 
 .delta-col-head {

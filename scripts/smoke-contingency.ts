@@ -3,6 +3,11 @@
  * Run: npx tsx scripts/smoke-contingency.ts
  */
 import { computeTotals } from '../src/domain/contingency';
+import {
+  buildClientPresentedLines,
+  buildClientPresentedTotals,
+  buildClientSystemTotals,
+} from '../src/features/estimate/clientPresentation';
 import { comparisonItemHours } from '../src/features/comparison/compare';
 import type { Estimate } from '../src/models/estimate';
 
@@ -127,6 +132,52 @@ if (nestedTotals.totalContingency !== 2) throw new Error(`nested ctg expected 2 
 const macroLine = nestedTotals.lines.find((l) => l.item.id === 'm1');
 if (!macroLine || macroLine.hoursBase !== 20 || macroLine.contributesToTotals) {
   throw new Error('macro should aggregate children and not double-count');
+}
+
+const baselineLines = buildClientPresentedLines(nested, { includeHidden: true, ignoreOverrides: true });
+const estimatorPresented = buildClientSystemTotals(baselineLines).totalWithContingency;
+const unchangedManagerPresented = buildClientPresentedTotals(
+  buildClientPresentedLines(nested, { includeHidden: true }),
+).totalPresented;
+if (estimatorPresented !== 32 || unchangedManagerPresented - estimatorPresented !== 0) {
+  throw new Error(`unchanged manager summary should match the estimator total: estimator=${estimatorPresented}, manager=${unchangedManagerPresented}`);
+}
+
+const overridden: Estimate = {
+  ...nested,
+  clientView: {
+    ...nested.clientView,
+    lineOverrides: { t1: { hoursPresented: 20 } },
+  },
+};
+const overriddenManagerPresented = buildClientPresentedTotals(
+  buildClientPresentedLines(overridden, { includeHidden: true }),
+).totalPresented;
+if (Math.abs(overriddenManagerPresented - estimatorPresented - 11.2) > 0.0001) {
+  throw new Error('manager override should update the summary delta');
+}
+
+const hidden: Estimate = {
+  ...nested,
+  items: nested.items.map((item) => item.id === 't2' ? { ...item, clientVisible: false } : item),
+};
+const hiddenManagerPresented = buildClientPresentedTotals(
+  buildClientPresentedLines(hidden, { includeHidden: true }),
+).totalPresented;
+if (estimatorPresented !== 32 || Math.abs(hiddenManagerPresented - estimatorPresented + 13.2) > 0.0001) {
+  throw new Error('hidden rows should change only the manager total and delta');
+}
+
+const reset: Estimate = {
+  ...hidden,
+  clientView: { ...hidden.clientView, lineOverrides: {} },
+  items: hidden.items.map((item) => ({ ...item, clientVisible: true })),
+};
+const resetManagerPresented = buildClientPresentedTotals(
+  buildClientPresentedLines(reset, { includeHidden: true }),
+).totalPresented;
+if (resetManagerPresented - estimatorPresented !== 0) {
+  throw new Error('reset manager summary should match the estimator total');
 }
 if (comparisonItemHours(nested, 'f1') !== 10) {
   throw new Error('comparison should display computed formula hours');
