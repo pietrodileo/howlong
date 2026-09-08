@@ -12,6 +12,9 @@ const macro = estimate.items[0];
 const first = { ...macro, id: 'sub-1', parentId: macro.id };
 const second = { ...macro, id: 'sub-2', parentId: macro.id };
 first.color = '#c2410c';
+first.tags = ['Backend'];
+first.notes = 'Internal note';
+first.clientHoursOverride = 10 / 3;
 estimate.items.push(first, second);
 estimate.planning.items[first.id] = { startDate: '2026-09-04', endDate: '2026-09-08' };
 estimate.planning.items[second.id] = { startDate: '2026-09-10', endDate: '2026-09-12' };
@@ -86,6 +89,43 @@ for (const [bytes, sheetName] of [
   assert.equal((styledSheet.getRow(macroRow).getCell(1).fill as { fgColor?: { argb?: string } }).fgColor?.argb, 'FFDCE6F1');
   assert.equal((styledSheet.getRow(subRow).getCell(1).fill as { fgColor?: { argb?: string } }).fgColor?.argb, 'FFF4F7FA');
 }
+
+const estimateWorkbook = new ExcelJS.Workbook();
+await estimateWorkbook.xlsx.load(await estimateToXlsx(estimate) as unknown as ArrayBuffer);
+const estimateSheet = estimateWorkbook.getWorksheet('Estimate')!;
+const estimateHeaders = estimateSheet.getRow(7).values.slice(1);
+assert.ok(estimateHeaders.includes('Tags'));
+assert.ok(estimateHeaders.includes('Notes'));
+const estimateSubRow = estimateSheet.getColumn(1).values.findIndex((value) => value === `  ${first.name}`);
+assert.equal(estimateSheet.getRow(estimateSubRow).getCell(estimateHeaders.indexOf('Tags') + 1).value, 'Backend');
+assert.equal(estimateSheet.getRow(estimateSubRow).getCell(estimateHeaders.indexOf('Notes') + 1).value, 'Internal note');
+
+const managerWorkbook = new ExcelJS.Workbook();
+await managerWorkbook.xlsx.load(await estimateToXlsx(estimate, 'manager') as unknown as ArrayBuffer);
+const managerSheet = managerWorkbook.getWorksheet('Manager')!;
+const managerHeaders = managerSheet.getRow(8).values.slice(1);
+assert.ok(managerHeaders.includes('Tags'));
+assert.ok(managerHeaders.includes('Notes'));
+const managerSubRow = managerSheet.getColumn(1).values.findIndex((value) => value === `  ${first.name}`);
+assert.equal(managerSheet.getRow(managerSubRow).getCell(managerHeaders.indexOf('Tags') + 1).value, 'Backend');
+assert.equal(managerSheet.getRow(managerSubRow).getCell(managerHeaders.indexOf('Notes') + 1).value, 'Internal note');
+
+const hiddenManagerWorkbook = new ExcelJS.Workbook();
+await hiddenManagerWorkbook.xlsx.load(await estimateToXlsx({
+  ...estimate,
+  clientView: { ...estimate.clientView, hideManagerTags: true, hideManagerNotes: true },
+}, 'manager') as unknown as ArrayBuffer);
+const hiddenManagerHeaders = hiddenManagerWorkbook.getWorksheet('Manager')!.getRow(8).values.slice(1);
+assert.equal(hiddenManagerHeaders.includes('Tags'), false);
+assert.equal(hiddenManagerHeaders.includes('Notes'), false);
+
+const clientWorkbook = new ExcelJS.Workbook();
+await clientWorkbook.xlsx.load(await estimateToClientXlsx(estimate) as unknown as ArrayBuffer);
+const clientSheet = clientWorkbook.getWorksheet('Client')!;
+const clientHeaders = clientSheet.getRow(4).values.slice(1);
+const clientSubRow = clientSheet.getColumn(1).values.findIndex((value) => value === `  ${first.name}`);
+assert.equal(clientSheet.getRow(clientSubRow).getCell(clientHeaders.indexOf('Hours') + 1).numFmt, '0.##');
+assert.equal(clientSheet.getRow(clientSubRow).getCell(clientHeaders.indexOf('Days') + 1).numFmt, '0.##');
 
 setActivePinia(createPinia());
 const store = useEstimateStore();

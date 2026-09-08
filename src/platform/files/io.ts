@@ -85,7 +85,9 @@ export async function exportEstimate(
     case 'yaml':
       return saveContent(base, format, view === 'client' ? await estimateToClientYaml(estimate) : await estimateToAiYaml(estimate, manager), null);
     case 'xlsx':
-      return saveContent(base, format, null, view === 'client' ? await estimateToClientXlsx(estimate) : await estimateToXlsx(estimate, manager));
+      return saveContent(base, format, null, view === 'client'
+        ? await estimateToClientXlsx(estimate)
+        : await estimateToXlsx(estimate, manager ? 'manager' : 'estimate'));
   }
 }
 

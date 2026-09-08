@@ -329,6 +329,10 @@ const clientOutputTotalPresented = computed(() =>
   sumClientOutputPresented(visibleClientLines.value),
 );
 
+const clientSummaryDeltaHours = computed(
+  () => clientOutputTotalPresented.value - estimate.clientBaselineTotals.totalWithContingency,
+);
+
 const clientOutputColumnKeys = computed(() =>
   clientCols.orderedKeys.value.filter((key) => {
     if (key === 'tags' && estimate.estimate.clientView.hideClientTags) return false;
@@ -1080,6 +1084,37 @@ async function onExportFromMenu(
           </div>
         </div>
       </header>
+      <div class="summary-row client-summary" aria-live="polite">
+        <div class="summary-stats">
+          <div class="stat">
+            <span>{{ t('client.statEstimatorTotal') }}</span>
+            <strong>
+              <span>{{ formatHours(estimate.clientBaselineTotals.totalWithContingency) }} h</span>
+              <span class="stat-days">{{ formatDays(estimate.clientBaselineTotals.totalWithContingency, hoursPerDay) }} D</span>
+            </strong>
+          </div>
+          <div class="stat accent">
+            <span>{{ t('client.statPresentedTotal') }}</span>
+            <strong>
+              <span>{{ formatHours(clientOutputTotalPresented) }} h</span>
+              <span class="stat-days">{{ formatDays(clientOutputTotalPresented, hoursPerDay) }} D</span>
+            </strong>
+          </div>
+          <div
+            class="stat delta"
+            :class="{
+              positive: clientSummaryDeltaHours > 0,
+              negative: clientSummaryDeltaHours < 0,
+            }"
+          >
+            <span>{{ t('client.statDelta') }}</span>
+            <strong>
+              <span>{{ formatSummaryDelta(clientSummaryDeltaHours, 'hours') }} h</span>
+              <span class="stat-days">{{ formatSummaryDelta(clientSummaryDeltaHours, 'days') }} D</span>
+            </strong>
+          </div>
+        </div>
+      </div>
       <div class="table-shell">
         <table class="data-table sheet">
           <thead>
