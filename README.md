@@ -1,78 +1,95 @@
-<div align="center">
 
-<img src="src-tauri/icons/icon.png" width="128" alt="HowLong? app icon" />
+
+![HowLong? app icon](src-tauri/icons/icon.png)
 
 # HowLong?
 
 **Clear project estimates, without the spreadsheet.**
 
-HowLong? is a local-first desktop app for creating, analyzing, comparing, and sharing project estimates. It includes reusable models, contingency, analytics, separate manager and client views, and exports in several formats.
+Local-first desktop app for building, planning, analyzing, comparing, and delivering project estimates. Data stays on your machine in JSON files — no account or cloud service.
 
-<p>
-  <img src="https://img.shields.io/badge/version-0.6.0-2ea043?style=flat-square" alt="version 0.6.0" />
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea043?style=flat-square" alt="MIT License" /></a>
-  <img src="https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square" alt="Tauri 2" />
-  <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat-square" alt="macOS, Windows, Linux" />
-</p>
+![version 0.6.0](https://img.shields.io/badge/version-0.6.0-2ea043?style=flat-square)![MIT License](https://img.shields.io/badge/license-MIT-2ea043?style=flat-square)![Tauri 2](https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square)![macOS, Windows, Linux](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat-square)
 
-<a href="#why-howlong">Why HowLong?</a> ·
-<a href="#features">Features</a> ·
-<a href="#product-tour">Product tour</a> ·
-<a href="#development">Development</a> ·
-<a href="docs/guides/GUIDE.en.md">English guide</a> ·
-<a href="docs/guides/GUIDE.it.md">Guida italiana</a> ·
-<a href="docs/guides/EXPORT_GUIDE.md">Export guide</a>
+[What it does](#what-it-does) ·
+[Features](#features) ·
+[Exports](#export-outputs) ·
+[Screens](#screens) ·
+[Get started](#get-started) ·
+English guide ·
+Guida italiana ·
+Export guide
 
-</div>
+
 
 ---
 
-## Why HowLong?
 
-Project estimates often begin in spreadsheets, where they can become difficult to reuse, audit, and present. HowLong? keeps the calculations structured and provides separate views for internal planning and client communication.
 
-All project data remains in local JSON files. No account, hosted service, or database is required.
+## What it does
+
+Spreadsheets make estimates hard to reuse, audit, and hand off. *HowLong?* keeps effort, contingency, and structure in one editable document, then splits **internal planning** from **client delivery**.
+
+Everything is stored locally. Settings, models, and estimates live as JSON on disk — readable, portable, yours.
 
 ## Features
 
-- Build estimates from reusable models and hierarchical work items, starting from the bundled Italian or English standard model.
-- Plan estimate activities on an adaptive day- or month-based Gantt timeline with configurable weekend days.
-- Analyze the open estimate with summary metrics, an interactive activity donut, and stacked bars that compare base effort with contingency in hours or days.
-- Drill into one macro's subtasks or selectively expand subtasks from several macros across both Analytics charts.
-- Apply contingency globally, by category, or by individual item.
-- Add derived formula rows for overhead, management, and related effort.
-- Maintain notes, tags, project metadata, and an audit history.
-- Compare multiple estimates and contingency scenarios.
-- Present separate manager and client views.
-- Store estimates in a configurable local library.
-- Import and export JSON, YAML, and XLSX; export library selections as ZIP archives and open generated files from the completion message.
-- Use keyboard shortcuts to save, create and close tabs, change views, and move between open estimate tabs.
-- Use the interface in English or Italian with light and dark themes.
+### Estimates
+
+- Start from bundled Italian or English models, or build your own reusable templates.
+- Organize work as macros, subtasks, categories, labels, and notes.
+- Add formula rows (sum, average, min, max × %) for overhead and management effort.
+- Apply contingency globally, by category, or per row; compare scenarios A/B/C before committing.
+- Track project metadata and an audit history of saves.
+
+### Planning and analysis
+
+- **Plan:** day-based or month-based Gantt with configurable weekends; dates only — effort stays unchanged.
+- **Analytics:** summary cards, activity donut, and stacked base-vs-contingency bars; drill into one macro or expand several.
+- **Compare:** align multiple saved estimates side by side.
+- **Manager view:** round, redistribute, include/exclude rows, and override presented totals.
+- **Client view:** filtered preview of what you actually deliver.
+
+### Files and workflow
+
+- Save estimates to a local **Library** (default app data folder or a custom path).
+- Import and export JSON, YAML, and XLSX; bulk-export library selections as ZIP.
+- Open exported files from the completion dialog.
+- Keyboard shortcuts for save, tabs, views, and undo/redo.
+- English or Italian UI; light or dark theme.
 
 ## Export outputs
 
-| Source | Purpose |
-| --- | --- |
-| Estimate view | Complete estimator-authored calculation for technical review and handover |
-| Manager view | Internally adjusted presentation with rounding, redistributed work, and presented totals |
-| Client view | Filtered delivery with only the chosen activities and optional notes or labels |
-| Plan | Standalone XLSX Gantt based on the visible range, scale, weekends, dates, and colors |
 
-Use `.howlong.json` for an editable backup or transfer back into HowLong?. Use YAML as structured input for reviewed AI-agent workflows such as drafting Jira tickets or project plans. Use XLSX for human review and presentation. Derived YAML and XLSX files do not update the native estimate.
+| Source   | What you get                                              | Use when               |
+| -------- | --------------------------------------------------------- | ---------------------- |
+| Estimate | Full calculation: hierarchy, formulas, contingency, notes | Technical handover     |
+| Manager  | Rounded/redistributed presented values                    | Internal approval      |
+| Client   | Only included activities and visible notes/labels         | Client delivery        |
+| Plan     | XLSX Gantt from the visible range, scale, and colors      | Timeline communication |
 
-See the [export guide](docs/guides/EXPORT_GUIDE.md) for format behavior, safety notes, and downloadable files from [`examples/`](examples/).
 
-## Product tour
 
-The home screen is the starting point for creating an estimate, opening a file, visiting the Library, or reopening one of the five most recent estimates. The sidebar provides the main views; Plan and Analytics become useful when an estimate is open.
+| Format          | Role                                                                    |
+| --------------- | ----------------------------------------------------------------------- |
+| `.howlong.json` | Native editable estimate — the only format you can re-import            |
+| YAML            | Structured input for reviewed AI workflows (e.g. drafting Jira tickets) |
+| XLSX            | Human-readable snapshot from any source view above                      |
+| ZIP             | Multiple library exports in one archive                                 |
+
+
+Export creates a **delivery copy**. It does not replace **Save**, which updates the working file in the Library. YAML and XLSX do not round-trip back into the app.
+
+Details, safety notes, and sample files: [export guide](docs/guides/EXPORT_GUIDE.md) · `[examples/](examples/)`
+
+## Screens
+
+Home → create or open an estimate, browse the Library, or jump to a recent file. Plan and Analytics need an open estimate tab.
 
 ![HowLong home screen with navigation, creation actions, and recently opened estimates](docs/images/homepage.png)
 
-The estimate editor keeps multiple documents in tabs. It shows base effort, contingency, combined totals, editable macros and subtasks, formulas, labels, notes, and row actions in one workspace.
+The editor runs multiple estimates in tabs with live base, contingency, and total figures.
 
 ![Estimate editor with multiple open tabs and hierarchical work items](docs/images/new_estimate_with_tabs.png)
-
-Planning places the same activities on a daily or monthly Gantt without changing their estimated effort. Analytics shows how base effort and contingency are distributed.
 
 
 | Planning                                                   | Analytics                                                                    |
@@ -80,66 +97,33 @@ Planning places the same activities on a daily or monthly Gantt without changing
 | ![Day-based Gantt planning board](docs/images/gantt_1.png) | ![Analytics overview with donut and stacked bars](docs/images/analytics.png) |
 
 
-For a complete screen-by-screen walkthrough, settings reference, shortcuts, file formats, and safety notes, read the [English manual](docs/guides/GUIDE.en.md) or [manuale italiano](docs/guides/GUIDE.it.md).
+Full walkthrough (settings, shortcuts, formats, troubleshooting): [English manual](docs/guides/GUIDE.en.md) · [manuale italiano](docs/guides/GUIDE.it.md)
 
-## Technology
-
-
-| Layer              | Technology                  |
-| ------------------ | --------------------------- |
-| Desktop shell      | Tauri 2 and Rust            |
-| Interface          | Vue 3, TypeScript, and Vite |
-| State              | Pinia                       |
-| Validation         | Zod                         |
-| Spreadsheet export | ExcelJS                     |
-| Storage            | Local JSON files            |
+## Stack
 
 
-HowLong? uses the operating system's native webview through Tauri rather than bundling a browser runtime.
-
-## Requirements
-
-All platforms require:
-
-- [Node.js](https://nodejs.org/) 20 or later
-- [Rust](https://www.rust-lang.org/tools/install) stable
-- Platform-specific [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/)
-
-Additional platform requirements:
+| Layer              | Technology              |
+| ------------------ | ----------------------- |
+| Desktop shell      | Tauri 2, Rust           |
+| Interface          | Vue 3, TypeScript, Vite |
+| State / validation | Pinia, Zod              |
+| Spreadsheet export | ExcelJS                 |
+| Storage            | Local JSON files        |
 
 
-| Platform | Requirements                                                             |
-| -------- | ------------------------------------------------------------------------ |
-| Windows  | Visual Studio Build Tools 2022 with C++ tools, Windows SDK, and WebView2 |
-| macOS    | Xcode Command Line Tools                                                 |
-| Linux    | WebKitGTK and the distribution packages required by Tauri                |
+Uses the OS webview — no bundled Chromium.
 
+## Get started
 
+**Time:** ~2 min if Node 20+ and Rust are already installed; ~20–30 min if you still need [Rust](https://www.rust-lang.org/tools/install) and [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
 
+**All platforms:** Node.js 20+, Rust stable, plus platform tools ([Windows](https://v2.tauri.app/start/prerequisites/): VS Build Tools 2022, Windows SDK, WebView2 · **macOS:** Xcode CLT · **Linux:** WebKitGTK + Tauri deps).
 
-## Development
+1. `npm install`
+2. `npm run tauri:dev` — full desktop app (filesystem, dialogs, native export)
+3. `npm run dev` — browser UI only; no native file features
 
-Install dependencies:
-
-```bash
-npm install
-```
-
-Run the complete desktop application:
-
-```bash
-npm run tauri:dev
-```
-
-Run only the browser-based frontend:
-
-```bash
-npm run dev
-```
-
-Browser mode is useful for interface work. Native filesystem features and dialogs require Tauri.
-
-## Testing
+### Verify changes
 
 ```bash
 npm run build
@@ -148,43 +132,20 @@ npm run smoke:gantt
 npm run smoke:analytics
 ```
 
-`npm run build` type-checks and bundles the frontend. The smoke commands check contingency, Gantt date calculations, and Analytics graph projections.
+`build` type-checks and bundles the frontend. Smoke scripts cover contingency, Gantt dates, and Analytics projections.
 
-## Release builds
+### Release builds
 
-Build scripts run from any working directory and place native artifacts under `src-tauri/target/release/bundle/`.
-
-### Windows
-
-```bat
-scripts\build-windows.bat
-```
+Outputs land in `src-tauri/target/release/bundle/`. Build on the target OS (Windows installers on Windows, etc.).
 
 
+| Platform | Command                                      |
+| -------- | -------------------------------------------- |
+| Windows  | `scripts\build-windows.bat`                  |
+| macOS    | `./scripts/build-macos.sh` → `.app` / `.dmg` |
+| Linux    | `./scripts/build-linux.sh`                   |
+| Any      | `npm run tauri build`                        |
 
-### macOS
-
-```bash
-./scripts/build-macos.sh
-```
-
-Typical outputs are `.app` and `.dmg` bundles.
-
-### Linux
-
-```bash
-./scripts/build-linux.sh
-```
-
-Available bundle formats depend on the installed Linux packaging tools and Tauri configuration.
-
-To build manually on any supported platform:
-
-```bash
-npm run tauri build
-```
-
-Tauri builds are platform-native: build Windows installers on Windows, macOS bundles on macOS, and Linux packages on Linux.
 
 ## Versioning
 
@@ -211,39 +172,34 @@ Keep the version synchronized in:
 - `src-tauri/tauri.conf.json`
 - `src/app/App.vue`, which displays the version in the About dialog
 
-
-
 ## Repository layout
 
-Contributor conventions and refactoring safeguards are documented in [AGENTS.md](AGENTS.md).
+Contributor rules: [AGENTS.md](AGENTS.md).
 
 ```text
 .
 ├── src/
-│   ├── app/            Application shell, navigation, localization, and global UI
-│   ├── domain/         Cross-feature calculations and data transformations
-│   ├── features/       Estimate, planning, analytics, comparison, models, library, and settings
-│   ├── models/         Shared schemas and domain types
-│   ├── platform/       Tauri integration and file import/export
-│   └── shared/         Reusable components, composables, state, and small utilities
-├── src-tauri/          Rust application and Tauri configuration
-├── scripts/            Development, build, and smoke-test scripts
-├── docs/
-│   ├── guides/         English, Italian, and export guides
-│   └── images/         Guide screenshots
+│   ├── app/            Shell, navigation, i18n, global UI
+│   ├── domain/         Shared calculations
+│   ├── features/       Estimate, plan, analytics, compare, models, library, settings
+│   ├── models/         Schemas and domain types
+│   ├── platform/       Tauri and file I/O
+│   └── shared/         Reusable UI and helpers
+├── src-tauri/          Rust app and Tauri config
+├── scripts/            Build and smoke tests
+├── docs/guides/        User and export guides
+├── docs/images/        Guide screenshots
 └── package.json
 ```
 
-
-
 ## Data and privacy
 
-Settings, models, and estimates are stored locally. The default location is the Tauri application data directory for `com.pietrodileo.howlong`; the estimate library can be moved to a custom folder from Settings.
+Default data directory: Tauri app data for `com.pietrodileo.howlong`. Point the Library to any folder from Settings.
 
-You can place the custom workspace in a folder synchronized by OneDrive, Google Drive, Dropbox, or a similar service. Colleagues can share models and estimate files through the same service. Each person must install its synchronization client and select the corresponding local folder in HowLong?. Do not edit the same estimate at the same time. HowLong? uses files and has no collaborative locking or real-time conflict resolution.
+You can use a synced folder (OneDrive, Google Drive, Dropbox) so colleagues share models and estimates through that service. Everyone needs the sync client and the same shared folder. **Do not edit the same** `.howlong.json` **at the same time** — there is no locking or conflict merge.
 
-Estimate files use the `.howlong.json` suffix and remain human-readable and portable.
+Estimate files use the `.howlong.json` suffix.
 
 ## License
 
-HowLong? is distributed under the terms in [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
