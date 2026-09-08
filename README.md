@@ -81,8 +81,6 @@ Everything is stored locally. Settings, models, and estimates live as JSON on di
 
 Export creates a **delivery copy**. It does not replace **Save**, which updates the working file in the Library. YAML and XLSX do not round-trip back into the app.
 
-Details, safety notes, screenshots, and sample files: [Italian manual](docs/guides/GUIDE.it.md) · `[examples/](examples/)`
-
 ## Screens
 
 Home → create or open an estimate, browse the Library, or jump to a recent file. Plan and Analytics need an open estimate tab.
