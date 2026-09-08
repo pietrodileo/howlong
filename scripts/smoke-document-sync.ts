@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { resolveDocumentShortcut } from '../src/app/documentShortcuts';
 import { createPinia, setActivePinia } from 'pinia';
 import { effectScope, nextTick } from 'vue';
 import { useDocumentsStore } from '../src/shared/documents';
@@ -93,3 +94,18 @@ async function checkView(view: 'working' | 'gantt') {
 await checkView('working');
 await checkView('gantt');
 console.log('document synchronization smoke checks passed');
+const shortcut = (key: string, options: Partial<KeyboardEvent> = {}) => resolveDocumentShortcut({
+  key,
+  ctrlKey: true,
+  metaKey: false,
+  altKey: false,
+  shiftKey: false,
+  ...options,
+});
+assert.equal(shortcut('s'), 'save');
+assert.equal(shortcut('w'), 'close');
+assert.equal(shortcut('t'), 'new-tab');
+assert.equal(shortcut('z'), 'undo');
+assert.equal(shortcut('y'), 'redo');
+assert.equal(shortcut('ArrowLeft'), 'previous');
+assert.equal(shortcut('ArrowRight'), 'next');

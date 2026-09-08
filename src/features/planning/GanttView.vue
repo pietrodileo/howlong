@@ -4,7 +4,6 @@ import { useDocumentsStore } from '../../shared/documents';
 import { useEstimateStore } from '../estimate/estimate';
 import { useUiStore } from '../../app/ui';
 import { useSettingsStore } from '../settings/settings';
-import { useLibraryStore } from '../library/library';
 import DisclosureIcon from '../../shared/components/DisclosureIcon.vue';
 import { useModelsStore } from '../models/models';
 import { storeToRefs } from 'pinia';
@@ -21,7 +20,6 @@ import {
   parseDate,
 } from '../../domain/gantt';
 import { exportGanttXlsx } from '../../platform/files/io';
-import { toErrorMessage } from '../../shared/errors';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import { useDocumentSync } from '../../shared/composables/useDocumentSync';
 import IconBtn from '../../shared/components/IconBtn.vue';
@@ -35,7 +33,6 @@ const documentSync = useDocumentSync('gantt');
 const { mutate } = documentSync;
 const ui = useUiStore();
 const settings = useSettingsStore();
-const library = useLibraryStore();
 const modelsStore = useModelsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
 const { t, locale } = useI18n();
@@ -97,54 +94,11 @@ function toggleActivityPanel() {
   activityCollapsed.value = !activityCollapsed.value;
 }
 
-/** Persist the Gantt estimate and synchronize its saved state. */
-async function saveEstimate() {
-  try {
-    const { path, data } = await library.saveEstimate(estimate.estimate);
-    documentSync.applySaved(path, data);
-    ui.notify(t('working.saved', { path }));
-  } catch (error) {
-    ui.notify(toErrorMessage(error), true);
-  }
-}
-
-/** Handle Gantt shortcuts for history, saving, and new tabs. */
-function onGanttKeydown(event: KeyboardEvent) {
-  if ((!event.ctrlKey && !event.metaKey) || event.altKey) return;
-  const key = event.key.toLowerCase();
-  const historyAction = key === 'z' && !event.shiftKey
-    ? 'undo'
-    : (key === 'y' && event.ctrlKey && !event.shiftKey) || (key === 'z' && event.metaKey && event.shiftKey)
-      ? 'redo'
-      : null;
-  if (historyAction) {
-    event.preventDefault();
-    documentSync.restoreHistory(historyAction);
-    return;
-  }
-  if (event.shiftKey) return;
-  if (key !== 's' && key !== 't') return;
-  event.preventDefault();
-  if (key === 's') {
-    void saveEstimate();
-    return;
-  }
-  const model = defaultModel.value ?? models.value[0] ?? null;
-  if (!model) {
-    ui.notify(t('working.noModelAvail'), true);
-    return;
-  }
-  modelsStore.selectedId = model.id;
-  docs.createFromModel(model);
-}
-
 onMounted(() => {
   document.addEventListener('pointerdown', onDocumentPointerDown);
-  window.addEventListener('keydown', onGanttKeydown);
 });
 onUnmounted(() => {
   document.removeEventListener('pointerdown', onDocumentPointerDown);
-  window.removeEventListener('keydown', onGanttKeydown);
 });
 
 watch(

@@ -501,10 +501,14 @@ function onExportDateChange(checked: boolean) {
 
 .shortcut-list {
   display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 0.55rem 1rem;
+  grid-template-columns: minmax(12rem, max-content) 1fr;
+  gap: 0.65rem 1.25rem;
   align-items: center;
-  margin: 0.85rem 0 0;
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
 }
 
 .shortcut-list dt {
@@ -527,6 +531,17 @@ function onExportDateChange(checked: boolean) {
   box-shadow: 0 1px 0 var(--line);
   color: var(--ink);
   font: 600 0.75rem var(--font-ui);
+}
+
+@media (max-width: 620px) {
+  .shortcut-list {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .shortcut-list dd:not(:last-child) {
+    margin-bottom: 0.65rem;
+  }
 }
 
 .user-badge {

@@ -3,8 +3,12 @@ import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import { useDocumentsStore } from '../../shared/documents';
 import { useModelsStore } from '../../features/models/models';
+import { useEstimateStore } from '../../features/estimate/estimate';
+import { useLibraryStore } from '../../features/library/library';
 import { useUiStore } from '../ui';
 import { useI18n } from '../i18n/useI18n';
+import { resolveDocumentShortcut } from '../documentShortcuts';
+import { toErrorMessage } from '../../shared/errors';
 import { storeToRefs } from 'pinia';
 
 const emit = defineEmits<{
@@ -14,6 +18,8 @@ const emit = defineEmits<{
 
 const docs = useDocumentsStore();
 const modelsStore = useModelsStore();
+const estimateStore = useEstimateStore();
+const library = useLibraryStore();
 const { defaultModel, models: modelList } = storeToRefs(modelsStore);
 const ui = useUiStore();
 const { t } = useI18n();
@@ -58,25 +64,66 @@ function onWindowChange() {
   if (newMenuOpen.value) updateMenuPosition();
 }
 
-/** Handle document navigation and closing consistently across every view. */
+/** Save the active document from any estimate-backed view. */
+async function saveActiveDocument(): Promise<void> {
+  const session = docs.activeSession;
+  if (!session) return;
+  try {
+    const { path, data } = await library.saveEstimate(session.estimate);
+    docs.updateSessionEstimate(session.sessionId, data);
+    docs.markSaved(session.sessionId, path);
+    estimateStore.restoreEstimate(data, path, false);
+    ui.notify(t('working.saved', { path }));
+  } catch (error) {
+    ui.notify(toErrorMessage(error), true);
+  }
+}
+
+/** Handle document shortcuts consistently across estimate-backed views. */
 function onTabShortcut(event: KeyboardEvent) {
-  if ((!event.ctrlKey && !event.metaKey) || event.altKey || event.shiftKey) return;
-  const key = event.key.toLowerCase();
-  if (key === 'w') {
+  const action = resolveDocumentShortcut(event);
+  if (!action) return;
+  if (action === 'close') {
     event.preventDefault();
     event.stopPropagation();
     if (docs.activeId) closeTab(docs.activeId, event);
     return;
   }
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+  if (action === 'previous' || action === 'next') {
+    event.preventDefault();
+    event.stopPropagation();
+    const current = docs.sessions.findIndex((session) => session.sessionId === docs.activeId);
+    const next = current + (action === 'next' ? 1 : -1);
+    const session = docs.sessions[next];
+    if (!session) return;
+    docs.activate(session.sessionId);
+    emit('activate', session.sessionId);
+    return;
+  }
+  if (ui.currentView === 'working') return;
   event.preventDefault();
   event.stopPropagation();
-  const current = docs.sessions.findIndex((session) => session.sessionId === docs.activeId);
-  const next = current + (event.key === 'ArrowRight' ? 1 : -1);
-  const session = docs.sessions[next];
-  if (!session) return;
-  docs.activate(session.sessionId);
-  emit('activate', session.sessionId);
+  if (action === 'save') {
+    void saveActiveDocument();
+    return;
+  }
+  if (action === 'new-tab') {
+    const model = defaultModel.value ?? modelList.value[0] ?? null;
+    if (!model) {
+      ui.notify(t('working.noModelAvail'), true);
+      return;
+    }
+    modelsStore.selectedId = model.id;
+    docs.createFromModel(model);
+    return;
+  }
+  if (action === 'toggle-view') {
+    ui.navigate('working');
+    return;
+  }
+  const restored = docs[action](docs.activeId!);
+  const session = docs.activeSession;
+  if (restored && session) estimateStore.restoreEstimate(restored, session.filePath, session.dirty);
 }
 
 onMounted(() => {
