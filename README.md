@@ -10,19 +10,26 @@
   How many times has someone asked you, <strong>"How long will this take?"</strong>
 </p>
 
----
+<p align="center">
+  <a href="https://github.com/pdileo/HowLong/releases"><img src="https://img.shields.io/badge/version-0.6.0-2ea043?style=flat" alt="version 0.6.0"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea043?style=flat" alt="MIT License"></a>
+  <a href="https://v2.tauri.app"><img src="https://img.shields.io/badge/Tauri-2-24c8db?style=flat" alt="Tauri 2"></a>
+  <a href="#"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat" alt="macOS | Windows | Linux"></a>
+</p>
 
 *HowLong?* is your solution for building, planning, analyzing, comparing, and delivering project estimates—all in a dedicated desktop app. Leave spreadsheets behind: create clear, structured estimates with your data stored locally in readable JSON files. No account, no cloud, no dependencies. Your estimates stay private and in your control.
 
-![version 0.6.0](https://img.shields.io/badge/version-0.6.0-2ea043?style=flat-square)![MIT License](https://img.shields.io/badge/license-MIT-2ea043?style=flat-square)![Tauri 2](https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square)![macOS, Windows, Linux](<https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat-square>)
+<p align="center">
+  <a href="#what-it-does">What it does</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#export-outputs">Exports</a> ·
+  <a href="#screens">Screens</a> ·
+  <a href="#get-started">Get started</a> ·
+  <a href="docs/guides/GUIDE.en.md">🇬🇧 English guide</a> ·
+  <a href="docs/guides/GUIDE.it.md">🇮🇹 Guida italiana</a>
+</p>
 
-[What it does](#what-it-does) ·
-[Features](#features) ·
-[Exports](#export-outputs) ·
-[Screens](#screens) ·
-[Get started](#get-started) ·
-🇬🇧 [English guide](docs/guides/GUIDE.en.md) ·
-🇮🇹 [Guida italiana](docs/guides/GUIDE.it.md)
+--- 
 
 ## What it does
 
