@@ -9,7 +9,21 @@ import {
   buildClientSystemTotals,
 } from '../src/features/estimate/clientPresentation';
 import { comparisonItemHours } from '../src/features/comparison/compare';
+import { resolveEstimateCategories } from '../src/features/estimate/estimateCategories';
 import type { Estimate } from '../src/models/estimate';
+
+const modelCategories = resolveEstimateCategories(
+  ['Analisi', 'Sviluppo'],
+  ['Development'],
+  ['Analysis', 'Development'],
+);
+if (modelCategories.join('|') !== 'Analysis|Development') {
+  throw new Error(`model categories leaked defaults: ${modelCategories.join('|')}`);
+}
+const standaloneCategories = resolveEstimateCategories(['Analisi'], ['Custom']);
+if (standaloneCategories.join('|') !== 'Analisi|Custom') {
+  throw new Error(`standalone categories lost fallback values: ${standaloneCategories.join('|')}`);
+}
 
 const estimate: Estimate = {
   schemaVersion: 1,
