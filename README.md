@@ -13,8 +13,8 @@ Local-first desktop app for building, planning, analyzing, comparing, and delive
 [Exports](#export-outputs) ·
 [Screens](#screens) ·
 [Get started](#get-started) ·
-English guide ·
-Guida italiana ·
+🇬🇧 [English guide](docs/guides/GUIDE.en.md) ·
+🇮🇹 [Guida italiana](docs/guides/GUIDE.it.md) ·
 
 ---
 
