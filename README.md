@@ -2,9 +2,9 @@
 
 # HowLong?
 
-**Clear project estimates, without the spreadsheet.**
+How many times has someone asked you, **"How long will this take?"** 
 
-Local-first desktop app for building, planning, analyzing, comparing, and delivering project estimates. Data stays on your machine in JSON files — no account or cloud service.
+*HowLong?* is your solution for building, planning, analyzing, comparing, and delivering project estimates—all in a dedicated desktop app. Leave spreadsheets behind: create clear, structured estimates with your data stored locally in readable JSON files. No account, no cloud, no dependencies. Your estimates stay private and in your control.
 
 ![version 0.6.0](https://img.shields.io/badge/version-0.6.0-2ea043?style=flat-square)![MIT License](https://img.shields.io/badge/license-MIT-2ea043?style=flat-square)![Tauri 2](https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square)![macOS, Windows, Linux](<https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat-square>)
 
