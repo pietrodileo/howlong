@@ -1,6 +1,6 @@
 # HowLong? user manual
 
-HowLong? `0.6.0` on Windows, macOS, and Linux.
+HowLong? `0.6.1` on Windows, macOS, and Linux.
 
 [Project README](../../README.md) · [Manuale italiano](GUIDE.it.md)
 

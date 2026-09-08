@@ -23,7 +23,7 @@ const AnalyticsView = defineAsyncComponent(() => import('../features/analytics/A
 const WelcomeView = defineAsyncComponent(() => import('./WelcomeView.vue'));
 const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTabs.vue'));
 
-const APP_VERSION = '0.6.0';
+const APP_VERSION = '0.6.1';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
