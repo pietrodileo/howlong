@@ -14,7 +14,7 @@ Local-first desktop app for building, planning, analyzing, comparing, and delive
 [Screens](#screens) ·
 [Get started](#get-started) ·
 🇬🇧 [English guide](docs/guides/GUIDE.en.md) ·
-🇮🇹 [Guida italiana](docs/guides/GUIDE.it.md) ·
+🇮🇹 [Guida italiana](docs/guides/GUIDE.it.md)
 
 ---
 
