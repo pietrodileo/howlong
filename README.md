@@ -1,8 +1,16 @@
-![HowLong? app icon](src-tauri/icons/icon.png)
+<p align="center">
+  <img src="src-tauri/icons/icon.png" alt="HowLong? app icon" width="120">
+</p>
 
-# HowLong?
+<p align="center">
+  <strong>HowLong?</strong>
+</p>
 
-How many times has someone asked you, **"How long will this take?"** 
+<p align="center">
+  How many times has someone asked you, <strong>"How long will this take?"</strong>
+</p>
+
+---
 
 *HowLong?* is your solution for building, planning, analyzing, comparing, and delivering project estimates—all in a dedicated desktop app. Leave spreadsheets behind: create clear, structured estimates with your data stored locally in readable JSON files. No account, no cloud, no dependencies. Your estimates stay private and in your control.
 
@@ -15,8 +23,6 @@ How many times has someone asked you, **"How long will this take?"**
 [Get started](#get-started) ·
 🇬🇧 [English guide](docs/guides/GUIDE.en.md) ·
 🇮🇹 [Guida italiana](docs/guides/GUIDE.it.md)
-
----
 
 ## What it does
 
