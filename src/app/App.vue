@@ -11,7 +11,7 @@ import { useDocumentsStore } from '../shared/documents';
 import { useUiStore, type AppView } from './ui';
 import { useI18n } from './i18n/useI18n';
 import { applyTheme } from '../features/settings/appearance';
-import { isTauri, openFilePath } from '../platform/tauri';
+import { isTauri, openContainingFolder, openFilePath } from '../platform/tauri';
 import { toErrorMessage } from '../shared/errors';
 
 const LibraryView = defineAsyncComponent(() => import('../features/library/LibraryView.vue'));
@@ -38,6 +38,22 @@ async function openToastFile() {
   try {
     if (isTauri()) await openFilePath(path);
     else window.open(path, '_blank', 'noopener,noreferrer');
+    ui.dismissToast();
+  } catch (error) {
+    ui.notify(toErrorMessage(error), true);
+  }
+}
+
+/** Reveal the exported toast file in its containing desktop folder. */
+async function openToastFolder() {
+  const path = ui.toastFilePath;
+  if (!path) return;
+  try {
+    if (!isTauri()) {
+      ui.notify(t('library.desktopOnly'), true);
+      return;
+    }
+    await openContainingFolder(path);
     ui.dismissToast();
   } catch (error) {
     ui.notify(toErrorMessage(error), true);
@@ -134,12 +150,14 @@ watch(() => docs.hasSessions, (hasSessions) => {
       role="status"
     >
       <p class="toast-msg">{{ ui.toast }}</p>
-      <button
-        v-if="ui.toastFilePath"
-        type="button"
-        class="toast-open"
-        @click="openToastFile"
-      >{{ t('welcome.openEstimate') }}</button>
+      <div v-if="ui.toastFilePath" class="toast-actions">
+        <button type="button" class="toast-open" @click="openToastFile">
+          {{ t('welcome.openEstimate') }}
+        </button>
+        <button type="button" class="toast-open" @click="openToastFolder">
+          {{ t('common.openFolder') }}
+        </button>
+      </div>
       <button
         type="button"
         class="toast-dismiss"
@@ -215,7 +233,7 @@ main.flush {
   position: fixed;
   bottom: 1.25rem;
   right: 1.25rem;
-  max-width: min(400px, calc(100vw - 2rem));
+  max-width: min(560px, calc(100vw - 2rem));
   display: flex;
   align-items: center;
   gap: 0.55rem;
@@ -249,6 +267,12 @@ main.flush {
   color: inherit;
   opacity: 0.72;
   cursor: pointer;
+}
+
+.toast-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.4rem;
 }
 
 .toast-open {

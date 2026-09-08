@@ -113,6 +113,39 @@ fn open_file_path(path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+/// Reveal a file in its containing folder using the native file manager.
+fn open_containing_folder(path: String) -> Result<(), String> {
+    let file = Path::new(&path);
+    if !file.is_file() {
+        return Err(format!("File non trovato: {path}"));
+    }
+
+    #[cfg(target_os = "macos")]
+    let mut command = {
+        let mut command = Command::new("open");
+        command.arg("-R").arg(&path);
+        command
+    };
+    #[cfg(target_os = "windows")]
+    let mut command = {
+        let mut command = Command::new("explorer");
+        command.arg(format!("/select,{path}"));
+        command
+    };
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut command = {
+        let folder = file.parent().ok_or_else(|| format!("Cartella non trovata: {path}"))?;
+        let mut command = Command::new("xdg-open");
+        command.arg(folder);
+        command
+    };
+
+    command.spawn()
+        .map(|_| ())
+        .map_err(|e| format!("Apertura cartella fallita ({path}): {e}"))
+}
+
+#[tauri::command]
 fn read_binary_file(path: String) -> Result<Vec<u8>, String> {
     fs::read(&path).map_err(|e| format!("Lettura binaria fallita ({path}): {e}"))
 }
@@ -200,6 +233,7 @@ pub fn run() {
             read_binary_file,
             delete_file,
             open_file_path,
+            open_containing_folder,
             ensure_app_defaults,
             ensure_dir,
             list_model_files,

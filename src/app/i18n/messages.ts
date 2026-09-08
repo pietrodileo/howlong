@@ -49,6 +49,7 @@ export type MessageTree = {
   common: {
     save: string;
     open: string;
+    openFolder: string;
     reload: string;
     noFileOpen: string;
     close: string;
@@ -857,6 +858,7 @@ const it: MessageTree = {
   common: {
     save: 'Salva',
     open: 'Apri',
+    openFolder: 'Apri cartella',
     reload: 'Aggiorna',
     noFileOpen: 'Nessun file salvato. Salva prima una stima per poterla aprire.',
     close: 'Chiudi',
@@ -1667,6 +1669,7 @@ const en: MessageTree = {
   common: {
     save: 'Save',
     open: 'Open',
+    openFolder: 'Open folder',
     reload: 'Reload',
     noFileOpen: 'No file saved. Save a first estimate to open it.',
     close: 'Close',
