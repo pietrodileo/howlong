@@ -387,6 +387,8 @@ Rows are grouped by category, and you can expand subtasks using chevrons. When a
 
 ## 10. Plan with the Gantt
 
+> Activity statuses and shared-note controls were added in version 0.6.1.
+
 The Gantt planner lets you schedule your project visually by laying out activities on a timeline. Assign dates, sequence tasks, and spot dependencies or bottlenecks with intuitive tools like date pickers, drag-to-resize bars, and timeline zoom. You can see the full project at a glance or zoom in to fine-tune specific activities, helping you organize work clearly for your team and stakeholders.
 
 Planning with Gantt is all about setting your schedule—it never changes total effort or contingency (CTG). Move and adjust dates with confidence, knowing your estimates remain unchanged.
@@ -397,7 +399,7 @@ To get started: Open your estimate, then click **Plan**.
 
 | Panel | Description                              |
 | ----- | ---------------------------------------- |
-| Left  | Activities with dates, colors, and tools |
+| Left  | Activities with dates, category colors, statuses, notes, and tools |
 | Right | Timeline — highlighted column = today   |
 
 Gantt bars represent **date ranges** for each activity; length shows duration, not effort.
@@ -412,7 +414,9 @@ Gantt bars represent **date ranges** for each activity; length shows duration, n
 
 **Tips:**
 
-- Click the color dot to change an activity’s color.
+- The category color fills the dot; the outer ring shows activity status.
+- Click a leaf activity's status to update it, or use the note icon to edit the same note shown in estimate views.
+- Macro statuses are calculated from their sub-tasks. The ∑ mark identifies the roll-up.
 - Collapsing a macro hides its child tasks.
 - A macro's bar stretches from its earliest child start to the latest child finish.
 
@@ -480,7 +484,7 @@ When exporting your estimate, you can select a **source view** to determine exac
 | Estimate | Complete calculation, full hierarchy, formulas, CTG, notes, and labels             | Technical handover     |
 | Manager  | Rounded numbers, redistributed/adjusted values as shown to managers                | Internal approval      |
 | Client   | Only included activities, visible hierarchy, presented values, public notes/labels | Client delivery        |
-| Gantt    | Dates, hierarchy, color coding, date range, scale, weekends                        | Timeline communication |
+| Gantt    | Dates, hierarchy, status, notes, color coding, date range, scale, weekends         | Timeline communication |
 
 | Format       | Purpose                                                                |
 | ------------ | ---------------------------------------------------------------------- |

@@ -7,6 +7,18 @@ import {
 } from './settings';
 import { FormulaSpecSchema, ItemKindSchema, ModelIconSchema } from './model';
 
+export const ActivityStatusSchema = z.enum([
+  'to-plan',
+  'planned',
+  'in-progress',
+  'at-risk',
+  'stuck',
+  'blocked',
+  'on-hold',
+  'completed',
+  'cancelled',
+]);
+
 export const LineItemSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -17,6 +29,8 @@ export const LineItemSchema = z.object({
   parentId: z.string().nullable().default(null),
   contingencyPercentOverride: z.number().min(0).max(100).nullable().default(null),
   notes: z.string().default(''),
+  /** Stato operativo mostrato nel Gantt; le macro con figli lo aggregano. */
+  status: ActivityStatusSchema.default('to-plan'),
   /** Colore personalizzato della barra Gantt. */
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   /** Etichette brevi (stile Jira) per presentazione e filtri. */
@@ -110,6 +124,7 @@ export const EstimateSchema = z.object({
 });
 
 export type LineItem = z.infer<typeof LineItemSchema>;
+export type ActivityStatus = z.infer<typeof ActivityStatusSchema>;
 export type AuditEntry = z.infer<typeof AuditEntrySchema>;
 export type Estimate = Omit<z.infer<typeof EstimateSchema>, 'schemaVersion'> & {
   schemaVersion: 3;

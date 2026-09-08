@@ -159,6 +159,18 @@ export type MessageTree = {
     sectionShortcuts: string;
     sectionGantt: string;
     ganttWeekendIntro: string;
+    ganttStatusIntro: string;
+    ganttStatusPriority: string;
+    ganttStatusCancelledRule: string;
+    statusToPlanMeaning: string;
+    statusPlannedMeaning: string;
+    statusInProgressMeaning: string;
+    statusAtRiskMeaning: string;
+    statusStuckMeaning: string;
+    statusBlockedMeaning: string;
+    statusOnHoldMeaning: string;
+    statusCompletedMeaning: string;
+    statusCancelledMeaning: string;
     saturday: string;
     sunday: string;
     shortcutsIntro: string;
@@ -331,6 +343,18 @@ export type MessageTree = {
     doubleClickHint: string;
     estimateTitle: string;
     resizeActivityColumn: string;
+    changeStatus: string;
+    calculatedStatus: string;
+    editNote: string;
+    status_to_plan: string;
+    status_planned: string;
+    status_in_progress: string;
+    status_at_risk: string;
+    status_stuck: string;
+    status_blocked: string;
+    status_on_hold: string;
+    status_completed: string;
+    status_cancelled: string;
   };
   analytics: {
     navLabel: string;
@@ -971,6 +995,18 @@ const it: MessageTree = {
     sectionShortcuts: 'Scorciatoie da tastiera',
     sectionGantt: 'Gantt',
     ganttWeekendIntro: 'Scegli quali giorni vengono trattati come weekend quando li nascondi nel Gantt.',
+    ganttStatusIntro: 'Gli stati descrivono l’avanzamento senza modificare date o ore.',
+    ganttStatusPriority: 'Priorità macro: Bloccata → Ferma → A rischio → In corso → In pausa → Pianificata → Da pianificare → Completata.',
+    ganttStatusCancelledRule: 'Le attività annullate vengono ignorate; se sono tutte annullate, anche la macro è Annullata.',
+    statusToPlanMeaning: 'Da pianificare — non ancora organizzata.',
+    statusPlannedMeaning: 'Pianificata — pronta e calendarizzata.',
+    statusInProgressMeaning: 'In corso — lavoro attivo.',
+    statusAtRiskMeaning: 'A rischio — procede, ma risultato o scadenza sono a rischio.',
+    statusStuckMeaning: 'Ferma — il team possiede la prossima azione, ma non riesce ad avanzare.',
+    statusBlockedMeaning: 'Bloccata — dipende da una persona, decisione o dipendenza esterna.',
+    statusOnHoldMeaning: 'In pausa — sospesa intenzionalmente.',
+    statusCompletedMeaning: 'Completata — lavoro concluso.',
+    statusCancelledMeaning: 'Annullata — lavoro abbandonato intenzionalmente.',
     saturday: 'Sabato',
     sunday: 'Domenica',
     shortcutsIntro: 'Utilizza i tasti di scelta rapida per salvare, aprire e chiudere stime.',
@@ -1132,6 +1168,18 @@ const it: MessageTree = {
     doubleClickHint: 'Doppio clic per pianificare in questo giorno.',
     estimateTitle: 'Titolo della stima',
     resizeActivityColumn: 'Trascina per ridimensionare; doppio clic per comprimere',
+    changeStatus: 'Stato: {status}',
+    calculatedStatus: 'Stato calcolato dai sotto-task (∑)',
+    editNote: 'Apri e modifica la nota',
+    status_to_plan: 'Da pianificare',
+    status_planned: 'Pianificata',
+    status_in_progress: 'In corso',
+    status_at_risk: 'A rischio',
+    status_stuck: 'Ferma',
+    status_blocked: 'Bloccata',
+    status_on_hold: 'In pausa',
+    status_completed: 'Completata',
+    status_cancelled: 'Annullata',
   },
   analytics: {
     navLabel: 'Analisi Dati',
@@ -1782,6 +1830,18 @@ const en: MessageTree = {
     sectionShortcuts: 'Keyboard shortcuts',
     sectionGantt: 'Gantt',
     ganttWeekendIntro: 'Choose which days count as weekends when weekends are hidden in the Gantt.',
+    ganttStatusIntro: 'Statuses describe progress without changing dates or effort.',
+    ganttStatusPriority: 'Macro priority: Blocked → Stuck → At risk → In progress → On hold → Planned → To plan → Completed.',
+    ganttStatusCancelledRule: 'Cancelled activities are ignored; when all are cancelled, the macro is Cancelled.',
+    statusToPlanMeaning: 'To plan — not organized yet.',
+    statusPlannedMeaning: 'Planned — ready and scheduled.',
+    statusInProgressMeaning: 'In progress — active work.',
+    statusAtRiskMeaning: 'At risk — progressing, but its deadline or outcome is threatened.',
+    statusStuckMeaning: 'Stuck — progress stopped and the team owns the next action.',
+    statusBlockedMeaning: 'Blocked — waiting for an external person, decision, or dependency.',
+    statusOnHoldMeaning: 'On hold — intentionally paused.',
+    statusCompletedMeaning: 'Completed — work finished.',
+    statusCancelledMeaning: 'Cancelled — work deliberately abandoned.',
     saturday: 'Saturday',
     sunday: 'Sunday',
     shortcutsIntro: 'Use keyboard shortcuts to save, open and close estimates.',
@@ -1942,6 +2002,18 @@ const en: MessageTree = {
     doubleClickHint: 'Double-click to schedule on this day.',
     estimateTitle: 'Estimate title',
     resizeActivityColumn: 'Drag to resize; double-click to collapse',
+    changeStatus: 'Status: {status}',
+    calculatedStatus: 'Status calculated from sub-tasks (∑)',
+    editNote: 'Open and edit note',
+    status_to_plan: 'To plan',
+    status_planned: 'Planned',
+    status_in_progress: 'In progress',
+    status_at_risk: 'At risk',
+    status_stuck: 'Stuck',
+    status_blocked: 'Blocked',
+    status_on_hold: 'On hold',
+    status_completed: 'Completed',
+    status_cancelled: 'Cancelled',
   },
   analytics: {
     navLabel: 'Analytics',

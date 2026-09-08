@@ -8,11 +8,14 @@ import DisclosureIcon from '../../shared/components/DisclosureIcon.vue';
 import { useModelsStore } from '../models/models';
 import { storeToRefs } from 'pinia';
 import { useI18n } from '../../app/i18n/useI18n';
-import type { LineItem, PlanningRange } from '../../models/estimate';
+import type { ActivityStatus, LineItem, PlanningRange } from '../../models/estimate';
 import {
+  ACTIVITY_STATUSES,
+  ACTIVITY_STATUS_COLORS,
   addDays,
   addMonths,
   aggregateMacroRange,
+  aggregateMacroStatus,
   formatDate,
   listDays,
   monthEnd,
@@ -51,7 +54,10 @@ const newMenuOpen = ref(false);
 const modelSearch = ref('');
 const activityWidth = ref(500);
 const activityCollapsed = ref(false);
-const activityColumnWidth = computed(() => activityCollapsed.value ? 42 : activityWidth.value);
+const activityColumnWidth = computed(() => activityCollapsed.value ? 68 : activityWidth.value);
+const statusMenuId = ref<string | null>(null);
+const notesEditId = ref<string | null>(null);
+const notesDraft = ref('');
 
 const filteredModels = computed(() => {
   const query = modelSearch.value.trim().toLowerCase();
@@ -64,7 +70,10 @@ function closeNewMenu() {
 }
 
 function onDocumentPointerDown(event: PointerEvent) {
-  if (!(event.target as HTMLElement | null)?.closest('.new-estimate-menu')) closeNewMenu();
+  const target = event.target as HTMLElement | null;
+  if (!target?.closest('.new-estimate-menu')) closeNewMenu();
+  if (!target?.closest('.status-control')) statusMenuId.value = null;
+  if (!target?.closest('.gantt-note-control')) notesEditId.value = null;
 }
 
 function adjustActivityWidth(delta: number) {
@@ -182,6 +191,36 @@ function childrenOf(id: string) {
 
 function hasChildren(item: LineItem) {
   return item.parentId == null && childrenOf(item.id).length > 0;
+}
+
+/** Returns the persisted leaf status or the calculated macro roll-up. */
+function statusFor(item: LineItem): ActivityStatus {
+  return hasChildren(item) ? aggregateMacroStatus(estimate.estimate, item) : item.status;
+}
+
+/** Translates a stable activity status identifier. */
+function statusLabel(status: ActivityStatus): string {
+  return t(`gantt.status_${status.replace(/-/g, '_')}`);
+}
+
+/** Updates an editable activity status as one document-history mutation. */
+function setStatus(item: LineItem, status: ActivityStatus) {
+  if (hasChildren(item)) return;
+  mutate(() => estimate.updateItem(item.id, { status }));
+  statusMenuId.value = null;
+}
+
+/** Opens the anchored editor for the line item's shared note. */
+function openNotes(item: LineItem) {
+  notesDraft.value = item.notes;
+  notesEditId.value = notesEditId.value === item.id ? null : item.id;
+  statusMenuId.value = null;
+}
+
+/** Saves the shared note as one undoable document mutation. */
+function saveNotes(item: LineItem) {
+  mutate(() => estimate.updateItem(item.id, { notes: notesDraft.value }));
+  notesEditId.value = null;
 }
 
 function rangeFor(item: LineItem): PlanningRange | null {
@@ -461,19 +500,41 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 
         <template v-for="(item, rowIndex) in visibleItems" :key="item.id">
           <div class="activity-row" :class="{ sub: item.parentId, macro: !item.parentId, compact: !item.parentId && collapsed.has(item.id), planned: !!rangeFor(item), alternate: rowIndex % 2 === 1 }">
-            <label
-              v-if="activityCollapsed"
-              class="collapsed-row-marker"
-              :style="{ background: itemColor(item) }"
-              v-tip="t('gantt.color')"
-            >
-              <input
-                type="color"
-                :value="itemColor(item)"
-                :aria-label="t('gantt.color')"
-                @input="setItemColor(item, ($event.target as HTMLInputElement).value)"
-              />
-            </label>
+            <div v-if="activityCollapsed" class="collapsed-controls">
+              <div class="status-control">
+                <button
+                  type="button"
+                  class="status-dot"
+                  :style="{ '--category-color': itemColor(item), '--status-color': ACTIVITY_STATUS_COLORS[statusFor(item)] }"
+                  :aria-label="t('gantt.changeStatus', { status: statusLabel(statusFor(item)) })"
+                  :aria-expanded="statusMenuId === item.id"
+                  v-tip="statusLabel(statusFor(item))"
+                  @click="statusMenuId = statusMenuId === item.id ? null : item.id"
+                />
+                <div v-if="statusMenuId === item.id" class="status-menu" role="menu">
+                  <p v-if="hasChildren(item)" class="status-aggregate">{{ t('gantt.calculatedStatus') }}</p>
+                  <button
+                    v-for="status in ACTIVITY_STATUSES"
+                    :key="status"
+                    type="button"
+                    role="menuitemradio"
+                    :aria-checked="statusFor(item) === status"
+                    :disabled="hasChildren(item)"
+                    @click="setStatus(item, status)"
+                  ><span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />{{ statusLabel(status) }}</button>
+                </div>
+              </div>
+              <div class="gantt-note-control">
+                <button type="button" class="note-button" :class="{ filled: item.notes.trim() }" :aria-label="t('gantt.editNote')" v-tip="t('gantt.editNote')" @click="openNotes(item)">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 2.5h10v8l-3 3H3z"/><path d="M10 13.5v-3h3M5 5.5h6M5 8h4"/></svg>
+                </button>
+                <div v-if="notesEditId === item.id" class="note-popover">
+                  <strong>{{ item.name }}</strong>
+                  <textarea v-model="notesDraft" rows="5" :placeholder="t('working.notesPh')" autofocus @keydown.ctrl.enter.prevent="saveNotes(item)" @keydown.meta.enter.prevent="saveNotes(item)" />
+                  <div><button type="button" class="ghost" @click="notesEditId = null">{{ t('common.cancel') }}</button><button type="button" class="primary" @click="saveNotes(item)">{{ t('common.save') }}</button></div>
+                </div>
+              </div>
+            </div>
             <div class="activity-title">
               <button
                 v-if="!item.parentId"
@@ -494,7 +555,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
                 @input="updateItemName(item, ($event.target as HTMLInputElement).value)"
               />
               <span v-if="item.parentId" class="macro-name">{{ plannableItems.find((row) => row.id === item.parentId)?.name }}</span>
-              <span v-if="!item.parentId && collapsed.has(item.id)" class="compact-color" :style="{ background: itemColor(item) }" aria-hidden="true" />
+              <span v-if="!item.parentId && collapsed.has(item.id)" class="compact-color" :style="{ '--category-color': itemColor(item), '--status-color': ACTIVITY_STATUS_COLORS[statusFor(item)] }" aria-hidden="true" />
             </div>
             <div class="date-fields">
               <div class="dates">
@@ -507,9 +568,24 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
                 <button v-else type="button" class="schedule" :disabled="hasChildren(item)" :title="hasChildren(item) ? t('gantt.macroDatesHint') : undefined" @click="setRange(item, { startDate: selectedDate, endDate: selectedDate })">{{ t('gantt.unscheduled') }}</button>
               </div>
               <div class="row-actions">
-                <label class="color-picker" v-tip="t('gantt.color')">
+                <label class="color-picker" :style="{ '--status-color': ACTIVITY_STATUS_COLORS[statusFor(item)] }" v-tip="t('gantt.color')">
                   <input type="color" :value="itemColor(item)" :aria-label="t('gantt.color')" @input="setItemColor(item, ($event.target as HTMLInputElement).value)" />
                 </label>
+                <div class="status-control">
+                  <button type="button" class="status-pill" :style="{ '--status-color': ACTIVITY_STATUS_COLORS[statusFor(item)] }" :aria-label="t('gantt.changeStatus', { status: statusLabel(statusFor(item)) })" :aria-expanded="statusMenuId === item.id" v-tip="statusLabel(statusFor(item))" @click="statusMenuId = statusMenuId === item.id ? null : item.id"><span />{{ statusLabel(statusFor(item)) }}<small v-if="hasChildren(item)">∑</small></button>
+                  <div v-if="statusMenuId === item.id" class="status-menu" role="menu">
+                    <p v-if="hasChildren(item)" class="status-aggregate">{{ t('gantt.calculatedStatus') }}</p>
+                    <button v-for="status in ACTIVITY_STATUSES" :key="status" type="button" role="menuitemradio" :aria-checked="statusFor(item) === status" :disabled="hasChildren(item)" @click="setStatus(item, status)"><span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />{{ statusLabel(status) }}</button>
+                  </div>
+                </div>
+                <div class="gantt-note-control">
+                  <button type="button" class="note-button" :class="{ filled: item.notes.trim() }" :aria-label="t('gantt.editNote')" v-tip="t('gantt.editNote')" @click="openNotes(item)"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 2.5h10v8l-3 3H3z"/><path d="M10 13.5v-3h3M5 5.5h6M5 8h4"/></svg></button>
+                  <div v-if="notesEditId === item.id" class="note-popover">
+                    <strong>{{ item.name }}</strong>
+                    <textarea v-model="notesDraft" rows="5" :placeholder="t('working.notesPh')" autofocus @keydown.ctrl.enter.prevent="saveNotes(item)" @keydown.meta.enter.prevent="saveNotes(item)" />
+                    <div><button type="button" class="ghost" @click="notesEditId = null">{{ t('common.cancel') }}</button><button type="button" class="primary" @click="saveNotes(item)">{{ t('common.save') }}</button></div>
+                  </div>
+                </div>
                 <IconBtn v-if="!item.parentId" kind="add" :label="t('gantt.addSubtask')" @click="addSubtask(item.id)" />
                 <IconBtn kind="delete" :label="t('working.deleteItem')" @click="pendingDelete = item" />
               </div>
@@ -605,12 +681,9 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .gantt-grid.activity-collapsed .activity-head { padding: 0; }
 .gantt-grid.activity-collapsed .activity-toggle { right: 50%; transform: translate(50%, -50%); }
 .gantt-grid.activity-collapsed .estimate-title-input,
-.gantt-grid.activity-collapsed .activity-row > :not(.collapsed-row-marker) { display: none; }
+.gantt-grid.activity-collapsed .activity-row > :not(.collapsed-controls) { display: none; }
 .gantt-grid.activity-collapsed .activity-row { display: grid; place-items: center; padding: 0; }
-.collapsed-row-marker { position: relative; width: .65rem; height: .65rem; border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--line-strong); }
-.collapsed-row-marker:hover { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
-.collapsed-row-marker:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; }
-.collapsed-row-marker input { position: absolute; inset: -8px; width: calc(100% + 16px); height: calc(100% + 16px); padding: 0; opacity: 0; cursor: pointer; }
+.collapsed-controls { display: flex; align-items: center; gap: .2rem; }
 .column-resizer { position: absolute; inset-block: 0; right: -5px; width: 10px; cursor: col-resize; touch-action: none; }
 .column-resizer::after { content: ''; position: absolute; inset-block: 9px; left: 4px; width: 2px; border-radius: 2px; background: var(--line-strong); opacity: 0; transition: opacity .15s; }
 .column-resizer:hover::after, .column-resizer:focus::after { opacity: 1; background: var(--accent); }
@@ -625,25 +698,55 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .day-head.selected { color: var(--on-accent); background: var(--accent); font-weight: 700; }
 .activity-row { position: sticky; left: 0; z-index: 3; height: 92px; padding: .55rem .7rem; background: var(--surface); border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
 .activity-row.compact { height: 46px; padding-block: .45rem; }
-.activity-row.compact .date-fields { display: none; }
+.activity-row.compact .date-fields { position: absolute; top: .45rem; right: .7rem; margin: 0; padding: 0; }
+.activity-row.compact .dates, .activity-row.compact .color-picker, .activity-row.compact .row-actions > .icon-btn { display: none; }
+.activity-row.compact .status-pill { width: 1.85rem; padding: 0; font-size: 0; }
+.activity-row.compact .status-pill > span { width: .7rem; height: .7rem; }
+.activity-row.compact .status-pill small { display: none; }
 .activity-row.alternate { background: color-mix(in srgb, var(--page-soft) 72%, var(--surface)); }
+.activity-row:has(.status-menu), .activity-row:has(.note-popover) { z-index: 20; }
 .activity-row.sub { padding-left: 1.6rem; }
 .activity-title { display: flex; align-items: center; min-width: 0; gap: .25rem; }
 .activity-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .activity-row.sub .activity-name { font-weight: 500; }
 .macro-name { margin-left: auto; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: .7rem; }
-.compact-color { width: .7rem; height: .7rem; flex: 0 0 .7rem; margin-right: .35rem; border-radius: 50%; box-shadow: 0 0 0 1px var(--line-strong); }
+.compact-color, .status-dot { width: .7rem; height: .7rem; flex: 0 0 .7rem; border-radius: 50%; background: var(--category-color); box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--status-color); }
+.compact-color { margin: 0 .45rem; }
+.status-dot { box-sizing: content-box; margin: 0 .35rem; padding: 0; border: 0; cursor: pointer; }
+.status-dot:hover, .status-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
 .chevron, .chevron-spacer { width: 1.5rem; flex: 0 0 1.5rem; }
 .chevron { display: grid; place-items: center; height: 1.5rem; padding: 0; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--muted); }
 .chevron:hover { border-color: var(--line); background: var(--page-soft); color: var(--ink); }
 .date-fields { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .3rem; padding-left: 1.75rem; }
 .dates, .row-actions { display: flex; align-items: center; gap: .3rem; min-width: 0; }
 .row-actions { flex: 0 0 auto; }
+.status-control, .gantt-note-control { position: relative; }
+.status-pill, .note-button { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-height: 1.85rem; padding: .25rem .45rem; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--muted); font-size: .72rem; cursor: pointer; }
+.status-pill:hover, .note-button:hover { border-color: var(--line); background: var(--page-soft); color: var(--ink); }
+.status-pill > span { width: .55rem; height: .55rem; border-radius: 50%; background: var(--status-color); }
+.status-pill small { font-size: .75rem; }
+.note-button { width: 1.85rem; padding: 0; }
+.note-button.filled { color: var(--accent); background: var(--accent-subtle); }
+.status-menu, .note-popover { position: absolute; top: calc(100% + .35rem); right: 0; z-index: 30; padding: .4rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); box-shadow: var(--shadow-menu); }
+.status-menu { width: 175px; }
+.status-menu button { display: flex; align-items: center; gap: .45rem; width: 100%; padding: .35rem .45rem; border: 0; background: transparent; color: var(--ink); text-align: left; font-size: .75rem; }
+.status-menu button:hover:not(:disabled) { background: var(--page-soft); }
+.status-menu button[aria-checked='true'] { background: var(--accent-subtle); font-weight: 650; }
+.status-menu button:disabled { opacity: .6; }
+.status-menu button span { width: .6rem; height: .6rem; border-radius: 50%; }
+.status-aggregate { margin: .1rem .35rem .35rem; color: var(--muted); font-size: .68rem; }
+.note-popover { width: 270px; }
+.note-popover strong { display: block; margin: .2rem .25rem .4rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; }
+.note-popover textarea { width: 100%; resize: vertical; }
+.note-popover > div { display: flex; justify-content: flex-end; gap: .35rem; margin-top: .35rem; }
+.gantt-grid.activity-collapsed .status-menu, .gantt-grid.activity-collapsed .note-popover { left: 2.4rem; right: auto; top: -.5rem; }
 .date-fields input[type='date'] { width: 7.75rem; height: 1.75rem; padding: .2rem .35rem; font-size: .72rem; }
 .date-fields input:disabled { opacity: .75; }
 .gantt-grid.narrow .date-fields { gap: .25rem; }
 .gantt-grid.narrow .dates { gap: .18rem; }
 .gantt-grid.narrow .row-actions { gap: .1rem; }
+.gantt-grid.narrow .status-pill { width: 1.85rem; padding: 0; font-size: 0; }
+.gantt-grid.narrow .status-pill small { display: none; }
 .gantt-grid.narrow .date-fields input[type='date'] { width: 5.75rem; padding-inline: .25rem; }
 .gantt-grid.narrow .macro-name { display: none; }
 .date-separator { color: var(--muted); }
@@ -651,7 +754,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .color-picker:hover { background: var(--page-soft); }
 .color-picker input { width: 1rem; height: 1rem; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
 .color-picker input::-webkit-color-swatch-wrapper { padding: 0; }
-.color-picker input::-webkit-color-swatch { border: 1px solid var(--line-strong); border-radius: 50%; }
+.color-picker input::-webkit-color-swatch { border: 2px solid var(--surface); border-radius: 50%; box-shadow: 0 0 0 2px var(--status-color); }
 .schedule { border: 0; background: transparent; color: var(--accent); padding: .2rem; font-size: .72rem; }
 .schedule:disabled { color: var(--muted); cursor: not-allowed; opacity: .55; }
 .timeline-row { position: relative; height: 92px; border-bottom: 1px solid var(--line); background-color: color-mix(in srgb, var(--page-soft) 84%, var(--surface)); background-image: linear-gradient(to right, color-mix(in srgb, var(--line) 72%, transparent) 1px, transparent 1px); background-position-x: -1px; }
@@ -686,5 +789,6 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 @media (max-width: 900px) {
   .gantt-head { justify-content: flex-start; }
   .gantt-grid { grid-template-columns: 360px var(--timeline-w); }
+  .gantt-grid.activity-collapsed { grid-template-columns: var(--activity-w) var(--timeline-w); }
 }
 </style>

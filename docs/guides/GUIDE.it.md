@@ -387,6 +387,8 @@ Le righe sono raggruppate per categoria e puoi espandere le sottoattività usand
 
 ## 10. Pianificare con il Gantt
 
+> Gli stati delle attività e i controlli per le note condivise sono stati aggiunti nella versione 0.6.1.
+
 Il pianificatore Gantt consente di programmare visivamente il progetto disponendo le attività su una timeline. Assegna date, metti in sequenza le attività e individua dipendenze o colli di bottiglia con strumenti intuitivi come selettori di data, barre trascinabili e ridimensionabili e zoom della timeline. Puoi vedere l'intero progetto a colpo d'occhio oppure ingrandire per rifinire attività specifiche, aiutandoti a organizzare il lavoro in modo chiaro per il team e gli stakeholder.
 
 La pianificazione con il Gantt riguarda esclusivamente il calendario: non modifica mai l'impegno totale né la contingenza (CTG). Sposta e regola le date con tranquillità, sapendo che le stime restano invariate.
@@ -397,7 +399,7 @@ Per iniziare: apri la stima, quindi fai clic su **Piano**.
 
 | Pannello | Descrizione                               |
 | -------- | ----------------------------------------- |
-| Sinistro | Attività con date, colori e strumenti    |
+| Sinistro | Attività con date, colori categoria, stati, note e strumenti |
 | Destro   | Timeline — la colonna evidenziata = oggi |
 
 Le barre Gantt rappresentano **intervalli di date** per ciascuna attività; la lunghezza mostra la durata, non l'impegno.
@@ -412,7 +414,9 @@ Le barre Gantt rappresentano **intervalli di date** per ciascuna attività; la l
 
 **Suggerimenti:**
 
-- Fai clic sul punto colorato per cambiare il colore di un'attività.
+- Il colore della categoria riempie il punto; l'anello esterno mostra lo stato dell'attività.
+- Fai clic sullo stato di un'attività foglia per modificarlo, oppure usa l'icona nota per modificare la stessa nota mostrata nelle viste Stima.
+- Gli stati delle macro sono calcolati dai sotto-task. Il simbolo ∑ identifica l'aggregazione.
 - Comprimere una macro nasconde le attività figlie.
 - La barra di una macro si estende dall'inizio più precoce di un figlio alla fine più tardiva di un figlio.
 
@@ -527,7 +531,9 @@ La compressione nasconde le righe figlie nel foglio Excel e non elimina dati dal
 
 ### Esportazione XLSX del Gantt
 
-Usa **Esporta XLSX** dalla vista **Piano**. Il workbook contiene cliente, intervallo Da/A, scala, impostazione dei fine settimana, legenda dei colori, attività, macro, date di inizio/fine, stato e barre sul calendario. La barra di una macro aggregata riassume l'intervallo dei figli; la lunghezza rappresenta il tempo di calendario, non le ore stimate.
+> Le colonne Stato e Note sono state aggiunte nella versione 0.6.1.
+
+Usa **Esporta XLSX** dalla vista **Piano**. Il workbook contiene cliente, intervallo Da/A, scala, impostazione dei fine settimana, legenda dei colori, attività, macro, date di inizio/fine, pianificazione, stato operativo, note e barre sul calendario. La barra di una macro aggregata riassume l'intervallo dei figli; la lunghezza rappresenta il tempo di calendario, non le ore stimate.
 
 ![Esportazione Excel del Gantt con date, stati, legenda e barre sul calendario](../images/gantt_excel.png)
 

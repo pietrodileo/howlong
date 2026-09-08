@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createEmptyEstimate } from '../src/domain/factory';
-import { addDays, aggregateMacroRange, listDays } from '../src/domain/gantt';
+import { addDays, aggregateMacroRange, aggregateMacroStatus, listDays } from '../src/domain/gantt';
 import { estimateToClientXlsx, estimateToXlsx, ganttToXlsx } from '../src/platform/files/export';
 import { parseEstimate } from '../src/models/estimate';
 import { DEFAULT_SETTINGS } from '../src/models/settings';
@@ -14,6 +14,8 @@ const second = { ...macro, id: 'sub-2', parentId: macro.id };
 first.color = '#c2410c';
 first.tags = ['Backend'];
 first.notes = 'Internal note';
+first.status = 'blocked';
+second.status = 'completed';
 first.clientHoursOverride = 10 / 3;
 estimate.items.push(first, second);
 estimate.planning.items[first.id] = { startDate: '2026-09-04', endDate: '2026-09-08' };
@@ -23,17 +25,29 @@ assert.deepEqual(aggregateMacroRange(estimate, macro), {
   startDate: '2026-09-04',
   endDate: '2026-09-12',
 });
+assert.equal(aggregateMacroStatus(estimate, macro), 'blocked');
+second.status = 'cancelled';
+assert.equal(aggregateMacroStatus(estimate, macro), 'blocked');
+first.status = 'cancelled';
+assert.equal(aggregateMacroStatus(estimate, macro), 'cancelled');
+first.status = 'blocked';
+second.status = 'completed';
 assert.equal(addDays('2026-09-04', 3), '2026-09-07');
 assert.deepEqual(listDays('2026-09-04', '2026-09-07', false), ['2026-09-04', '2026-09-07']);
 assert.deepEqual(listDays('2026-09-04', '2026-09-07', false, [0]), ['2026-09-04', '2026-09-05', '2026-09-07']);
 assert.deepEqual(listDays('2026-09-04', '2026-09-07', false, [6]), ['2026-09-04', '2026-09-06', '2026-09-07']);
 
-const { planning: _planning, ...legacy } = estimate;
+const { planning: _planning, ...legacyEstimate } = estimate;
+const legacy = {
+  ...legacyEstimate,
+  items: legacyEstimate.items.map(({ status: _status, ...item }) => item),
+};
 const parsed = parseEstimate({ ...legacy, schemaVersion: 2 });
 assert.equal(parsed.ok, true);
 if (parsed.ok) {
   assert.equal(parsed.data.schemaVersion, 3);
   assert.deepEqual(parsed.data.planning, { items: {} });
+  assert.ok(parsed.data.items.every((item) => item.status === 'to-plan'));
 }
 assert.equal(parseEstimate({
   ...estimate,
@@ -53,13 +67,15 @@ await workbook.xlsx.load(xlsx as unknown as ArrayBuffer);
 const ganttSheet = workbook.getWorksheet('Gantt')!;
 assert.equal(ganttSheet.views[0].showGridLines, false);
 assert.equal(ganttSheet.getCell('B3').value instanceof Date, true);
-assert.equal(ganttSheet.getCell('F6').numFmt, 'ddd dd');
-assert.equal(ganttSheet.getCell('F7').border.right?.style, 'thin');
-assert.equal(ganttSheet.getCell('I7').fill.type, 'pattern');
-assert.equal((ganttSheet.getCell('I8').fill as { fgColor?: { argb?: string } }).fgColor?.argb, 'FFC2410C');
+assert.equal(ganttSheet.getCell('H6').numFmt, 'ddd dd');
+assert.equal(ganttSheet.getCell('H7').border.right?.style, 'thin');
+assert.equal(ganttSheet.getCell('K7').fill.type, 'pattern');
+assert.equal((ganttSheet.getCell('K8').fill as { fgColor?: { argb?: string } }).fgColor?.argb, 'FFC2410C');
+assert.equal(ganttSheet.getCell('F7').value, 'blocked');
+assert.equal(ganttSheet.getCell('G8').value, 'Internal note');
 assert.equal(ganttSheet.getRow(8).outlineLevel, 1);
 assert.deepEqual(
-  ganttSheet.getRow(6).values.slice(6).map((value) => (value as Date).toISOString().slice(0, 10)),
+  ganttSheet.getRow(6).values.slice(8).map((value) => (value as Date).toISOString().slice(0, 10)),
   ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-07'],
 );
 
@@ -72,8 +88,8 @@ const weekendsShown = await ganttToXlsx({ ...estimate, planning: { items: {} } }
 const weekendsWorkbook = new ExcelJS.Workbook();
 await weekendsWorkbook.xlsx.load(weekendsShown as unknown as ArrayBuffer);
 const weekendsSheet = weekendsWorkbook.getWorksheet('Gantt')!;
-const timelineFills = weekendsSheet.getRow(7).values.slice(6).map((_, index) =>
-  (weekendsSheet.getRow(7).getCell(6 + index).fill as { fgColor?: { argb?: string } }).fgColor?.argb,
+const timelineFills = weekendsSheet.getRow(7).values.slice(8).map((_, index) =>
+  (weekendsSheet.getRow(7).getCell(8 + index).fill as { fgColor?: { argb?: string } }).fgColor?.argb,
 );
 assert.deepEqual(timelineFills, [undefined, 'FFF3F5F8', 'FFF3F5F8', undefined]);
 

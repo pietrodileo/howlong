@@ -15,6 +15,7 @@ import type { Locale, Theme } from '../../models/settings';
 import SettingsPanel from './SettingsPanel.vue';
 import { ESTIMATE_TOGGLEABLE_COLUMNS, type EstimateToggleableColumn } from './estimateColumns';
 import { syncEstimateColumnsFromSettings } from '../../shared/composables/useResizableColumns';
+import { ACTIVITY_STATUSES, ACTIVITY_STATUS_COLORS } from '../../domain/gantt';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -319,6 +320,17 @@ function onExportDateChange(checked: boolean) {
           <input v-model="settings.settings.ganttWeekendSunday" type="checkbox" />
           <span>{{ t('settings.sunday') }}</span>
         </label>
+      </div>
+      <div class="status-reference">
+        <p>{{ t('settings.ganttStatusIntro') }}</p>
+        <ul>
+          <li v-for="status in ACTIVITY_STATUSES" :key="status">
+            <span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />
+            {{ t(`settings.status${status.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('')}Meaning`) }}
+          </li>
+        </ul>
+        <p><strong>{{ t('settings.ganttStatusPriority') }}</strong></p>
+        <p>{{ t('settings.ganttStatusCancelledRule') }}</p>
       </div>
     </SettingsPanel>
 
@@ -723,6 +735,20 @@ function onExportDateChange(checked: boolean) {
 .custom-note {
   color: var(--accent);
 }
+
+.status-reference {
+  margin-top: .8rem;
+  padding: .85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
+}
+
+.status-reference p { margin: 0; color: var(--ink-soft); }
+.status-reference p + p { margin-top: .55rem; }
+.status-reference ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .45rem 1rem; margin: .75rem 0; padding: 0; list-style: none; }
+.status-reference li { display: flex; align-items: center; gap: .5rem; color: var(--ink-soft); font-size: .85rem; }
+.status-reference li span { width: .65rem; height: .65rem; flex: 0 0 .65rem; border-radius: 50%; }
 
 .lang-actions {
   display: flex;
