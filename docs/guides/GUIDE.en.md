@@ -416,7 +416,7 @@ Gantt bars represent **date ranges** for each activity; length shows duration, n
 
 - The category color fills the dot; the outer ring shows activity status.
 - Click a leaf activity's status to update it, or use the note icon to edit the same note shown in estimate views.
-- Macro statuses are calculated from their sub-tasks. The ∑ mark identifies the roll-up.
+- Macro statuses are calculated from their sub-tasks.
 - Collapsing a macro hides its child tasks.
 - A macro's bar stretches from its earliest child start to the latest child finish.
 

@@ -416,7 +416,7 @@ Le barre Gantt rappresentano **intervalli di date** per ciascuna attività; la l
 
 - Il colore della categoria riempie il punto; l'anello esterno mostra lo stato dell'attività.
 - Fai clic sullo stato di un'attività foglia per modificarlo, oppure usa l'icona nota per modificare la stessa nota mostrata nelle viste Stima.
-- Gli stati delle macro sono calcolati dai sotto-task. Il simbolo ∑ identifica l'aggregazione.
+- Gli stati delle macro sono calcolati dai sotto-task.
 - Comprimere una macro nasconde le attività figlie.
 - La barra di una macro si estende dall'inizio più precoce di un figlio alla fine più tardiva di un figlio.
 

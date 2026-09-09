@@ -153,3 +153,13 @@ assert.ok(store.estimate.items.findIndex((item) => item.id === subtaskId)
   < store.estimate.items.findIndex((item) => item.id === secondMacroId));
 
 console.log('Gantt smoke tests passed');
+
+const scheduledSubtask = store.estimate.items.find(item => item.id === subtaskId)!;
+store.setPlanningRange(subtaskId, { startDate: '2026-09-01', endDate: '2026-09-03' });
+assert.equal(scheduledSubtask.status, 'planned');
+assert.equal(aggregateMacroStatus(store.estimate, store.estimate.items[0]), 'planned');
+scheduledSubtask.status = 'in-progress';
+store.setPlanningRange(subtaskId, { startDate: '2026-09-02', endDate: '2026-09-04' });
+assert.equal(scheduledSubtask.status, 'in-progress');
+store.setPlanningRange(subtaskId, null);
+assert.equal(scheduledSubtask.status, 'in-progress');

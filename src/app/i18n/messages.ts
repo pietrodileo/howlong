@@ -328,6 +328,8 @@ export type MessageTree = {
     expandAll: string;
     collapseAll: string;
     unscheduled: string;
+    editDates: string;
+    scheduleActivity: string;
     startDate: string;
     endDate: string;
     clearDates: string;
@@ -1153,6 +1155,8 @@ const it: MessageTree = {
     expandAll: 'Espandi tutto',
     collapseAll: 'Comprimi tutto',
     unscheduled: 'Da pianificare',
+    editDates: 'Modifica date',
+    scheduleActivity: 'Pianifica attività',
     startDate: 'Inizio',
     endDate: 'Fine',
     clearDates: 'Rimuovi date',
@@ -1163,13 +1167,13 @@ const it: MessageTree = {
     openLibrary: 'Apri libreria',
     exportXlsx: 'Esporta XLSX',
     exported: 'Gantt esportato',
-    instructions: 'Seleziona un giorno e clicca “Da pianificare”, oppure fai doppio clic su una cella vuota.',
+    instructions: 'Pianifica dal menu Azioni, oppure fai doppio clic su una cella vuota.',
     macroDatesHint: 'Le date della macro sono calcolate dai sotto-task.',
     doubleClickHint: 'Doppio clic per pianificare in questo giorno.',
     estimateTitle: 'Titolo della stima',
     resizeActivityColumn: 'Trascina per ridimensionare; doppio clic per comprimere',
     changeStatus: 'Stato: {status}',
-    calculatedStatus: 'Stato calcolato dai sotto-task (∑)',
+    calculatedStatus: 'Stato calcolato dai sotto-task',
     editNote: 'Apri e modifica la nota',
     status_to_plan: 'Da pianificare',
     status_planned: 'Pianificata',
@@ -1305,7 +1309,7 @@ const it: MessageTree = {
   },
   client: {
     backToEstimate: 'Torna alla stima',
-    titleLabel: 'Titolo stima presentata al cliente',
+    titleLabel: 'Titolo',
     titlePh: 'Lascia vuoto per usare il titolo della stima',
     rounding: 'Arrotondamento',
     roundNone: 'Nessuno',
@@ -1987,6 +1991,8 @@ const en: MessageTree = {
     expandAll: 'Expand all',
     collapseAll: 'Collapse all',
     unscheduled: 'To schedule',
+    editDates: 'Edit dates',
+    scheduleActivity: 'Schedule activity',
     startDate: 'Start',
     endDate: 'End',
     clearDates: 'Clear dates',
@@ -1997,13 +2003,13 @@ const en: MessageTree = {
     openLibrary: 'Open library',
     exportXlsx: 'Export XLSX',
     exported: 'Gantt exported',
-    instructions: 'Select a day and click “To schedule”, or double-click an empty cell.',
+    instructions: 'Schedule from the Actions menu, or double-click an empty cell.',
     macroDatesHint: 'Macro dates are calculated from its sub-tasks.',
     doubleClickHint: 'Double-click to schedule on this day.',
     estimateTitle: 'Estimate title',
     resizeActivityColumn: 'Drag to resize; double-click to collapse',
     changeStatus: 'Status: {status}',
-    calculatedStatus: 'Status calculated from sub-tasks (∑)',
+    calculatedStatus: 'Status calculated from sub-tasks',
     editNote: 'Open and edit note',
     status_to_plan: 'To plan',
     status_planned: 'Planned',
@@ -2139,7 +2145,7 @@ const en: MessageTree = {
   },
   client: {
     backToEstimate: 'Back to estimate',
-    titleLabel: 'Estimate title presented to client',
+    titleLabel: 'Title',
     titlePh: 'Leave empty to use estimate title',
     rounding: 'Rounding',
     roundNone: 'None',
