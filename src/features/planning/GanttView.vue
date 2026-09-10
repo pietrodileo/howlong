@@ -40,7 +40,10 @@ const modelsStore = useModelsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
 const { t, locale } = useI18n();
 const scale = ref<Scale>('day');
-const showWeekends = ref(true);
+const showWeekends = computed({
+  get: () => settings.settings.ganttShowWeekends,
+  set: (value: boolean) => { settings.settings.ganttShowWeekends = value; },
+});
 const collapsed = ref<Set<string>>(new Set());
 const today = formatDate(new Date());
 const selectedDate = ref(today);
@@ -52,7 +55,7 @@ const ganttShellWidth = ref(0);
 const pendingDelete = ref<LineItem | null>(null);
 const newMenuOpen = ref(false);
 const modelSearch = ref('');
-const activityWidth = ref(500);
+const activityWidth = ref(340);
 const activityCollapsed = ref(false);
 const activityColumnWidth = computed(() => activityCollapsed.value ? 88 : activityWidth.value);
 const statusMenuId = ref<string | null>(null);
@@ -237,6 +240,7 @@ function updateRangeDate(bound: 'from' | 'to', event: Event) {
 
 const rangeStart = fromDate;
 const rangeEnd = toDate;
+const weekendColumns = computed(() => timelineDays.value.flatMap((day, index) => weekendDays.value.includes(parseDate(day).getUTCDay()) ? [index] : []));
 const weekendDays = computed(() => [
   ...(settings.settings.ganttWeekendSunday ? [0] : []),
   ...(settings.settings.ganttWeekendSaturday ? [6] : []),
@@ -577,7 +581,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               :key="day"
               type="button"
               class="day-head"
-              :class="{ today: day === today, selected: day === selectedDate }"
+              :class="{ weekend: weekendDays.includes(parseDate(day).getUTCDay()), today: day === today, selected: day === selectedDate }"
               :style="{ width: `${cellWidth}px` }"
               :aria-pressed="day === selectedDate"
               @click="selectedDate = day"
@@ -642,6 +646,9 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
             :title="!rangeFor(item) && !hasChildren(item) ? t('gantt.doubleClickHint') : undefined"
             @dblclick="scheduleFromCell($event, item)"
           >
+            <template v-if="scale === 'day'">
+              <div v-for="column in weekendColumns" :key="column" class="weekend-column" :style="{ left: column * cellWidth + 'px', width: cellWidth + 'px' }" />
+            </template>
             <div v-if="todayIndex >= 0" class="today-line" :style="{ left: `${todayIndex * cellWidth}px` }" />
             <div v-if="selectedDateIndex >= 0" class="selected-day" :style="{ left: `${selectedDateIndex * cellWidth}px`, width: `${cellWidth}px` }" />
             <div
@@ -664,7 +671,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
       <div v-if="activeOverlayItem && (statusMenuId || notesEditId || dateEditorId || actionsMenuId)" class="gantt-overlay" data-gantt-overlay :class="[overlayPosition.placement, { 'status-overlay': statusMenuId, 'actions-overlay': actionsMenuId, 'dates-overlay': dateEditorId, 'notes-overlay': notesEditId }]" :style="{ top: `${overlayPosition.top}px`, left: `${overlayPosition.left}px` }">
         <div v-if="statusMenuId" class="status-menu" role="menu">
           <p v-if="hasChildren(activeOverlayItem)" class="status-aggregate">{{ t('gantt.calculatedStatus') }}</p>
-          <button v-for="status in ACTIVITY_STATUSES" :key="status" type="button" role="menuitemradio" :aria-checked="statusFor(activeOverlayItem) === status" :disabled="hasChildren(activeOverlayItem)" @click="setStatus(activeOverlayItem, status)"><span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />{{ statusLabel(status) }}</button>
+          <button v-for="status in ACTIVITY_STATUSES.filter(value => !settings.settings.ganttDisabledStatuses.some(disabled => disabled === value))" :key="status" type="button" role="menuitemradio" :aria-checked="statusFor(activeOverlayItem) === status" :disabled="hasChildren(activeOverlayItem)" @click="setStatus(activeOverlayItem, status)"><span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />{{ statusLabel(status) }}</button>
         </div>
         <div v-else-if="notesEditId" class="note-popover">
           <strong>{{ activeOverlayItem.name }}</strong>
@@ -939,4 +946,12 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .note-popover button { padding: .35rem .65rem; font-family: inherit; font-size: .75rem; line-height: 1.4; }
 .gantt-grid.activity-collapsed .collapsed-controls .status-pill { flex: 0 0 1.4rem; width: 1.4rem; height: 1.4rem; min-height: 1.4rem; padding: 0; border: 0; background: transparent; }
 .collapsed-status-icon { display: block; flex: none; }
+
+.activity-head { display: flex; align-items: center; gap: .65rem; }
+.activity-head .estimate-title-input { flex: 1; width: 0; padding-right: .4rem; }
+.activity-head .activity-toggle { position: static; flex: 0 0 1.75rem; transform: none; }
+.gantt-grid.activity-collapsed .activity-head { justify-content: center; }
+.gantt-grid.activity-collapsed .activity-toggle { transform: none; }
+.day-head.weekend:not(.selected) { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+.weekend-column { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent) 9%, transparent); pointer-events: none; }
 </style>

@@ -158,6 +158,9 @@ export type MessageTree = {
     sectionWorkspace: string;
     sectionShortcuts: string;
     sectionGantt: string;
+    sectionGanttWeekends: string;
+    sectionGanttStatuses: string;
+    ganttAllowedStatuses: string;
     ganttWeekendIntro: string;
     ganttStatusIntro: string;
     ganttStatusPriority: string;
@@ -996,6 +999,9 @@ const it: MessageTree = {
     sectionWorkspace: 'Import / export workspace',
     sectionShortcuts: 'Scorciatoie da tastiera',
     sectionGantt: 'Gantt',
+    sectionGanttWeekends: 'Gantt — Weekend',
+    sectionGanttStatuses: 'Gantt — Stati',
+    ganttAllowedStatuses: 'Scegli gli stati disponibili nel menu. Da pianificare e Pianificata sono necessari per la pianificazione automatica. Gli stati già assegnati vengono conservati.',
     ganttWeekendIntro: 'Scegli quali giorni vengono trattati come weekend quando li nascondi nel Gantt.',
     ganttStatusIntro: 'Gli stati descrivono l’avanzamento senza modificare date o ore.',
     ganttStatusPriority: 'Priorità macro: Bloccata → Ferma → A rischio → In corso → In pausa → Pianificata → Da pianificare → Completata.',
@@ -1833,6 +1839,9 @@ const en: MessageTree = {
     sectionWorkspace: 'Workspace import / export',
     sectionShortcuts: 'Keyboard shortcuts',
     sectionGantt: 'Gantt',
+    sectionGanttWeekends: 'Gantt — Weekends',
+    sectionGanttStatuses: 'Gantt — Statuses',
+    ganttAllowedStatuses: 'Choose the statuses available in the menu. To plan and Planned are required for automatic scheduling. Existing activity statuses are preserved.',
     ganttWeekendIntro: 'Choose which days count as weekends when weekends are hidden in the Gantt.',
     ganttStatusIntro: 'Statuses describe progress without changing dates or effort.',
     ganttStatusPriority: 'Macro priority: Blocked → Stuck → At risk → In progress → On hold → Planned → To plan → Completed.',

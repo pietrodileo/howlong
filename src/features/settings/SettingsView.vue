@@ -202,6 +202,14 @@ function onExportDateChange(checked: boolean) {
   settings.settings.exportIncludeDate = checked;
   if (!checked) settings.settings.exportIncludeTime = false;
 }
+
+/** Restricts future status choices without rewriting existing activity statuses. */
+function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], enabled: boolean) {
+  if (status === 'to-plan' || status === 'planned') return;
+  settings.settings.ganttDisabledStatuses = enabled
+    ? settings.settings.ganttDisabledStatuses.filter(value => value !== status)
+    : [...new Set([...settings.settings.ganttDisabledStatuses, status])];
+}
 </script>
 
 <template>
@@ -309,7 +317,7 @@ function onExportDateChange(checked: boolean) {
       </dl>
     </SettingsPanel>
 
-    <SettingsPanel :title="t('settings.sectionGantt')">
+    <SettingsPanel :title="t('settings.sectionGanttWeekends')">
       <p class="field-hint">{{ t('settings.ganttWeekendIntro') }}</p>
       <div class="lang-row">
         <label class="lang-opt compact">
@@ -321,15 +329,21 @@ function onExportDateChange(checked: boolean) {
           <span>{{ t('settings.sunday') }}</span>
         </label>
       </div>
+    </SettingsPanel>
+
+    <SettingsPanel :title="t('settings.sectionGanttStatuses')">
+      <p class="field-hint">{{ t('settings.ganttAllowedStatuses') }}</p>
       <div class="status-reference">
         <p>{{ t('settings.ganttStatusIntro') }}</p>
         <ul>
           <li v-for="status in ACTIVITY_STATUSES" :key="status">
-            <span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />
+            <label class="status-choice"><input type="checkbox" :checked="!settings.settings.ganttDisabledStatuses.some(disabled => disabled === status)" :disabled="status === 'to-plan' || status === 'planned'" @change="onStatusAvailabilityChange(status, ($event.target as HTMLInputElement).checked)" /><span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />
             {{ t(`settings.status${status.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('')}Meaning`) }}
-          </li>
+          </label></li>
         </ul>
-        <p><strong>{{ t('settings.ganttStatusPriority') }}</strong></p>
+      </div>
+      <div class="status-rules">
+        <p>{{ t('settings.ganttStatusPriority') }}</p>
         <p>{{ t('settings.ganttStatusCancelledRule') }}</p>
       </div>
     </SettingsPanel>
@@ -881,4 +895,8 @@ function onExportDateChange(checked: boolean) {
   word-break: break-all;
   line-height: 1.4;
 }
+.status-choice { display: flex; align-items: center; gap: .5rem; cursor: pointer; }
+.status-rules { margin-top: .75rem; padding: .75rem .85rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--page-soft); color: var(--ink-soft); font-size: .8rem; line-height: 1.5; }
+.status-rules p { margin: 0; }
+.status-rules p + p { margin-top: .45rem; }
 </style>

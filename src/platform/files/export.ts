@@ -225,7 +225,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   workbook.creator = 'HowLong?';
   const sheet = workbook.addWorksheet('Gantt', {
     properties: { defaultRowHeight: 20, tabColor: { argb: 'FF2B3D55' } },
-    views: [{ state: 'frozen', xSplit: 7, ySplit: 6, showGridLines: false, zoomScale: 90 }],
+    views: [{ state: 'frozen', xSplit: 7, ySplit: 6, topLeftCell: 'H7', activeCell: 'H7', showGridLines: false, zoomScale: 90 }],
     pageSetup: {
       orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0,
       paperSize: 9, printTitlesRow: '1:6', printTitlesColumn: '1:7',
@@ -358,7 +358,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   sheet.getColumn(4).alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getColumn(5).alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getColumn(6).alignment = { horizontal: 'center', vertical: 'middle' };
-  sheet.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: 7 + slots.length } };
+  sheet.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: 7 } };
   return workbookToBuffer(workbook);
 }
 
