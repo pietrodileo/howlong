@@ -23,7 +23,7 @@ import {
   parseDate,
   workingDaysBetween,
 } from '../../domain/gantt';
-import { hoursToDays, HOURS_PER_DAY } from '../../domain/rounding';
+import { daysToHours, hoursToDays, HOURS_PER_DAY } from '../../domain/rounding';
 import { exportGanttXlsx } from '../../platform/files/io';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import { useDocumentSync } from '../../shared/composables/useDocumentSync';
@@ -193,6 +193,12 @@ const activeOverlayWorkingDays = computed(() => {
   const range = rangeFor(item);
   if (!range) return null;
   return workingDaysBetween(range.startDate, range.endDate, settings.settings.ganttWorkingDaysExcludeWeekend);
+});
+
+/** Convert the planned working days to hours using the active estimate's working day length. */
+const activeOverlayPlanningHours = computed(() => {
+  const hoursPerDay = estimate.estimate.meta.hoursPerDay;
+  return daysToHours(activeOverlayWorkingDays.value ?? 0, Number.isFinite(hoursPerDay) && hoursPerDay > 0 ? hoursPerDay : HOURS_PER_DAY);
 });
 
 /** Formats estimator hours independently of the estimate's display unit. */
@@ -728,7 +734,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               <div><dt>{{ t('common.base') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursBase) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursBase) }}</span></dd></div>
               <div><dt>{{ t('common.ctg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursContingency) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursContingency) }}</span></dd></div>
               <div><dt>{{ t('common.withCtg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursWithContingency) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursWithContingency) }}</span></dd></div>
-              <div v-if="rangeFor(activeOverlayItem) && activeOverlayWorkingDays !== null"><dt>{{ t('gantt.plan') }}</dt><dd>{{ formatWorkingDays(activeOverlayWorkingDays) }} / {{ formatHours(activeOverlayHours?.hoursWithContingency) }}</dd></div>
+              <div v-if="rangeFor(activeOverlayItem) && activeOverlayWorkingDays !== null"><dt>{{ t('gantt.plan') }}</dt><dd>{{ formatHours(activeOverlayPlanningHours) }}<span class="summary-days">{{ formatWorkingDays(activeOverlayWorkingDays) }}</span></dd></div>
             </dl>
           </header>
           <label class="color-picker" :style="{ '--status-color': ACTIVITY_STATUS_COLORS[statusFor(activeOverlayItem)] }"><span>{{ t('gantt.color') }}</span><input type="color" :value="itemColor(activeOverlayItem)" :aria-label="t('gantt.color')" @input="setItemColor(activeOverlayItem, ($event.target as HTMLInputElement).value)" /></label>

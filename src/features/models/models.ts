@@ -60,7 +60,8 @@ export const useModelsStore = defineStore('models', () => {
     await settings.save();
   }
 
-  async function loadAll() {
+  /** Load valid models, retaining file warnings; optionally propagate workspace I/O failures. */
+  async function loadAll({ throwOnError = false }: { throwOnError?: boolean } = {}) {
     lastError.value = null;
     dirtyIds.value.clear();
     if (!isTauri()) {
@@ -102,6 +103,7 @@ export const useModelsStore = defineStore('models', () => {
       }
     } catch (e) {
       lastError.value = toErrorMessage(e);
+      if (throwOnError) throw e;
       models.value = [structuredClone(DEFAULT_MODEL), structuredClone(DEFAULT_ENGLISH_MODEL)];
       selectedId.value = DEFAULT_MODEL.id;
       const settings = useSettingsStore();

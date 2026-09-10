@@ -82,6 +82,36 @@ assert.equal(history.length, 5);
 assert.equal(history.filter(path => path.toLowerCase().includes('work')).length, 1);
 assert.equal(settingsForWorkspaceExport(settingsStore.settings).recentWorkspaceDirs.length, 0);
 assert.deepEqual(mergeImportedSettings(settingsStore.settings, DEFAULT_SETTINGS).recentWorkspaceDirs, ['/new', '/old']);
+// A malformed model must remain a visible warning without blocking a workspace switch.
+setActivePinia(createPinia());
+const warningSettings = useSettingsStore();
+warningSettings.appDataDir = '/app';
+warningSettings.settings.workspaceDir = '/old';
+let failModelListing = false;
+mockIPC((command, args) => {
+  if (command === 'join_path') return (args as { parts: string[] }).parts.join('/');
+  if (command === 'ensure_dir' || command === 'write_text_file') return;
+  if (command === 'list_json_files') {
+    const dir = (args as { dir: string }).dir;
+    if (failModelListing && dir === '/broken/models') throw new Error('Model folder unavailable');
+    return dir.endsWith('/models') ? [dir + '/misplaced-estimate.json'] : [];
+  }
+  if (command === 'read_text_file') return JSON.stringify({ meta: { id: 'estimate' }, lineItems: [] });
+  throw new Error('Unexpected IPC: ' + command);
+});
+const warningDocuments = useDocumentsStore();
+warningDocuments.createEmpty();
+const warningSwitcher = useWorkspaceSwitch();
+await warningSwitcher.switchWorkspace('/warning', false);
+assert.equal(warningSettings.settings.workspaceDir, '/warning');
+assert.equal(warningDocuments.sessions.length, 0);
+assert.match(useModelsStore().lastError!, /Modello ignorato.*schemaVersion/);
+assert.ok(useModelsStore().models.length > 0);
+const retainedSession = warningDocuments.createEmpty();
+failModelListing = true;
+await assert.rejects(warningSwitcher.switchWorkspace('/broken', false), /Model folder unavailable/);
+assert.equal(warningSettings.settings.workspaceDir, '/warning');
+assert.equal(warningDocuments.activeId, retainedSession);
 clearMocks();
 Reflect.deleteProperty(globalThis, 'window');
 console.log('Workspace switch smoke passed');

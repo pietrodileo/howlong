@@ -35,8 +35,7 @@ export function useWorkspaceSwitch() {
       changed = true;
       await libraryStore.loadAll();
       if (libraryStore.lastError) throw new Error(libraryStore.lastError);
-      await modelsStore.loadAll();
-      if (modelsStore.lastError) throw new Error(modelsStore.lastError);
+      await modelsStore.loadAll({ throwOnError: true });
       settingsStore.settings.recentWorkspaceDirs = SettingsSchema.shape.recentWorkspaceDirs.parse([
         workspaceDir, previous.workspaceDir, ...previous.recentWorkspaceDirs,
       ]);
