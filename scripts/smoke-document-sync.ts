@@ -109,3 +109,5 @@ assert.equal(shortcut('z'), 'undo');
 assert.equal(shortcut('y'), 'redo');
 assert.equal(shortcut('ArrowLeft'), 'previous');
 assert.equal(shortcut('ArrowRight'), 'next');
+
+await import('./smoke-workspace-switch');

@@ -22,6 +22,7 @@ import { mergeImportedSettings } from './workspace';
 function cloneDefaults(): Settings {
   return {
     ...DEFAULT_SETTINGS,
+    recentWorkspaceDirs: [...DEFAULT_SETTINGS.recentWorkspaceDirs],
     defaultCategories: [...DEFAULT_SETTINGS.defaultCategories],
     contingencyTargetCategories: [...DEFAULT_SETTINGS.contingencyTargetCategories],
   };
@@ -42,6 +43,7 @@ function mergeSettings(partial: Partial<Settings>): Settings {
     hoursPerDay: partial.hoursPerDay ?? DEFAULT_SETTINGS.hoursPerDay,
     locale: partial.locale ?? DEFAULT_SETTINGS.locale,
     username: partial.username ?? DEFAULT_SETTINGS.username,
+    recentWorkspaceDirs: [...(partial.recentWorkspaceDirs ?? [])],
     workspaceDir,
     estimatesDir,
     theme: partial.theme ?? DEFAULT_SETTINGS.theme,

@@ -51,6 +51,11 @@ export const SettingsSchema = z.object({
    * Vuota = `{appData}/estimates` e `{appData}/models`.
    */
   workspaceDir: z.string().default(''),
+  /** Machine-local recently used workspace folders, newest first. */
+  recentWorkspaceDirs: z.array(z.string().trim()).default([]).transform(paths =>
+    [...new Map(paths.filter(Boolean).map(path => [
+      path.replace(/\\/g, '/').replace(/\/$/, '').toLowerCase(), path,
+    ])).values()].slice(0, 5)),
   /**
    * @deprecated Preferire `workspaceDir`. Se valorizzata e workspaceDir vuota, viene migrata.
    * Cartella libreria stime. Vuota = `{appData}/estimates`.
@@ -90,6 +95,7 @@ export const DEFAULT_SETTINGS: Settings = {
   locale: 'it',
   username: '',
   workspaceDir: '',
+  recentWorkspaceDirs: [],
   estimatesDir: '',
   theme: 'light',
 };

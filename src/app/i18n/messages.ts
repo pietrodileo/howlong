@@ -136,6 +136,9 @@ export type MessageTree = {
     modelsFolderActive: string;
     pickFolder: string;
     resetFolder: string;
+    recentWorkspaces: string;
+    switchWorkspaceTitle: string;
+    switchWorkspaceBody: string;
     folderLoaded: string;
     folderEmpty: string;
     importExport: string;
@@ -977,6 +980,9 @@ const it: MessageTree = {
     modelsFolderActive: 'Modelli',
     pickFolder: 'Scegli cartella…',
     resetFolder: 'Usa default',
+    recentWorkspaces: 'Workspace recenti',
+    switchWorkspaceTitle: 'Cambiare workspace?',
+    switchWorkspaceBody: 'Ci sono stime con modifiche non salvate. Salvarle prima di chiudere tutte le schede e cambiare workspace?',
     folderLoaded: 'Caricate {n} stime dalla cartella',
     folderEmpty: 'Cartella vuota — nessuna stima HowLong trovata',
     importExport: 'Import / Export',
@@ -1817,6 +1823,9 @@ const en: MessageTree = {
     modelsFolderActive: 'Models',
     pickFolder: 'Choose folder…',
     resetFolder: 'Use default',
+    recentWorkspaces: 'Recent workspaces',
+    switchWorkspaceTitle: 'Switch workspace?',
+    switchWorkspaceBody: 'Some estimates have unsaved changes. Save them before closing all tabs and switching workspace?',
     folderLoaded: 'Loaded {n} estimates from the folder',
     folderEmpty: 'Empty folder — no HowLong estimates found',
     importExport: 'Import / Export',
