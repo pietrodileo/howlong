@@ -22,6 +22,7 @@ import {
   monthStart,
   parseDate,
 } from '../../domain/gantt';
+import { hoursToDays, HOURS_PER_DAY } from '../../domain/rounding';
 import { exportGanttXlsx } from '../../platform/files/io';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import { useDocumentSync } from '../../shared/composables/useDocumentSync';
@@ -187,6 +188,13 @@ const activeOverlayHours = computed(() => estimate.totals.lines.find((line) => l
 /** Formats estimator hours independently of the estimate's display unit. */
 function formatHours(value: number | undefined) {
   return `${new Intl.NumberFormat(locale.value, { maximumFractionDigits: 2 }).format(value ?? 0)} h`;
+}
+
+/** Converts summary effort using the active estimate's hours per working day. */
+function formatSummaryDays(value: number | undefined) {
+  const hoursPerDay = estimate.estimate.meta.hoursPerDay;
+  const days = hoursToDays(value ?? 0, Number.isFinite(hoursPerDay) && hoursPerDay > 0 ? hoursPerDay : HOURS_PER_DAY);
+  return new Intl.NumberFormat(locale.value, { maximumFractionDigits: 2 }).format(days) + ' d';
 }
 
 /** Opens bar actions on clicks without opening them after a drag. */
@@ -696,9 +704,9 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
             <strong>{{ activeOverlayItem.name }}</strong>
             <small v-if="activeOverlayItem.parentId">{{ plannableItems.find((item) => item.id === activeOverlayItem?.parentId)?.name }}</small>
             <dl>
-              <div><dt>{{ t('common.base') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursBase) }}</dd></div>
-              <div><dt>{{ t('common.ctg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursContingency) }}</dd></div>
-              <div><dt>{{ t('common.withCtg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursWithContingency) }}</dd></div>
+              <div><dt>{{ t('common.base') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursBase) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursBase) }}</span></dd></div>
+              <div><dt>{{ t('common.ctg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursContingency) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursContingency) }}</span></dd></div>
+              <div><dt>{{ t('common.withCtg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursWithContingency) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursWithContingency) }}</span></dd></div>
             </dl>
           </header>
           <label class="color-picker" :style="{ '--status-color': ACTIVITY_STATUS_COLORS[statusFor(activeOverlayItem)] }"><span>{{ t('gantt.color') }}</span><input type="color" :value="itemColor(activeOverlayItem)" :aria-label="t('gantt.color')" @input="setItemColor(activeOverlayItem, ($event.target as HTMLInputElement).value)" /></label>
@@ -954,4 +962,5 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .gantt-grid.activity-collapsed .activity-toggle { transform: none; }
 .day-head.weekend:not(.selected) { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
 .weekend-column { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent) 9%, transparent); pointer-events: none; }
+.actions-summary .summary-days { display: block; margin-top: .15rem; color: var(--muted); font-weight: 400; white-space: nowrap; }
 </style>
