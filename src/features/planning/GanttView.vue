@@ -582,8 +582,12 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
             @keydown.right.prevent="adjustActivityWidth(20)"
           />
         </div>
-        <div class="timeline-head" :style="{ width: `${timelineWidth}px` }">
+        <div class="timeline-head" :class="{ 'daily-head': scale === 'day' }" :style="{ width: `${timelineWidth}px` }">
           <template v-if="scale === 'day'">
+            <div class="month-band">
+              <div v-for="month in monthGroups" :key="month.key" class="month-heading" :style="{ width: month.count * cellWidth + 'px' }">{{ month.label }}</div>
+            </div>
+            <div class="day-band">
             <button
               v-for="day in timelineDays"
               :key="day"
@@ -594,6 +598,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               :aria-pressed="day === selectedDate"
               @click="selectedDate = day"
             >{{ dayLabel(day) }}</button>
+            </div>
           </template>
           <template v-else>
             <div
@@ -963,4 +968,8 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .day-head.weekend:not(.selected) { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
 .weekend-column { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent) 9%, transparent); pointer-events: none; }
 .actions-summary .summary-days { display: block; margin-top: .15rem; color: var(--muted); font-weight: 400; white-space: nowrap; }
+.timeline-head.daily-head { flex-direction: column; }
+.month-band, .day-band { display: flex; flex: 1; min-height: 0; }
+.month-heading { text-align: center; background: color-mix(in srgb, #60a5fa 22%, var(--surface)); flex: 0 0 auto; padding: .2rem .5rem; border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); color: var(--ink); font-size: .7rem; font-weight: 600; text-transform: capitalize; overflow: hidden; white-space: nowrap; }
 </style>
+

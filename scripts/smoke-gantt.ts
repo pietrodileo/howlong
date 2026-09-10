@@ -70,6 +70,17 @@ assert.equal(ganttSheet.views[0].state, 'frozen');
 assert.equal(ganttSheet.views[0].xSplit, 7);
 assert.equal(ganttSheet.views[0].ySplit, 6);
 assert.equal(ganttSheet.autoFilter, 'A6:G6');
+assert.equal(ganttSheet.getCell('H5').numFmt, 'mmmm yyyy');
+assert.equal(ganttSheet.getCell('L5').master.address, 'H5');
+const monthBoundaryWorkbook = new ExcelJS.Workbook();
+await monthBoundaryWorkbook.xlsx.load(await ganttToXlsx(estimate, {
+  from: '2026-09-29', to: '2026-10-02', scale: 'day', includeWeekends: false,
+}) as unknown as ArrayBuffer);
+const monthBoundarySheet = monthBoundaryWorkbook.getWorksheet('Gantt')!;
+assert.equal(monthBoundarySheet.getCell('I5').master.address, 'H5');
+assert.equal(monthBoundarySheet.getCell('K5').master.address, 'J5');
+assert.equal((monthBoundarySheet.getCell('H5').value as Date).getUTCMonth(), 8);
+assert.equal((monthBoundarySheet.getCell('J5').value as Date).getUTCMonth(), 9);
 assert.equal(ganttSheet.getCell('B3').value instanceof Date, true);
 assert.equal(ganttSheet.getCell('H6').numFmt, 'ddd dd');
 assert.equal(ganttSheet.getCell('H7').border.right?.style, 'thin');

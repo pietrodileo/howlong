@@ -267,6 +267,22 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   sheet.getRow(5).getCell(2).font = { color: { argb: 'FFFFFFFF' }, bold: true };
   sheet.getRow(5).getCell(3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${palette[0][1]}` } };
   sheet.getRow(5).getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F4F7' } };
+  // Row five has room above the timeline without changing frozen rows or filters.
+  if (options.scale === 'day') {
+    for (let start = 0; start < slots.length;) {
+      let end = start;
+      const month = slots[start].from.slice(0, 7);
+      while (end + 1 < slots.length && slots[end + 1].from.slice(0, 7) === month) end += 1;
+      if (end > start) sheet.mergeCells(5, 8 + start, 5, 8 + end);
+      const monthCell = sheet.getRow(5).getCell(8 + start);
+      monthCell.value = slots[start].label;
+      monthCell.numFmt = 'mmmm yyyy';
+      monthCell.font = { name: 'Arial', bold: true, color: { argb: 'FF2B3D55' } };
+      monthCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCEBFE' } };
+      monthCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      start = end + 1;
+    }
+  }
   const header = sheet.addRow(['Activity', 'Macro', 'Start', 'End', 'Planning', 'Status', 'Notes', ...slots.map((slot) => slot.label)]);
   header.height = 32;
   header.eachCell((cell) => {
