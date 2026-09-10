@@ -728,7 +728,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               <div><dt>{{ t('common.base') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursBase) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursBase) }}</span></dd></div>
               <div><dt>{{ t('common.ctg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursContingency) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursContingency) }}</span></dd></div>
               <div><dt>{{ t('common.withCtg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursWithContingency) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursWithContingency) }}</span></dd></div>
-              <div v-if="rangeFor(activeOverlayItem)"><dt>{{ t('gantt.workingDays') }}</dt><dd>{{ formatWorkingDays(activeOverlayWorkingDays) }}</dd></div>
+              <div v-if="rangeFor(activeOverlayItem) && activeOverlayWorkingDays !== null"><dt>{{ t('gantt.plan') }}</dt><dd>{{ formatWorkingDays(activeOverlayWorkingDays) }} / {{ formatHours(activeOverlayHours?.hoursWithContingency) }}</dd></div>
             </dl>
           </header>
           <label class="color-picker" :style="{ '--status-color': ACTIVITY_STATUS_COLORS[statusFor(activeOverlayItem)] }"><span>{{ t('gantt.color') }}</span><input type="color" :value="itemColor(activeOverlayItem)" :aria-label="t('gantt.color')" @input="setItemColor(activeOverlayItem, ($event.target as HTMLInputElement).value)" /></label>

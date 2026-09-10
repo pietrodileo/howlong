@@ -342,7 +342,7 @@ export type MessageTree = {
     endDate: string;
     clearDates: string;
     color: string;
-    workingDays: string;
+    plan: string;
     addMacro: string;
     addSubtask: string;
     noEstimate: string;
@@ -1178,7 +1178,7 @@ const it: MessageTree = {
     endDate: 'Fine',
     clearDates: 'Rimuovi date',
     color: 'Colore attività',
-    workingDays: 'Giorni lavorativi',
+    plan: 'Pianificazione',
     addMacro: 'Aggiungi Macro',
     addSubtask: 'Aggiungi sotto-task',
     noEstimate: 'Apri o crea una stima per pianificarla.',
@@ -2023,7 +2023,7 @@ const en: MessageTree = {
     endDate: 'End',
     clearDates: 'Clear dates',
     color: 'Activity color',
-    workingDays: 'Working days',
+    plan: 'Plan',
     addMacro: 'Add Macro',
     addSubtask: 'Add sub-task',
     noEstimate: 'Open or create an estimate to plan it.',
