@@ -40,6 +40,8 @@ export const SettingsSchema = z.object({
   ganttShowWeekends: z.boolean().default(true),
   ganttWeekendSaturday: z.boolean().default(true),
   ganttWeekendSunday: z.boolean().default(true),
+  /** Exclude Saturday and Sunday from working days calculation in Gantt. */
+  ganttWorkingDaysExcludeWeekend: z.boolean().default(true),
   /** Ore in un giorno-uomo (1 gg = N h). */
   hoursPerDay: z.number().min(1).max(24).default(8),
   /** UI language. */
@@ -98,6 +100,7 @@ export const DEFAULT_SETTINGS: Settings = {
   recentWorkspaceDirs: [],
   estimatesDir: '',
   theme: 'light',
+  ganttWorkingDaysExcludeWeekend: true,
 };
 
 export function parseSettings(data: unknown): { ok: true; data: Settings } | { ok: false; error: string } {

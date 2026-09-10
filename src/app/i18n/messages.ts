@@ -179,6 +179,8 @@ export type MessageTree = {
     statusCancelledMeaning: string;
     saturday: string;
     sunday: string;
+    ganttWorkingDaysExcludeWeekend: string;
+    ganttWorkingDaysExcludeWeekendHelp: string;
     shortcutsIntro: string;
     shortcutSave: string;
     shortcutNewTab: string;
@@ -340,6 +342,7 @@ export type MessageTree = {
     endDate: string;
     clearDates: string;
     color: string;
+    workingDays: string;
     addMacro: string;
     addSubtask: string;
     noEstimate: string;
@@ -1023,6 +1026,8 @@ const it: MessageTree = {
     statusCancelledMeaning: 'Annullata — lavoro abbandonato intenzionalmente.',
     saturday: 'Sabato',
     sunday: 'Domenica',
+    ganttWorkingDaysExcludeWeekend: 'Escludi weekend dai giorni lavorativi',
+    ganttWorkingDaysExcludeWeekendHelp: 'Se attivo, Sabato e Domenica non vengono contati nel calcolo dei giorni lavorativi.',
     shortcutsIntro: 'Utilizza i tasti di scelta rapida per salvare, aprire e chiudere stime.',
     shortcutSave: 'Salva la stima corrente',
     shortcutNewTab: 'Apri una nuova scheda dal modello predefinito',
@@ -1173,6 +1178,7 @@ const it: MessageTree = {
     endDate: 'Fine',
     clearDates: 'Rimuovi date',
     color: 'Colore attività',
+    workingDays: 'Giorni lavorativi',
     addMacro: 'Aggiungi Macro',
     addSubtask: 'Aggiungi sotto-task',
     noEstimate: 'Apri o crea una stima per pianificarla.',
@@ -1866,6 +1872,8 @@ const en: MessageTree = {
     statusCancelledMeaning: 'Cancelled — work deliberately abandoned.',
     saturday: 'Saturday',
     sunday: 'Sunday',
+    ganttWorkingDaysExcludeWeekend: 'Exclude weekend from working days',
+    ganttWorkingDaysExcludeWeekendHelp: 'When enabled, Saturday and Sunday are excluded from working days calculation.',
     shortcutsIntro: 'Use keyboard shortcuts to save, open and close estimates.',
     shortcutSave: 'Save the current estimate',
     shortcutNewTab: 'Open a new tab from the default model',
@@ -2015,6 +2023,7 @@ const en: MessageTree = {
     endDate: 'End',
     clearDates: 'Clear dates',
     color: 'Activity color',
+    workingDays: 'Working days',
     addMacro: 'Add Macro',
     addSubtask: 'Add sub-task',
     noEstimate: 'Open or create an estimate to plan it.',

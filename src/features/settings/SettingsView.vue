@@ -341,6 +341,13 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
           <span>{{ t('settings.sunday') }}</span>
         </label>
       </div>
+      <div class="lang-row">
+        <label class="lang-opt compact">
+          <input v-model="settings.settings.ganttWorkingDaysExcludeWeekend" type="checkbox" />
+          <span>{{ t('settings.ganttWorkingDaysExcludeWeekend') }}</span>
+        </label>
+      </div>
+      <p class="field-hint">{{ t('settings.ganttWorkingDaysExcludeWeekendHelp') }}</p>
     </SettingsPanel>
 
     <SettingsPanel :title="t('settings.sectionGanttStatuses')">

@@ -21,6 +21,7 @@ import {
   monthEnd,
   monthStart,
   parseDate,
+  workingDaysBetween,
 } from '../../domain/gantt';
 import { hoursToDays, HOURS_PER_DAY } from '../../domain/rounding';
 import { exportGanttXlsx } from '../../platform/files/io';
@@ -185,6 +186,15 @@ onMounted(() => {
 
 const activeOverlayHours = computed(() => estimate.totals.lines.find((line) => line.item.id === overlayItemId.value));
 
+/** Calculate working days for the active overlay item's range. */
+const activeOverlayWorkingDays = computed(() => {
+  const item = activeOverlayItem.value;
+  if (!item) return null;
+  const range = rangeFor(item);
+  if (!range) return null;
+  return workingDaysBetween(range.startDate, range.endDate, settings.settings.ganttWorkingDaysExcludeWeekend);
+});
+
 /** Formats estimator hours independently of the estimate's display unit. */
 function formatHours(value: number | undefined) {
   return `${new Intl.NumberFormat(locale.value, { maximumFractionDigits: 2 }).format(value ?? 0)} h`;
@@ -195,6 +205,12 @@ function formatSummaryDays(value: number | undefined) {
   const hoursPerDay = estimate.estimate.meta.hoursPerDay;
   const days = hoursToDays(value ?? 0, Number.isFinite(hoursPerDay) && hoursPerDay > 0 ? hoursPerDay : HOURS_PER_DAY);
   return new Intl.NumberFormat(locale.value, { maximumFractionDigits: 2 }).format(days) + ' d';
+}
+
+/** Formats working days count. */
+function formatWorkingDays(value: number | null | undefined) {
+  if (value == null) return '';
+  return new Intl.NumberFormat(locale.value, { maximumFractionDigits: 0 }).format(value) + ' d';
 }
 
 /** Opens bar actions on clicks without opening them after a drag. */
@@ -712,6 +728,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               <div><dt>{{ t('common.base') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursBase) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursBase) }}</span></dd></div>
               <div><dt>{{ t('common.ctg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursContingency) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursContingency) }}</span></dd></div>
               <div><dt>{{ t('common.withCtg') }}</dt><dd>{{ formatHours(activeOverlayHours?.hoursWithContingency) }}<span class="summary-days">{{ formatSummaryDays(activeOverlayHours?.hoursWithContingency) }}</span></dd></div>
+              <div v-if="rangeFor(activeOverlayItem)"><dt>{{ t('gantt.workingDays') }}</dt><dd>{{ formatWorkingDays(activeOverlayWorkingDays) }}</dd></div>
             </dl>
           </header>
           <label class="color-picker" :style="{ '--status-color': ACTIVITY_STATUS_COLORS[statusFor(activeOverlayItem)] }"><span>{{ t('gantt.color') }}</span><input type="color" :value="itemColor(activeOverlayItem)" :aria-label="t('gantt.color')" @input="setItemColor(activeOverlayItem, ($event.target as HTMLInputElement).value)" /></label>

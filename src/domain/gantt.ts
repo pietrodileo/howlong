@@ -78,6 +78,23 @@ export function listDays(from: string, to: string, includeWeekends = true, weeke
   return days;
 }
 
+/**
+ * Calculate working days between two dates.
+ * If excludeWeekend is true, Saturday (6) and Sunday (0) are excluded from the count.
+ * This is used to show how many working days are in a Gantt task range.
+ */
+export function workingDaysBetween(from: string, to: string, excludeWeekend: boolean = true): number {
+  if (from > to) return 0;
+  let count = 0;
+  for (let value = from; value <= to; value = addDays(value, 1)) {
+    const weekday = parseDate(value).getUTCDay();
+    if (!excludeWeekend || (weekday !== 0 && weekday !== 6)) {
+      count++;
+    }
+  }
+  return count;
+}
+
 export function aggregateMacroRange(estimate: Estimate, macro: LineItem): PlanningRange | null {
   const children = estimate.items.filter((item) => item.parentId === macro.id);
   if (children.length === 0) return estimate.planning.items[macro.id] ?? null;
