@@ -10,7 +10,9 @@ import {
 } from '../src/features/estimate/clientPresentation';
 import { comparisonItemHours } from '../src/features/comparison/compare';
 import { resolveEstimateCategories } from '../src/features/estimate/estimateCategories';
+import { useEstimateStore } from '../src/features/estimate/estimate';
 import type { Estimate } from '../src/models/estimate';
+import { createPinia, setActivePinia } from 'pinia';
 
 const modelCategories = resolveEstimateCategories(
   ['Analisi', 'Sviluppo'],
@@ -146,6 +148,58 @@ if (nestedTotals.totalContingency !== 2) throw new Error(`nested ctg expected 2 
 const macroLine = nestedTotals.lines.find((l) => l.item.id === 'm1');
 if (!macroLine || macroLine.hoursBase !== 20 || macroLine.contributesToTotals) {
   throw new Error('macro should aggregate children and not double-count');
+}
+
+setActivePinia(createPinia());
+const estimateStore = useEstimateStore();
+const redistributionEstimate: Estimate = {
+  ...nested,
+  items: [
+    ...nested.items.filter((item) => item.id !== 'f1'),
+    {
+      id: 'standalone',
+      name: 'Overhead',
+      hours: 14,
+      category: 'Analisi',
+      kind: 'operational',
+      parentId: null,
+      contingencyPercentOverride: null,
+      notes: '',
+      clientVisible: true,
+    },
+  ],
+};
+estimateStore.setEstimate(redistributionEstimate);
+if (!estimateStore.redistributeClientLine('standalone')) {
+  throw new Error('standalone row should redistribute onto the remaining subtasks');
+}
+const redistributedLines = buildClientPresentedLines(estimateStore.estimate, { includeHidden: true });
+const redistributedMacro = redistributedLines.find((line) => line.item.id === 'm1');
+const redistributedChildTotal = redistributedLines
+  .filter((line) => line.item.parentId === 'm1' && line.contributesToTotals)
+  .reduce((sum, line) => sum + line.hoursPresented, 0);
+if (!redistributedMacro || Math.abs(redistributedMacro.hoursPresented - redistributedChildTotal) > 0.0001) {
+  throw new Error('redistribution should update the macro presented total from its subtasks');
+}
+
+estimateStore.setClientVisible('t2', false);
+const removedSubtaskLines = buildClientPresentedLines(estimateStore.estimate, { includeHidden: true });
+const removedSubtaskMacro = removedSubtaskLines.find((line) => line.item.id === 'm1');
+const includedSubtaskTotal = removedSubtaskLines
+  .filter((line) => line.item.parentId === 'm1' && line.item.clientVisible && line.contributesToTotals)
+  .reduce((sum, line) => sum + line.hoursPresented, 0);
+if (!removedSubtaskMacro || Math.abs(removedSubtaskMacro.hoursPresented - includedSubtaskTotal) > 0.0001) {
+  throw new Error('removing a subtask should subtract its presented hours from the macro total');
+}
+
+estimateStore.setClientVisible('t2', true);
+const restoredSubtaskLines = buildClientPresentedLines(estimateStore.estimate, { includeHidden: true });
+const restoredSubtaskMacro = restoredSubtaskLines.find((line) => line.item.id === 'm1');
+const restoredSubtaskTotal = restoredSubtaskLines
+  .filter((line) => line.item.parentId === 'm1' && line.item.clientVisible && line.contributesToTotals)
+  .reduce((sum, line) => sum + line.hoursPresented, 0);
+if (!restoredSubtaskMacro || Math.abs(restoredSubtaskMacro.hoursPresented - restoredSubtaskTotal) > 0.0001) {
+  throw new Error('restoring a subtask should add its presented hours back to the macro total');
 }
 
 const baselineLines = buildClientPresentedLines(nested, { includeHidden: true, ignoreOverrides: true });

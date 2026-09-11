@@ -1393,10 +1393,10 @@ const it: MessageTree = {
     showCol: 'Incluso',
     showHint:
       'Rimuovi questa voce dalla stima cliente (ore e sottovoci incluse).',
-    hiddenRow: 'Nascosta',
+    hiddenRow: 'Rimossa',
     redistribute: 'Ripartiziona',
     redistributeHint:
-      'Nasconde questa voce e distribuisce le sue ore sulle altre voci ancora attive',
+      'Rimuove questa voce e distribuisce le sue ore sulle altre voci ancora attive',
     redistributeOk: 'Ore ripartite sulle altre voci',
     redistributeFail: 'Nessuna altra voce su cui ripartire',
     compare: 'Confronto',
@@ -2246,10 +2246,10 @@ const en: MessageTree = {
     editedMark: 'Edited value',
     showCol: 'Included',
     showHint: 'Remove this line from the client estimate (hours and subtasks included)',
-    hiddenRow: 'Hidden',
+    hiddenRow: 'Removed',
     redistribute: 'Redistribute',
     redistributeHint:
-      'Hide this line and spread its hours across the other active lines',
+      'Remove this line and spread its hours across the other active lines',
     redistributeOk: 'Hours redistributed to other lines',
     redistributeFail: 'No other line to redistribute onto',
     compare: 'Compare',
