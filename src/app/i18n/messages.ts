@@ -357,6 +357,15 @@ export type MessageTree = {
     changeStatus: string;
     calculatedStatus: string;
     editNote: string;
+    owner: string;
+    unassigned: string;
+    newOwner: string;
+    assignOwner: string;
+    ownerPlaceholder: string;
+    ownerFilter: string;
+    allOwners: string;
+    createOwner: string;
+    ownerAssignedHint: string;
     status_to_plan: string;
     status_planned: string;
     status_in_progress: string;
@@ -1193,6 +1202,15 @@ const it: MessageTree = {
     changeStatus: 'Stato: {status}',
     calculatedStatus: 'Stato calcolato dai sotto-task',
     editNote: 'Apri e modifica la nota',
+    owner: 'Assegnatario',
+    unassigned: 'Non assegnato',
+    newOwner: 'Nuovo owner',
+    assignOwner: 'Assegna',
+    ownerPlaceholder: 'Non assegnato',
+    ownerFilter: 'Cerca o crea…',
+    allOwners: 'Tutti gli owner',
+    createOwner: 'Crea',
+    ownerAssignedHint: 'Owner assegnato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
     status_to_plan: 'Da pianificare',
     status_planned: 'Pianificata',
     status_in_progress: 'In corso',
@@ -2038,6 +2056,15 @@ const en: MessageTree = {
     changeStatus: 'Status: {status}',
     calculatedStatus: 'Status calculated from sub-tasks',
     editNote: 'Open and edit note',
+    owner: 'Owner',
+    unassigned: 'Unassigned',
+    newOwner: 'New owner',
+    assignOwner: 'Assign',
+    ownerPlaceholder: 'Select owner…',
+    ownerFilter: 'Search or create…',
+    allOwners: 'All owners',
+    createOwner: 'Create',
+    ownerAssignedHint: 'Owner assigned to a task; remove assignments before deleting.',
     status_to_plan: 'To plan',
     status_planned: 'Planned',
     status_in_progress: 'In progress',

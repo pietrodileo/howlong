@@ -14,7 +14,8 @@
     "smoke:history": "tsx scripts/smoke-history.ts",
     "smoke:documents": "node --import tsx scripts/smoke-document-sync.ts",
     "smoke:analytics": "tsx scripts/smoke-analytics.ts",
-    "smoke:workspace": "tsx scripts/smoke-workspace-switch.ts"
+    "smoke:workspace": "tsx scripts/smoke-workspace-switch.ts",
+    "smoke:owners": "tsx scripts/smoke-owners.ts"
   },
   "dependencies": {
     "@fontsource/literata": "^5.3.0",

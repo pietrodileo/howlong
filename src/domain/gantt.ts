@@ -78,6 +78,33 @@ export function listDays(from: string, to: string, includeWeekends = true, weeke
   return days;
 }
 
+/** Move ranges by visible timeline cells while clamping the whole group to the timeline. */
+export function movePlanningRanges(
+  ranges: PlanningRange[],
+  timelineDays: string[],
+  requestedDelta: number,
+): PlanningRange[] {
+  if (!ranges.length || !timelineDays.length) return ranges.map((range) => ({ ...range }));
+  const indexed = ranges.map((range) => {
+    const startIndex = timelineDays.findIndex((day) => day >= range.startDate);
+    let endIndex = -1;
+    for (let index = timelineDays.length - 1; index >= 0; index -= 1) {
+      if (timelineDays[index] <= range.endDate) { endIndex = index; break; }
+    }
+    return { startIndex, endIndex };
+  });
+  if (indexed.some(({ startIndex, endIndex }) => startIndex < 0 || endIndex < startIndex)) {
+    return ranges.map((range) => ({ ...range }));
+  }
+  const firstIndex = Math.min(...indexed.map(({ startIndex }) => startIndex));
+  const lastIndex = Math.max(...indexed.map(({ endIndex }) => endIndex));
+  const delta = Math.max(-firstIndex, Math.min(requestedDelta, timelineDays.length - 1 - lastIndex));
+  return indexed.map(({ startIndex, endIndex }) => ({
+    startDate: timelineDays[startIndex + delta],
+    endDate: timelineDays[endIndex + delta],
+  }));
+}
+
 /**
  * Calculate working days between two dates.
  * If excludeWeekend is true, Saturday (6) and Sunday (0) are excluded from the count.

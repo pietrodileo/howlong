@@ -225,10 +225,10 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   workbook.creator = 'HowLong?';
   const sheet = workbook.addWorksheet('Gantt', {
     properties: { defaultRowHeight: 20, tabColor: { argb: 'FF2B3D55' } },
-    views: [{ state: 'frozen', xSplit: 7, ySplit: 6, topLeftCell: 'H7', activeCell: 'H7', showGridLines: false, zoomScale: 90 }],
+    views: [{ state: 'frozen', xSplit: 8, ySplit: 6, topLeftCell: 'I7', activeCell: 'I7', showGridLines: false, zoomScale: 90 }],
     pageSetup: {
       orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0,
-      paperSize: 9, printTitlesRow: '1:6', printTitlesColumn: '1:7',
+      paperSize: 9, printTitlesRow: '1:6', printTitlesColumn: '1:8',
       margins: { left: 0.25, right: 0.25, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 },
     },
     headerFooter: {
@@ -253,7 +253,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   }
 
   sheet.addRow([estimate.meta.title]);
-  sheet.mergeCells(1, 1, 1, Math.max(7, 7 + slots.length));
+  sheet.mergeCells(1, 1, 1, Math.max(8, 8 + slots.length));
   sheet.getRow(1).height = 30;
   sheet.getCell('A1').font = { name: 'Arial', bold: true, size: 18, color: { argb: 'FF2B3D55' } };
   sheet.getCell('A1').alignment = { vertical: 'middle' };
@@ -273,8 +273,8 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       let end = start;
       const month = slots[start].from.slice(0, 7);
       while (end + 1 < slots.length && slots[end + 1].from.slice(0, 7) === month) end += 1;
-      if (end > start) sheet.mergeCells(5, 8 + start, 5, 8 + end);
-      const monthCell = sheet.getRow(5).getCell(8 + start);
+      if (end > start) sheet.mergeCells(5, 9 + start, 5, 9 + end);
+      const monthCell = sheet.getRow(5).getCell(9 + start);
       monthCell.value = slots[start].label;
       monthCell.numFmt = 'mmmm yyyy';
       monthCell.font = { name: 'Arial', bold: true, color: { argb: 'FF2B3D55' } };
@@ -283,7 +283,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       start = end + 1;
     }
   }
-  const header = sheet.addRow(['Activity', 'Macro', 'Start', 'End', 'Planning', 'Status', 'Notes', ...slots.map((slot) => slot.label)]);
+  const header = sheet.addRow(['Activity', 'Macro', 'Start', 'End', 'Planning', 'Status', 'Notes', 'Owner', ...slots.map((slot) => slot.label)]);
   header.height = 32;
   header.eachCell((cell) => {
     cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } };
@@ -295,7 +295,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
     };
   });
   for (let index = 0; index < slots.length; index += 1) {
-    header.getCell(8 + index).numFmt = options.scale === 'day' ? 'ddd dd' : 'mmm yyyy';
+    header.getCell(9 + index).numFmt = options.scale === 'day' ? 'ddd dd' : 'mmm yyyy';
   }
 
   for (const [macroIndex, macro] of macros.entries()) {
@@ -312,6 +312,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
         range ? (aggregate ? 'Aggregate' : 'Planned') : 'To schedule',
         activityStatus.replace(/-/g, ' '),
         item.notes,
+        item.owner ?? '',
         ...slots.map(() => ''),
       ]);
       row.height = 22;
@@ -323,7 +324,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       row.getCell(3).numFmt = 'dd mmm yyyy';
       row.getCell(4).numFmt = 'dd mmm yyyy';
       if (!item.parentId) {
-        for (let index = 1; index <= 7; index += 1) {
+        for (let index = 1; index <= 8; index += 1) {
           row.getCell(index).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7F8FA' } };
         }
       }
@@ -334,7 +335,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       row.getCell(6).font = { name: 'Arial', color: { argb: 'FFFFFFFF' } };
       for (let index = 0; index < slots.length; index += 1) {
         const slot = slots[index];
-        const timelineCell = row.getCell(8 + index);
+        const timelineCell = row.getCell(9 + index);
         const planned = range && range.startDate <= slot.to && range.endDate >= slot.from;
         if (planned) {
           timelineCell.fill = {
@@ -351,7 +352,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
         };
       }
       row.eachCell({ includeEmpty: true }, (cell) => {
-        if (Number(cell.col) <= 7) cell.border = {
+        if (Number(cell.col) <= 8) cell.border = {
           right: { style: 'thin', color: { argb: 'FFE3E7ED' } },
           bottom: { style: 'thin', color: { argb: 'FFD1D7E0' } },
         };
@@ -367,14 +368,14 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   }
 
   sheet.columns = [
-    { width: 34 }, { width: 24 }, { width: 13 }, { width: 13 }, { width: 14 }, { width: 14 }, { width: 30 },
+    { width: 34 }, { width: 24 }, { width: 13 }, { width: 13 }, { width: 14 }, { width: 14 }, { width: 30 }, { width: 22 },
     ...slots.map(() => ({ width: options.scale === 'day' ? 8 : 12 })),
   ];
   sheet.getColumn(3).alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getColumn(4).alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getColumn(5).alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getColumn(6).alignment = { horizontal: 'center', vertical: 'middle' };
-  sheet.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: 7 } };
+  sheet.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: 8 } };
   return workbookToBuffer(workbook);
 }
 

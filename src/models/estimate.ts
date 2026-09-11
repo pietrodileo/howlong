@@ -29,6 +29,8 @@ export const LineItemSchema = z.object({
   parentId: z.string().nullable().default(null),
   contingencyPercentOverride: z.number().min(0).max(100).nullable().default(null),
   notes: z.string().default(''),
+  /** Independent task assignment; absent on estimates saved before owners were introduced. */
+  owner: z.string().optional(),
   /** Stato operativo mostrato nel Gantt; le macro con figli lo aggregano. */
   status: ActivityStatusSchema.default('to-plan'),
   /** Colore personalizzato della barra Gantt. */

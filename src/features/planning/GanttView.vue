@@ -4,6 +4,8 @@ import { useDocumentsStore } from '../../shared/documents';
 import { useEstimateStore } from '../estimate/estimate';
 import { useUiStore } from '../../app/ui';
 import { useSettingsStore } from '../settings/settings';
+import { useLibraryStore } from '../library/library';
+import { mergeOwners, normalizeOwner } from '../../domain/owners';
 import DisclosureIcon from '../../shared/components/DisclosureIcon.vue';
 import { useModelsStore } from '../models/models';
 import { storeToRefs } from 'pinia';
@@ -12,7 +14,6 @@ import type { ActivityStatus, LineItem, PlanningRange } from '../../models/estim
 import {
   ACTIVITY_STATUSES,
   ACTIVITY_STATUS_COLORS,
-  addDays,
   addMonths,
   aggregateMacroRange,
   aggregateMacroStatus,
@@ -20,6 +21,7 @@ import {
   listDays,
   monthEnd,
   monthStart,
+  movePlanningRanges,
   parseDate,
   workingDaysBetween,
 } from '../../domain/gantt';
@@ -28,6 +30,7 @@ import { exportGanttXlsx } from '../../platform/files/io';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import { useDocumentSync } from '../../shared/composables/useDocumentSync';
 import IconBtn from '../../shared/components/IconBtn.vue';
+import OwnerPicker from '../../shared/components/OwnerPicker.vue';
 
 type Scale = 'day' | 'month';
 type DragMode = 'move' | 'start' | 'end';
@@ -35,9 +38,45 @@ type DragMode = 'move' | 'start' | 'end';
 const docs = useDocumentsStore();
 const estimate = useEstimateStore();
 const documentSync = useDocumentSync('gantt');
-const { mutate } = documentSync;
+const { mutate, record } = documentSync;
 const ui = useUiStore();
 const settings = useSettingsStore();
+const libraryStore = useLibraryStore();
+const isSavingOwner = ref(false);
+const ownerOptions = computed(() => mergeOwners([
+  ...libraryStore.ownerOptions,
+  ...estimate.estimate.items.map((item) => item.owner ?? ''),
+]));
+const assignedOwners = computed(() => mergeOwners(estimate.estimate.items.map((item) => item.owner ?? '')));
+
+watch(() => [settings.settings.workspaceDir, settings.appDataDir], () => {
+  void libraryStore.loadOwners().catch((error) => ui.notify(String(error), true));
+}, { immediate: true });
+
+/** Persist reusable names before assigning; discard late edits after changing tabs or workspaces. */
+async function onOwnerChange(item: LineItem, name: string) {
+  if (isSavingOwner.value) return;
+  const sessionId = docs.activeId;
+  const workspaceDir = settings.settings.workspaceDir;
+  isSavingOwner.value = true;
+  try {
+    if (item.owner) await libraryStore.rememberOwner(item.owner);
+    const owner = normalizeOwner(name) ? await libraryStore.rememberOwner(name) : '';
+    if (docs.activeId !== sessionId || settings.settings.workspaceDir !== workspaceDir) return;
+    if (item.owner !== owner) mutate(() => estimate.updateItem(item.id, { owner }));
+  } catch (error) {
+    ui.notify(error instanceof Error ? error.message : String(error), true);
+  } finally {
+    isSavingOwner.value = false;
+  }
+}
+
+/** Delete a reusable owner suggestion while preserving any existing assignments. */
+async function onOwnerDelete(name: string) {
+  try { await libraryStore.forgetOwner(name); }
+  catch (error) { ui.notify(error instanceof Error ? error.message : String(error), true); }
+}
+
 const modelsStore = useModelsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
 const { t, locale } = useI18n();
@@ -484,12 +523,12 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
   selectedItemId.value = item.id;
   const range = rangeFor(item);
   if (!range || (hasChildren(item) && mode !== 'move')) return;
-  const groupRanges = hasChildren(item)
+  const dragRanges = hasChildren(item)
     ? childrenOf(item.id).flatMap(child => {
       const childRange = rangeFor(child);
       return childRange ? [{ id: child.id, ...childRange }] : [];
     })
-    : [];
+    : [{ id: item.id, ...range }];
   draggingItemId.value = item.id;
   event.preventDefault();
   const target = event.currentTarget as HTMLElement;
@@ -497,6 +536,8 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
   const originX = event.clientX;
   const initial = { ...range };
   let lastDelta = 0;
+  let lastPreview = '';
+  let hasChanged = false;
 
   /** Applies the displacement from the original ranges without accumulating drift. */
   function onMove(moveEvent: PointerEvent) {
@@ -504,28 +545,37 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
     const delta = Math.round((moveEvent.clientX - originX) / cellWidth.value);
     if (delta === lastDelta) return;
     lastDelta = delta;
-    if (mode === 'move' && groupRanges.length) {
-      mutate(() => {
-        for (const childRange of groupRanges) {
-          estimate.setPlanningRange(childRange.id, {
-            startDate: addDays(childRange.startDate, delta),
-            endDate: addDays(childRange.endDate, delta),
-          });
-        }
-      });
-    } else if (mode === 'move') {
-      setRange(item, { startDate: addDays(initial.startDate, delta), endDate: addDays(initial.endDate, delta) });
-    } else if (mode === 'start') {
-      const startDate = addDays(initial.startDate, delta);
-      setRange(item, { startDate: startDate <= initial.endDate ? startDate : initial.endDate, endDate: initial.endDate });
+    let updates: { id: string; range: PlanningRange }[];
+    if (mode === 'move') {
+      const moved = movePlanningRanges(dragRanges, timelineDays.value, delta);
+      updates = dragRanges.map((dragRange, index) => ({ id: dragRange.id, range: moved[index] }));
     } else {
-      const endDate = addDays(initial.endDate, delta);
-      setRange(item, { startDate: initial.startDate, endDate: endDate >= initial.startDate ? endDate : initial.startDate });
+      const startIndex = timelineDays.value.findIndex((day) => day >= initial.startDate);
+      let endIndex = -1;
+      for (let index = timelineDays.value.length - 1; index >= 0; index -= 1) {
+        if (timelineDays.value[index] <= initial.endDate) { endIndex = index; break; }
+      }
+      if (startIndex < 0 || endIndex < startIndex) return;
+      const nextIndex = mode === 'start'
+        ? Math.max(0, Math.min(startIndex + delta, endIndex))
+        : Math.max(startIndex, Math.min(endIndex + delta, timelineDays.value.length - 1));
+      updates = [{
+        id: item.id,
+        range: mode === 'start'
+          ? { startDate: timelineDays.value[nextIndex], endDate: initial.endDate }
+          : { startDate: initial.startDate, endDate: timelineDays.value[nextIndex] },
+      }];
     }
+    const preview = JSON.stringify(updates);
+    if (preview === lastPreview) return;
+    lastPreview = preview;
+    hasChanged = true;
+    for (const update of updates) estimate.setPlanningRange(update.id, update.range);
   }
 
-  /** Ends dragging while keeping the moved bar selected. */
+  /** Commit the completed gesture as one history entry and keep the bar selected. */
   function onUp() {
+    if (hasChanged) record();
     draggingItemId.value = null;
     target.removeEventListener('pointermove', onMove);
     target.removeEventListener('pointerup', onUp);
@@ -737,6 +787,22 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               <div v-if="rangeFor(activeOverlayItem) && activeOverlayWorkingDays !== null"><dt>{{ t('gantt.plan') }}</dt><dd>{{ formatHours(activeOverlayPlanningHours) }}<span class="summary-days">{{ formatWorkingDays(activeOverlayWorkingDays) }}</span></dd></div>
             </dl>
           </header>
+          <div class="owner-picker">
+            <label>{{ t('gantt.owner') }}</label>
+            <OwnerPicker
+              :model-value="activeOverlayItem.owner ?? ''"
+              :options="ownerOptions"
+              :disabled="isSavingOwner"
+              :aria-label="t('gantt.owner')"
+              :placeholder="t('gantt.ownerPlaceholder')"
+              :filter-placeholder="t('gantt.ownerFilter')"
+              :create-label="t('gantt.createOwner')"
+              :locked-options="assignedOwners"
+              :locked-label="t('gantt.ownerAssignedHint')"
+              @update:model-value="onOwnerChange(activeOverlayItem, $event)"
+              @delete-option="onOwnerDelete"
+            />
+          </div>
           <label class="color-picker" :style="{ '--status-color': ACTIVITY_STATUS_COLORS[statusFor(activeOverlayItem)] }"><span>{{ t('gantt.color') }}</span><input type="color" :value="itemColor(activeOverlayItem)" :aria-label="t('gantt.color')" @input="setItemColor(activeOverlayItem, ($event.target as HTMLInputElement).value)" /></label>
           <button type="button" @click="openGanttOverlay($event, activeOverlayItem, 'dates')">{{ t(rangeFor(activeOverlayItem) ? 'gantt.editDates' : 'gantt.scheduleActivity') }}</button>
           <button type="button" @click="openGanttOverlay($event, activeOverlayItem, 'notes')">{{ t('gantt.editNote') }}</button>
@@ -827,7 +893,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .day-head:hover { background: var(--accent-subtle); color: var(--ink); }
 .day-head.today { color: var(--accent); background: var(--accent-subtle); font-weight: 700; }
 .day-head.selected { color: var(--on-accent); background: var(--accent); font-weight: 700; }
-.activity-row { display: flex; flex-direction: column; justify-content: center; position: sticky; left: 0; z-index: 3; height: 64px; padding: .55rem .45rem; background: var(--surface); border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
+.activity-row { display: flex; flex-direction: column; justify-content: center; position: sticky; left: 0; z-index: 6; height: 64px; padding: .55rem .45rem; background: var(--surface); border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
 .activity-row.compact { height: 46px; padding-block: .45rem; }
 .activity-row.compact .date-fields { position: absolute; top: 50%; right: .7rem; transform: translateY(-50%); margin: 0; padding: 0; }
 .activity-row.compact .activity-title { padding-right: 4.2rem; }
@@ -934,9 +1000,12 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .gantt-bar.sub { opacity: .82; }
 .gantt-bar.aggregate { cursor: default; }
 .bar-label { padding: 0 .55rem; font-size: .7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
-.handle { position: absolute; top: 0; bottom: 0; width: 8px; cursor: ew-resize; }
+.handle { position: absolute; top: 0; bottom: 0; width: 10px; cursor: ew-resize; }
+.handle::after { content: ''; position: absolute; top: 7px; bottom: 7px; width: 2px; border-radius: 2px; background: currentColor; opacity: .7; }
 .handle.start { left: 0; }
+.handle.start::after { left: 3px; }
 .handle.end { right: 0; }
+.handle.end::after { right: 3px; }
 .gantt-empty { display: grid; place-content: center; justify-items: center; min-height: 100%; padding: 2rem; text-align: center; }
 .empty-actions { display: flex; justify-content: center; gap: .55rem; }
 .new-estimate-menu { position: relative; }
@@ -969,6 +1038,8 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .actions-summary small { margin-top: .15rem; font-size: .65rem; color: var(--muted); }
 .actions-summary dl { display: flex; gap: .8rem; margin: .5rem 0 0; font-size: .65rem; }
 .actions-summary dt { color: var(--muted); }
+.owner-picker { display: grid; gap: .35rem; padding: .5rem .45rem; border-bottom: 1px solid var(--line); }
+.owner-picker label { font-size: .75rem; }
 .actions-summary dd { margin: .15rem 0 0; font-weight: 600; }
 .gantt-bar.selected { outline: 2px solid var(--accent); outline-offset: 2px; }
 .gantt-bar.dragging { outline: 2px solid var(--accent); outline-offset: 3px; filter: brightness(1.12); box-shadow: 0 4px 12px var(--accent); z-index: 5; }
@@ -993,6 +1064,6 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .actions-summary .summary-days { display: block; margin-top: .15rem; color: var(--muted); font-weight: 400; white-space: nowrap; }
 .timeline-head.daily-head { flex-direction: column; }
 .month-band, .day-band { display: flex; flex: 1; min-height: 0; }
-.month-heading { text-align: center; background: color-mix(in srgb, #60a5fa 22%, var(--surface)); flex: 0 0 auto; padding: .2rem .5rem; border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); color: var(--ink); font-size: .7rem; font-weight: 600; text-transform: capitalize; overflow: hidden; white-space: nowrap; }
+.month-heading { text-align: center; background: color-mix(in srgb, var(--ink) 7%, var(--surface)); flex: 0 0 auto; padding: .2rem .5rem; border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); color: var(--ink); font-size: .7rem; font-weight: 600; text-transform: capitalize; overflow: hidden; white-space: nowrap; }
 </style>
 
