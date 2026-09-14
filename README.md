@@ -11,20 +11,22 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pietrodileo/howlong/releases"><img src="https://img.shields.io/badge/version-0.7.0-2ea043?style=flat" alt="version 0.7.0"></a>
+  <a href="https://github.com/pietrodileo/howlong/releases"><img src="https://img.shields.io/github/v/release/pietrodileo/howlong?style=flat&label=version" alt="latest stable version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea043?style=flat" alt="MIT License"></a>
   <a href="https://v2.tauri.app"><img src="https://img.shields.io/badge/Tauri-2-24c8db?style=flat" alt="Tauri 2"></a>
-  <a href="#"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat" alt="macOS | Windows | Linux"></a>
+  <a href="https://github.com/pietrodileo/howlong/releases"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat" alt="macOS | Windows | Linux"></a>
 </p>
 
-*HowLong?* is your solution for building, planning, analyzing, comparing, and delivering project estimates—all in a dedicated desktop app. Leave spreadsheets behind: create clear, structured estimates with your data stored locally in readable JSON files. No account, no cloud, no dependencies. Your estimates stay private and in your control.
+*HowLong?* is your solution for building, planning, analyzing, comparing, and delivering project estimates—all in a dedicated desktop app. Leave spreadsheets behind: create clear, structured estimates with your data stored locally in readable JSON files. No account or cloud service is required. Your estimates stay private and in your control.
 
 <p align="center">
   <a href="#what-it-does">What it does</a> ·
   <a href="#features">Features</a> ·
+  <a href="#new-in-v070">New in v0.7.0</a> ·
   <a href="#export-outputs">Exports</a> ·
   <a href="#screens">Screens</a> ·
-  <a href="#get-started">Get started</a> ·
+  <a href="#download">Download</a> ·
+  <a href="#build-from-source">Build from source</a> ·
   <a href="docs/guides/GUIDE.en.md">🇬🇧 English guide</a> ·
   <a href="docs/guides/GUIDE.it.md">🇮🇹 Guida italiana</a>
 </p>
@@ -35,7 +37,7 @@
 
 Spreadsheets make estimates hard to reuse, audit, and hand off. *HowLong?* keeps effort, contingency, and structure in one editable document, then splits **internal planning** from **client delivery**.
 
-Everything is stored locally. Settings, models, and estimates live as JSON on disk — readable, portable, yours.
+Everything is stored locally. Settings, models, and estimates live as JSON on disk — readable, portable, yours. No account or cloud service is required.
 
 ## Features
 
@@ -62,6 +64,19 @@ Everything is stored locally. Settings, models, and estimates live as JSON on di
 - Open exported files from the completion dialog.
 - Keyboard shortcuts for save, tabs, views, and undo/redo.
 - English or Italian UI; light or dark theme.
+
+## New in v0.7.0
+
+Version 0.7.0 adds a safe, user-controlled update path for the desktop app:
+
+- **Settings → Updates** checks the official GitHub feed only when you click **Check for updates**.
+- Only stable releases are considered; prereleases are excluded.
+- The panel shows the installed version, available version, release notes, download progress, and install state.
+- The updater downloads the signed artifact for the current operating system and architecture, then installs it and restarts the app when required.
+- Updates go directly to the newest stable release. Intermediate versions are skipped, so releases must preserve or migrate existing workspace data.
+- Browser previews remain update-free; use the desktop app for update checks and installation.
+
+The official platform builds and updater feed are produced by GitHub Actions from stable tags. See the [Build and release guide](docs/BUILD.md) for signing, release assets, tagging, forks, and troubleshooting.
 
 ## Export outputs
 
@@ -109,7 +124,55 @@ Full walkthrough (settings, shortcuts, formats, troubleshooting): [English manua
 
 Uses the OS webview — no bundled Chromium.
 
-## Get started
+## Download
+
+Download the latest stable installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases):
+
+- **Windows:** `.exe` or `.msi`
+- **macOS:** `.dmg`
+- **Linux:** `.AppImage` or another published package
+
+Existing desktop installations can use **Settings → Updates** to download and install the matching signed update artifact.
+
+For a quick first installation from the latest stable GitHub Release, use the platform bootstrapper:
+
+```powershell
+irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1 | iex
+```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
+```
+
+The first command installs the Windows x64 `.exe`; the second installs the matching macOS `.dmg` or Linux x64 AppImage. Review a remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install. These commands install stable releases only; existing installations should use **Settings → Updates**.
+
+### Uninstall
+
+Uninstall HowLong? without deleting your estimates:
+
+- **Windows:** open **Settings → Apps → Installed apps**, select **HowLong**, and choose **Uninstall**. To open the correct settings page from PowerShell:
+
+  ```powershell
+  Start-Process "ms-settings:appsfeatures"
+  ```
+
+- **macOS:** the bootstrapper installs per-user at `~/Applications/HowLong.app`:
+
+  ```bash
+  rm -rf "$HOME/Applications/HowLong.app"
+  ```
+
+  If you installed the app manually in `/Applications`, remove `/Applications/HowLong.app` instead.
+
+- **Linux:** the bootstrapper installs the AppImage at `~/.local/bin/howlong`:
+
+  ```bash
+  rm -f "$HOME/.local/bin/howlong"
+  ```
+
+These actions remove the application only. The workspace, estimates, and settings remain on disk. Delete those separately only when you intentionally want a complete data reset.
+
+## Build from source
 
 **Time:** ~2 min if Node 20+ and Rust are already installed; ~20–30 min if you still need [Rust](https://www.rust-lang.org/tools/install) and [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
 
@@ -141,15 +204,15 @@ Outputs land in `src-tauri/target/release/bundle/`. Build on the target OS (Wind
 | Linux    | `scripts/linux/build-prerelease.sh`       | `scripts/linux/build-release.sh`        |
 | Any      | `npm run tauri build` (default config)    | Use the platform release script         |
 
-The prerelease scripts do not require a signing key. The release scripts use `~/.tauri/howlong.key` (or `%USERPROFILE%\.tauri\howlong.key` on Windows) and require a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. To use another key, set `TAURI_SIGNING_PRIVATE_KEY` to its path or contents before running the release script. The scripts fail early when signing setup is incomplete.
+The prerelease scripts do not require a signing key and do not create official updater artifacts. The release scripts use `~/.tauri/howlong.key` (or `%USERPROFILE%\.tauri\howlong.key` on Windows) and require a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. To use another key locally, set `TAURI_SIGNING_PRIVATE_KEY` to its path or contents before running the release script. The scripts fail early when signing setup is incomplete.
 
 For the complete development, pre-release, stable release, signing, tagging, and fork workflow, see the [Build and release guide](docs/BUILD.md).
 
-Stable updater releases are published by `.github/workflows/release.yml` when a stable `v*` tag is pushed. Tags containing a hyphen are ignored. The workflow builds Windows x64, Linux x64, macOS Intel, and macOS Apple Silicon artifacts, then uploads the signed updater bundles and `latest.json` to the GitHub Release.
+Stable updater releases are published by `.github/workflows/release.yml` when a stable `v*` tag is pushed. Tags containing a hyphen are ignored. The workflow builds Windows x64, Linux x64, macOS Intel, and macOS Apple Silicon artifacts, generates release notes from the tag and previous release, then uploads the signed installers, updater bundles, signatures, and `latest.json` to the GitHub Release.
 
 Before pushing the first release tag, add these GitHub Actions secrets:
 
-- `TAURI_SIGNING_PRIVATE_KEY`: the full contents of the private key generated with `npm run tauri signer generate -- -w ~/.tauri/howlong.key`
+- `TAURI_SIGNING_PRIVATE_KEY`: the full contents of the private key generated with `npm run tauri -- signer generate -w ~/.tauri/howlong.key`
 - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: the non-empty passphrase used to generate the protected release key
 
 Never commit the private key. Keep the same key for all future releases; losing or replacing it prevents existing installations from accepting new updates.
@@ -159,30 +222,6 @@ Never commit the private key. Keep the same key for all future releases; losing 
 The updater public key is safe to commit because it only verifies releases. The private key can sign releases accepted by installed copies, so keep it only in a protected local file and in GitHub Actions Secrets. Official release builds require a non-empty passphrase-protected key, which adds defense in depth if the private key file or a backup is exposed. Set both `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` in the release build environment. An unprotected key should be limited to a deliberately separate local/test setup and must not be used for the official updater channel. After a public release, do not replace the key without a planned key-rotation path.
 
 HowLong? is open source and remains forkable. The default build trusts the official GitHub Releases endpoint and the official public key. An independent fork that publishes its own binaries should change the Tauri `identifier`, updater `endpoints`, and public key, then configure its own `TAURI_SIGNING_PRIVATE_KEY` secret. Otherwise, the fork may check for upstream updates and will not accept releases signed by the fork's own key.
-
-## Versioning
-
-HowLong? follows semantic versioning in the form `x.y.z`:
-
-| Part  | Name  | Increment when                                                     |
-| ----- | ----- | ------------------------------------------------------------------ |
-| `x` | Major | A release introduces incompatible or fundamental product changes   |
-| `y` | Minor | A release adds backward-compatible functionality                   |
-| `z` | Patch | A release contains backward-compatible fixes or small improvements |
-
-Examples:
-
-- `0.5.1` → `0.5.2` for a bug fix
-- `0.5.1` → `0.6.0` for a new feature
-- `0.6.1` → `0.7.0` for a new feature
-- `0.5.1` → `1.0.0` for the first stable major release
-
-Keep the version synchronized in:
-
-- `package.json` and `package-lock.json`
-- `src-tauri/Cargo.toml` and `src-tauri/Cargo.lock`
-- `src-tauri/tauri.conf.json`
-- `src/app/App.vue`, which displays the version in the About dialog
 
 ## Repository layout
 
@@ -198,7 +237,7 @@ Contributor rules: [AGENTS.md](AGENTS.md).
 │   ├── platform/       Tauri and file I/O
 │   └── shared/         Reusable UI and helpers
 ├── src-tauri/          Rust app and Tauri config
-├── scripts/            Build and smoke tests
+├── scripts/            Build, install, and smoke tests
 ├── docs/guides/        User guides
 ├── docs/images/        Guide screenshots
 └── package.json

@@ -2,7 +2,7 @@
 
 HowLong? `0.7.0` su Windows, macOS e Linux.
 
-[README del progetto](../../README.md) · [Manuale italiano](GUIDE.it.md)
+[README del progetto](../../README.md) · [Manuale inglese](GUIDE.en.md) · [Guida di build e rilascio](../BUILD.md)
 
 **Prima sessione:** [Avvio rapido](#1-avvio-rapido) → [Impostazioni](#3-impostazioni) → crea una stima → **Salva**.
 
@@ -10,6 +10,7 @@ HowLong? `0.7.0` su Windows, macOS e Linux.
 
 ## Indice
 
+- [Novità della v0.7.0](#novità-della-v070)
 - [1. Avvio rapido](#1-avvio-rapido)
 - [2. Area di lavoro e navigazione](#2-area-di-lavoro-home-e-navigazione-nella-barra-laterale)
   - [2.1. Barra laterale](#21-navigazione-nella-barra-laterale)
@@ -45,6 +46,27 @@ HowLong? `0.7.0` su Windows, macOS e Linux.
 - [15. Risoluzione dei problemi e sicurezza](#15-risoluzione-dei-problemi-e-pratiche-sicure)
 
 ---
+
+## Novità della v0.7.0
+
+HowLong? 0.7.0 introduce un flusso di aggiornamento integrato per le installazioni desktop e una pipeline di rilascio stabile per le build ufficiali.
+
+### Pannello Aggiornamenti
+
+Apri **Impostazioni → Aggiornamenti** e fai clic su **Controlla aggiornamenti** quando vuoi cercare una nuova versione. L'app non controlla automaticamente gli aggiornamenti all'avvio né in background.
+
+- Controlla il feed ufficiale delle release GitHub e considera solo le release stabili.
+- Mostra la versione installata, quella disponibile e le note di rilascio.
+- Scarica l'aggiornamento firmato per il sistema operativo e l'architettura correnti, mostrando l'avanzamento quando disponibile.
+- Installa l'aggiornamento scaricato e riavvia l'app desktop quando necessario.
+- Passa direttamente all'ultima release stabile: le versioni intermedie non vengono installate né eseguite.
+- Resta disabilitato nelle anteprime browser, che non dispongono dell'updater nativo né dell'accesso all'installer.
+
+Tauri verifica la firma del publisher prima dell'installazione. Questo protegge il canale di aggiornamento ufficiale, mentre il codice sorgente resta aperto e forkabile. I maintainer di un fork dovrebbero configurare un proprio identificatore, endpoint, chiave pubblica e secret di firma; consulta la [guida di build e rilascio](../BUILD.md#open-source-forks).
+
+La pipeline ufficiale crea installer e artefatti updater specifici per piattaforma a partire dai tag stabili `vX.Y.Z`. Le note di rilascio vengono generate automaticamente dal tag e dalla release precedente. Per il flusso dei contributori, consulta la [guida di build e rilascio](../BUILD.md).
+
+I nuovi utenti possono scaricare l'installer normale dalla [pagina GitHub delle release](https://github.com/pietrodileo/howlong/releases). È disponibile anche un bootstrapper da terminale per Windows, macOS e Linux: consulta le [istruzioni per la prima installazione](../BUILD.md#first-install-bootstrapper).
 
 ## 1. Avvio rapido
 
@@ -132,6 +154,8 @@ Apri **Impostazioni → Aggiornamenti** per cercare manualmente una nuova releas
 - **Installa e riavvia** applica l'aggiornamento firmato. Su macOS la prima installazione usa un `.dmg`; gli aggiornamenti interni all'app usano il bundle `.app.tar.gz` firmato. Windows e Linux usano i rispettivi artefatti firmati, installer o AppImage.
 - L'aggiornamento passa direttamente all'ultima release stabile. Le versioni intermedie non vengono installate né eseguite, quindi ogni release deve mantenere o migrare i dati dell'area di lavoro esistente.
 - Leggi le note di rilascio e salva/esporta il lavoro importante prima di un aggiornamento principale. L'anteprima nel browser non può installare aggiornamenti: usa l'app desktop.
+
+Il pannello mantiene separati i passaggi: il controllo non scarica, il download non installa e l'installazione è disponibile solo dopo il completamento del download firmato. Se non ci sono aggiornamenti, il pannello comunica che la versione installata è aggiornata. Un controllo o un download non riuscito lascia invariata l'installazione corrente.
 
 L'updater verifica la firma della release prima dell'installazione. Questa fiducia appartiene al publisher ufficiale di HowLong?, non alla licenza open source. I fork possono compilare normalmente il codice, ma un fork indipendente dovrebbe usare un proprio identificatore applicativo, endpoint delle release, chiave pubblica e secret di firma; altrimenti potrebbe seguire il feed di aggiornamento upstream.
 
@@ -616,4 +640,4 @@ Se una scorciatoia cambia, la fonte autorevole è sempre Impostazioni → Scorci
 3. Esegui separatamente il backup sia dell'area di lavoro sia della Libreria
 4. Ricorda: eliminazione, ricaricamento o importazione di un'area di lavoro possono distruggere dati
 
-Per installazione, sviluppo, test, note di rilascio e informazioni sulla versione, consulta il [README](../../README.md).
+Per installazione, sviluppo, test, note di rilascio e versioning, consulta la [guida di build e rilascio](../BUILD.md) e il [README](../../README.md).

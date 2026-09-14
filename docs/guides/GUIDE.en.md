@@ -2,7 +2,7 @@
 
 HowLong? `0.7.0` on Windows, macOS, and Linux.
 
-[Project README](../../README.md) · [Manuale italiano](GUIDE.it.md)
+[Project README](../../README.md) · [Italian manual](GUIDE.it.md) · [Build and release guide](../BUILD.md)
 
 **First session:** [Quick start](#1-quick-start) → [Settings](#3-settings) → create one estimate → **Save**.
 
@@ -10,6 +10,7 @@ HowLong? `0.7.0` on Windows, macOS, and Linux.
 
 ## Contents
 
+- [New in v0.7.0](#new-in-v070)
 - [1. Quick start](#1-quick-start)
 - [2. Workspace and navigation](#2-workspace-and-navigation)
   - [2.1. Sidebar](#21-sidebar)
@@ -45,6 +46,27 @@ HowLong? `0.7.0` on Windows, macOS, and Linux.
 - [15. Troubleshooting and safety](#15-troubleshooting-and-safety)
 
 ---
+
+## New in v0.7.0
+
+HowLong? 0.7.0 introduces an in-app update flow for desktop installations and a stable release pipeline for the official builds.
+
+### Updates panel
+
+Open **Settings → Updates** and click **Check for updates** when you want to look for a new version. The app does not check automatically at startup or in the background.
+
+- Checks the official GitHub Releases feed and considers stable releases only.
+- Shows the installed version, the available version, and the release notes.
+- Downloads the signed update for the current operating system and CPU architecture, with progress when available.
+- Installs the downloaded update and restarts the desktop app when required.
+- Jumps directly to the newest stable release; intermediate versions are not installed or executed.
+- Remains disabled in browser previews, which do not have the native updater or installer access.
+
+Tauri verifies the publisher signature before installation. This protects the official update channel, while the source remains open and forkable. Fork maintainers should configure their own identifier, endpoint, public key, and signing secrets; see the [Build and release guide](../BUILD.md#open-source-forks).
+
+The official release pipeline builds platform-specific installers and updater artifacts from stable `vX.Y.Z` tags. Release notes are generated automatically from the tag and previous release. See the [Build and release guide](../BUILD.md) for the contributor workflow.
+
+New users can download the normal installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases). A terminal bootstrapper is also available for Windows, macOS, and Linux; see the [first-install instructions](../BUILD.md#first-install-bootstrapper).
 
 ## 1. Quick start
 
@@ -132,6 +154,8 @@ Open **Settings → Updates** to check for a newer stable release manually. HowL
 - **Install and restart** applies the signed update. On macOS, the first installation uses a `.dmg`; in-app updates use the signed `.app.tar.gz` updater bundle. Windows and Linux use their corresponding signed installer/AppImage artifacts.
 - The updater goes directly to the newest stable release. Intermediate versions are not installed or executed, so each release must preserve or migrate existing workspace data.
 - Review release notes and save/export important work before a major-version update. Browser previews cannot install updates; use the desktop app.
+
+The panel keeps these steps separate: checking does not download, downloading does not install, and installation is available only after the signed download completes. If no update is available, the panel reports that the installed version is current. A failed check or download leaves the current installation unchanged.
 
 The updater verifies the release signature before installation. This trust belongs to the official HowLong? publisher, not to the open-source license. Forks can build the source normally, but an independent fork should use its own application identifier, release endpoint, public key, and signing secret; otherwise it may follow the upstream update feed.
 
@@ -573,4 +597,4 @@ If a shortcut changes, the authoritative source is always Settings → Keyboard 
 3. Back up both workspace and Library separately
 4. Remember: delete, reload, or importing a workspace can destroy data
 
-For installation, development, testing, release notes, and version info, see the [README](../../README.md).
+For installation, development, testing, release notes, and versioning, see the [Build and release guide](../BUILD.md) and the [README](../../README.md).
