@@ -36,8 +36,12 @@ export const SettingsSchema = z.object({
   exportIncludeDate: z.boolean().default(true),
   exportIncludeTime: z.boolean().default(true),
   /** Giorni considerati weekend nella vista Gantt. */
+  ganttDisabledStatuses: z.array(z.enum(['in-progress', 'at-risk', 'stuck', 'blocked', 'on-hold', 'completed', 'cancelled'])).default([]),
+  ganttShowWeekends: z.boolean().default(true),
   ganttWeekendSaturday: z.boolean().default(true),
   ganttWeekendSunday: z.boolean().default(true),
+  /** Exclude Saturday and Sunday from working days calculation in Gantt. */
+  ganttWorkingDaysExcludeWeekend: z.boolean().default(true),
   /** Ore in un giorno-uomo (1 gg = N h). */
   hoursPerDay: z.number().min(1).max(24).default(8),
   /** UI language. */
@@ -49,6 +53,11 @@ export const SettingsSchema = z.object({
    * Vuota = `{appData}/estimates` e `{appData}/models`.
    */
   workspaceDir: z.string().default(''),
+  /** Machine-local recently used workspace folders, newest first. */
+  recentWorkspaceDirs: z.array(z.string().trim()).default([]).transform(paths =>
+    [...new Map(paths.filter(Boolean).map(path => [
+      path.replace(/\\/g, '/').replace(/\/$/, '').toLowerCase(), path,
+    ])).values()].slice(0, 5)),
   /**
    * @deprecated Preferire `workspaceDir`. Se valorizzata e workspaceDir vuota, viene migrata.
    * Cartella libreria stime. Vuota = `{appData}/estimates`.
@@ -80,14 +89,18 @@ export const DEFAULT_SETTINGS: Settings = {
   estimateColumnVisibility: { ...DEFAULT_ESTIMATE_COLUMN_VISIBILITY },
   exportIncludeDate: true,
   exportIncludeTime: true,
+  ganttDisabledStatuses: [],
+  ganttShowWeekends: true,
   ganttWeekendSaturday: true,
   ganttWeekendSunday: true,
   hoursPerDay: 8,
   locale: 'it',
   username: '',
   workspaceDir: '',
+  recentWorkspaceDirs: [],
   estimatesDir: '',
   theme: 'light',
+  ganttWorkingDaysExcludeWeekend: true,
 };
 
 export function parseSettings(data: unknown): { ok: true; data: Settings } | { ok: false; error: string } {

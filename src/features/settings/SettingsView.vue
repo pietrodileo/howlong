@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
+import { useDocumentsStore } from '../../shared/documents';
+import ConfirmModal from '../../shared/components/ConfirmModal.vue';
+import { useWorkspaceSwitch } from './useWorkspaceSwitch';
 import { useSettingsStore } from './settings';
 import { useModelsStore } from '../models/models';
 import { useLibraryStore } from '../library/library';
@@ -7,7 +10,7 @@ import { useUiStore } from '../../app/ui';
 import { exportSettings, openSettingsFile } from '../../platform/files/io';
 import { importWorkspaceText } from './workspace';
 import { openDirectoryDialog, isTauri } from '../../platform/tauri';
-import { ensureWorkspaceLayout, resolveEstimatesDir, resolveModelsDir, workspaceRootFromSettings } from './workspacePaths';
+import { resolveEstimatesDir, resolveModelsDir, workspaceRootFromSettings } from './workspacePaths';
 import { useI18n } from '../../app/i18n/useI18n';
 import { isDialogCancelled } from '../../platform/files/dialogResult';
 import { toErrorMessage } from '../../shared/errors';
@@ -15,11 +18,15 @@ import type { Locale, Theme } from '../../models/settings';
 import SettingsPanel from './SettingsPanel.vue';
 import { ESTIMATE_TOGGLEABLE_COLUMNS, type EstimateToggleableColumn } from './estimateColumns';
 import { syncEstimateColumnsFromSettings } from '../../shared/composables/useResizableColumns';
+import { ACTIVITY_STATUSES, ACTIVITY_STATUS_COLORS } from '../../domain/gantt';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
 const library = useLibraryStore();
 const ui = useUiStore();
+const documentsStore = useDocumentsStore();
+const { isSwitching, switchWorkspace } = useWorkspaceSwitch();
+const pendingWorkspaceDir = ref<string | null>(null);
 const { t, setLocale, locale } = useI18n();
 
 const resolvedWorkspaceDir = ref('');
@@ -28,18 +35,19 @@ const resolvedModelsDir = ref('');
 const openFolderSection = ref(ui.consumeSettingsSection() === 'folder');
 
 // Flag to prevent duplicate saves
-let isSaving = false;
+const isSaving = ref(false);
 
 // Auto-save settings when they change
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 watch(
   () => settings.settings,
   async () => {
-    if (isSaving) return;
+    if (isSaving.value || isSwitching.value) return;
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
+      saveTimeout = null;
       try {
-        isSaving = true;
+        isSaving.value = true;
         await settings.save();
         syncEstimateColumnsFromSettings();
         await library.loadAll();
@@ -48,13 +56,20 @@ watch(
       } catch (e) {
         ui.notify(toErrorMessage(e), true);
       } finally {
-        isSaving = false;
+        isSaving.value = false;
       }
     }, 1000);
   },
-  { deep: true },
+  { deep: true, flush: 'sync' },
 );
 
+onUnmounted(() => {
+  if (!saveTimeout) return;
+  clearTimeout(saveTimeout);
+  if (!isSaving.value && !isSwitching.value) void settings.save().catch(error => ui.notify(toErrorMessage(error), true));
+});
+
+/** Refresh the displayed native workspace paths. */
 async function refreshWorkspacePaths() {
   if (!isTauri()) {
     resolvedWorkspaceDir.value = '';
@@ -86,55 +101,43 @@ function md(text: string): string {
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
 
-async function applyWorkspaceFolderChange() {
-  if (isSaving) return;
+/** Execute the confirmed switch while suppressing the settings autosave timer. */
+async function applyWorkspaceFolderChange(saveChanges: boolean) {
+  const path = pendingWorkspaceDir.value;
+  if (path === null || isSaving.value || isSwitching.value) return;
+  pendingWorkspaceDir.value = null;
+  if (saveTimeout) { clearTimeout(saveTimeout); saveTimeout = null; }
   try {
-    isSaving = true;
-    await settings.save();
-    const n = await library.loadAll();
-    await models.loadAll();
+    await switchWorkspace(path, saveChanges);
     await refreshWorkspacePaths();
-    if (library.lastError) {
-      ui.notify(library.lastError, true);
-      return;
-    }
-    if (n > 0) {
-      ui.notify(t('settings.folderLoaded', { n: String(n) }));
-    } else {
-      ui.notify(t('settings.folderEmpty'));
-    }
-  } catch (e) {
-    ui.notify(toErrorMessage(e), true);
-  } finally {
-    isSaving = false;
+    ui.notify(library.entries.length
+      ? t('settings.folderLoaded', { n: String(library.entries.length) })
+      : t('settings.folderEmpty'));
+  } catch (error) {
+    await refreshWorkspacePaths();
+    ui.notify(toErrorMessage(error), true);
   }
 }
 
+/** Ask about dirty estimates before changing any workspace state. */
+async function onSelectWorkspace(path: string) {
+  if (isSaving.value || isSwitching.value) return;
+  if (!isTauri()) { ui.notify(t('library.desktopOnly'), true); return; }
+  if (path === settings.settings.workspaceDir.trim()) return;
+  pendingWorkspaceDir.value = path;
+  if (!documentsStore.sessions.some(session => session.dirty)) await applyWorkspaceFolderChange(false);
+}
+
+/** Browse for a destination and route it through the same unsaved-work guard. */
 async function onPickWorkspaceDir() {
-  if (!isTauri()) {
-    ui.notify(t('library.desktopOnly'), true);
-    return;
-  }
-  const path = await openDirectoryDialog(
-    settings.settings.workspaceDir.trim() ||
-      resolvedWorkspaceDir.value ||
-      undefined,
-  );
-  if (!path) return;
-  await ensureWorkspaceLayout(path);
-  settings.settings.workspaceDir = path;
-  settings.settings.estimatesDir = '';
-  await applyWorkspaceFolderChange();
+  if (!isTauri()) { ui.notify(t('library.desktopOnly'), true); return; }
+  const path = await openDirectoryDialog(settings.settings.workspaceDir.trim() || resolvedWorkspaceDir.value || undefined);
+  if (path) await onSelectWorkspace(path);
 }
 
+/** Select the built-in workspace using the shared switching flow. */
 async function onResetWorkspaceDir() {
-  if (!isTauri()) {
-    ui.notify(t('library.desktopOnly'), true);
-    return;
-  }
-  settings.settings.workspaceDir = '';
-  settings.settings.estimatesDir = '';
-  await applyWorkspaceFolderChange();
+  await onSelectWorkspace('');
 }
 
 async function onImport() {
@@ -201,10 +204,28 @@ function onExportDateChange(checked: boolean) {
   settings.settings.exportIncludeDate = checked;
   if (!checked) settings.settings.exportIncludeTime = false;
 }
+
+/** Restricts future status choices without rewriting existing activity statuses. */
+function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], enabled: boolean) {
+  if (status === 'to-plan' || status === 'planned') return;
+  settings.settings.ganttDisabledStatuses = enabled
+    ? settings.settings.ganttDisabledStatuses.filter(value => value !== status)
+    : [...new Set([...settings.settings.ganttDisabledStatuses, status])];
+}
 </script>
 
 <template>
   <div class="settings" :key="locale">
+    <ConfirmModal
+      :open="pendingWorkspaceDir !== null"
+      :title="t('settings.switchWorkspaceTitle')"
+      :message="t('settings.switchWorkspaceBody')"
+      :confirm-label="t('common.save')"
+      :secondary-label="t('tabs.closeDirtyDiscard')"
+      @confirm="applyWorkspaceFolderChange(true)"
+      @secondary="applyWorkspaceFolderChange(false)"
+      @cancel="pendingWorkspaceDir = null"
+    />
     <header class="hero">
       <div class="hero-top">
         <h2 class="title">{{ t('settings.title') }}</h2>
@@ -308,7 +329,7 @@ function onExportDateChange(checked: boolean) {
       </dl>
     </SettingsPanel>
 
-    <SettingsPanel :title="t('settings.sectionGantt')">
+    <SettingsPanel :title="t('settings.sectionGanttWeekends')">
       <p class="field-hint">{{ t('settings.ganttWeekendIntro') }}</p>
       <div class="lang-row">
         <label class="lang-opt compact">
@@ -319,6 +340,30 @@ function onExportDateChange(checked: boolean) {
           <input v-model="settings.settings.ganttWeekendSunday" type="checkbox" />
           <span>{{ t('settings.sunday') }}</span>
         </label>
+      </div>
+      <div class="lang-row">
+        <label class="lang-opt compact">
+          <input v-model="settings.settings.ganttWorkingDaysExcludeWeekend" type="checkbox" />
+          <span>{{ t('settings.ganttWorkingDaysExcludeWeekend') }}</span>
+        </label>
+      </div>
+      <p class="field-hint">{{ t('settings.ganttWorkingDaysExcludeWeekendHelp') }}</p>
+    </SettingsPanel>
+
+    <SettingsPanel :title="t('settings.sectionGanttStatuses')">
+      <p class="field-hint">{{ t('settings.ganttAllowedStatuses') }}</p>
+      <div class="status-reference">
+        <p>{{ t('settings.ganttStatusIntro') }}</p>
+        <ul>
+          <li v-for="status in ACTIVITY_STATUSES" :key="status">
+            <label class="status-choice"><input type="checkbox" :checked="!settings.settings.ganttDisabledStatuses.some(disabled => disabled === status)" :disabled="status === 'to-plan' || status === 'planned'" @change="onStatusAvailabilityChange(status, ($event.target as HTMLInputElement).checked)" /><span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />
+            {{ t(`settings.status${status.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('')}Meaning`) }}
+          </label></li>
+        </ul>
+      </div>
+      <div class="status-rules">
+        <p>{{ t('settings.ganttStatusPriority') }}</p>
+        <p>{{ t('settings.ganttStatusCancelledRule') }}</p>
       </div>
     </SettingsPanel>
 
@@ -429,18 +474,25 @@ function onExportDateChange(checked: boolean) {
         {{ t('settings.workspaceFolderCustom') }}
       </p>
       <div class="chrome">
-        <button type="button" class="settings-action" @click="onPickWorkspaceDir">
+        <button type="button" class="settings-action" :disabled="isSaving || isSwitching" @click="onPickWorkspaceDir">
           {{ t('settings.pickFolder') }}
         </button>
         <button
           type="button"
           class="settings-action"
-          :disabled="!settings.settings.workspaceDir.trim()"
+          :disabled="isSaving || isSwitching || !settings.settings.workspaceDir.trim()"
           @click="onResetWorkspaceDir"
         >
           {{ t('settings.resetFolder') }}
         </button>
       </div>
+      <label v-if="settings.settings.recentWorkspaceDirs.length" class="recent-workspaces">
+        <span>{{ t('settings.recentWorkspaces') }}</span>
+        <select :value="settings.settings.workspaceDir" :disabled="isSaving || isSwitching" @change="onSelectWorkspace(($event.target as HTMLSelectElement).value); ($event.target as HTMLSelectElement).value = settings.settings.workspaceDir">
+          <option value="">{{ t('settings.workspaceFolderDefault') }}</option>
+          <option v-for="path in settings.settings.recentWorkspaceDirs" :key="path" :value="path">{{ path }}</option>
+        </select>
+      </label>
     </SettingsPanel>
 
     <SettingsPanel :title="t('settings.sectionWorkspace')">
@@ -463,8 +515,26 @@ function onExportDateChange(checked: boolean) {
 </template>
 
 <style scoped>
+.recent-workspaces {
+  display: grid;
+  gap: .35rem;
+  max-width: 36rem;
+  margin-top: .75rem;
+  font-size: .8rem;
+  color: var(--muted);
+}
+.recent-workspaces select {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: .45rem .6rem;
+}
 .settings {
-  max-width: 620px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -501,10 +571,14 @@ function onExportDateChange(checked: boolean) {
 
 .shortcut-list {
   display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 0.55rem 1rem;
+  grid-template-columns: minmax(12rem, max-content) 1fr;
+  gap: 0.65rem 1.25rem;
   align-items: center;
-  margin: 0.85rem 0 0;
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
 }
 
 .shortcut-list dt {
@@ -527,6 +601,17 @@ function onExportDateChange(checked: boolean) {
   box-shadow: 0 1px 0 var(--line);
   color: var(--ink);
   font: 600 0.75rem var(--font-ui);
+}
+
+@media (max-width: 620px) {
+  .shortcut-list {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .shortcut-list dd:not(:last-child) {
+    margin-bottom: 0.65rem;
+  }
 }
 
 .user-badge {
@@ -709,6 +794,20 @@ function onExportDateChange(checked: boolean) {
   color: var(--accent);
 }
 
+.status-reference {
+  margin-top: .8rem;
+  padding: .85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page-soft);
+}
+
+.status-reference p { margin: 0; color: var(--ink-soft); }
+.status-reference p + p { margin-top: .55rem; }
+.status-reference ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .45rem 1rem; margin: .75rem 0; padding: 0; list-style: none; }
+.status-reference li { display: flex; align-items: center; gap: .5rem; color: var(--ink-soft); font-size: .85rem; }
+.status-reference li span { width: .65rem; height: .65rem; flex: 0 0 .65rem; border-radius: 50%; }
+
 .lang-actions {
   display: flex;
   flex-wrap: wrap;
@@ -840,4 +939,8 @@ function onExportDateChange(checked: boolean) {
   word-break: break-all;
   line-height: 1.4;
 }
+.status-choice { display: flex; align-items: center; gap: .5rem; cursor: pointer; }
+.status-rules { margin-top: .75rem; padding: .75rem .85rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--page-soft); color: var(--ink-soft); font-size: .8rem; line-height: 1.5; }
+.status-rules p { margin: 0; }
+.status-rules p + p { margin-top: .45rem; }
 </style>

@@ -25,12 +25,13 @@ export type HowLongWorkspace = {
 /** Campi legati all’installazione/PC: non vanno trasferiti via import/export. */
 export type MachineLocalSettings = Pick<
   Settings,
-  'workspaceDir' | 'estimatesDir' | 'username'
+  'workspaceDir' | 'recentWorkspaceDirs' | 'estimatesDir' | 'username'
 >;
 
 export function pickMachineLocalSettings(settings: Settings): MachineLocalSettings {
   return {
     workspaceDir: settings.workspaceDir,
+    recentWorkspaceDirs: [...settings.recentWorkspaceDirs],
     estimatesDir: settings.estimatesDir,
     username: settings.username,
   };
@@ -41,6 +42,7 @@ export function settingsForWorkspaceExport(settings: Settings): Settings {
   return {
     ...settings,
     workspaceDir: '',
+    recentWorkspaceDirs: [],
     estimatesDir: '',
     username: '',
   };

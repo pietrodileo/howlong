@@ -1,6 +1,37 @@
-import type { Estimate, LineItem, PlanningRange } from '../models/estimate';
+import type { ActivityStatus, Estimate, LineItem, PlanningRange } from '../models/estimate';
 
 const DAY_MS = 86_400_000;
+
+export const ACTIVITY_STATUSES: ActivityStatus[] = [
+  'to-plan', 'planned', 'in-progress', 'at-risk', 'stuck',
+  'blocked', 'on-hold', 'completed', 'cancelled',
+];
+
+export const ACTIVITY_STATUS_COLORS: Record<ActivityStatus, string> = {
+  'to-plan': '#8a94a3',
+  planned: '#2563eb',
+  'in-progress': '#0891b2',
+  'at-risk': '#d97706',
+  stuck: '#ea580c',
+  blocked: '#dc2626',
+  'on-hold': '#7c3aed',
+  completed: '#16a34a',
+  cancelled: '#475467',
+};
+
+const STATUS_PRIORITY: ActivityStatus[] = [
+  'blocked', 'stuck', 'at-risk', 'in-progress', 'on-hold',
+  'planned', 'to-plan', 'completed',
+];
+
+/** Resolves a macro status from its children using the documented priority. */
+export function aggregateMacroStatus(estimate: Estimate, macro: LineItem): ActivityStatus {
+  const children = estimate.items.filter((item) => item.parentId === macro.id);
+  if (children.length === 0) return macro.status;
+  if (children.every((item) => item.status === 'cancelled')) return 'cancelled';
+  const activeStatuses = new Set(children.filter((item) => item.status !== 'cancelled').map((item) => item.status));
+  return STATUS_PRIORITY.find((status) => activeStatuses.has(status)) ?? 'to-plan';
+}
 
 export function parseDate(value: string): Date {
   return new Date(`${value}T00:00:00Z`);
@@ -45,6 +76,50 @@ export function listDays(from: string, to: string, includeWeekends = true, weeke
     if (includeWeekends || !weekendDays.includes(weekday)) days.push(value);
   }
   return days;
+}
+
+/** Move ranges by visible timeline cells while clamping the whole group to the timeline. */
+export function movePlanningRanges(
+  ranges: PlanningRange[],
+  timelineDays: string[],
+  requestedDelta: number,
+): PlanningRange[] {
+  if (!ranges.length || !timelineDays.length) return ranges.map((range) => ({ ...range }));
+  const indexed = ranges.map((range) => {
+    const startIndex = timelineDays.findIndex((day) => day >= range.startDate);
+    let endIndex = -1;
+    for (let index = timelineDays.length - 1; index >= 0; index -= 1) {
+      if (timelineDays[index] <= range.endDate) { endIndex = index; break; }
+    }
+    return { startIndex, endIndex };
+  });
+  if (indexed.some(({ startIndex, endIndex }) => startIndex < 0 || endIndex < startIndex)) {
+    return ranges.map((range) => ({ ...range }));
+  }
+  const firstIndex = Math.min(...indexed.map(({ startIndex }) => startIndex));
+  const lastIndex = Math.max(...indexed.map(({ endIndex }) => endIndex));
+  const delta = Math.max(-firstIndex, Math.min(requestedDelta, timelineDays.length - 1 - lastIndex));
+  return indexed.map(({ startIndex, endIndex }) => ({
+    startDate: timelineDays[startIndex + delta],
+    endDate: timelineDays[endIndex + delta],
+  }));
+}
+
+/**
+ * Calculate working days between two dates.
+ * If excludeWeekend is true, Saturday (6) and Sunday (0) are excluded from the count.
+ * This is used to show how many working days are in a Gantt task range.
+ */
+export function workingDaysBetween(from: string, to: string, excludeWeekend: boolean = true): number {
+  if (from > to) return 0;
+  let count = 0;
+  for (let value = from; value <= to; value = addDays(value, 1)) {
+    const weekday = parseDate(value).getUTCDay();
+    if (!excludeWeekend || (weekday !== 0 && weekday !== 6)) {
+      count++;
+    }
+  }
+  return count;
 }
 
 export function aggregateMacroRange(estimate: Estimate, macro: LineItem): PlanningRange | null {

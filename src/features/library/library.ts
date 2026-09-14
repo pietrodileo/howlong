@@ -21,6 +21,8 @@ import { toErrorMessage } from '../../shared/errors';
 import { appendAuditEntry, resolveAuditUsername } from '../../platform/auditUsername';
 import { addRecentOpenPath } from '../../platform/recentOpen';
 import { resolveEstimatesDir } from '../settings/workspacePaths';
+import { readOwners, writeOwners } from '../../platform/files/owners';
+import { mergeOwners, normalizeOwner } from '../../domain/owners';
 
 export type LibraryEntry = {
   path: string;
@@ -66,7 +68,60 @@ async function withAudit(estimate: Estimate): Promise<Estimate> {
   );
 }
 
+/** Owns the workspace disk index, estimate persistence, and reusable owner suggestions. */
 export const useLibraryStore = defineStore('library', () => {
+  const ownerOptions = ref<string[]>([]);
+  let ownersWorkspace = '';
+  let ownerOperation: Promise<unknown> = Promise.resolve();
+
+  /** Resolve the current workspace identity before starting asynchronous owner operations. */
+  function ownerWorkspace(): string {
+    const settingsStore = useSettingsStore();
+    return settingsStore.settings.workspaceDir.trim() || settingsStore.appDataDir || '';
+  }
+
+  /** Load suggestions without allowing an old workspace request to replace the active list. */
+  async function loadOwners(): Promise<void> {
+    const workspaceDir = ownerWorkspace();
+    ownersWorkspace = workspaceDir;
+    ownerOptions.value = [];
+    const operation = ownerOperation.catch(() => undefined).then(async () => {
+      const owners = await readOwners(workspaceDir);
+      if (ownerWorkspace() === workspaceDir && ownersWorkspace === workspaceDir) ownerOptions.value = owners;
+    });
+    ownerOperation = operation;
+    await operation;
+  }
+
+  /** Serialize read/merge/write operations; return canonical spelling only after persistence succeeds. */
+  function rememberOwner(name: string): Promise<string> {
+    const workspaceDir = ownerWorkspace();
+    const normalized = normalizeOwner(name);
+    if (!normalized) return Promise.resolve('');
+    const operation = ownerOperation.catch(() => undefined).then(async () => {
+      const owners = mergeOwners([...(await readOwners(workspaceDir)), normalized]);
+      await writeOwners(workspaceDir, owners);
+      if (ownerWorkspace() === workspaceDir) {
+        ownersWorkspace = workspaceDir;
+        ownerOptions.value = owners;
+      }
+      return owners.find((owner) => owner.toLowerCase() === normalized.toLowerCase())!;
+    });
+    ownerOperation = operation;
+    return operation;
+  }
+
+  /** Remove a reusable owner suggestion without changing existing task assignments. */
+  function forgetOwner(name: string): Promise<void> {
+    const workspaceDir = ownerWorkspace();
+    const operation = ownerOperation.catch(() => undefined).then(async () => {
+      const owners = (await readOwners(workspaceDir)).filter((owner) => owner.toLowerCase() !== name.trim().toLowerCase());
+      await writeOwners(workspaceDir, owners);
+      if (ownerWorkspace() === workspaceDir) ownerOptions.value = owners;
+    });
+    ownerOperation = operation;
+    return operation;
+  }
   const entries = ref<LibraryEntry[]>([]);
   const lastError = ref<string | null>(null);
   const loading = ref(false);
@@ -224,6 +279,10 @@ export const useLibraryStore = defineStore('library', () => {
   }
 
   return {
+    ownerOptions,
+    loadOwners,
+    rememberOwner,
+    forgetOwner,
     entries,
     sorted,
     lastError,

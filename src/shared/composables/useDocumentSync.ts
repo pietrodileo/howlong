@@ -28,11 +28,16 @@ export function useDocumentSync(view: 'working' | 'gantt') {
       : s);
   }
 
-  /** Record each Gantt action immediately as a single history entry. */
-  function mutate(action: () => void) {
-    action();
+  /** Record the current Gantt editor state as one history entry. */
+  function record() {
     const session = docs.activeSession;
     if (session) docs.updateSessionEstimate(session.sessionId, estimate.estimate);
+  }
+
+  /** Apply and record one Gantt action immediately. */
+  function mutate(action: () => void) {
+    action();
+    record();
   }
 
   /** Apply persisted audit metadata and mark the editor and active tab saved. */
@@ -70,5 +75,5 @@ export function useDocumentSync(view: 'working' | 'gantt') {
     watch(() => [estimate.estimate, estimate.dirty, estimate.filePath], syncWorking, { deep: true });
   }
 
-  return { restoreActive, mutate, applySaved, restoreHistory, replaceFromFile };
+  return { restoreActive, record, mutate, applySaved, restoreHistory, replaceFromFile };
 }

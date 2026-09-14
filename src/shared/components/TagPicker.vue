@@ -228,7 +228,6 @@ onUnmounted(() => {
         :placeholder="t('tagPicker.filterPh')"
         @keydown="onFilterKeydown"
       />
-      <p class="tag-menu-title">{{ t('tagPicker.all') }}</p>
       <ul class="tag-options">
         <li v-if="canCreate">
           <button type="button" class="tag-opt create" @click="addTag(query.trim())">
@@ -272,8 +271,8 @@ onUnmounted(() => {
   align-items: flex-start;
   gap: 0.25rem;
   width: 100%;
-  min-height: 2rem;
-  padding: 0.5rem 0.65rem;
+  min-height: 1.8rem;
+  padding: 0.4rem 0.55rem;
   font: inherit;
   text-align: left;
   color: var(--ink);
@@ -309,7 +308,7 @@ onUnmounted(() => {
 }
 
 .placeholder {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--muted);
 }
 
@@ -319,7 +318,7 @@ onUnmounted(() => {
   gap: 0.15rem;
   max-width: 100%;
   padding: 0.08rem 0.4rem;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   line-height: 1.35;
   white-space: nowrap;
   background: var(--surface);
@@ -328,13 +327,13 @@ onUnmounted(() => {
 }
 
 .pill.mini {
-  font-size: 0.8rem;
-  padding: 0.12rem 0.5rem;
+  font-size: 0.74rem;
+  padding: 0.1rem 0.42rem;
 }
 
 .pill-x {
   margin-left: 0.05rem;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1;
   opacity: 0.65;
   cursor: pointer;
@@ -349,7 +348,7 @@ onUnmounted(() => {
   z-index: 1000;
   max-height: 14rem;
   overflow: auto;
-  padding: 0.45rem;
+  padding: 0.35rem;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -359,23 +358,14 @@ onUnmounted(() => {
 .tag-filter {
   width: 100%;
   box-sizing: border-box;
-  margin-bottom: 0.35rem;
-  padding: 0.35rem 0.45rem;
+  margin: 0 0 0.35rem;
+  padding: 0.4rem 0.5rem;
   font: inherit;
+  font-size: 0.74rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--ink);
-}
-
-.tag-menu-title {
-  margin: 0 0 0.25rem;
-  padding: 0 0.15rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
 }
 
 .tag-options {

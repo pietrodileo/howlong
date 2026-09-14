@@ -18,6 +18,7 @@ import type { FormulaAggregate, ModelIcon } from '../../models/model';
 import { useEstimateStore } from './estimate';
 import { useDocumentsStore } from '../../shared/documents';
 import { useModelsStore } from '../models/models';
+import { resolveEstimateCategories } from './estimateCategories';
 import { useSettingsStore } from '../settings/settings';
 import DisclosureIcon from '../../shared/components/DisclosureIcon.vue';
 import { useUiStore } from '../../app/ui';
@@ -176,12 +177,14 @@ const effortUnitShort = computed(() =>
 );
 
 const categoryOptions = computed(() => {
-  const fromSettings = settings.settings.defaultCategories;
-  const fromItems = estimate.estimate.items.map((i) => i.category);
   const modelId = estimate.estimate.modelId;
   const fromModel =
-    modelList.value.find((m) => m.id === modelId)?.categories ?? [];
-  return [...new Set([...fromModel, ...fromSettings, ...fromItems])].filter(Boolean);
+    modelList.value.find((m) => m.id === modelId)?.categories;
+  return resolveEstimateCategories(
+    settings.settings.defaultCategories,
+    estimate.estimate.items.map((item) => item.category),
+    fromModel,
+  );
 });
 
 const tagOptions = computed(() => {

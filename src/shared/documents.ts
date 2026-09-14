@@ -215,6 +215,12 @@ export const useDocumentsStore = defineStore('documents', () => {
     }
   }
 
+  /** Drop all workspace sessions and history after unsaved changes have been handled. */
+  function closeAll(): void {
+    activeId.value = null;
+    sessions.value = [];
+  }
+
   // Close the active session
   function closeActive(): void {
     if (activeId.value) {
@@ -245,6 +251,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     markDirty,
     closeSession,
     closeActive,
+    closeAll,
     findSessionByPath,
   };
 });

@@ -49,6 +49,7 @@ export type MessageTree = {
   common: {
     save: string;
     open: string;
+    openFolder: string;
     reload: string;
     noFileOpen: string;
     close: string;
@@ -135,6 +136,9 @@ export type MessageTree = {
     modelsFolderActive: string;
     pickFolder: string;
     resetFolder: string;
+    recentWorkspaces: string;
+    switchWorkspaceTitle: string;
+    switchWorkspaceBody: string;
     folderLoaded: string;
     folderEmpty: string;
     importExport: string;
@@ -157,9 +161,26 @@ export type MessageTree = {
     sectionWorkspace: string;
     sectionShortcuts: string;
     sectionGantt: string;
+    sectionGanttWeekends: string;
+    sectionGanttStatuses: string;
+    ganttAllowedStatuses: string;
     ganttWeekendIntro: string;
+    ganttStatusIntro: string;
+    ganttStatusPriority: string;
+    ganttStatusCancelledRule: string;
+    statusToPlanMeaning: string;
+    statusPlannedMeaning: string;
+    statusInProgressMeaning: string;
+    statusAtRiskMeaning: string;
+    statusStuckMeaning: string;
+    statusBlockedMeaning: string;
+    statusOnHoldMeaning: string;
+    statusCompletedMeaning: string;
+    statusCancelledMeaning: string;
     saturday: string;
     sunday: string;
+    ganttWorkingDaysExcludeWeekend: string;
+    ganttWorkingDaysExcludeWeekendHelp: string;
     shortcutsIntro: string;
     shortcutSave: string;
     shortcutNewTab: string;
@@ -315,10 +336,13 @@ export type MessageTree = {
     expandAll: string;
     collapseAll: string;
     unscheduled: string;
+    editDates: string;
+    scheduleActivity: string;
     startDate: string;
     endDate: string;
     clearDates: string;
     color: string;
+    plan: string;
     addMacro: string;
     addSubtask: string;
     noEstimate: string;
@@ -330,6 +354,27 @@ export type MessageTree = {
     doubleClickHint: string;
     estimateTitle: string;
     resizeActivityColumn: string;
+    changeStatus: string;
+    calculatedStatus: string;
+    editNote: string;
+    owner: string;
+    unassigned: string;
+    newOwner: string;
+    assignOwner: string;
+    ownerPlaceholder: string;
+    ownerFilter: string;
+    allOwners: string;
+    createOwner: string;
+    ownerAssignedHint: string;
+    status_to_plan: string;
+    status_planned: string;
+    status_in_progress: string;
+    status_at_risk: string;
+    status_stuck: string;
+    status_blocked: string;
+    status_on_hold: string;
+    status_completed: string;
+    status_cancelled: string;
   };
   analytics: {
     navLabel: string;
@@ -478,6 +523,8 @@ export type MessageTree = {
     activity: string;
     presented: string;
     statPresentedTotal: string;
+    statEstimatorTotal: string;
+    statManagerTotal: string;
     statDelta: string;
     timeColumn: string;
     presentedHours: string;
@@ -855,6 +902,7 @@ const it: MessageTree = {
   common: {
     save: 'Salva',
     open: 'Apri',
+    openFolder: 'Apri cartella',
     reload: 'Aggiorna',
     noFileOpen: 'Nessun file salvato. Salva prima una stima per poterla aprire.',
     close: 'Chiudi',
@@ -944,6 +992,9 @@ const it: MessageTree = {
     modelsFolderActive: 'Modelli',
     pickFolder: 'Scegli cartella…',
     resetFolder: 'Usa default',
+    recentWorkspaces: 'Workspace recenti',
+    switchWorkspaceTitle: 'Cambiare workspace?',
+    switchWorkspaceBody: 'Ci sono stime con modifiche non salvate. Salvarle prima di chiudere tutte le schede e cambiare workspace?',
     folderLoaded: 'Caricate {n} stime dalla cartella',
     folderEmpty: 'Cartella vuota — nessuna stima HowLong trovata',
     importExport: 'Import / Export',
@@ -966,9 +1017,26 @@ const it: MessageTree = {
     sectionWorkspace: 'Import / export workspace',
     sectionShortcuts: 'Scorciatoie da tastiera',
     sectionGantt: 'Gantt',
+    sectionGanttWeekends: 'Gantt — Weekend',
+    sectionGanttStatuses: 'Gantt — Stati',
+    ganttAllowedStatuses: 'Scegli gli stati disponibili nel menu. Da pianificare e Pianificata sono necessari per la pianificazione automatica. Gli stati già assegnati vengono conservati.',
     ganttWeekendIntro: 'Scegli quali giorni vengono trattati come weekend quando li nascondi nel Gantt.',
+    ganttStatusIntro: 'Gli stati descrivono l’avanzamento senza modificare date o ore.',
+    ganttStatusPriority: 'Priorità macro: Bloccata → Ferma → A rischio → In corso → In pausa → Pianificata → Da pianificare → Completata.',
+    ganttStatusCancelledRule: 'Le attività annullate vengono ignorate; se sono tutte annullate, anche la macro è Annullata.',
+    statusToPlanMeaning: 'Da pianificare — non ancora organizzata.',
+    statusPlannedMeaning: 'Pianificata — pronta e calendarizzata.',
+    statusInProgressMeaning: 'In corso — lavoro attivo.',
+    statusAtRiskMeaning: 'A rischio — procede, ma risultato o scadenza sono a rischio.',
+    statusStuckMeaning: 'Ferma — il team possiede la prossima azione, ma non riesce ad avanzare.',
+    statusBlockedMeaning: 'Bloccata — dipende da una persona, decisione o dipendenza esterna.',
+    statusOnHoldMeaning: 'In pausa — sospesa intenzionalmente.',
+    statusCompletedMeaning: 'Completata — lavoro concluso.',
+    statusCancelledMeaning: 'Annullata — lavoro abbandonato intenzionalmente.',
     saturday: 'Sabato',
     sunday: 'Domenica',
+    ganttWorkingDaysExcludeWeekend: 'Escludi weekend dai giorni lavorativi',
+    ganttWorkingDaysExcludeWeekendHelp: 'Se attivo, Sabato e Domenica non vengono contati nel calcolo dei giorni lavorativi.',
     shortcutsIntro: 'Utilizza i tasti di scelta rapida per salvare, aprire e chiudere stime.',
     shortcutSave: 'Salva la stima corrente',
     shortcutNewTab: 'Apri una nuova scheda dal modello predefinito',
@@ -1113,21 +1181,45 @@ const it: MessageTree = {
     expandAll: 'Espandi tutto',
     collapseAll: 'Comprimi tutto',
     unscheduled: 'Da pianificare',
+    editDates: 'Modifica date',
+    scheduleActivity: 'Pianifica attività',
     startDate: 'Inizio',
     endDate: 'Fine',
     clearDates: 'Rimuovi date',
     color: 'Colore attività',
+    plan: 'Pianificazione',
     addMacro: 'Aggiungi Macro',
     addSubtask: 'Aggiungi sotto-task',
     noEstimate: 'Apri o crea una stima per pianificarla.',
     openLibrary: 'Apri libreria',
     exportXlsx: 'Esporta XLSX',
     exported: 'Gantt esportato',
-    instructions: 'Seleziona un giorno e clicca “Da pianificare”, oppure fai doppio clic su una cella vuota.',
+    instructions: 'Pianifica dal menu Azioni, oppure fai doppio clic su una cella vuota.',
     macroDatesHint: 'Le date della macro sono calcolate dai sotto-task.',
     doubleClickHint: 'Doppio clic per pianificare in questo giorno.',
     estimateTitle: 'Titolo della stima',
     resizeActivityColumn: 'Trascina per ridimensionare; doppio clic per comprimere',
+    changeStatus: 'Stato: {status}',
+    calculatedStatus: 'Stato calcolato dai sotto-task',
+    editNote: 'Apri e modifica la nota',
+    owner: 'Assegnatario',
+    unassigned: 'Non assegnato',
+    newOwner: 'Nuovo owner',
+    assignOwner: 'Assegna',
+    ownerPlaceholder: 'Non assegnato',
+    ownerFilter: 'Cerca o crea…',
+    allOwners: 'Tutti gli owner',
+    createOwner: 'Crea',
+    ownerAssignedHint: 'Owner assegnato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
+    status_to_plan: 'Da pianificare',
+    status_planned: 'Pianificata',
+    status_in_progress: 'In corso',
+    status_at_risk: 'A rischio',
+    status_stuck: 'Ferma',
+    status_blocked: 'Bloccata',
+    status_on_hold: 'In pausa',
+    status_completed: 'Completata',
+    status_cancelled: 'Annullata',
   },
   analytics: {
     navLabel: 'Analisi Dati',
@@ -1253,7 +1345,7 @@ const it: MessageTree = {
   },
   client: {
     backToEstimate: 'Torna alla stima',
-    titleLabel: 'Titolo stima presentata al cliente',
+    titleLabel: 'Titolo',
     titlePh: 'Lascia vuoto per usare il titolo della stima',
     rounding: 'Arrotondamento',
     roundNone: 'Nessuno',
@@ -1276,8 +1368,10 @@ const it: MessageTree = {
     notesOpen: 'Click: apri e modifica la nota',
     notesEmpty: 'Aggiungi nota…',
     activity: 'Attività',
-    presented: 'Totale presentato',
+    presented: 'Totale manager',
     statPresentedTotal: 'Totale presentato',
+    statEstimatorTotal: 'Totale originale',
+    statManagerTotal: 'Totale manager',
     statDelta: 'Delta',
     timeColumn: 'Tempo',
     presentedHours: 'Ore (h)',
@@ -1299,10 +1393,10 @@ const it: MessageTree = {
     showCol: 'Incluso',
     showHint:
       'Rimuovi questa voce dalla stima cliente (ore e sottovoci incluse).',
-    hiddenRow: 'Nascosta',
+    hiddenRow: 'Rimossa',
     redistribute: 'Ripartiziona',
     redistributeHint:
-      'Nasconde questa voce e distribuisce le sue ore sulle altre voci ancora attive',
+      'Rimuove questa voce e distribuisce le sue ore sulle altre voci ancora attive',
     redistributeOk: 'Ore ripartite sulle altre voci',
     redistributeFail: 'Nessuna altra voce su cui ripartire',
     compare: 'Confronto',
@@ -1663,6 +1757,7 @@ const en: MessageTree = {
   common: {
     save: 'Save',
     open: 'Open',
+    openFolder: 'Open folder',
     reload: 'Reload',
     noFileOpen: 'No file saved. Save a first estimate to open it.',
     close: 'Close',
@@ -1752,6 +1847,9 @@ const en: MessageTree = {
     modelsFolderActive: 'Models',
     pickFolder: 'Choose folder…',
     resetFolder: 'Use default',
+    recentWorkspaces: 'Recent workspaces',
+    switchWorkspaceTitle: 'Switch workspace?',
+    switchWorkspaceBody: 'Some estimates have unsaved changes. Save them before closing all tabs and switching workspace?',
     folderLoaded: 'Loaded {n} estimates from the folder',
     folderEmpty: 'Empty folder — no HowLong estimates found',
     importExport: 'Import / Export',
@@ -1774,9 +1872,26 @@ const en: MessageTree = {
     sectionWorkspace: 'Workspace import / export',
     sectionShortcuts: 'Keyboard shortcuts',
     sectionGantt: 'Gantt',
+    sectionGanttWeekends: 'Gantt — Weekends',
+    sectionGanttStatuses: 'Gantt — Statuses',
+    ganttAllowedStatuses: 'Choose the statuses available in the menu. To plan and Planned are required for automatic scheduling. Existing activity statuses are preserved.',
     ganttWeekendIntro: 'Choose which days count as weekends when weekends are hidden in the Gantt.',
+    ganttStatusIntro: 'Statuses describe progress without changing dates or effort.',
+    ganttStatusPriority: 'Macro priority: Blocked → Stuck → At risk → In progress → On hold → Planned → To plan → Completed.',
+    ganttStatusCancelledRule: 'Cancelled activities are ignored; when all are cancelled, the macro is Cancelled.',
+    statusToPlanMeaning: 'To plan — not organized yet.',
+    statusPlannedMeaning: 'Planned — ready and scheduled.',
+    statusInProgressMeaning: 'In progress — active work.',
+    statusAtRiskMeaning: 'At risk — progressing, but its deadline or outcome is threatened.',
+    statusStuckMeaning: 'Stuck — progress stopped and the team owns the next action.',
+    statusBlockedMeaning: 'Blocked — waiting for an external person, decision, or dependency.',
+    statusOnHoldMeaning: 'On hold — intentionally paused.',
+    statusCompletedMeaning: 'Completed — work finished.',
+    statusCancelledMeaning: 'Cancelled — work deliberately abandoned.',
     saturday: 'Saturday',
     sunday: 'Sunday',
+    ganttWorkingDaysExcludeWeekend: 'Exclude weekend from working days',
+    ganttWorkingDaysExcludeWeekendHelp: 'When enabled, Saturday and Sunday are excluded from working days calculation.',
     shortcutsIntro: 'Use keyboard shortcuts to save, open and close estimates.',
     shortcutSave: 'Save the current estimate',
     shortcutNewTab: 'Open a new tab from the default model',
@@ -1920,21 +2035,45 @@ const en: MessageTree = {
     expandAll: 'Expand all',
     collapseAll: 'Collapse all',
     unscheduled: 'To schedule',
+    editDates: 'Edit dates',
+    scheduleActivity: 'Schedule activity',
     startDate: 'Start',
     endDate: 'End',
     clearDates: 'Clear dates',
     color: 'Activity color',
+    plan: 'Plan',
     addMacro: 'Add Macro',
     addSubtask: 'Add sub-task',
     noEstimate: 'Open or create an estimate to plan it.',
     openLibrary: 'Open library',
     exportXlsx: 'Export XLSX',
     exported: 'Gantt exported',
-    instructions: 'Select a day and click “To schedule”, or double-click an empty cell.',
+    instructions: 'Schedule from the Actions menu, or double-click an empty cell.',
     macroDatesHint: 'Macro dates are calculated from its sub-tasks.',
     doubleClickHint: 'Double-click to schedule on this day.',
     estimateTitle: 'Estimate title',
     resizeActivityColumn: 'Drag to resize; double-click to collapse',
+    changeStatus: 'Status: {status}',
+    calculatedStatus: 'Status calculated from sub-tasks',
+    editNote: 'Open and edit note',
+    owner: 'Owner',
+    unassigned: 'Unassigned',
+    newOwner: 'New owner',
+    assignOwner: 'Assign',
+    ownerPlaceholder: 'Select owner…',
+    ownerFilter: 'Search or create…',
+    allOwners: 'All owners',
+    createOwner: 'Create',
+    ownerAssignedHint: 'Owner assigned to a task; remove assignments before deleting.',
+    status_to_plan: 'To plan',
+    status_planned: 'Planned',
+    status_in_progress: 'In progress',
+    status_at_risk: 'At risk',
+    status_stuck: 'Stuck',
+    status_blocked: 'Blocked',
+    status_on_hold: 'On hold',
+    status_completed: 'Completed',
+    status_cancelled: 'Cancelled',
   },
   analytics: {
     navLabel: 'Analytics',
@@ -2060,7 +2199,7 @@ const en: MessageTree = {
   },
   client: {
     backToEstimate: 'Back to estimate',
-    titleLabel: 'Estimate title presented to client',
+    titleLabel: 'Title',
     titlePh: 'Leave empty to use estimate title',
     rounding: 'Rounding',
     roundNone: 'None',
@@ -2083,8 +2222,10 @@ const en: MessageTree = {
     notesOpen: 'Click: open and edit the note',
     notesEmpty: 'Add a note…',
     activity: 'Activity',
-    presented: 'Presented total',
+    presented: 'Manager total',
     statPresentedTotal: 'Presented total',
+    statEstimatorTotal: 'Original total',
+    statManagerTotal: 'Manager total',
     statDelta: 'Delta',
     timeColumn: 'Time',
     presentedHours: 'Hours (h)',
@@ -2105,10 +2246,10 @@ const en: MessageTree = {
     editedMark: 'Edited value',
     showCol: 'Included',
     showHint: 'Remove this line from the client estimate (hours and subtasks included)',
-    hiddenRow: 'Hidden',
+    hiddenRow: 'Removed',
     redistribute: 'Redistribute',
     redistributeHint:
-      'Hide this line and spread its hours across the other active lines',
+      'Remove this line and spread its hours across the other active lines',
     redistributeOk: 'Hours redistributed to other lines',
     redistributeFail: 'No other line to redistribute onto',
     compare: 'Compare',

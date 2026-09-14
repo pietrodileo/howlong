@@ -7,11 +7,13 @@ defineProps<{
   message: string;
   confirmLabel?: string;
   danger?: boolean;
+  secondaryLabel?: string;
 }>();
 
 const emit = defineEmits<{
   confirm: [];
   cancel: [];
+  secondary: [];
 }>();
 
 const { t } = useI18n();
@@ -26,6 +28,7 @@ const { t } = useI18n();
         <button type="button" class="ghost" @click="emit('cancel')">
           {{ t('common.cancel') }}
         </button>
+        <button v-if="secondaryLabel" type="button" class="ghost" @click="emit('secondary')">{{ secondaryLabel }}</button>
         <button
           type="button"
           :class="danger ? 'danger' : 'primary'"

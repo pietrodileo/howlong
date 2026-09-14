@@ -47,7 +47,7 @@ export async function buildEstimateExportBytes(
     return { filename, bytes: utf8(await estimateToAiYaml(estimate, false)) };
   }
   const { estimateToXlsx } = await import('./export');
-  return { filename, bytes: await estimateToXlsx(estimate, false) };
+  return { filename, bytes: await estimateToXlsx(estimate) };
 }
 
 async function saveBytes(

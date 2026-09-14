@@ -22,6 +22,7 @@ function macroFrom(
     parentId: null,
     contingencyPercentOverride: null,
     notes: '',
+    status: 'to-plan',
     tags: [],
     clientVisible: true,
     applyContingency,

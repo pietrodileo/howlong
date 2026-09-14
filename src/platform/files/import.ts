@@ -117,6 +117,7 @@ async function importEstimateCsv(
           ? Number(row.contingencyPercentApplied)
           : null,
       notes: row.notes || '',
+      status: 'to-plan',
       tags: (row.tags || row.tag || '')
         .split('|')
         .map((s) => s.trim())

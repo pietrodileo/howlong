@@ -148,6 +148,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       }
       return row;
     });
+    if (item.parentId) syncMacroPresentedEffort(item.parentId);
     touch();
   }
 
@@ -166,6 +167,25 @@ export const useEstimateStore = defineStore('estimate', () => {
     touch();
   }
 
+  /** Recalculate a macro override from the subtasks included in the client estimate. */
+  function syncMacroPresentedEffort(macroId: string) {
+    const hoursPresented = buildClientPresentedLines(estimate.value, { includeHidden: true })
+      .filter(
+        (line) =>
+          line.item.parentId === macroId &&
+          line.item.clientVisible &&
+          line.contributesToTotals,
+      )
+      .reduce((sum, line) => sum + line.hoursPresented, 0);
+    estimate.value.clientView = {
+      ...estimate.value.clientView,
+      lineOverrides: {
+        ...(estimate.value.clientView.lineOverrides ?? {}),
+        [macroId]: { hoursPresented },
+      },
+    };
+  }
+
   /**
    * Impone il presented effort di un subtask e propaga la somma alla macro.
    * La macro è sempre la somma dei suoi subtask (non editabile direttamente).
@@ -180,22 +200,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     // 1. Set subtask override
     setClientPresentedEffort(subtaskId, hours);
 
-    // 2. Recalculate macro = sum of children's hoursPresented
-    const lines = buildClientPresentedLines(estimate.value, { includeHidden: true });
-    const children = lines.filter(
-      (l) => l.item.parentId === subtask.parentId && (l.contributesToTotals || l.hasChildren),
-    );
-    const macroPresented = children.reduce((s, l) => s + l.hoursPresented, 0);
-
-    // 3. Set macro override
-    const macroOverrides: ClientLineOverride = { hoursPresented: macroPresented };
-    estimate.value.clientView = {
-      ...estimate.value.clientView,
-      lineOverrides: {
-        ...(estimate.value.clientView.lineOverrides ?? {}),
-        [subtask.parentId]: macroOverrides,
-      },
-    };
+    syncMacroPresentedEffort(subtask.parentId);
     touch();
   }
 
@@ -264,6 +269,23 @@ export const useEstimateStore = defineStore('estimate', () => {
       };
     }
 
+    // Keep each affected macro aligned with the child overrides written by this batch.
+    const affectedMacroIds = new Set(
+      lines
+        .filter((line) => targets.includes(line) || hideIds.has(line.item.id))
+        .map((line) => line.item.parentId)
+        .filter((parentId): parentId is string => parentId != null),
+    );
+    for (const macroId of affectedMacroIds) {
+      const hoursPresented = lines
+        .filter((line) => line.item.parentId === macroId && line.contributesToTotals)
+        .reduce(
+          (sum, line) => sum + (overrides[line.item.id]?.hoursPresented ?? line.hoursPresented),
+          0,
+        );
+      overrides[macroId] = { hoursPresented };
+    }
+
     estimate.value.clientView = {
       ...estimate.value.clientView,
       lineOverrides: overrides,
@@ -315,6 +337,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       parentId: null,
       contingencyPercentOverride: null,
       notes: '',
+      status: 'to-plan',
       tags: [],
       clientVisible: true,
       applyContingency: true,
@@ -352,6 +375,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       parentId: null,
       contingencyPercentOverride: null,
       notes: '',
+      status: 'to-plan',
       tags: [],
       clientVisible: true,
       applyContingency: applyCtg,
@@ -425,6 +449,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       parentId: macroId,
       contingencyPercentOverride: null,
       notes: '',
+      status: 'to-plan',
       tags: [],
       clientVisible: true,
       applyContingency: macro.applyContingency ?? true,
@@ -549,6 +574,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     return collapsedMacros.value.has(id);
   }
 
+  /** Saves dates and promotes an unscheduled status in the same undoable mutation. */
   function setPlanningRange(id: string, range: PlanningRange | null) {
     const item = estimate.value.items.find((row) => row.id === id);
     if (!item || item.kind === 'formula' || item.kind === 'summary') return;
@@ -557,6 +583,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       const startDate = range.startDate <= range.endDate ? range.startDate : range.endDate;
       const endDate = range.startDate <= range.endDate ? range.endDate : range.startDate;
       items[id] = { startDate, endDate };
+      if (item.status === 'to-plan') item.status = 'planned';
     } else {
       delete items[id];
     }

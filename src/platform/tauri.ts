@@ -29,6 +29,11 @@ export async function openFilePath(path: string): Promise<void> {
   await invoke('open_file_path', { path });
 }
 
+/** Reveal an exported file in its containing folder. */
+export async function openContainingFolder(path: string): Promise<void> {
+  await invoke('open_containing_folder', { path });
+}
+
 export async function ensureAppDefaults(): Promise<string> {
   return invoke<string>('ensure_app_defaults');
 }

@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pdileo/HowLong/releases"><img src="https://img.shields.io/badge/version-0.6.0-2ea043?style=flat" alt="version 0.6.0"></a>
+  <a href="https://github.com/pdileo/HowLong/releases"><img src="https://img.shields.io/badge/version-0.6.1-2ea043?style=flat" alt="version 0.6.1"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea043?style=flat" alt="MIT License"></a>
   <a href="https://v2.tauri.app"><img src="https://img.shields.io/badge/Tauri-2-24c8db?style=flat" alt="Tauri 2"></a>
   <a href="#"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat" alt="macOS | Windows | Linux"></a>
