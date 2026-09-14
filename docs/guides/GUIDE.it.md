@@ -1,6 +1,6 @@
 # Manuale utente di HowLong?
 
-HowLong? `0.6.1` su Windows, macOS e Linux.
+HowLong? `0.7.0` su Windows, macOS e Linux.
 
 [README del progetto](../../README.md) · [Manuale italiano](GUIDE.it.md)
 
@@ -16,7 +16,8 @@ HowLong? `0.6.1` su Windows, macOS e Linux.
   - [2.2. Azioni Home](#22-vista-home-panoramica-dellarea-di-lavoro)
     - [2.2.1. Termini chiave](#termini-chiave-nella-tua-area-di-lavoro)
 - [3. Impostazioni](#3-impostazioni)
-  - [3.1. Cartelle sincronizzate](#31-cartelle-sincronizzate)
+  - [3.1. Aggiornamenti](#31-aggiornamenti)
+  - [3.2. Cartelle sincronizzate](#32-cartelle-sincronizzate)
 - [4. Modelli](#4-modelli)
 - [5. Editor delle stime](#5-editor-delle-stime)
   - [5.1. La tua prima stima](#la-tua-prima-stima)
@@ -122,6 +123,18 @@ Apri **Impostazioni** prima della tua prima stima.
 
 ![Schermata Impostazioni con sezioni di configurazione comprimibili](../images/settings.png)
 
+### 3.1. Aggiornamenti
+
+Apri **Impostazioni → Aggiornamenti** per cercare manualmente una nuova release stabile. HowLong? non controlla gli aggiornamenti all'avvio né in background.
+
+- **Controlla aggiornamenti** contatta il feed delle release ufficiali su GitHub e considera solo le release stabili.
+- **Scarica aggiornamento** scarica l'artefatto per il sistema operativo e l'architettura correnti, ma non lo installa.
+- **Installa e riavvia** applica l'aggiornamento firmato. Su macOS la prima installazione usa un `.dmg`; gli aggiornamenti interni all'app usano il bundle `.app.tar.gz` firmato. Windows e Linux usano i rispettivi artefatti firmati, installer o AppImage.
+- L'aggiornamento passa direttamente all'ultima release stabile. Le versioni intermedie non vengono installate né eseguite, quindi ogni release deve mantenere o migrare i dati dell'area di lavoro esistente.
+- Leggi le note di rilascio e salva/esporta il lavoro importante prima di un aggiornamento principale. L'anteprima nel browser non può installare aggiornamenti: usa l'app desktop.
+
+L'updater verifica la firma della release prima dell'installazione. Questa fiducia appartiene al publisher ufficiale di HowLong?, non alla licenza open source. I fork possono compilare normalmente il codice, ma un fork indipendente dovrebbe usare un proprio identificatore applicativo, endpoint delle release, chiave pubblica e secret di firma; altrimenti potrebbe seguire il feed di aggiornamento upstream.
+
 Ogni intestazione espande i relativi controlli. Le sezioni chiuse mantengono comunque le impostazioni. **Salva** dopo le modifiche: la sola anteprima non le rende persistenti.
 
 **Profilo e visualizzazione**
@@ -143,7 +156,7 @@ Ogni intestazione espande i relativi controlli. Le sezioni chiuse mantengono com
 - **Area di lavoro** — percorsi di stime e modelli; **Scegli cartella…** o **Usa predefinita** (l'area di lavoro predefinita è una cartella `HowLong` all'interno della directory "Documents" del sistema).Tutte le stime, i modelli e i dati correlati vengono sincronizzati con la cartella dell'area di lavoro selezionata. Se cambi la posizione dell'area di lavoro, l'app mostrerà i dati presenti nella cartella corrente; tornando a un'area di lavoro precedente ritroverai i dati come li avevi lasciati. Cambiare area di lavoro non comporta perdita di dati; ogni area di lavoro conserva i propri dati.
 - **Importazione/esportazione area di lavoro** — solo impostazioni e modelli (le stime restano nella Libreria)
 
-### 3.1. Cartelle sincronizzate
+### 3.2. Cartelle sincronizzate
 
 Puoi impostare la cartella dell'Area di lavoro su una posizione mantenuta sincronizzata da un servizio cloud come OneDrive, Google Drive, Dropbox o uno strumento simile. Questo consente a te e ai tuoi colleghi di condividere automaticamente modelli e stime semplicemente lavorando in una cartella condivisa.
 

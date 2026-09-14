@@ -151,6 +151,26 @@ export type MessageTree = {
     importBad: string;
     cancelled: string;
     exported: string;
+    sectionUpdates: string;
+    updateIntro: string;
+    updateCurrentVersion: string;
+    updateAvailableVersion: string;
+    updateReleaseNotes: string;
+    checkForUpdates: string;
+    updateChecking: string;
+    updateNotChecked: string;
+    updateAvailable: string;
+    updateDownloading: string;
+    updateProgress: string;
+    updateDownloadReady: string;
+    updateInstalling: string;
+    updateUpToDate: string;
+    updateError: string;
+    downloadUpdate: string;
+    installAndRestart: string;
+    updatesDesktopOnly: string;
+    updateDirectNotice: string;
+    updateMajorWarning: string;
     sectionProfile: string;
     sectionLocale: string;
     sectionAppearance: string;
@@ -1007,6 +1027,26 @@ const it: MessageTree = {
     importBad: 'Settings non validi',
     cancelled: 'Annullato',
     exported: 'Workspace esportato',
+    sectionUpdates: 'Aggiornamenti',
+    updateIntro: 'Controlla manualmente le release stabili di HowLong e installa gli aggiornamenti firmati.',
+    updateCurrentVersion: 'Versione installata',
+    updateAvailableVersion: 'Nuova versione',
+    updateReleaseNotes: 'Note di rilascio',
+    checkForUpdates: 'Controlla aggiornamenti',
+    updateChecking: 'Controllo aggiornamenti…',
+    updateNotChecked: 'Non ancora controllato',
+    updateAvailable: 'Aggiornamento {version} disponibile',
+    updateDownloading: 'Download aggiornamento…',
+    updateProgress: '{percent}% scaricato',
+    updateDownloadReady: 'Download completato. Pronto per l’installazione.',
+    updateInstalling: 'Installazione aggiornamento…',
+    updateUpToDate: 'Hai già l’ultima versione.',
+    updateError: 'Controllo aggiornamenti non riuscito',
+    downloadUpdate: 'Scarica aggiornamento',
+    installAndRestart: 'Installa e riavvia',
+    updatesDesktopOnly: 'Gli aggiornamenti sono disponibili solo nell’app desktop.',
+    updateDirectNotice: 'Verrà installata direttamente l’ultima release stabile; le versioni intermedie non verranno installate.',
+    updateMajorWarning: 'Aggiornamento principale: controlla le note di rilascio prima di installare.',
     sectionProfile: 'Profilo',
     sectionLocale: 'Lingua',
     sectionAppearance: 'Aspetto',
@@ -1862,6 +1902,26 @@ const en: MessageTree = {
     importBad: 'Invalid settings',
     cancelled: 'Cancelled',
     exported: 'Workspace exported',
+    sectionUpdates: 'Updates',
+    updateIntro: 'Manually check stable HowLong releases and install signed updates.',
+    updateCurrentVersion: 'Installed version',
+    updateAvailableVersion: 'New version',
+    updateReleaseNotes: 'Release notes',
+    checkForUpdates: 'Check for updates',
+    updateChecking: 'Checking for updates…',
+    updateNotChecked: 'Not checked yet',
+    updateAvailable: 'Update {version} available',
+    updateDownloading: 'Downloading update…',
+    updateProgress: '{percent}% downloaded',
+    updateDownloadReady: 'Download complete. Ready to install.',
+    updateInstalling: 'Installing update…',
+    updateUpToDate: 'You already have the latest version.',
+    updateError: 'Update check failed',
+    downloadUpdate: 'Download update',
+    installAndRestart: 'Install and restart',
+    updatesDesktopOnly: 'Updates are available only in the desktop app.',
+    updateDirectNotice: 'The latest stable release will be installed directly; intermediate versions will not be installed.',
+    updateMajorWarning: 'Major update: review the release notes before installing.',
     sectionProfile: 'Profile',
     sectionLocale: 'Language',
     sectionAppearance: 'Appearance',

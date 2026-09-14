@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pdileo/HowLong/releases"><img src="https://img.shields.io/badge/version-0.6.1-2ea043?style=flat" alt="version 0.6.1"></a>
+  <a href="https://github.com/pietrodileo/howlong/releases"><img src="https://img.shields.io/badge/version-0.7.0-2ea043?style=flat" alt="version 0.7.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea043?style=flat" alt="MIT License"></a>
   <a href="https://v2.tauri.app"><img src="https://img.shields.io/badge/Tauri-2-24c8db?style=flat" alt="Tauri 2"></a>
   <a href="#"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat" alt="macOS | Windows | Linux"></a>
@@ -134,12 +134,31 @@ npm run smoke:analytics
 
 Outputs land in `src-tauri/target/release/bundle/`. Build on the target OS (Windows installers on Windows, etc.).
 
-| Platform | Command                                             |
-| -------- | --------------------------------------------------- |
-| Windows  | `scripts\build-windows.bat`                       |
-| macOS    | `./scripts/build-macos.sh` → `.app` / `.dmg` |
-| Linux    | `./scripts/build-linux.sh`                        |
-| Any      | `npm run tauri build`                             |
+| Platform | Pre-release script                         | Official release script                 |
+| -------- | ------------------------------------------ | --------------------------------------- |
+| Windows  | `scripts\windows\build-prerelease.bat` | `scripts\windows\build-release.bat`  |
+| macOS    | `scripts/osx/build-prerelease.sh`         | `scripts/osx/build-release.sh`          |
+| Linux    | `scripts/linux/build-prerelease.sh`       | `scripts/linux/build-release.sh`        |
+| Any      | `npm run tauri build` (default config)    | Use the platform release script         |
+
+The prerelease scripts do not require a signing key. The release scripts use `~/.tauri/howlong.key` (or `%USERPROFILE%\.tauri\howlong.key` on Windows) and require a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. To use another key, set `TAURI_SIGNING_PRIVATE_KEY` to its path or contents before running the release script. The scripts fail early when signing setup is incomplete.
+
+For the complete development, pre-release, stable release, signing, tagging, and fork workflow, see the [Build and release guide](docs/BUILD.md).
+
+Stable updater releases are published by `.github/workflows/release.yml` when a stable `v*` tag is pushed. Tags containing a hyphen are ignored. The workflow builds Windows x64, Linux x64, macOS Intel, and macOS Apple Silicon artifacts, then uploads the signed updater bundles and `latest.json` to the GitHub Release.
+
+Before pushing the first release tag, add these GitHub Actions secrets:
+
+- `TAURI_SIGNING_PRIVATE_KEY`: the full contents of the private key generated with `npm run tauri signer generate -- -w ~/.tauri/howlong.key`
+- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: the non-empty passphrase used to generate the protected release key
+
+Never commit the private key. Keep the same key for all future releases; losing or replacing it prevents existing installations from accepting new updates.
+
+### Updater signing, passwords, and forks
+
+The updater public key is safe to commit because it only verifies releases. The private key can sign releases accepted by installed copies, so keep it only in a protected local file and in GitHub Actions Secrets. Official release builds require a non-empty passphrase-protected key, which adds defense in depth if the private key file or a backup is exposed. Set both `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` in the release build environment. An unprotected key should be limited to a deliberately separate local/test setup and must not be used for the official updater channel. After a public release, do not replace the key without a planned key-rotation path.
+
+HowLong? is open source and remains forkable. The default build trusts the official GitHub Releases endpoint and the official public key. An independent fork that publishes its own binaries should change the Tauri `identifier`, updater `endpoints`, and public key, then configure its own `TAURI_SIGNING_PRIVATE_KEY` secret. Otherwise, the fork may check for upstream updates and will not accept releases signed by the fork's own key.
 
 ## Versioning
 
@@ -155,6 +174,7 @@ Examples:
 
 - `0.5.1` → `0.5.2` for a bug fix
 - `0.5.1` → `0.6.0` for a new feature
+- `0.6.1` → `0.7.0` for a new feature
 - `0.5.1` → `1.0.0` for the first stable major release
 
 Keep the version synchronized in:
