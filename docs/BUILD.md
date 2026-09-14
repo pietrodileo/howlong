@@ -126,7 +126,7 @@ Stable releases should be created deliberately, not on every merge:
 
 The release description is generated automatically from the new tag and the previous release tag through the Tauri release action. GitHub groups merged Pull Requests, lists contributors, and adds a full-changelog comparison link. Commits made directly without a Pull Request are included in that comparison link.
 
-Before publishing, run the manual `Smoke test release notes` workflow to verify the GitHub API. It generates notes only; it does not create a tag, GitHub Release, installer, or upload.
+Before publishing, run the manual `Smoke test release notes` workflow to verify the GitHub API. Open the completed run and its `Summary` to inspect the generated title and release-note body. It generates notes only; it does not create a tag, GitHub Release, installer, or upload.
 
 Tags containing a hyphen, such as `v0.7.0-beta.1`, are excluded from the stable release job.
 

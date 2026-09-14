@@ -38,4 +38,9 @@ jobs:
               return;
             }
 
+            await core.summary
+              .addHeading(response?.data?.name || tagName)
+              .addRaw(body)
+              .write();
+
             core.info(`Release notes generated successfully for ${tagName}.`);
