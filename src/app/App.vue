@@ -13,6 +13,7 @@ import { useI18n } from './i18n/useI18n';
 import { applyTheme } from '../features/settings/appearance';
 import { isTauri, openContainingFolder, openFilePath } from '../platform/tauri';
 import { toErrorMessage } from '../shared/errors';
+import { APP_VERSION } from '../shared/version';
 
 const LibraryView = defineAsyncComponent(() => import('../features/library/LibraryView.vue'));
 const ModelsView = defineAsyncComponent(() => import('../features/models/ModelsView.vue'));
@@ -22,8 +23,6 @@ const GanttView = defineAsyncComponent(() => import('../features/planning/GanttV
 const AnalyticsView = defineAsyncComponent(() => import('../features/analytics/AnalyticsView.vue'));
 const WelcomeView = defineAsyncComponent(() => import('./WelcomeView.vue'));
 const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTabs.vue'));
-
-const APP_VERSION = '0.6.1';
 
 const settings = useSettingsStore();
 const models = useModelsStore();

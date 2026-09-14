@@ -1,0 +1,7 @@
+{
+  "productName": "HowLong Preview",
+  "identifier": "com.pietrodileo.howlong.preview",
+  "bundle": {
+    "createUpdaterArtifacts": false
+  }
+}

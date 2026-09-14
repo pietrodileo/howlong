@@ -2,7 +2,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$script_dir/.."
+cd "$script_dir/../.."
 
 export PATH="$HOME/.cargo/bin:$PATH"
 
@@ -12,4 +12,4 @@ command -v cargo >/dev/null || {
   exit 1
 }
 
-npm run tauri build
+npm run tauri build -- --config src-tauri/tauri.prerelease.conf.json

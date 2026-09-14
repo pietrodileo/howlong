@@ -19,6 +19,7 @@ import SettingsPanel from './SettingsPanel.vue';
 import { ESTIMATE_TOGGLEABLE_COLUMNS, type EstimateToggleableColumn } from './estimateColumns';
 import { syncEstimateColumnsFromSettings } from '../../shared/composables/useResizableColumns';
 import { ACTIVITY_STATUSES, ACTIVITY_STATUS_COLORS } from '../../domain/gantt';
+import UpdatesPanel from './UpdatesPanel.vue';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -306,6 +307,8 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         </label>
       </div>
     </SettingsPanel>
+
+    <UpdatesPanel />
 
     <SettingsPanel :title="t('settings.sectionShortcuts')">
       <p class="field-hint">{{ t('settings.shortcutsIntro') }}</p>

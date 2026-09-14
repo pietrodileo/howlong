@@ -1,6 +1,6 @@
 # HowLong? user manual
 
-HowLong? `0.6.1` on Windows, macOS, and Linux.
+HowLong? `0.7.0` on Windows, macOS, and Linux.
 
 [Project README](../../README.md) · [Manuale italiano](GUIDE.it.md)
 
@@ -16,7 +16,8 @@ HowLong? `0.6.1` on Windows, macOS, and Linux.
   - [2.2. Home actions](#22-home-actions)
     - [2.2.1. Key terms](#221-key-terms)
 - [3. Settings](#3-settings)
-  - [3.1. Synced folders](#31-synced-folders)
+  - [3.1. Updates](#31-updates)
+  - [3.2. Synced folders](#32-synced-folders)
 - [4. Models](#4-models)
 - [5. Estimate editor](#5-estimate-editor)
   - [5.1. Your first estimate](#51-your-first-estimate)
@@ -122,6 +123,18 @@ Open **Settings** before your first estimate.
 
 ![Settings screen with collapsible configuration sections](../images/settings.png)
 
+### 3.1. Updates
+
+Open **Settings → Updates** to check for a newer stable release manually. HowLong? does not check at startup or in the background.
+
+- **Check for updates** contacts the official GitHub Releases feed and only considers stable releases.
+- **Download update** downloads the artifact for the current operating system and architecture but does not install it.
+- **Install and restart** applies the signed update. On macOS, the first installation uses a `.dmg`; in-app updates use the signed `.app.tar.gz` updater bundle. Windows and Linux use their corresponding signed installer/AppImage artifacts.
+- The updater goes directly to the newest stable release. Intermediate versions are not installed or executed, so each release must preserve or migrate existing workspace data.
+- Review release notes and save/export important work before a major-version update. Browser previews cannot install updates; use the desktop app.
+
+The updater verifies the release signature before installation. This trust belongs to the official HowLong? publisher, not to the open-source license. Forks can build the source normally, but an independent fork should use its own application identifier, release endpoint, public key, and signing secret; otherwise it may follow the upstream update feed.
+
 Each heading expands its controls. Closed sections still hold settings. **Save** after changes — a preview alone does not persist.
 
 **Profile and display**
@@ -143,7 +156,7 @@ Each heading expands its controls. Closed sections still hold settings. **Save**
 - **Workspace** — estimate and model paths; **Choose folder…** or **Use default** (the default workspace is a `HowLong` folder inside your system's "Documents" directory).All your estimates, models, and related data are synced with your selected workspace folder. If you change the workspace location, the app will show the data in the current folder—switching back to a previous workspace will reveal your data as you left it. Changing workspaces does not cause data loss; each workspace keeps its own data.
 - **Workspace import/export** — settings and models only (estimates stay in Library)
 
-### 3.1. Synced folders
+### 3.2. Synced folders
 
 You can set your Workspace folder to a location that is kept in sync by a cloud service like OneDrive, Google Drive, Dropbox, or a similar tool. This enables you and your colleagues to share models and estimates automatically, just by working in a shared folder.
 
