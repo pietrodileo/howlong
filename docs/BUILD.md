@@ -124,7 +124,7 @@ Stable releases should be created deliberately, not on every merge:
 5. The tag triggers `.github/workflows/release.yml`.
 6. GitHub Actions builds all four targets, signs updater artifacts, creates the stable GitHub Release, and uploads `latest.json`.
 
-The release description is generated automatically from the new tag and the previous release tag. GitHub groups merged Pull Requests, lists contributors, and adds a full-changelog comparison link. Commits made directly without a Pull Request are included in that comparison link.
+The release description is generated automatically from the new tag and the previous release tag. GitHub groups merged Pull Requests, lists contributors, and adds a full-changelog comparison link. Commits made directly without a Pull Request are included in that comparison link. If GitHub cannot generate the notes, the workflow uses a fallback description and continues the platform builds.
 
 Tags containing a hyphen, such as `v0.7.0-beta.1`, are excluded from the stable release job.
 
