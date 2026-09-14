@@ -64,12 +64,31 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-            const { data } = await github.rest.repos.generateReleaseNotes({
-              owner,
-              repo,
-              tag_name: context.ref_name,
-            });
-            core.setOutput('body', data.body);
+            const fallbackBody = [
+              `Stable HowLong release ${context.ref_name}.`,
+              '',
+              'Automatic release notes were unavailable. See the commits and changes associated with this tag on GitHub.',
+            ].join('\\n');
+
+            try {
+              const response = await github.rest.repos.generateReleaseNotes({
+                owner,
+                repo,
+                tag_name: context.ref_name,
+              });
+
+              const body = response?.data?.body;
+              if (typeof body === 'string' && body.trim()) {
+                core.setOutput('body', body);
+                return;
+              }
+
+              core.warning('GitHub returned no generated release-notes body.');
+            } catch (error) {
+              core.warning(`Release-notes generation failed: ${String(error)}`);
+            }
+
+            core.setOutput('body', fallbackBody);
 
       - name: Build and publish release
         uses: tauri-apps/tauri-action@v1
