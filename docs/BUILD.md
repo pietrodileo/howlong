@@ -69,6 +69,20 @@ The release overlay enables `bundle.createUpdaterArtifacts`. The platform script
 
 The updater feed contains one entry per supported operating system and architecture. An installation downloads only the artifact matching its own platform.
 
+### Installer publishing
+
+Do not upload installers manually. When the stable tag is pushed, GitHub Actions builds the platform packages, signs the updater artifacts, creates the GitHub Release, and uploads the installers, signatures, and `latest.json`.
+
+New users download the normal installer from the GitHub Release:
+
+- Windows: `.exe` or `.msi`
+- macOS: `.dmg`
+- Linux: `.AppImage` or another published package
+
+Existing installations use the signed updater artifact referenced by `latest.json`. The Updates panel downloads only the artifact matching the current operating system and architecture, then installs it and relaunches the app when required.
+
+Local builds do not publish anything. Their packages remain under `src-tauri/target/release/bundle/`.
+
 ## Signing key handling
 
 The public key belongs in `src-tauri/tauri.conf.json`; it is not secret and is needed by installed copies to verify updates. The private key must never be committed or placed in public documentation.
@@ -109,6 +123,8 @@ Stable releases should be created deliberately, not on every merge:
 4. The workflow verifies that the version is consistent, creates the annotated tag `v0.7.0`, and pushes it.
 5. The tag triggers `.github/workflows/release.yml`.
 6. GitHub Actions builds all four targets, signs updater artifacts, creates the stable GitHub Release, and uploads `latest.json`.
+
+The release description is generated automatically from the new tag and the previous release tag. GitHub groups merged Pull Requests, lists contributors, and adds a full-changelog comparison link. Commits made directly without a Pull Request are included in that comparison link.
 
 Tags containing a hyphen, such as `v0.7.0-beta.1`, are excluded from the stable release job.
 

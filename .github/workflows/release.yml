@@ -58,6 +58,19 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Generate release notes
+        id: release-notes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const { data } = await github.rest.repos.generateReleaseNotes({
+              owner,
+              repo,
+              tag_name: context.ref_name,
+            });
+            core.setOutput('body', data.body);
+
       - name: Build and publish release
         uses: tauri-apps/tauri-action@v1
         env:
@@ -67,7 +80,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: HowLong ${{ github.ref_name }}
-          releaseBody: Stable HowLong release ${{ github.ref_name }}
+          releaseBody: ${{ steps.release-notes.outputs.body }}
           releaseDraft: false
           prerelease: false
           retryAttempts: 3
