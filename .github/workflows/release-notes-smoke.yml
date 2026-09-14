@@ -1,0 +1,41 @@
+name: Smoke test release notes
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Existing tag to inspect, or leave empty for an isolated smoke-test name
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release-notes:
+    name: Generate release notes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate release notes without publishing
+        uses: actions/github-script@v8
+        env:
+          SMOKE_TAG_NAME: ${{ inputs.tag_name }}
+        with:
+          script: |
+            const tagName = process.env.SMOKE_TAG_NAME || `smoke-${process.env.GITHUB_RUN_ID}`;
+            const { owner, repo } = context.repo;
+            const response = await github.rest.repos.generateReleaseNotes({
+              owner,
+              repo,
+              tag_name: tagName,
+              target_commitish: context.payload.repository.default_branch,
+            });
+
+            const body = response?.data?.body;
+            if (typeof body !== 'string' || !body.trim()) {
+              core.setFailed(`GitHub returned no release notes for ${tagName}.`);
+              return;
+            }
+
+            core.info(`Release notes generated successfully for ${tagName}.`);
