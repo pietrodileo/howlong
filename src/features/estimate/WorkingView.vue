@@ -900,7 +900,6 @@ function onHeaderDblClick(key: ColumnKey) {
                       aria-hidden="true"
                       v-tip="t('working.formulaMark')"
                     >=</span>
-                    <span v-else-if="!line.isMacro" class="task-mark" aria-hidden="true">·</span>
                     <span v-else class="collapse-spacer" aria-hidden="true" />
                     <textarea
                       class="name-input"
@@ -1816,16 +1815,6 @@ th.collapsed {
 .collapse:hover {
   color: var(--ink);
   background: transparent;
-}
-
-.task-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.4rem;
-  text-align: center;
-  color: var(--line-strong);
-  flex-shrink: 0;
 }
 
 .formula-mark {

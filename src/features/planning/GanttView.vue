@@ -48,7 +48,6 @@ const ownerOptions = computed(() => mergeOwners([
   ...libraryStore.ownerOptions,
   ...estimate.estimate.items.map((item) => item.owner ?? ''),
 ]));
-const assignedOwners = computed(() => mergeOwners(estimate.estimate.items.map((item) => item.owner ?? '')));
 
 watch(() => [settings.settings.workspaceDir, settings.appDataDir], () => {
   void libraryStore.loadOwners().catch((error) => ui.notify(String(error), true));
@@ -72,10 +71,27 @@ async function onOwnerChange(item: LineItem, name: string) {
   }
 }
 
-/** Delete a reusable owner suggestion while preserving any existing assignments. */
-async function onOwnerDelete(name: string) {
-  try { await libraryStore.forgetOwner(name); }
-  catch (error) { ui.notify(error instanceof Error ? error.message : String(error), true); }
+/** Ask before deleting an owner and removing it from every activity in this estimate. */
+function onOwnerDelete(name: string) {
+  pendingOwnerDelete.value = { name, sessionId: docs.activeId };
+}
+
+/** Confirm owner deletion, clear matching assignments once, and persist the change. */
+async function confirmOwnerDelete() {
+  const request = pendingOwnerDelete.value;
+  pendingOwnerDelete.value = null;
+  if (!request || request.sessionId !== docs.activeId) return;
+  const normalizedName = request.name.trim().toLowerCase();
+  try {
+    await libraryStore.forgetOwner(request.name);
+    if (request.sessionId !== docs.activeId) return;
+    const matchingItems = estimate.estimate.items.filter((item) => item.owner?.trim().toLowerCase() === normalizedName);
+    if (matchingItems.length > 0) {
+      mutate(() => matchingItems.forEach((item) => estimate.updateItem(item.id, { owner: '' })));
+    }
+  } catch (error) {
+    ui.notify(error instanceof Error ? error.message : String(error), true);
+  }
 }
 
 const modelsStore = useModelsStore();
@@ -95,6 +111,7 @@ const exporting = ref(false);
 const ganttShell = ref<HTMLElement | null>(null);
 const ganttShellWidth = ref(0);
 const pendingDelete = ref<LineItem | null>(null);
+const pendingOwnerDelete = ref<{ name: string; sessionId: string | null } | null>(null);
 const newMenuOpen = ref(false);
 const modelSearch = ref('');
 const activityWidth = ref(340);
@@ -505,6 +522,7 @@ async function exportXlsx() {
       scale: scale.value,
       includeWeekends: showWeekends.value,
       weekendDays: weekendDays.value,
+      excludeWeekend: settings.settings.ganttWorkingDaysExcludeWeekend,
     }, settings.settings);
     if (path) ui.notify(t('gantt.exported', { path }), false, path);
   } catch (error) {
@@ -812,8 +830,6 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               :placeholder="t('gantt.ownerPlaceholder')"
               :filter-placeholder="t('gantt.ownerFilter')"
               :create-label="t('gantt.createOwner')"
-              :locked-options="assignedOwners"
-              :locked-label="t('gantt.ownerAssignedHint')"
               @update:model-value="onOwnerChange(activeOverlayItem, $event)"
               @delete-option="onOwnerDelete"
             />
@@ -836,6 +852,15 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
       danger
       @cancel="pendingDelete = null"
       @confirm="confirmDelete"
+    />
+    <ConfirmModal
+      :open="pendingOwnerDelete != null"
+      :title="t('gantt.deleteOwnerTitle')"
+      :message="t('gantt.deleteOwnerBody', { name: pendingOwnerDelete?.name ?? '' })"
+      :confirm-label="t('gantt.deleteOwnerConfirm')"
+      danger
+      @cancel="pendingOwnerDelete = null"
+      @confirm="confirmOwnerDelete"
     />
   </section>
 
@@ -930,7 +955,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .activity-row.compact .status-pill { width: 1.85rem; padding: 0; font-size: 0; }
 .activity-row.compact .status-pill > span { width: .7rem; height: .7rem; }
 .activity-row.compact .status-pill small { display: none; }
-.activity-row.alternate { background: color-mix(in srgb, var(--page-soft) 72%, var(--surface)); }
+.activity-row.alternate { background: var(--surface); }
 .activity-row.sub { padding-left: 1.15rem; }
 .activity-title { display: flex; align-items: center; min-width: 0; gap: .25rem; }
 .activity-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; font-weight: 600; }
@@ -1022,7 +1047,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .timeline-row.alternate { background-color: var(--surface); }
 .timeline-row.schedulable { cursor: cell; }
 .today-line { position: absolute; inset-block: 0; width: 2px; background: var(--accent); opacity: .45; pointer-events: none; }
-.selected-day { position: absolute; inset-block: 0; background: color-mix(in srgb, var(--accent) 10%, transparent); pointer-events: none; }
+.selected-day { position: absolute; inset-block: 0; background: color-mix(in srgb, var(--accent) 20%, transparent); pointer-events: none; }
 .gantt-bar { position: absolute; top: 24px; height: 28px; display: flex; align-items: center; border-radius: 6px; color: var(--bar-text); background: var(--bar-color); cursor: grab; touch-action: none; user-select: none; overflow: hidden; box-shadow: 0 2px 7px color-mix(in srgb, var(--bar-color) 28%, transparent); }
 .gantt-bar:active { cursor: grabbing; }
 .gantt-bar.sub { opacity: .82; }
@@ -1097,5 +1122,5 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .actions-summary .summary-days { display: block; margin-top: .15rem; color: var(--muted); font-weight: 400; white-space: nowrap; }
 .timeline-head.daily-head { flex-direction: column; }
 .month-band, .day-band { display: flex; flex: 1; min-height: 0; }
-.month-heading { text-align: center; background: color-mix(in srgb, var(--ink) 7%, var(--surface)); flex: 0 0 auto; padding: .2rem .5rem; border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); color: var(--ink); font-size: .7rem; font-weight: 600; text-transform: capitalize; overflow: hidden; white-space: nowrap; }
+.month-heading { text-align: center; background: var(--surface); flex: 0 0 auto; padding: .2rem .5rem; border-right: .5px solid color-mix(in srgb, var(--accent) 12%, var(--line-strong)); border-bottom: .5px solid var(--line); border-radius: 0; box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); font-size: .7rem; font-weight: 700; text-transform: capitalize; overflow: hidden; white-space: nowrap; }
 </style>

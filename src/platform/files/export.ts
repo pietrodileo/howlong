@@ -211,6 +211,7 @@ export type GanttExportOptions = {
   scale: 'day' | 'month';
   includeWeekends: boolean;
   weekendDays?: number[];
+  excludeWeekend?: boolean;
 };
 
 /** Convert an ISO calendar date without shifting it across time zones. */
@@ -225,10 +226,10 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   workbook.creator = 'HowLong?';
   const sheet = workbook.addWorksheet('Gantt', {
     properties: { defaultRowHeight: 20, tabColor: { argb: 'FF2B3D55' } },
-    views: [{ state: 'frozen', xSplit: 8, ySplit: 6, topLeftCell: 'I7', activeCell: 'I7', showGridLines: false, zoomScale: 90 }],
+    views: [{ state: 'frozen', xSplit: 10, ySplit: 6, topLeftCell: 'K7', activeCell: 'K7', showGridLines: false, zoomScale: 90 }],
     pageSetup: {
       orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0,
-      paperSize: 9, printTitlesRow: '1:6', printTitlesColumn: '1:8',
+      paperSize: 9, printTitlesRow: '1:6', printTitlesColumn: '1:10',
       margins: { left: 0.25, right: 0.25, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 },
     },
     headerFooter: {
@@ -241,6 +242,8 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   ];
   const items = estimate.items.filter((item) => item.kind !== 'formula' && item.kind !== 'summary');
   const macros = items.filter((item) => item.parentId == null);
+  const computedById = new Map(computeTotals(estimate).lines.map((line) => [line.item.id, line]));
+  const hoursPerDay = estimate.meta.hoursPerDay || 8;
   const slots: { label: Date; from: string; to: string }[] = [];
   if (options.scale === 'day') {
     for (const day of listDays(options.from, options.to, options.includeWeekends, options.weekendDays)) {
@@ -253,14 +256,14 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   }
 
   sheet.addRow([estimate.meta.title]);
-  sheet.mergeCells(1, 1, 1, Math.max(8, 8 + slots.length));
+  sheet.mergeCells(1, 1, 1, Math.max(11, 10 + slots.length));
   sheet.getRow(1).height = 30;
   sheet.getCell('A1').font = { name: 'Arial', bold: true, size: 18, color: { argb: 'FF2B3D55' } };
   sheet.getCell('A1').alignment = { vertical: 'middle' };
   sheet.addRow(['Client', estimate.meta.clientLabel || '—']);
   sheet.addRow(['Range', excelDate(options.from), excelDate(options.to)]);
   sheet.addRow(['Scale', options.scale === 'day' ? 'Days' : 'Months', 'Weekends', options.includeWeekends ? 'Shown' : 'Hidden']);
-  sheet.addRow(['Legend', 'Macro / aggregate', 'Planned activity', 'To schedule']);
+  sheet.addRow(['Legend', 'Macro', 'Planned activity', 'To schedule']);
   sheet.getRow(3).getCell(2).numFmt = 'dd mmm yyyy';
   sheet.getRow(3).getCell(3).numFmt = 'dd mmm yyyy';
   sheet.getRow(5).getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${palette[0][0]}` } };
@@ -273,8 +276,8 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       let end = start;
       const month = slots[start].from.slice(0, 7);
       while (end + 1 < slots.length && slots[end + 1].from.slice(0, 7) === month) end += 1;
-      if (end > start) sheet.mergeCells(5, 9 + start, 5, 9 + end);
-      const monthCell = sheet.getRow(5).getCell(9 + start);
+      if (end > start) sheet.mergeCells(5, 11 + start, 5, 11 + end);
+      const monthCell = sheet.getRow(5).getCell(11 + start);
       monthCell.value = slots[start].label;
       monthCell.numFmt = 'mmmm yyyy';
       monthCell.font = { name: 'Arial', bold: true, color: { argb: 'FF2B3D55' } };
@@ -283,7 +286,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       start = end + 1;
     }
   }
-  const header = sheet.addRow(['Activity', 'Macro', 'Start', 'End', 'Planning', 'Status', 'Notes', 'Owner', ...slots.map((slot) => slot.label)]);
+  const header = sheet.addRow(['Activity', 'Macro', 'Start', 'End', 'Base (days)', 'Base + CTG (days)', 'Planned (days)', 'Status', 'Notes', 'Owner', ...slots.map((slot) => slot.label)]);
   header.height = 32;
   header.eachCell((cell) => {
     cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } };
@@ -295,7 +298,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
     };
   });
   for (let index = 0; index < slots.length; index += 1) {
-    header.getCell(9 + index).numFmt = options.scale === 'day' ? 'ddd dd' : 'mmm yyyy';
+    header.getCell(11 + index).numFmt = options.scale === 'day' ? 'ddd dd' : 'mmm yyyy';
   }
 
   for (const [macroIndex, macro] of macros.entries()) {
@@ -304,12 +307,20 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       const aggregate = item.id === macro.id && children.length > 0;
       const range = aggregate ? aggregateMacroRange(estimate, macro) : estimate.planning.items[item.id] ?? null;
       const activityStatus = aggregate ? aggregateMacroStatus(estimate, macro) : item.status;
+      const computed = computedById.get(item.id);
+      const baseDays = hoursToDays(computed?.hoursBase ?? item.hours, hoursPerDay);
+      const withCtgDays = hoursToDays(computed?.hoursWithContingency ?? item.hours, hoursPerDay);
+      const plannedDays = range
+        ? listDays(range.startDate, range.endDate, !(options.excludeWeekend ?? true), options.weekendDays).length
+        : '';
       const row = sheet.addRow([
         `${item.parentId ? '  ' : ''}${item.name}`,
         item.parentId ? macro.name : '',
         range ? excelDate(range.startDate) : '',
         range ? excelDate(range.endDate) : '',
-        range ? (aggregate ? 'Aggregate' : 'Planned') : 'To schedule',
+        baseDays,
+        withCtgDays,
+        plannedDays,
         activityStatus.replace(/-/g, ' '),
         item.notes,
         item.owner ?? '',
@@ -323,19 +334,20 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       row.getCell(2).font = { name: 'Arial', color: { argb: 'FF667085' } };
       row.getCell(3).numFmt = 'dd mmm yyyy';
       row.getCell(4).numFmt = 'dd mmm yyyy';
+      row.getCell(5).numFmt = '0.##';
+      row.getCell(6).numFmt = '0.##';
+      row.getCell(7).numFmt = '0';
       if (!item.parentId) {
-        for (let index = 1; index <= 8; index += 1) {
+        for (let index = 1; index <= 10; index += 1) {
           row.getCell(index).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7F8FA' } };
         }
       }
-      const statusCell = row.getCell(5);
-      statusCell.font = { name: 'Arial', italic: !range, color: { argb: range ? 'FF344054' : 'FF8A5A44' } };
-      if (!range) statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF4E5' } };
-      row.getCell(6).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${ACTIVITY_STATUS_COLORS[activityStatus].slice(1).toUpperCase()}` } };
-      row.getCell(6).font = { name: 'Arial', color: { argb: 'FFFFFFFF' } };
+      const statusCell = row.getCell(8);
+      statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${ACTIVITY_STATUS_COLORS[activityStatus].slice(1).toUpperCase()}` } };
+      statusCell.font = { name: 'Arial', color: { argb: 'FFFFFFFF' } };
       for (let index = 0; index < slots.length; index += 1) {
         const slot = slots[index];
-        const timelineCell = row.getCell(9 + index);
+        const timelineCell = row.getCell(11 + index);
         const planned = range && range.startDate <= slot.to && range.endDate >= slot.from;
         if (planned) {
           timelineCell.fill = {
@@ -352,7 +364,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
         };
       }
       row.eachCell({ includeEmpty: true }, (cell) => {
-        if (Number(cell.col) <= 8) cell.border = {
+        if (Number(cell.col) <= 10) cell.border = {
           right: { style: 'thin', color: { argb: 'FFE3E7ED' } },
           bottom: { style: 'thin', color: { argb: 'FFD1D7E0' } },
         };
@@ -368,14 +380,16 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
   }
 
   sheet.columns = [
-    { width: 34 }, { width: 24 }, { width: 13 }, { width: 13 }, { width: 14 }, { width: 14 }, { width: 30 }, { width: 22 },
+    { width: 34 }, { width: 24 }, { width: 13 }, { width: 13 }, { width: 14 }, { width: 18 }, { width: 16 }, { width: 14 }, { width: 30 }, { width: 22 },
     ...slots.map(() => ({ width: options.scale === 'day' ? 8 : 12 })),
   ];
   sheet.getColumn(3).alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getColumn(4).alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getColumn(5).alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getColumn(6).alignment = { horizontal: 'center', vertical: 'middle' };
-  sheet.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: 8 } };
+  sheet.getColumn(7).alignment = { horizontal: 'center', vertical: 'middle' };
+  sheet.getColumn(8).alignment = { horizontal: 'center', vertical: 'middle' };
+  sheet.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: 10 } };
   return workbookToBuffer(workbook);
 }
 

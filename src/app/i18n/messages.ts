@@ -418,6 +418,9 @@ export type MessageTree = {
     allOwners: string;
     createOwner: string;
     ownerAssignedHint: string;
+    deleteOwnerTitle: string;
+    deleteOwnerBody: string;
+    deleteOwnerConfirm: string;
     status_to_plan: string;
     status_planned: string;
     status_in_progress: string;
@@ -1139,8 +1142,8 @@ const it: MessageTree = {
     statusCancelledMeaning: 'il lavoro è stato abbandonato intenzionalmente.',
     saturday: 'Sabato',
     sunday: 'Domenica',
-    ganttWorkingDaysExcludeWeekend: 'Non contare i giorni selezionati come lavorativi',
-    ganttWorkingDaysExcludeWeekendHelp: 'Attiva questa opzione per escludere dal conteggio i giorni scelti come weekend.',
+    ganttWorkingDaysExcludeWeekend: 'Non contare i giorni indicati come weekend nel conteggio dei giorni lavorativi',
+    ganttWorkingDaysExcludeWeekendHelp: 'Attiva questa opzione per escludere dal conteggio i giorni indicati come weekend.',
     shortcutsIntro: 'Utilizza i tasti di scelta rapida per salvare, aprire e chiudere stime.',
     shortcutSave: 'Salva la stima corrente',
     shortcutNewTab: 'Apri una nuova scheda dal modello predefinito',
@@ -1315,6 +1318,9 @@ const it: MessageTree = {
     allOwners: 'Tutti gli owner',
     createOwner: 'Crea',
     ownerAssignedHint: 'Owner assegnato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
+    deleteOwnerTitle: 'Elimina assegnatario',
+    deleteOwnerBody: 'Se elimini «{name}», verrà rimosso da tutte le altre voci di questa stima.',
+    deleteOwnerConfirm: 'Elimina assegnatario',
     status_to_plan: 'Da pianificare',
     status_planned: 'Pianificata',
     status_in_progress: 'In corso',
@@ -2046,8 +2052,8 @@ const en: MessageTree = {
     statusCancelledMeaning: 'the work was intentionally abandoned.',
     saturday: 'Saturday',
     sunday: 'Sunday',
-    ganttWorkingDaysExcludeWeekend: 'Do not count selected days as working days',
-    ganttWorkingDaysExcludeWeekendHelp: 'Enable this option to exclude the selected weekend days from the count.',
+    ganttWorkingDaysExcludeWeekend: 'Do not count days indicated as weekend as working days',
+    ganttWorkingDaysExcludeWeekendHelp: 'Enable this option to exclude the days indicated as weekend from the count of working days.',
     shortcutsIntro: 'Use keyboard shortcuts to save, open and close estimates.',
     shortcutSave: 'Save the current estimate',
     shortcutNewTab: 'Open a new tab from the default model',
@@ -2221,6 +2227,9 @@ const en: MessageTree = {
     allOwners: 'All owners',
     createOwner: 'Create',
     ownerAssignedHint: 'Owner assigned to a task; remove assignments before deleting.',
+    deleteOwnerTitle: 'Delete owner',
+    deleteOwnerBody: 'If you delete “{name}”, it will be removed from all other entries in this estimate.',
+    deleteOwnerConfirm: 'Delete owner',
     status_to_plan: 'To plan',
     status_planned: 'Planned',
     status_in_progress: 'In progress',

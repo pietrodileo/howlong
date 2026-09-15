@@ -689,9 +689,15 @@ async function onExportFromMenu(
 
     <p class="hint">{{ t('client.editHint') }}</p>
 
-    <section class="manager-block">
-      <h2 class="section-title">{{ t('client.managerSectionTitle') }}</h2>
-      <p class="section-lede">{{ t('client.managerSectionLede') }}</p>
+    <details class="presentation-section manager-block" open>
+      <summary class="presentation-section-head">
+        <span class="presentation-section-copy">
+          <span class="section-title">{{ t('client.managerSectionTitle') }}</span>
+          <span class="section-lede">{{ t('client.managerSectionLede') }}</span>
+        </span>
+        <span class="presentation-section-chevron"><DisclosureIcon :expanded="true" /></span>
+      </summary>
+      <div class="presentation-section-body">
       <div class="summary-row" aria-live="polite">
         <div class="summary-stats">
           <div class="stat">
@@ -798,6 +804,7 @@ async function onExportFromMenu(
                 collapsed: cols.collapsed[key],
                 'show-th': key === 'show',
                 'delta-col-head': key === 'delta',
+                'manager-total-column': key === 'presented',
                 'actions-th': key === 'actions',
                 ...cols.colDragClass(key),
               }"
@@ -957,7 +964,7 @@ async function onExportFromMenu(
               </td>
               <td
                 v-else-if="key === 'presented'"
-                class="pad num-cell emph"
+                class="pad num-cell emph manager-total-column"
                 :style="cols.styleFor('presented')"
                 :class="{
                   collapsed: cols.collapsed.presented,
@@ -1027,14 +1034,19 @@ async function onExportFromMenu(
         </tbody>
       </table>
     </div>
-    </section>
+      </div>
+    </details>
 
-    <section class="client-output">
+    <details class="presentation-section client-output" open>
+      <summary class="presentation-section-head">
+        <span class="presentation-section-copy">
+          <span class="section-title">{{ t('working.clientView') }}</span>
+          <span class="section-lede">{{ t('client.clientSectionLede') }}</span>
+        </span>
+        <span class="presentation-section-chevron"><DisclosureIcon :expanded="true" /></span>
+      </summary>
+      <div class="presentation-section-body">
       <header class="client-output-head">
-        <div>
-          <h2 class="section-title">{{ t('working.clientView') }}</h2>
-          <p class="section-lede">{{ t('client.clientSectionLede') }}</p>
-        </div>
         <div class="client-output-actions">
           <div class="visibility-toggles" role="group" :aria-label="t('client.clientOutputLegend')">
             <label class="check compact">
@@ -1308,7 +1320,8 @@ async function onExportFromMenu(
           </tfoot>
         </table>
       </div>
-    </section>
+      </div>
+    </details>
 
     <NotesEditor
       :open="notesEditItem != null"
@@ -1505,13 +1518,85 @@ async function onExportFromMenu(
   max-width: 42rem;
 }
 
+.presentation-section {
+  min-width: 0;
+  margin-top: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.presentation-section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  background: var(--surface);
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.presentation-section-head::-webkit-details-marker {
+  display: none;
+}
+
+.presentation-section-head:hover {
+  background: color-mix(in srgb, var(--accent-soft) 28%, var(--surface));
+}
+
+.presentation-section[open] > .presentation-section-head {
+  border-bottom: 1px solid var(--line);
+}
+
+.presentation-section-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.presentation-section-copy .section-title {
+  margin-bottom: 0;
+  color: var(--ink);
+}
+
+.presentation-section-copy .section-lede {
+  display: block;
+  margin-bottom: 0;
+}
+
+.presentation-section-chevron {
+  color: var(--muted);
+  transform: rotate(-90deg);
+  transition: transform 0.15s ease, color 0.12s ease;
+}
+
+.presentation-section[open] .presentation-section-chevron {
+  color: var(--ink-soft);
+  transform: rotate(0);
+}
+
+.presentation-section-body {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0 1rem 1rem;
+}
+
 .manager-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--line-strong);
+  background: color-mix(in srgb, var(--accent-soft) 44%, var(--surface));
+}
+
+.manager-block .presentation-section-head:hover {
+  background: color-mix(in srgb, var(--accent-soft) 68%, var(--surface));
+}
+
+.manager-block .summary-row {
+  border-top: none;
 }
 
 .field-group {
@@ -1733,20 +1818,20 @@ async function onExportFromMenu(
   color: var(--danger);
 }
 
-.client-output {
-  display: grid;
-  gap: 0.7rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--line-strong);
-}
-
 .client-output-head {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.75rem 1rem;
   align-items: center;
+}
+
+.client-output {
+  background: color-mix(in srgb, var(--accent-soft) 44%, var(--surface));
+}
+
+.client-output .presentation-section-head:hover {
+  background: color-mix(in srgb, var(--accent-soft) 68%, var(--surface));
 }
 
 .client-output tfoot th { text-align: right; }
@@ -1832,6 +1917,12 @@ th.collapsed {
   flex-shrink: 0;
 }
 
+.collapse:not(.all) {
+  height: 1.4rem;
+  border-radius: 50%;
+  transition: color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+
 .collapse.all {
   width: 1.2rem;
 }
@@ -1839,6 +1930,17 @@ th.collapsed {
 .collapse:hover {
   color: var(--ink);
   background: transparent;
+}
+
+.collapse:not(.all):hover,
+.collapse:not(.all):focus-visible {
+  color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.collapse:not(.all):focus-visible {
+  outline: none;
 }
 
 .collapse-spacer {
@@ -1940,7 +2042,7 @@ tr.hidden .num {
 }
 
 tr.overridden td {
-  background: color-mix(in srgb, var(--override-soft) 72%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 3%, var(--surface));
 }
 
 .notes-cell {
@@ -1993,12 +2095,20 @@ tr.overridden td {
 }
 
 .macro td {
-  background: var(--page-soft);
+  background: var(--surface);
   font-weight: 600;
 }
 
 .macro.overridden td {
-  background: color-mix(in srgb, var(--override-soft) 65%, var(--page-soft));
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+
+.manager-block .manager-total-column {
+  background: color-mix(in srgb, var(--ink) 3%, var(--surface));
+}
+
+.manager-block th.manager-total-column {
+  background: color-mix(in srgb, var(--ink) 3%, var(--page-soft));
 }
 
 .macro .notes-preview,
