@@ -35,7 +35,9 @@ scripts\windows\build-prerelease.bat
 ./scripts/linux/build-prerelease.sh
 ```
 
-The base Tauri configuration does not create updater artifacts. The prerelease overlay uses a separate application identifier so it cannot collide with the official installation. Do not use the official stable updater channel for prerelease testing.
+The base Tauri configuration does not create updater artifacts. The prerelease overlay keeps the displayed product name as `HowLong` while using a separate application identifier, so it cannot collide with the official installation. The pre-release version or package identifies the build; do not use the official stable updater channel for prerelease testing.
+
+On macOS and Linux, the shell scripts need the executable bit. If a checkout reports `permission denied`, run `chmod u+x scripts/osx/build-prerelease.sh` (or the corresponding Linux script) once, or invoke the script with `bash`.
 
 Use a version such as `0.7.1-beta.1` for a pre-release. Pre-release tags are not part of the stable updater channel and must not replace a stable release.
 
@@ -221,4 +223,4 @@ If a fork keeps the official endpoint and public key, it may follow upstream rel
 
 ## Current status
 
-For v0.7.1, the stable release pipeline, base/release configuration split, platform signing-key handling, manual release-notes smoke test, desktop Updates panel, and redesigned settings experience are present on `main`. Future stable releases reuse the same pipeline: update the version, push the version commit to `main`, then push a stable `vX.Y.Z` tag.
+For v0.7.1, the stable release pipeline, base/release configuration split, platform signing-key handling, manual release-notes smoke test, desktop Updates panel, redesigned settings experience, and updated Gantt XLSX export are present on `main`. Future stable releases reuse the same pipeline: update the version, push the version commit to `main`, then push a stable `vX.Y.Z` tag.

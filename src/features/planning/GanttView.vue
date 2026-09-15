@@ -907,7 +907,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 <style scoped>
 .gantt-view { min-height: 100%; padding-bottom: 2rem; }
 .gantt-head { display: flex; justify-content: flex-end; margin-bottom: .8rem; }
-.gantt-empty p { margin: 0 0 1rem; color: var(--muted); font-size: 1rem; }
+.gantt-empty p { margin: 0 0 1.25rem; color: var(--ink); font-family: var(--font-brand); font-size: clamp(1.35rem, 2vw, 1.75rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.25; }
 .gantt-controls, .gantt-actions { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
 .gantt-controls .range-field { align-items: flex-start; gap: .25rem; color: var(--muted); font-size: .68rem; font-weight: 600; line-height: 1; text-transform: uppercase; letter-spacing: .06em; }
 .gantt-controls .range-field input[type='date'] { width: 9.4rem; height: 2.35rem; padding: .45rem .65rem; color: var(--ink); font-size: .8rem; letter-spacing: 0; text-transform: none; }
@@ -1059,7 +1059,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .handle.start::after { left: 3px; }
 .handle.end { right: 0; }
 .handle.end::after { right: 3px; }
-.gantt-empty { display: grid; place-content: center; justify-items: center; min-height: 100%; padding: 2rem; text-align: center; }
+.gantt-empty { display: grid; align-content: start; justify-items: center; min-height: 100%; padding: clamp(7rem, 24vh, 12rem) 2rem 2rem; text-align: center; }
 .empty-actions { display: flex; align-items: stretch; justify-content: center; flex-wrap: wrap; gap: .75rem; }
 .action-btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.25rem; font-size: .95rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); cursor: pointer; transition: all .15s ease; }
 .action-btn:hover { border-color: var(--accent); background: var(--accent-subtle); }

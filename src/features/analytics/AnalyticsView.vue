@@ -373,8 +373,8 @@ async function onOpenEstimate(): Promise<void> {
 .bar-key .ctg-key { opacity: .42; background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgb(255 255 255 / .35) 3px 5px); }
 .empty-chart { margin: 2rem 0; color: var(--muted); text-align: center; }
 .empty-chart.standalone { padding: 4rem 1rem; border: 1px dashed var(--line-strong); border-radius: var(--radius); }
-.analytics-empty { min-height: 100%; display: grid; place-content: center; justify-items: center; text-align: center; }
-.analytics-empty p { color: var(--muted); }
+.analytics-empty { min-height: 100%; display: grid; align-content: start; justify-items: center; padding-top: clamp(7rem, 24vh, 12rem); text-align: center; }
+.analytics-empty p { margin: 0 0 1.25rem; color: var(--ink); font-family: var(--font-brand); font-size: clamp(1.35rem, 2vw, 1.75rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.25; }
 .empty-actions { display: flex; align-items: stretch; justify-content: center; flex-wrap: wrap; gap: .75rem; }
 .action-btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.25rem; font-size: .95rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); cursor: pointer; transition: all .15s ease; }
 .action-btn:hover { border-color: var(--accent); background: var(--accent-subtle); }
