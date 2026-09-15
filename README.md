@@ -22,7 +22,7 @@
 <p align="center">
   <a href="#what-it-does">What it does</a> ·
   <a href="#features">Features</a> ·
-  <a href="#new-in-v070">New in v0.7.0</a> ·
+  <a href="#new-in-v071">New in v0.7.1</a> ·
   <a href="#export-outputs">Exports</a> ·
   <a href="#screens">Screens</a> ·
   <a href="#download">Download</a> ·
@@ -65,10 +65,13 @@ Everything is stored locally. Settings, models, and estimates live as JSON on di
 - Keyboard shortcuts for save, tabs, views, and undo/redo.
 - English or Italian UI; light or dark theme.
 
-## New in v0.7.0
+## New in v0.7.1
 
-Version 0.7.0 adds a safe, user-controlled update path for the desktop app:
+Version 0.7.1 adds a redesigned settings experience alongside the safe, user-controlled update path for the desktop app:
 
+- Settings are organized into focused, collapsible groups with a search filter.
+- Workspace, estimate, planning, and application options use clearer summaries and full-width controls.
+- Planning and Analytics empty states now offer the same **New Estimate**, **Open File**, and **Go to Library** actions as the home screen.
 - **Settings → Updates** checks the official GitHub feed only when you click **Check for updates**.
 - Only stable releases are considered; prereleases are excluded.
 - The panel shows the installed version, available version, release notes, download progress, and install state.

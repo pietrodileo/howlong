@@ -37,7 +37,7 @@ scripts\windows\build-prerelease.bat
 
 The base Tauri configuration does not create updater artifacts. The prerelease overlay uses a separate application identifier so it cannot collide with the official installation. Do not use the official stable updater channel for prerelease testing.
 
-Use a version such as `0.7.0-beta.1` for a pre-release. Pre-release tags are not part of the stable updater channel and must not replace a stable release.
+Use a version such as `0.7.1-beta.1` for a pre-release. Pre-release tags are not part of the stable updater channel and must not replace a stable release.
 
 ### Official stable releases
 
@@ -115,7 +115,7 @@ Examples:
 
 - `0.5.1` → `0.5.2` for a bug fix
 - `0.5.1` → `0.6.0` for a new feature
-- `0.6.1` → `0.7.0` for a new feature
+- `0.7.0` → `0.7.1` for a patch release
 - `0.5.1` → `1.0.0` for the first stable major release
 
 Stable release tags use a `v` prefix, for example `v0.7.1`. Pre-release versions may use a suffix such as `0.7.1-beta.1`; tags containing a hyphen are excluded from the stable release workflow.
@@ -198,7 +198,7 @@ The release description is generated automatically from the new tag and the prev
 
 Before publishing, optionally run the manual `Smoke test release notes` workflow from **GitHub → Actions**. Leave `tag_name` empty to use an isolated smoke-test name, or provide an existing tag to inspect that release context. Open the completed run and its `Summary` to inspect the generated title and release-note body. It generates notes only; it does not create a tag, GitHub Release, installer, or upload.
 
-Tags containing a hyphen, such as `v0.7.0-beta.1`, are excluded from the stable release job.
+Tags containing a hyphen, such as `v0.7.1-beta.1`, are excluded from the stable release job.
 
 There is no separate tag-creation workflow. The private signing key is not needed to create or push a tag; it is used only by the release build after the tag exists. The repository's `GITHUB_TOKEN` is used by the release workflow to create the GitHub Release and upload its assets.
 
@@ -221,4 +221,4 @@ If a fork keeps the official endpoint and public key, it may follow upstream rel
 
 ## Current status
 
-For v0.7.0, the stable release pipeline, base/release configuration split, platform signing-key handling, manual release-notes smoke test, and desktop Updates panel are present on `main`. Future stable releases reuse the same pipeline: update the version, push the version commit to `main`, then push a stable `vX.Y.Z` tag.
+For v0.7.1, the stable release pipeline, base/release configuration split, platform signing-key handling, manual release-notes smoke test, desktop Updates panel, and redesigned settings experience are present on `main`. Future stable releases reuse the same pipeline: update the version, push the version commit to `main`, then push a stable `vX.Y.Z` tag.

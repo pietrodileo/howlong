@@ -1,6 +1,6 @@
 # HowLong? user manual
 
-HowLong? `0.7.0` on Windows, macOS, and Linux.
+HowLong? `0.7.1` on Windows, macOS, and Linux.
 
 [Project README](../../README.md) · [Italian manual](GUIDE.it.md) · [Build and release guide](../BUILD.md)
 
@@ -10,7 +10,7 @@ HowLong? `0.7.0` on Windows, macOS, and Linux.
 
 ## Contents
 
-- [New in v0.7.0](#new-in-v070)
+- [New in v0.7.1](#new-in-v071)
 - [1. Quick start](#1-quick-start)
 - [2. Workspace and navigation](#2-workspace-and-navigation)
   - [2.1. Sidebar](#21-sidebar)
@@ -47,9 +47,13 @@ HowLong? `0.7.0` on Windows, macOS, and Linux.
 
 ---
 
-## New in v0.7.0
+## New in v0.7.1
 
-HowLong? 0.7.0 introduces an in-app update flow for desktop installations and a stable release pipeline for the official builds.
+HowLong? 0.7.1 introduces a redesigned settings experience, an in-app update flow for desktop installations, and a stable release pipeline for the official builds.
+
+### Settings experience
+
+Settings are grouped into focused, collapsible sections with a search field. Each option appears in a dedicated panel with a short summary, so you can scan the available preferences before opening one. Planning and Analytics empty states use the same actions as the home screen: **New Estimate**, **Open File**, and **Go to Library**.
 
 ### Updates panel
 

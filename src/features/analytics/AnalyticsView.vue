@@ -8,6 +8,8 @@ import { useModelsStore } from '../models/models';
 import { computeTotals } from '../../domain/contingency';
 import { formatEffort, type EffortUnit } from '../../domain/rounding';
 import { buildGraphEntries, graphValue, type GraphEntry, type GraphMode } from './graphData';
+import { openEstimateFile } from '../../platform/files/io';
+import { isDialogCancelled, isDialogDesktopOnly } from '../../platform/files/dialogResult';
 
 const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
@@ -126,6 +128,20 @@ function onCreateEstimate(model = defaultModel.value ?? models.value[0] ?? null)
 function onCreateEstimateFromModel(modelId: string): void {
   const model = models.value.find((candidate) => candidate.id === modelId);
   if (model) onCreateEstimate(model);
+}
+
+/** Open an estimate file and switch to its editor. */
+async function onOpenEstimate(): Promise<void> {
+  const result = await openEstimateFile();
+  if (!result.ok) {
+    if (!isDialogCancelled(result)) {
+      ui.notify(isDialogDesktopOnly(result) ? t('library.desktopOnly') : result.error, true);
+    }
+    return;
+  }
+  const sessionId = await documentsStore.openFromFile(result.data, result.path);
+  documentsStore.activate(sessionId);
+  ui.navigate('working');
 }
 </script>
 
@@ -253,13 +269,13 @@ function onCreateEstimateFromModel(modelId: string): void {
     <div class="empty-actions">
       <div class="new-estimate-menu">
         <div class="new-estimate-split">
-          <button type="button" class="primary new-estimate-main" @click="onCreateEstimate()">
+          <button type="button" class="action-btn primary new-estimate-main" @click="onCreateEstimate()">
             <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
               <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M8 2.5v11M2.5 8h11" />
             </svg>
             {{ t('welcome.newEstimate') }}
           </button>
-          <button type="button" class="primary new-estimate-caret" :aria-expanded="newMenuOpen" :aria-label="t('working.pickModel')" @click.stop="newMenuOpen = !newMenuOpen">▾</button>
+          <button type="button" class="action-btn primary new-estimate-caret" :aria-expanded="newMenuOpen" :aria-label="t('working.pickModel')" @click.stop="newMenuOpen = !newMenuOpen">▾</button>
         </div>
         <div v-if="newMenuOpen" class="model-menu" role="menu" @pointerdown.stop>
           <input v-model="modelSearch" type="search" :placeholder="t('working.searchModel')" />
@@ -270,7 +286,20 @@ function onCreateEstimateFromModel(modelId: string): void {
           <p v-if="filteredModels.length === 0">{{ t('working.noModels') }}</p>
         </div>
       </div>
-      <button type="button" class="ghost" @click="ui.navigate('library')">{{ t('gantt.openLibrary') }}</button>
+      <button type="button" class="action-btn" @click="onOpenEstimate">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3.5 8.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a1.5 1.5 0 0 0-1.5-1.5H12l-1.6-1.8A1.5 1.5 0 0 0 9.3 5.5H5.5A2 2 0 0 0 3.5 7.5v1Z" />
+        </svg>
+        <span>{{ t('welcome.openEstimate') }}</span>
+      </button>
+      <button type="button" class="action-btn" @click="ui.navigate('library')">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 6.5h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5Z" />
+          <path d="M6 6.5V4.5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          <path d="M12 4.5v2" />
+        </svg>
+        <span>{{ t('welcome.openLibrary') }}</span>
+      </button>
     </div>
   </section>
 </template>
@@ -346,11 +375,16 @@ function onCreateEstimateFromModel(modelId: string): void {
 .empty-chart.standalone { padding: 4rem 1rem; border: 1px dashed var(--line-strong); border-radius: var(--radius); }
 .analytics-empty { min-height: 100%; display: grid; place-content: center; justify-items: center; text-align: center; }
 .analytics-empty p { color: var(--muted); }
-.empty-actions { display: flex; justify-content: center; gap: .55rem; }
+.empty-actions { display: flex; align-items: stretch; justify-content: center; flex-wrap: wrap; gap: .75rem; }
+.action-btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.25rem; font-size: .95rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); cursor: pointer; transition: all .15s ease; }
+.action-btn:hover { border-color: var(--accent); background: var(--accent-subtle); }
+.action-btn.primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.action-btn.primary:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
+.action-btn svg { flex-shrink: 0; }
 .new-estimate-menu { position: relative; }
 .new-estimate-split { display: flex; }
-.new-estimate-main { display: flex; align-items: center; gap: .4rem; border-radius: var(--radius-sm) 0 0 var(--radius-sm); border-right: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent); }
-.new-estimate-caret { min-width: 2.1rem; padding-inline: .45rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.new-estimate-main { display: flex; align-items: center; gap: .5rem; border-radius: var(--radius-sm) 0 0 var(--radius-sm); border-right: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent); }
+.new-estimate-caret { min-width: auto; padding: .75rem 1.25rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 .model-menu { position: absolute; top: calc(100% + .4rem); left: 0; z-index: 40; width: 280px; padding: .5rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-menu); }
 .model-menu input { width: 100%; margin-bottom: .4rem; }
 .model-menu button { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; min-width: 0; padding: .5rem .65rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); text-align: left; }

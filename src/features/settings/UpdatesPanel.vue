@@ -15,7 +15,13 @@ import { useI18n } from '../../app/i18n/useI18n';
 import SettingsPanel from './SettingsPanel.vue';
 
 const props = defineProps<{
+  summary?: string;
+  open?: boolean;
   forceOpen?: boolean;
+}>();
+
+const emit = defineEmits<{
+  toggle: [open: boolean];
 }>();
 
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'installing' | 'upToDate' | 'error';
@@ -54,6 +60,25 @@ const updateStatusMessage = computed(() => {
     case 'upToDate': return t('settings.updateUpToDate');
     case 'error': return t('settings.updateError');
     default: return t('settings.updateNotChecked');
+  }
+});
+
+const panelSummary = computed(() => {
+  switch (updateStatus.value) {
+    case 'checking':
+    case 'downloading':
+    case 'installing':
+      return updateStatusMessage.value;
+    case 'upToDate':
+      return t('settings.updateUpToDate');
+    case 'available':
+      return t('settings.updateAvailable', { version: availableUpdate.value?.version ?? '' });
+    case 'ready':
+      return t('settings.updateDownloadReady');
+    case 'error':
+      return t('settings.updateError');
+    default:
+      return props.summary ?? t('settings.summaryUpdates', { version: APP_VERSION });
   }
 });
 
@@ -138,7 +163,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <SettingsPanel class="update-panel" :title="t('settings.sectionUpdates')" :force-open="props.forceOpen">
+  <SettingsPanel
+    class="update-panel"
+    :title="t('settings.sectionUpdates')"
+    :summary="panelSummary"
+    :open="props.open"
+    :force-open="props.forceOpen"
+    @toggle="emit('toggle', $event)"
+  >
     <p class="field-hint">{{ t('settings.updateIntro') }}</p>
     <div class="version-box" :class="{ 'version-box--available': availableUpdate }">
       <div class="version-cell">

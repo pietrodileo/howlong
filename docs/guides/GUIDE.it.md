@@ -1,6 +1,6 @@
 # Manuale utente di HowLong?
 
-HowLong? `0.7.0` su Windows, macOS e Linux.
+HowLong? `0.7.1` su Windows, macOS e Linux.
 
 [README del progetto](../../README.md) · [Manuale inglese](GUIDE.en.md) · [Guida di build e rilascio](../BUILD.md)
 
@@ -10,7 +10,7 @@ HowLong? `0.7.0` su Windows, macOS e Linux.
 
 ## Indice
 
-- [Novità della v0.7.0](#novità-della-v070)
+- [Novità della v0.7.1](#novità-della-v071)
 - [1. Avvio rapido](#1-avvio-rapido)
 - [2. Area di lavoro e navigazione](#2-area-di-lavoro-home-e-navigazione-nella-barra-laterale)
   - [2.1. Barra laterale](#21-navigazione-nella-barra-laterale)
@@ -47,9 +47,13 @@ HowLong? `0.7.0` su Windows, macOS e Linux.
 
 ---
 
-## Novità della v0.7.0
+## Novità della v0.7.1
 
-HowLong? 0.7.0 introduce un flusso di aggiornamento integrato per le installazioni desktop e una pipeline di rilascio stabile per le build ufficiali.
+HowLong? 0.7.1 introduce un'esperienza delle impostazioni ridisegnata, un flusso di aggiornamento integrato per le installazioni desktop e una pipeline di rilascio stabile per le build ufficiali.
+
+### Esperienza delle impostazioni
+
+Le impostazioni sono organizzate in sezioni mirate e richiudibili, con un campo di ricerca. Ogni opzione è contenuta in un pannello dedicato e accompagnata da un breve riepilogo, così puoi scorrere le preferenze disponibili prima di aprirne una. Le schermate vuote di Pianifica e Analisi offrono le stesse azioni della Home: **Nuova stima**, **Apri file** e **Vai alla libreria**.
 
 ### Pannello Aggiornamenti
 

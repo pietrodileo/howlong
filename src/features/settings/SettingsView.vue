@@ -20,6 +20,7 @@ import { ESTIMATE_TOGGLEABLE_COLUMNS, type EstimateToggleableColumn } from './es
 import { syncEstimateColumnsFromSettings } from '../../shared/composables/useResizableColumns';
 import { ACTIVITY_STATUSES, ACTIVITY_STATUS_COLORS } from '../../domain/gantt';
 import UpdatesPanel from './UpdatesPanel.vue';
+import { APP_VERSION } from '../../shared/version';
 
 const settings = useSettingsStore();
 const models = useModelsStore();
@@ -40,21 +41,38 @@ const settingsGroupRows = {
   preferences: ['profile', 'locale', 'appearance'],
   workspace: ['folder', 'workspace'],
   estimates: ['estimate', 'presentation', 'export'],
-  planning: ['workingCalendar', 'activityStatuses'],
+  planning: ['workingCalendar', 'workingDays', 'activityStatuses'],
   application: ['updates', 'shortcuts'],
 } as const;
 type SettingsGroupId = keyof typeof settingsGroupRows;
 const settingsGroupIds = Object.keys(settingsGroupRows) as SettingsGroupId[];
 const settingsGroupOpen = ref<Record<SettingsGroupId, boolean>>({
   preferences: false,
-  workspace: false,
+  workspace: openFolderSection.value,
   estimates: false,
   planning: false,
   application: false,
 });
+const settingsPanelOpen = ref<Record<string, boolean>>({
+  profile: false,
+  locale: false,
+  appearance: false,
+  folder: openFolderSection.value,
+  workspace: false,
+  estimate: false,
+  presentation: false,
+  export: false,
+  workingCalendar: false,
+  workingDays: false,
+  activityStatuses: false,
+  updates: false,
+  shortcuts: false,
+});
 
 const normalizedSettingsFilter = computed(() => normalizeSettingsText(settingsFilter.value));
 const isFilteringSettings = computed(() => normalizedSettingsFilter.value.length > 0);
+const saveStatus = ref<'idle' | 'saving' | 'saved'>('idle');
+let savedStatusTimeout: ReturnType<typeof setTimeout> | null = null;
 
 /** Normalize filter text so case and accents do not affect matching. */
 function normalizeSettingsText(value: string): string {
@@ -75,6 +93,7 @@ watch(
   () => settings.settings,
   async () => {
     if (isSaving.value || isSwitching.value) return;
+    saveStatus.value = 'saving';
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
       saveTimeout = null;
@@ -85,7 +104,14 @@ watch(
         await library.loadAll();
         await models.loadAll();
         await refreshWorkspacePaths();
+        saveStatus.value = 'saved';
+        if (savedStatusTimeout) clearTimeout(savedStatusTimeout);
+        savedStatusTimeout = setTimeout(() => {
+          savedStatusTimeout = null;
+          saveStatus.value = 'idle';
+        }, 2000);
       } catch (e) {
+        saveStatus.value = 'idle';
         ui.notify(toErrorMessage(e), true);
       } finally {
         isSaving.value = false;
@@ -96,9 +122,11 @@ watch(
 );
 
 onUnmounted(() => {
-  if (!saveTimeout) return;
-  clearTimeout(saveTimeout);
-  if (!isSaving.value && !isSwitching.value) void settings.save().catch(error => ui.notify(toErrorMessage(error), true));
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+    if (!isSaving.value && !isSwitching.value) void settings.save().catch(error => ui.notify(toErrorMessage(error), true));
+  }
+  if (savedStatusTimeout) clearTimeout(savedStatusTimeout);
 });
 
 /** Refresh the displayed native workspace paths. */
@@ -307,12 +335,18 @@ const settingsRowSearchText = computed<Record<string, string>>(() => ({
     t('settings.ganttWorkingDaysExcludeWeekend'),
     t('settings.ganttWorkingDaysExcludeWeekendHelp'),
   ].join(' '),
+  workingDays: [
+    t('settings.sectionGanttWorkingDays'),
+    t('settings.ganttWorkingDaysExcludeWeekend'),
+    t('settings.ganttWorkingDaysExcludeWeekendHelp'),
+  ].join(' '),
   activityStatuses: [
     t('settings.sectionGanttStatuses'),
     t('settings.ganttAllowedStatuses'),
     t('settings.ganttStatusIntro'),
     t('settings.ganttStatusPriority'),
     t('settings.ganttStatusCancelledRule'),
+    ...ACTIVITY_STATUSES.map((status) => t(`gantt.status_${status.replace(/-/g, '_')}`)),
     ...ACTIVITY_STATUSES.map((status) => t(`settings.status${status.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('')}Meaning`)),
   ].join(' '),
   updates: [
@@ -371,8 +405,34 @@ function onSettingsGroupToggle(groupId: SettingsGroupId, event: Event) {
   settingsGroupOpen.value[groupId] = (event.currentTarget as HTMLDetailsElement).open;
 }
 
+/** Return the group that owns a nested settings row. */
+function settingsGroupForRow(rowId: string): SettingsGroupId | null {
+  return settingsGroupIds.find((groupId) => settingsGroupRows[groupId].some((candidate) => candidate === rowId)) ?? null;
+}
+
+/** Return the user-controlled disclosure state for a nested settings row. */
+function isSettingsPanelOpen(rowId: string): boolean {
+  return settingsPanelOpen.value[rowId] ?? false;
+}
+
+/** Keep only one nested settings row open within each group. */
+function onSettingsPanelToggle(rowId: string, isOpen: boolean) {
+  if (shouldForceOpenSettingsRow(rowId)) return;
+  settingsPanelOpen.value[rowId] = isOpen;
+  if (!isOpen) return;
+
+  const groupId = settingsGroupForRow(rowId);
+  if (!groupId) return;
+  for (const siblingId of settingsGroupRows[groupId]) {
+    if (siblingId !== rowId) settingsPanelOpen.value[siblingId] = false;
+  }
+}
+
 function shouldForceOpenSettingsRow(rowId: string): boolean {
-  return isFilteringSettings.value && matchesSettingsFilter(settingsRowSearchText.value[rowId] ?? '');
+  if (!isFilteringSettings.value || !matchesSettingsFilter(settingsRowSearchText.value[rowId] ?? '')) return false;
+  const groupId = settingsGroupForRow(rowId);
+  return !!groupId
+    && settingsGroupRows[groupId].find((siblingId) => matchesSettingsFilter(settingsRowSearchText.value[siblingId] ?? '')) === rowId;
 }
 
 const hasSettingsFilterMatch = computed(() => settingsGroupIds.some(shouldShowSettingsGroup));
@@ -393,6 +453,49 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
     ? settings.settings.ganttDisabledStatuses.filter(value => value !== status)
     : [...new Set([...settings.settings.ganttDisabledStatuses, status])];
 }
+
+const settingsPanelSummaries = computed<Record<string, string>>(() => {
+  const workspacePath = settings.settings.workspaceDir.trim() || t('settings.workspaceFolderDefault');
+  const visibleEstimateColumns = estimateColumnKeys.filter((key) => settings.settings.estimateColumnVisibility[key]).length;
+  const enabledStatuses = ACTIVITY_STATUSES.filter((status) => !settings.settings.ganttDisabledStatuses.some((disabled) => disabled === status)).length;
+  const weekendDays = [
+    settings.settings.ganttWeekendSaturday ? t('settings.saturday') : '',
+    settings.settings.ganttWeekendSunday ? t('settings.sunday') : '',
+  ].filter(Boolean).join(', ') || t('settings.none');
+
+  return {
+    profile: settings.settings.username.trim() || settings.osUsername || t('settings.usernamePh'),
+    locale: t('settings.summaryLocale', {
+      language: settings.settings.locale === 'it' ? t('settings.italian') : t('settings.english'),
+    }),
+    appearance: t('settings.summaryAppearance', {
+      theme: settings.settings.theme === 'dark' ? t('settings.appearanceDark') : t('settings.appearanceLight'),
+    }),
+    folder: workspacePath,
+    workspace: t('settings.summaryWorkspaceImportExport'),
+    estimate: t('settings.summaryEstimateColumns', {
+      visible: String(visibleEstimateColumns),
+      total: String(estimateColumnKeys.length),
+    }),
+    presentation: t('settings.summaryPresentation'),
+    export: t('settings.summaryExport', {
+      date: settings.settings.exportIncludeDate ? t('settings.enabled') : t('settings.disabled'),
+      time: settings.settings.exportIncludeTime ? t('settings.enabled') : t('settings.disabled'),
+    }),
+    workingCalendar: t('settings.summaryWorkingCalendar', {
+      days: weekendDays,
+    }),
+    workingDays: t('settings.summaryWorkingDays', {
+      excluded: settings.settings.ganttWorkingDaysExcludeWeekend ? t('settings.enabled') : t('settings.disabled'),
+    }),
+    activityStatuses: t('settings.summaryActivityStatuses', {
+      enabled: String(enabledStatuses),
+      total: String(ACTIVITY_STATUSES.length),
+    }),
+    updates: t('settings.summaryUpdates', { version: APP_VERSION }),
+    shortcuts: t('settings.summaryShortcuts', { count: '8' }),
+  };
+});
 </script>
 
 <template>
@@ -415,6 +518,10 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         {{ settings.settings.username.trim() }}
       </p>
       <p class="settings-intro">{{ t('settings.intro') }}</p>
+      <p v-if="saveStatus !== 'idle'" class="settings-save-status" role="status" aria-live="polite">
+        <span class="settings-save-status-dot" aria-hidden="true" />
+        {{ saveStatus === 'saving' ? t('settings.saving') : t('settings.savedBrief') }}
+      </p>
     </header>
 
     <div class="settings-filter" role="search">
@@ -449,7 +556,10 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         <SettingsPanel
           v-show="shouldShowSettingsRow('preferences', 'profile')"
           :title="t('settings.sectionProfile')"
+          :summary="settingsPanelSummaries.profile"
+          :open="isSettingsPanelOpen('profile')"
           :force-open="shouldForceOpenSettingsRow('profile')"
+          @toggle="onSettingsPanelToggle('profile', $event)"
         >
           <div class="profile-hints">
             <span class="field-hint">{{ t('settings.usernameHelp') }}</span>
@@ -471,7 +581,10 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         <SettingsPanel
           v-show="shouldShowSettingsRow('preferences', 'locale')"
           :title="t('settings.sectionLocale')"
+          :summary="settingsPanelSummaries.locale"
+          :open="isSettingsPanelOpen('locale')"
           :force-open="shouldForceOpenSettingsRow('locale')"
+          @toggle="onSettingsPanelToggle('locale', $event)"
         >
           <p class="field-hint">{{ t('settings.languageHelp') }}</p>
           <div class="lang-actions">
@@ -503,7 +616,10 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         <SettingsPanel
           v-show="shouldShowSettingsRow('preferences', 'appearance')"
           :title="t('settings.sectionAppearance')"
+          :summary="settingsPanelSummaries.appearance"
+          :open="isSettingsPanelOpen('appearance')"
           :force-open="shouldForceOpenSettingsRow('appearance')"
+          @toggle="onSettingsPanelToggle('appearance', $event)"
         >
           <p class="field-hint">{{ t('settings.appearanceHelp') }}</p>
           <div class="lang-row" role="radiogroup" :aria-label="t('settings.appearance')">
@@ -547,13 +663,16 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         <SettingsPanel
           v-show="shouldShowSettingsRow('workspace', 'folder')"
           :title="t('settings.sectionFolder')"
-          :open="openFolderSection"
+          :summary="settingsPanelSummaries.folder"
+          :summary-title="settingsPanelSummaries.folder"
+          :open="isSettingsPanelOpen('folder')"
           :force-open="shouldForceOpenSettingsRow('folder')"
+          @toggle="onSettingsPanelToggle('folder', $event)"
         >
           <p class="field-hint">{{ t('settings.workspaceFolderHelp') }}</p>
           <dl class="meta folder-box">
-            <dt>{{ t('settings.workspaceFolderActive') }}</dt>
-            <dd class="path">
+            <dt class="folder-primary-label">{{ t('settings.workspaceFolderActive') }}</dt>
+            <dd class="path folder-primary-path">
               {{
                 settings.settings.workspaceDir.trim()
                   ? settings.settings.workspaceDir.trim()
@@ -569,7 +688,7 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
             {{ t('settings.workspaceFolderCustom') }}
           </p>
           <div class="chrome">
-            <button type="button" class="settings-action" :disabled="isSaving || isSwitching" @click="onPickWorkspaceDir">
+            <button type="button" class="settings-action primary-action" :disabled="isSaving || isSwitching" @click="onPickWorkspaceDir">
               {{ t('settings.pickFolder') }}
             </button>
             <button
@@ -593,20 +712,24 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         <SettingsPanel
           v-show="shouldShowSettingsRow('workspace', 'workspace')"
           :title="t('settings.sectionWorkspace')"
+          :summary="settingsPanelSummaries.workspace"
+          :open="isSettingsPanelOpen('workspace')"
           :force-open="shouldForceOpenSettingsRow('workspace')"
+          @toggle="onSettingsPanelToggle('workspace', $event)"
         >
           <ul class="tips tip-box">
             <li v-html="md(t('settings.tipImport'))" />
             <li v-html="md(t('settings.tipExport'))" />
           </ul>
           <div class="chrome">
-            <button type="button" class="settings-action" @click="onImport">
+            <button type="button" class="settings-action primary-action" @click="onImport">
               {{ t('settings.import') }}
             </button>
             <button type="button" class="settings-action" @click="onExport">
               {{ t('settings.export') }}
             </button>
           </div>
+          <p v-if="settings.lastError" class="err settings-inline-error" role="alert">{{ settings.lastError }}</p>
         </SettingsPanel>
       </div>
     </details>
@@ -626,7 +749,10 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         <SettingsPanel
           v-show="shouldShowSettingsRow('estimates', 'estimate')"
           :title="t('settings.sectionEstimate')"
+          :summary="settingsPanelSummaries.estimate"
+          :open="isSettingsPanelOpen('estimate')"
           :force-open="shouldForceOpenSettingsRow('estimate')"
+          @toggle="onSettingsPanelToggle('estimate', $event)"
         >
           <p class="field-hint">{{ t('settings.estimateColumnsIntro') }}</p>
           <div class="option-grid columns-grid">
@@ -644,7 +770,10 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         <SettingsPanel
           v-show="shouldShowSettingsRow('estimates', 'presentation')"
           :title="t('settings.sectionPresentation')"
+          :summary="settingsPanelSummaries.presentation"
+          :open="isSettingsPanelOpen('presentation')"
           :force-open="shouldForceOpenSettingsRow('presentation')"
+          @toggle="onSettingsPanelToggle('presentation', $event)"
         >
           <p class="field-hint">{{ t('settings.presentationIntro') }}</p>
           <div class="pref-grid">
@@ -692,7 +821,10 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         <SettingsPanel
           v-show="shouldShowSettingsRow('estimates', 'export')"
           :title="t('settings.sectionExport')"
+          :summary="settingsPanelSummaries.export"
+          :open="isSettingsPanelOpen('export')"
           :force-open="shouldForceOpenSettingsRow('export')"
+          @toggle="onSettingsPanelToggle('export', $event)"
         >
           <p class="field-hint">{{ t('settings.exportFilenameLegend') }}</p>
           <div class="export-filename-opts">
@@ -739,7 +871,10 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
         <SettingsPanel
           v-show="shouldShowSettingsRow('planning', 'workingCalendar')"
           :title="t('settings.sectionGanttWeekends')"
+          :summary="settingsPanelSummaries.workingCalendar"
+          :open="isSettingsPanelOpen('workingCalendar')"
           :force-open="shouldForceOpenSettingsRow('workingCalendar')"
+          @toggle="onSettingsPanelToggle('workingCalendar', $event)"
         >
           <p class="field-hint">{{ t('settings.ganttWeekendIntro') }}</p>
           <div class="lang-row">
@@ -752,27 +887,41 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
               <span>{{ t('settings.sunday') }}</span>
             </label>
           </div>
+        </SettingsPanel>
+
+        <SettingsPanel
+          v-show="shouldShowSettingsRow('planning', 'workingDays')"
+          :title="t('settings.sectionGanttWorkingDays')"
+          :summary="settingsPanelSummaries.workingDays"
+          :open="isSettingsPanelOpen('workingDays')"
+          :force-open="shouldForceOpenSettingsRow('workingDays')"
+          @toggle="onSettingsPanelToggle('workingDays', $event)"
+        >
+          <p class="field-hint">{{ t('settings.ganttWorkingDaysExcludeWeekendHelp') }}</p>
           <div class="lang-row">
             <label class="lang-opt compact">
               <input v-model="settings.settings.ganttWorkingDaysExcludeWeekend" type="checkbox" />
               <span>{{ t('settings.ganttWorkingDaysExcludeWeekend') }}</span>
             </label>
           </div>
-          <p class="field-hint">{{ t('settings.ganttWorkingDaysExcludeWeekendHelp') }}</p>
         </SettingsPanel>
 
         <SettingsPanel
           v-show="shouldShowSettingsRow('planning', 'activityStatuses')"
           :title="t('settings.sectionGanttStatuses')"
+          :summary="settingsPanelSummaries.activityStatuses"
+          :open="isSettingsPanelOpen('activityStatuses')"
           :force-open="shouldForceOpenSettingsRow('activityStatuses')"
+          @toggle="onSettingsPanelToggle('activityStatuses', $event)"
         >
           <p class="field-hint">{{ t('settings.ganttAllowedStatuses') }}</p>
           <div class="status-reference">
             <p>{{ t('settings.ganttStatusIntro') }}</p>
             <ul>
               <li v-for="status in ACTIVITY_STATUSES" :key="status">
-                <label class="status-choice"><input type="checkbox" :checked="!settings.settings.ganttDisabledStatuses.some(disabled => disabled === status)" :disabled="status === 'to-plan' || status === 'planned'" @change="onStatusAvailabilityChange(status, ($event.target as HTMLInputElement).checked)" /><span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />
-                {{ t(`settings.status${status.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('')}Meaning`) }}
+                <label class="status-choice"><input type="checkbox" :checked="!settings.settings.ganttDisabledStatuses.some(disabled => disabled === status)" :disabled="status === 'to-plan' || status === 'planned'" @change="onStatusAvailabilityChange(status, ($event.target as HTMLInputElement).checked)" /><span class="status-dot" :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />
+                <span class="status-copy"><strong class="status-name">{{ t(`gantt.status_${status.replace(/-/g, '_')}`) }}</strong>: <span class="status-description">{{ t(`settings.status${status.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('')}Meaning`) }}</span></span>
+                <span v-if="status === 'to-plan' || status === 'planned'" class="status-required">{{ t('settings.required') }}</span>
               </label></li>
             </ul>
           </div>
@@ -798,13 +947,19 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
       <div class="settings-group-rows">
         <UpdatesPanel
           v-show="shouldShowSettingsRow('application', 'updates')"
+          :summary="settingsPanelSummaries.updates"
+          :open="isSettingsPanelOpen('updates')"
           :force-open="shouldForceOpenSettingsRow('updates')"
+          @toggle="onSettingsPanelToggle('updates', $event)"
         />
 
         <SettingsPanel
           v-show="shouldShowSettingsRow('application', 'shortcuts')"
           :title="t('settings.sectionShortcuts')"
+          :summary="settingsPanelSummaries.shortcuts"
+          :open="isSettingsPanelOpen('shortcuts')"
           :force-open="shouldForceOpenSettingsRow('shortcuts')"
+          @toggle="onSettingsPanelToggle('shortcuts', $event)"
         >
           <p class="field-hint">{{ t('settings.shortcutsIntro') }}</p>
           <dl class="shortcut-list">
@@ -829,7 +984,6 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
       </div>
     </details>
 
-    <p v-if="settings.lastError" class="err">{{ settings.lastError }}</p>
   </div>
 </template>
 
@@ -886,10 +1040,27 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
   line-height: 1.45;
 }
 
+.settings-save-status {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.35rem;
+  margin: -0.15rem 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.settings-save-status-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 .settings-filter {
   display: grid;
   gap: 0.45rem;
-  margin: 0 0 1.55rem;
+  margin: 0 0 1rem;
 }
 
 .settings-filter-label {
@@ -1096,6 +1267,14 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
   min-width: 0;
 }
 
+.settings-inline-error {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, var(--line));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--danger) 7%, var(--page-soft));
+  font-size: 0.85rem;
+}
+
 .username-input {
   height: 2.25rem;
   box-sizing: border-box;
@@ -1143,6 +1322,18 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
   background: var(--page-soft);
   border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
   color: var(--ink);
+}
+
+.primary-action {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.primary-action:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--surface));
+  color: var(--accent-hover);
 }
 
 .settings-action:disabled {
@@ -1208,12 +1399,15 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
 
 .option-grid.columns-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.45rem;
 }
 
 .lang-opt.compact {
-  padding: 0.38rem 0.55rem;
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.65rem;
   font-size: 0.85rem;
 }
 
@@ -1269,8 +1463,12 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
 .status-reference p { margin: 0; color: var(--ink-soft); }
 .status-reference p + p { margin-top: .55rem; }
 .status-reference ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .45rem 1rem; margin: .75rem 0; padding: 0; list-style: none; }
-.status-reference li { display: flex; align-items: center; gap: .5rem; color: var(--ink-soft); font-size: .85rem; }
-.status-reference li span { width: .65rem; height: .65rem; flex: 0 0 .65rem; border-radius: 50%; }
+.status-reference li { min-width: 0; padding: .45rem .5rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink-soft); font-size: .85rem; }
+.status-choice { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: .5rem; width: 100%; min-width: 0; cursor: pointer; }
+.status-choice input { min-width: 0; }
+.status-dot { width: .65rem; height: .65rem; flex: 0 0 .65rem; border-radius: 50%; }
+.status-copy { min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+.status-name { color: var(--ink); font-weight: 600; }
 
 .lang-actions {
   display: flex;
@@ -1338,6 +1536,15 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
   color: var(--ink);
 }
 
+.folder-primary-label {
+  font-size: 0.9rem;
+}
+
+.folder-primary-path {
+  color: var(--ink);
+  font-weight: 550;
+}
+
 .meta dd {
   margin: 0;
   padding-top: 0.15rem;
@@ -1403,7 +1610,7 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
   word-break: break-all;
   line-height: 1.4;
 }
-.status-choice { display: flex; align-items: center; gap: .5rem; cursor: pointer; }
+.status-required { min-width: 0; color: var(--muted); font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-align: right; text-transform: uppercase; white-space: nowrap; }
 .status-rules { margin-top: .75rem; padding: .75rem .85rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--page-soft); color: var(--ink-soft); font-size: .8rem; line-height: 1.5; }
 .status-rules p { margin: 0; }
 .status-rules p + p { margin-top: .45rem; }
