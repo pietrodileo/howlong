@@ -7,9 +7,12 @@ const props = defineProps<{
   intro?: string;
   /** Se true, la sezione parte (o diventa) aperta. */
   open?: boolean;
+  /** Keep a matching panel open while settings are filtered. */
+  forceOpen?: boolean;
 }>();
 
 const root = ref<HTMLDetailsElement | null>(null);
+const openBeforeForce = ref<boolean | null>(null);
 
 async function applyOpen(shouldOpen: boolean) {
   if (!shouldOpen || !root.value) return;
@@ -18,14 +21,36 @@ async function applyOpen(shouldOpen: boolean) {
   root.value.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+/** Open a filtered panel and restore its previous disclosure state afterward. */
+function applyForcedOpen(shouldOpen: boolean) {
+  if (!root.value) return;
+  if (shouldOpen) {
+    if (openBeforeForce.value === null) openBeforeForce.value = root.value.open;
+    root.value.open = true;
+    return;
+  }
+  if (openBeforeForce.value !== null) {
+    root.value.open = openBeforeForce.value;
+    openBeforeForce.value = null;
+  }
+}
+
 onMounted(() => {
   void applyOpen(!!props.open);
+  applyForcedOpen(!!props.forceOpen);
 });
 
 watch(
   () => props.open,
   (value) => {
     void applyOpen(!!value);
+  },
+);
+
+watch(
+  () => props.forceOpen,
+  (value) => {
+    void nextTick(() => applyForcedOpen(!!value));
   },
 );
 </script>

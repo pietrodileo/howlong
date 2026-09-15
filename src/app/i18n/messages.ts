@@ -107,6 +107,20 @@ export type MessageTree = {
   };
   settings: {
     title: string;
+    intro: string;
+    filterLabel: string;
+    filterPlaceholder: string;
+    filterNoResults: string;
+    groupPreferences: string;
+    groupPreferencesIntro: string;
+    groupWorkspace: string;
+    groupWorkspaceIntro: string;
+    groupEstimates: string;
+    groupEstimatesIntro: string;
+    groupPlanning: string;
+    groupPlanningIntro: string;
+    groupApplication: string;
+    groupApplicationIntro: string;
     import: string;
     save: string;
     export: string;
@@ -980,6 +994,20 @@ const it: MessageTree = {
   },
   settings: {
     title: 'Impostazioni',
+    intro: 'Personalizza aspetto, workspace, stime e strumenti di pianificazione di HowLong.',
+    filterLabel: 'Cerca in impostazioni',
+    filterPlaceholder: 'Cerca in impostazioni…',
+    filterNoResults: 'Nessuna impostazione corrisponde al filtro.',
+    groupPreferences: 'Preferenze',
+    groupPreferencesIntro: 'Profilo, lingua e aspetto.',
+    groupWorkspace: 'Workspace',
+    groupWorkspaceIntro: 'Cartelle e backup del workspace.',
+    groupEstimates: 'Stime',
+    groupEstimatesIntro: 'Colonne della stima, presentazione e nomi file di export.',
+    groupPlanning: 'Pianificazione',
+    groupPlanningIntro: 'Calendario di lavoro e stati delle attività.',
+    groupApplication: 'Applicazione',
+    groupApplicationIntro: 'Aggiornamenti e scorciatoie da tastiera.',
     import: 'Importa',
     save: 'Salva',
     export: 'Esporta',
@@ -1050,15 +1078,15 @@ const it: MessageTree = {
     sectionProfile: 'Profilo',
     sectionLocale: 'Lingua',
     sectionAppearance: 'Aspetto',
-    sectionEstimate: 'Vista Stima',
+    sectionEstimate: 'Colonne della stima',
     sectionPresentation: 'Presentazione',
-    sectionExport: 'Nome file export',
-    sectionFolder: 'Workspace',
-    sectionWorkspace: 'Import / export workspace',
+    sectionExport: 'Nomi file di export',
+    sectionFolder: 'Cartella workspace',
+    sectionWorkspace: 'Import / export del workspace',
     sectionShortcuts: 'Scorciatoie da tastiera',
     sectionGantt: 'Gantt',
-    sectionGanttWeekends: 'Gantt — Weekend',
-    sectionGanttStatuses: 'Gantt — Stati',
+    sectionGanttWeekends: 'Calendario di lavoro',
+    sectionGanttStatuses: 'Stati delle attività',
     ganttAllowedStatuses: 'Scegli gli stati disponibili nel menu. Da pianificare e Pianificata sono necessari per la pianificazione automatica. Gli stati già assegnati vengono conservati.',
     ganttWeekendIntro: 'Scegli quali giorni vengono trattati come weekend quando li nascondi nel Gantt.',
     ganttStatusIntro: 'Gli stati descrivono l’avanzamento senza modificare date o ore.',
@@ -1855,6 +1883,20 @@ const en: MessageTree = {
   },
   settings: {
     title: 'Settings',
+    intro: "Customize HowLong's appearance, workspace, estimates, and planning tools.",
+    filterLabel: 'Search settings',
+    filterPlaceholder: 'Search settings…',
+    filterNoResults: 'No settings match your filter.',
+    groupPreferences: 'Preferences',
+    groupPreferencesIntro: 'Profile, language, and appearance.',
+    groupWorkspace: 'Workspace',
+    groupWorkspaceIntro: 'Folders and workspace backups.',
+    groupEstimates: 'Estimates',
+    groupEstimatesIntro: 'Estimate columns, presentation, and export filenames.',
+    groupPlanning: 'Planning',
+    groupPlanningIntro: 'Working calendar and activity statuses.',
+    groupApplication: 'Application',
+    groupApplicationIntro: 'Updates and keyboard shortcuts.',
     import: 'Import',
     save: 'Save',
     export: 'Export',
@@ -1925,15 +1967,15 @@ const en: MessageTree = {
     sectionProfile: 'Profile',
     sectionLocale: 'Language',
     sectionAppearance: 'Appearance',
-    sectionEstimate: 'Estimate view',
+    sectionEstimate: 'Estimate columns',
     sectionPresentation: 'Presentation',
-    sectionExport: 'Export filename',
-    sectionFolder: 'Workspace',
-    sectionWorkspace: 'Workspace import / export',
+    sectionExport: 'Export filenames',
+    sectionFolder: 'Workspace folder',
+    sectionWorkspace: 'Workspace import/export',
     sectionShortcuts: 'Keyboard shortcuts',
     sectionGantt: 'Gantt',
-    sectionGanttWeekends: 'Gantt — Weekends',
-    sectionGanttStatuses: 'Gantt — Statuses',
+    sectionGanttWeekends: 'Working calendar',
+    sectionGanttStatuses: 'Activity statuses',
     ganttAllowedStatuses: 'Choose the statuses available in the menu. To plan and Planned are required for automatic scheduling. Existing activity statuses are preserved.',
     ganttWeekendIntro: 'Choose which days count as weekends when weekends are hidden in the Gantt.',
     ganttStatusIntro: 'Statuses describe progress without changing dates or effort.',

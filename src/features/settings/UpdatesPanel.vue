@@ -14,6 +14,10 @@ import {
 import { useI18n } from '../../app/i18n/useI18n';
 import SettingsPanel from './SettingsPanel.vue';
 
+const props = defineProps<{
+  forceOpen?: boolean;
+}>();
+
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'installing' | 'upToDate' | 'error';
 
 const { t } = useI18n();
@@ -134,7 +138,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <SettingsPanel class="update-panel" :title="t('settings.sectionUpdates')">
+  <SettingsPanel class="update-panel" :title="t('settings.sectionUpdates')" :force-open="props.forceOpen">
     <p class="field-hint">{{ t('settings.updateIntro') }}</p>
     <div class="version-box" :class="{ 'version-box--available': availableUpdate }">
       <div class="version-cell">
