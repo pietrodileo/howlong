@@ -126,25 +126,41 @@ Uses the OS webview — no bundled Chromium.
 
 ## Download
 
-Download the latest stable installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases):
+Download the latest stable installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases). Existing desktop installations can use **Settings → Updates** to download and install the matching signed update artifact.
 
-- **Windows:** `.exe` or `.msi`
-- **macOS:** `.dmg`
-- **Linux:** `.AppImage` or another published package
+### Install
 
-Existing desktop installations can use **Settings → Updates** to download and install the matching signed update artifact.
+#### macOS
 
-For a quick first installation from the latest stable GitHub Release, use the platform bootstrapper:
-
-```powershell
-irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1 | iex
-```
+Download the `.dmg` installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or install the latest stable release with the bootstrapper:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
 ```
 
-The first command installs the Windows x64 `.exe`; the second installs the matching macOS `.dmg` or Linux x64 AppImage. Review a remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install. These commands install stable releases only; existing installations should use **Settings → Updates**.
+The bootstrapper installs the matching macOS `.dmg` per user. Review the remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install.
+
+#### Windows
+
+Download the `.exe` or `.msi` installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or install the Windows x64 `.exe` with PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1 | iex
+```
+
+Review the remote script before piping it to PowerShell, or replace `main` with a reviewed commit or tag for a reproducible install.
+
+#### Linux
+
+Download the `.AppImage` or another published package from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or install the Linux x64 AppImage with the bootstrapper:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
+```
+
+Review the remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install.
+
+All bootstrapper commands install stable releases only. Existing installations should use **Settings → Updates**.
 
 ### Uninstall
 

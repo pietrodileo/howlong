@@ -10,7 +10,7 @@ command -v curl >/dev/null || {
 }
 
 release_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' -A 'HowLong-installer' "$api_url")"
-tag_name="$(printf '%s\n' "$release_json" | sed -n 's/^[[:space:]]*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+tag_name="$(printf '%s\n' "$release_json" | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
 
 if [[ ! "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "Error: the latest GitHub release is not a stable release." >&2
