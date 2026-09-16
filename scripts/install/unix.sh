@@ -38,31 +38,59 @@ case "$system:$architecture" in
 esac
 
 destination=''
-existing_installation=''
+existing_installations=()
 case "$system" in
   Darwin)
     destination="$HOME/Applications/HowLong.app"
     if [[ -e "$destination" ]]; then
-      existing_installation="$destination"
-    elif [[ -e "/Applications/HowLong.app" ]]; then
-      existing_installation="/Applications/HowLong.app"
+      existing_installations+=("$destination")
+    fi
+    if [[ -e "/Applications/HowLong.app" ]]; then
+      existing_installations+=("/Applications/HowLong.app")
     fi
     ;;
   Linux)
     destination="$HOME/.local/bin/howlong"
     if [[ -e "$destination" ]]; then
-      existing_installation="$destination"
+      existing_installations+=("$destination")
     fi
     ;;
 esac
 
-if [[ -n "$existing_installation" ]]; then
-  echo "Warning: an existing HowLong installation was found at $existing_installation."
-  if [[ "$system" == 'Darwin' && "$existing_installation" != "$destination" ]]; then
-    echo "This installer uses $destination, so it will install a separate user copy. Both apps may remain."
-  else
-    echo 'It will be updated. Your estimates and settings will be kept.'
-  fi
+uninstall_existing_installations() {
+  local installation
+
+  for installation in "${existing_installations[@]}"; do
+    if [[ "$installation" == "/Applications/HowLong.app" ]]; then
+      sudo rm -rf -- "$installation"
+    else
+      rm -rf -- "$installation"
+    fi
+  done
+}
+
+if ((${#existing_installations[@]} > 0)); then
+  echo 'Warning: an existing HowLong installation was found:'
+  printf '  %s\n' "${existing_installations[@]}"
+  while true; do
+    if ! IFS= read -r -p 'Uninstall it and install HowLong again? (y/n) ' answer </dev/tty; then
+      echo 'Error: could not read your choice from the terminal.' >&2
+      exit 1
+    fi
+    case "$answer" in
+      y|Y)
+        uninstall_existing_installations
+        break
+        ;;
+      n|N)
+        echo 'Installation cancelled.'
+        exit 0
+        ;;
+      *)
+        echo 'Please answer y or n.'
+        ;;
+    esac
+  done
 fi
 
 download_url="https://github.com/${repository}/releases/download/${tag_name}/${asset}"
