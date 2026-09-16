@@ -2,7 +2,7 @@
 
 HowLong? `0.7.2` on Windows, macOS, and Linux.
 
-[Project README](../../README.md) · [Italian manual](GUIDE.it.md) · [Build and release guide](../BUILD.md)
+[Project README](../../README.md) · [What's new](../WHATS_NEW.md) · [Italian manual](GUIDE.it.md) · [Build and release guide](../BUILD.md)
 
 **First session:** [Quick start](#1-quick-start) → [Settings](#3-settings) → create one estimate → **Save**.
 
@@ -10,7 +10,7 @@ HowLong? `0.7.2` on Windows, macOS, and Linux.
 
 ## Contents
 
-- [New in v0.7.2](#new-in-v072)
+- [What's new](../WHATS_NEW.md)
 - [1. Quick start](#1-quick-start)
 - [2. Workspace, home, and sidebar navigation](#2-workspace-home-and-sidebar-navigation)
   - [2.1. Sidebar navigation](#21-sidebar-navigation)
@@ -50,30 +50,6 @@ HowLong? `0.7.2` on Windows, macOS, and Linux.
 - [15. Troubleshooting and safety](#15-troubleshooting-and-safe-practices)
 
 ---
-
-## New in v0.7.2
-
-Version 0.7.2 makes the everyday workflow easier: Settings are searchable and save automatically, themes work across the main views, Plan can save scheduling changes, Compare shows more calculation detail, and Gantt exports clearer day totals.
-
-### Settings experience
-
-Settings are grouped into collapsible sections. Use the search field to find an option without opening every section. Empty Planning and Analytics screens offer the same actions as Home: **New Estimate**, **Open File**, and **Go to Library**.
-
-Settings save automatically after a short delay. The page briefly shows when the save is complete.
-
-The Appearance panel now supports light and dark themes across estimate, presentation, and planning views.
-
-Manager and Client sections can be collapsed to make long estimates easier to scan. This does not change the calculations.
-
-Compare keeps formula rows aligned and shows each row's formula summary and applied CTG percentage. The footer also includes **Total + CTG**.
-
-Plan now has a **Save** action in its header, so you can save scheduling changes without returning to Estimate.
-
-The Gantt XLSX export includes `Base (days)`, `Base + CTG (days)`, and `Planned (days)` for every activity. It no longer includes the old Planning column, and planned-day totals follow the weekend setting.
-
-### Updates panel
-
-Desktop users can check for a stable release from **Settings → Updates**. The updater verifies the publisher signature before installation. Browser previews do not have access to the native updater. For the full update and installation details, see [Updates](#31-updates) and the [first-install instructions](../BUILD.md#first-install-bootstrapper).
 
 ## 1. Quick start
 
@@ -660,4 +636,4 @@ If a shortcut changes, the authoritative source is always Settings → Keyboard 
 3. Back up the workspace and Library separately.
 4. Treat delete, reload, and workspace import as destructive actions.
 
-For installation, development, testing, release notes, and versioning, see the [Build and release guide](../BUILD.md) and the [README](../../README.md).
+For installation, development, testing, versioning, and the stable-release feature history, see the [Build and release guide](../BUILD.md), [What's new](../WHATS_NEW.md), and the [README](../../README.md).

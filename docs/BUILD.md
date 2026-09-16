@@ -1,6 +1,6 @@
 # Build and release workflow
 
-This guide explains how to develop, package, sign, and release *HowLong?*. Local and pre-release builds do not depend on the private key used by the official updater channel. For user-facing features, see the [English manual](guides/GUIDE.en.md) or [Italian manual](guides/GUIDE.it.md).
+This guide explains how to develop, package, sign, and release *HowLong?*. Local and pre-release builds do not depend on the private key used by the official updater channel. For user-facing features, see [What's new](WHATS_NEW.md), the [English manual](guides/GUIDE.en.md), or the [Italian manual](guides/GUIDE.it.md).
 
 > **Release automation:** Official stable releases are created automatically by GitHub Actions when a stable `vX.Y.Z` tag is pushed to GitHub. The [`release.yml`](../.github/workflows/release.yml) workflow builds the supported installers, signs the updater artifacts, generates release notes, and publishes the GitHub Release. Tags with a hyphen, such as `v0.7.2-beta.1`, are ignored by the stable release workflow.
 
@@ -206,6 +206,8 @@ Create stable releases deliberately rather than on every merge. Tagging is manua
 
 The release description is generated automatically from the new tag and the previous release tag through the Tauri release action. GitHub groups merged Pull Requests, lists contributors, and adds a full-changelog comparison link. Commits made directly without a Pull Request are included in that comparison link.
 
+Keep the short, user-facing feature list for each stable release in [What's new](WHATS_NEW.md). The GitHub release description remains the generated history of commits and Pull Requests.
+
 Before publishing, optionally run the manual `Smoke test release notes` workflow from **GitHub → Actions**. Leave `tag_name` empty to use an isolated smoke-test name, or provide an existing tag to inspect that release context. Open the completed run and its `Summary` to inspect the generated title and release-note body. It generates notes only; it does not create a tag, GitHub Release, installer, or upload.
 
 The private signing key is not needed to create or push a tag; GitHub Actions uses it only after the tag exists. The repository's `GITHUB_TOKEN` creates the GitHub Release and uploads its assets.
@@ -229,4 +231,4 @@ If a fork keeps the official endpoint and public key, it may follow upstream rel
 
 ## Current status
 
-For v0.7.2, the stable release pipeline, base/release configuration split, platform signing-key handling, manual release-notes smoke test, desktop Updates panel, redesigned and auto-saving settings, dark theme support, contingency comparison, aligned estimate comparison details, Gantt save controls, and updated Gantt XLSX export are present on `main`. Future stable releases reuse the same pipeline: update the version, push the version commit to `main`, then push a stable `vX.Y.Z` tag.
+The `main` branch uses the stable release workflow described above. For the user-facing feature history, see [What's new](WHATS_NEW.md). Future stable releases reuse the same pipeline: update the version, push the version commit to `main`, then push a stable `vX.Y.Z` tag.

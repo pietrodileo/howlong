@@ -2,7 +2,7 @@
 
 HowLong? `0.7.2` su Windows, macOS e Linux.
 
-[README del progetto](../../README.md) · [Manuale inglese](GUIDE.en.md) · [Guida di build e rilascio](../BUILD.md)
+[README del progetto](../../README.md) · [Novità](../WHATS_NEW.md) · [Manuale inglese](GUIDE.en.md) · [Guida di build e rilascio](../BUILD.md)
 
 **Prima sessione:** [Avvio rapido](#1-avvio-rapido) → [Impostazioni](#3-impostazioni) → crea una stima → **Salva**.
 
@@ -10,7 +10,7 @@ HowLong? `0.7.2` su Windows, macOS e Linux.
 
 ## Indice
 
-- [Novità della v0.7.2](#novità-della-v072)
+- [Novità](../WHATS_NEW.md)
 - [1. Avvio rapido](#1-avvio-rapido)
 - [2. Area di lavoro e navigazione](#2-area-di-lavoro-home-e-navigazione-nella-barra-laterale)
   - [2.1. Barra laterale](#21-navigazione-nella-barra-laterale)
@@ -50,34 +50,6 @@ HowLong? `0.7.2` su Windows, macOS e Linux.
 - [15. Risoluzione dei problemi e sicurezza](#15-risoluzione-dei-problemi-e-pratiche-sicure)
 
 ---
-
-## Novità della v0.7.2
-
-La versione 0.7.2 rende più semplice il lavoro quotidiano: le Impostazioni sono ricercabili e si salvano automaticamente, i temi funzionano nelle viste principali, Piano può salvare le modifiche alla pianificazione, Confronta mostra più dettagli di calcolo e l'esportazione Gantt presenta totali in giorni più chiari.
-
-### Esperienza delle impostazioni
-
-Le impostazioni sono organizzate in sezioni richiudibili. Usa il campo di ricerca per trovare un'opzione senza aprire ogni sezione. Le schermate vuote di Piano e Analisi offrono le stesse azioni della Home: **Nuova stima**, **Apri file** e **Vai alla libreria**.
-
-Le impostazioni vengono salvate automaticamente dopo una breve attesa. La pagina mostra per poco quando il salvataggio è completato.
-
-Il pannello Aspetto supporta ora i temi chiaro e scuro nelle viste di stima, presentazione e pianificazione.
-
-Le sezioni di presentazione Manager e Cliente possono essere richiuse per leggere più facilmente le stime lunghe. I calcoli non cambiano.
-
-Confronta mantiene allineate le righe formula e mostra il riepilogo della formula e la percentuale CTG applicata. Il piè di pagina include anche **Totale + CTG**.
-
-Piano ora dispone di un'azione **Salva** nell'intestazione, così puoi salvare le modifiche senza tornare alla vista Stima.
-
-Anche l'elenco delle stime in Confronta e il pannello delle attività nel Gantt possono essere compressi per lasciare più spazio al risultato.
-
-Il confronto della contingenza mostra gli scenari A/B/C con l'impegno di base invariato e consente di applicare lo scenario scelto alla sessione corrente.
-
-L'esportazione XLSX del Gantt include `Base (days)`, `Base + CTG (days)` e `Planned (days)` per ogni attività. La vecchia colonna Planning non viene più esportata e i giorni pianificati seguono l'impostazione relativa ai fine settimana.
-
-### Pannello Aggiornamenti
-
-Gli utenti desktop possono cercare una release stabile da **Impostazioni → Aggiornamenti**. L'updater verifica la firma del publisher prima dell'installazione. Le anteprime browser non hanno accesso all'updater nativo. Per i dettagli, consulta [Aggiornamenti](#31-aggiornamenti) e le [istruzioni per la prima installazione](../BUILD.md#first-install-bootstrapper).
 
 ## 1. Avvio rapido
 
@@ -666,4 +638,4 @@ Se una scorciatoia cambia, la fonte autorevole è sempre Impostazioni → Scorci
 3. Esegui separatamente il backup dell'area di lavoro e della Libreria.
 4. Considera eliminazione, ricaricamento e importazione di un'area di lavoro come azioni distruttive.
 
-Per installazione, sviluppo, test, note di rilascio e versioning, consulta la [guida di build e rilascio](../BUILD.md) e il [README](../../README.md).
+Per installazione, sviluppo, test, versioning e cronologia delle funzionalità delle release stabili, consulta la [guida di build e rilascio](../BUILD.md), le [novità](../WHATS_NEW.md) e il [README](../../README.md).

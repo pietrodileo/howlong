@@ -22,7 +22,7 @@
 <p align="center">
   <a href="#what-it-does">What it does</a> ·
   <a href="#features">Features</a> ·
-  <a href="#new-in-v072">New in v0.7.2</a> ·
+  <a href="docs/WHATS_NEW.md">What's new</a> ·
   <a href="#export-outputs">Exports</a> ·
   <a href="#app-showcase">Screens</a> ·
   <a href="#download">Download</a> ·
@@ -106,6 +106,8 @@ Check the remote script before piping it to a shell. To make the install reprodu
 
 The bootstrapper installs stable releases only. For an existing installation, use **Settings → Updates**.
 
+See [What's new](docs/WHATS_NEW.md) for the feature history of each stable release.
+
 ## Uninstall
 
 To remove *HowLong?* without deleting your estimates:
@@ -131,31 +133,6 @@ To remove *HowLong?* without deleting your estimates:
   ```
 
 These commands remove only the application. Your workspace, estimates, and settings stay on disk. Delete them separately if you want to reset all application data.
-
-# New in v0.7.2
-
-Version 0.7.2 brings the latest planning and estimate workflow improvements, along with redesigned settings and a user-controlled way to update the desktop app:
-
-- Settings now use focused, collapsible groups with a search filter.
-- Settings changes are saved automatically and show a brief saved state.
-- Workspace, estimate, planning, and application options now have clearer summaries and full-width controls.
-- When no estimate is open, the Planning and Analytics empty states offer the same **New Estimate**, **Open File**, and **Go to Library** actions as the home screen.
-- Collapse the Manager and Client presentation sections to make dense estimates easier to scan.
-- Collapse the Compare estimate list or the Gantt activity panel to give the result more room.
-- Compare contingency scenarios A/B/C with a fixed base effort, then apply the chosen scenario to the current estimate session.
-- Compare formula rows now keep their per-estimate calculation and applied CTG details aligned.
-- Save scheduling changes directly from the Plan header; **Add Macro** is available below the timeline.
-- Gantt XLSX exports include a complete view of each activity. The obsolete Planning column is no longer exported.
-- Planned Gantt days follow the setting that controls whether weekends count as working days.
-- Deleting an owner from the Gantt requires confirmation and removes that owner from all activities in the current estimate.
-- The **Settings → Updates** page checks the official GitHub feed only when you click **Check for updates**.
-- Only stable releases are considered. Prereleases are excluded.
-- The update panel shows the installed version, available version, release notes, download progress, and install state.
-- The updater downloads the update for the current operating system and architecture, installs it, and restarts the app when required.
-- The updater installs the newest stable release directly. Intermediate versions are skipped, so each release must preserve or migrate existing workspace data.
-- Browser previews do not update. Use the desktop app to check for and install updates.
-
-GitHub Actions produces the official platform builds and updater feed from stable tags. For signing, release assets, tagging, forks, and troubleshooting, see the [Build and release guide](docs/BUILD.md).
 
 # Export outputs
 
@@ -238,6 +215,7 @@ Contributor rules are in [AGENTS.md](AGENTS.md).
 │   └── shared/         Reusable UI and helpers
 ├── src-tauri/          Rust app and Tauri config
 ├── scripts/            Build, install, and smoke tests
+├── docs/WHATS_NEW.md   Stable-release feature history
 ├── docs/guides/        User guides
 ├── docs/images/        Guide screenshots
 └── package.json
