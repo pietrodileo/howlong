@@ -69,6 +69,8 @@ Settings, models, and estimates stay on disk as readable JSON files. They remain
 
 Download the latest stable installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases). If the desktop app is already installed, use **Settings → Updates** to download and install the appropriate update for your system.
 
+> **Already have HowLong installed?** Reinstalling updates the application files but keeps your estimates, Library, and settings. If the existing copy was installed in a different location, you may end up with two copies. For a normal update, use **Settings → Updates** instead.
+
 ## Install
 
 ### macOS

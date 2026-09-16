@@ -31,6 +31,7 @@ $temporaryInstaller = Join-Path ([System.IO.Path]::GetTempPath()) "HowLong-$([gu
 try {
   Write-Host "Downloading HowLong $($release.tag_name) for Windows x64..."
   Invoke-WebRequest -Uri $asset[0].browser_download_url -Headers $headers -OutFile $temporaryInstaller
+  Write-Host 'If HowLong is already installed, the installer will update that copy. Your estimates and settings stay on disk.'
   Write-Host 'Starting the installer...'
   Start-Process -FilePath $temporaryInstaller -Wait
 }

@@ -37,6 +37,34 @@ case "$system:$architecture" in
     ;;
 esac
 
+destination=''
+existing_installation=''
+case "$system" in
+  Darwin)
+    destination="$HOME/Applications/HowLong.app"
+    if [[ -e "$destination" ]]; then
+      existing_installation="$destination"
+    elif [[ -e "/Applications/HowLong.app" ]]; then
+      existing_installation="/Applications/HowLong.app"
+    fi
+    ;;
+  Linux)
+    destination="$HOME/.local/bin/howlong"
+    if [[ -e "$destination" ]]; then
+      existing_installation="$destination"
+    fi
+    ;;
+esac
+
+if [[ -n "$existing_installation" ]]; then
+  echo "Warning: an existing HowLong installation was found at $existing_installation."
+  if [[ "$system" == 'Darwin' && "$existing_installation" != "$destination" ]]; then
+    echo "This installer uses $destination, so it will install a separate user copy. Both apps may remain."
+  else
+    echo 'It will be updated. Your estimates and settings will be kept.'
+  fi
+fi
+
 download_url="https://github.com/${repository}/releases/download/${tag_name}/${asset}"
 temporary_directory="$(mktemp -d)"
 
@@ -65,13 +93,12 @@ case "$system" in
       echo 'Error: no application bundle was found in the DMG.' >&2
       exit 1
     fi
-    ditto "$app_path" "$HOME/Applications/HowLong.app"
+    ditto "$app_path" "$destination"
     hdiutil detach "$mount_point" -quiet
-    echo "HowLong installed at $HOME/Applications/HowLong.app"
-    open "$HOME/Applications/HowLong.app"
+    echo "HowLong installed at $destination"
+    open "$destination"
     ;;
   Linux)
-    destination="$HOME/.local/bin/howlong"
     mkdir -p "$(dirname "$destination")"
     install -m 755 "$temporary_directory/$asset" "$destination"
     echo "HowLong installed at $destination"
