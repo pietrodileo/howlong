@@ -70,6 +70,7 @@ uninstall_existing_installations() {
 }
 
 if ((${#existing_installations[@]} > 0)); then
+  echo 'If HowLong is already installed, the installer will update that copy. Your estimates and settings stay on disk.'
   echo 'Warning: an existing HowLong installation was found:'
   printf '  %s\n' "${existing_installations[@]}"
   while true; do
