@@ -14,7 +14,13 @@ if ($release.draft -or $release.prerelease -or $release.tag_name -notmatch '^v[0
   throw 'The latest GitHub release is not a stable release.'
 }
 
-if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString() -ne 'X64') {
+$architecture = if ($env:PROCESSOR_ARCHITEW6432) {
+  $env:PROCESSOR_ARCHITEW6432
+} else {
+  $env:PROCESSOR_ARCHITECTURE
+}
+
+if ([string]::IsNullOrWhiteSpace($architecture) -or $architecture -notmatch '^(AMD64|X64)$') {
   throw 'The Windows installer currently supports x64 only.'
 }
 
