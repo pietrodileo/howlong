@@ -65,6 +65,70 @@ Everything is stored locally. Settings, models, and estimates live as JSON on di
 - Keyboard shortcuts for save, tabs, views, and undo/redo.
 - English or Italian UI; light or dark theme.
 
+## Download
+
+Download the latest stable installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases). Existing desktop installations can use **Settings → Updates** to download and install the matching signed update artifact.
+
+### Install
+
+#### macOS
+
+Download the `.dmg` installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or install the latest stable release with the bootstrapper:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
+```
+
+The bootstrapper installs the matching macOS `.dmg` per user. Review the remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install.
+
+#### Windows
+
+Download the `.exe` or `.msi` installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or install the Windows x64 `.exe` with PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1 | iex
+```
+
+Review the remote script before piping it to PowerShell, or replace `main` with a reviewed commit or tag for a reproducible install.
+
+#### Linux
+
+Download the `.AppImage` or another published package from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or install the Linux x64 AppImage with the bootstrapper:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
+```
+
+Review the remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install.
+
+All bootstrapper commands install stable releases only. Existing installations should use **Settings → Updates**.
+
+### Uninstall
+
+Uninstall HowLong? without deleting your estimates:
+
+- **Windows:** open **Settings → Apps → Installed apps**, select **HowLong**, and choose **Uninstall**. To open the correct settings page from PowerShell:
+
+  ```powershell
+  Start-Process "ms-settings:appsfeatures"
+  ```
+
+- **macOS:** the bootstrapper installs per-user at `~/Applications/HowLong.app`:
+
+  ```bash
+  rm -rf "$HOME/Applications/HowLong.app"
+  ```
+
+  If you installed the app manually in `/Applications`, remove `/Applications/HowLong.app` instead.
+
+- **Linux:** the bootstrapper installs the AppImage at `~/.local/bin/howlong`:
+
+  ```bash
+  rm -f "$HOME/.local/bin/howlong"
+  ```
+
+These actions remove the application only. The workspace, estimates, and settings remain on disk. Delete those separately only when you intentionally want a complete data reset.
+
 ## New in v0.7.1
 
 Version 0.7.1 adds a redesigned settings experience alongside the safe, user-controlled update path for the desktop app:
@@ -130,70 +194,6 @@ Full walkthrough (settings, shortcuts, formats, troubleshooting): [English manua
 | Storage            | Local JSON files        |
 
 Uses the OS webview — no bundled Chromium.
-
-## Download
-
-Download the latest stable installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases). Existing desktop installations can use **Settings → Updates** to download and install the matching signed update artifact.
-
-### Install
-
-#### macOS
-
-Download the `.dmg` installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or install the latest stable release with the bootstrapper:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
-```
-
-The bootstrapper installs the matching macOS `.dmg` per user. Review the remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install.
-
-#### Windows
-
-Download the `.exe` or `.msi` installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or install the Windows x64 `.exe` with PowerShell:
-
-```powershell
-irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1 | iex
-```
-
-Review the remote script before piping it to PowerShell, or replace `main` with a reviewed commit or tag for a reproducible install.
-
-#### Linux
-
-Download the `.AppImage` or another published package from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or install the Linux x64 AppImage with the bootstrapper:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
-```
-
-Review the remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install.
-
-All bootstrapper commands install stable releases only. Existing installations should use **Settings → Updates**.
-
-### Uninstall
-
-Uninstall HowLong? without deleting your estimates:
-
-- **Windows:** open **Settings → Apps → Installed apps**, select **HowLong**, and choose **Uninstall**. To open the correct settings page from PowerShell:
-
-  ```powershell
-  Start-Process "ms-settings:appsfeatures"
-  ```
-
-- **macOS:** the bootstrapper installs per-user at `~/Applications/HowLong.app`:
-
-  ```bash
-  rm -rf "$HOME/Applications/HowLong.app"
-  ```
-
-  If you installed the app manually in `/Applications`, remove `/Applications/HowLong.app` instead.
-
-- **Linux:** the bootstrapper installs the AppImage at `~/.local/bin/howlong`:
-
-  ```bash
-  rm -f "$HOME/.local/bin/howlong"
-  ```
-
-These actions remove the application only. The workspace, estimates, and settings remain on disk. Delete those separately only when you intentionally want a complete data reset.
 
 ## Build from source
 
