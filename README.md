@@ -108,7 +108,7 @@ The bootstrapper installs stable releases only. For an existing installation, us
 
 ## Uninstall
 
-To remove HowLong? without deleting your estimates:
+To remove *HowLong?* without deleting your estimates:
 
 - **Windows:** Open **Settings → Apps → Installed apps**, select **HowLong**, and choose **Uninstall**. You can open the settings page from PowerShell with:
 
@@ -159,7 +159,7 @@ GitHub Actions produces the official platform builds and updater feed from stabl
 
 # Export outputs
 
-HowLong? lets you export the complete estimate or a focused view for internal review, client delivery, or timeline communication. Choose the source view based on who will use the file and what they need to see.
+*HowLong?* lets you export the complete estimate or a focused view for internal review, client delivery, or timeline communication. Choose the source view based on who will use the file and what they need to see.
 
 | Source   | What it contains                                                   | Best for               |
 | -------- | ------------------------------------------------------------------ | ---------------------- |
@@ -205,42 +205,65 @@ Settings are grouped into searchable panels. Choose a light or dark theme, confi
 
 For a walkthrough of settings, shortcuts, formats, and troubleshooting, see the [English manual](docs/guides/GUIDE.en.md) or [manuale italiano](docs/guides/GUIDE.it.md).
 
-# Stack
+# Technology Stack
 
-| Layer              | Technology              |
-| ------------------ | ----------------------- |
-| Desktop shell      | Tauri 2, Rust           |
-| Interface          | Vue 3, TypeScript, Vite |
-| State / validation | Pinia, Zod              |
-| Spreadsheet export | ExcelJS                 |
-| Storage            | Local JSON files        |
+*HowLong?* is built using a modern, open source desktop architecture. Each layer leverages proven tools and libraries to ensure performance, reliability, and maintainability:
 
-HowLong? uses the OS webview, so it does not bundle Chromium.
+| Layer                | Technology                       | Purpose                                           |
+| -------------------- | ------------------------------- | ------------------------------------------------- |
+| Desktop shell        | Tauri 2, Rust                    | Secure, lightweight native integration            |
+| Interface            | Vue 3, TypeScript, Vite          | Reactive UI, strong typing, and rapid development |
+| State & validation   | Pinia, Zod                       | Centralized state management and schema validation |
+| Spreadsheet export   | ExcelJS                          | Exports to Excel/XLSX files                       |
+| Persistent storage   | Local JSON files                  | Fast, transparent local persistence                |
+
+*HowLong?* takes advantage of your operating system's built-in webview—meaning there's no need to bundle Chromium or any separate browser engine. This results in smaller installers, better performance, and seamless integration with Windows, macOS, and Linux.
 
 # Build from source
 
-Use these steps to run HowLong? from a local checkout. Setup takes about 2 minutes if Node 20+ and Rust are already installed. Allow 20 to 30 minutes if you still need [Rust](https://www.rust-lang.org/tools/install) and [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
+Build from source if you want the latest features, want to contribute, or need to run *HowLong?* on a platform or configuration not covered by the pre-built releases. This gives you full access to the source code and development tools, lets you test unreleased changes, and enables local debugging or customization.
 
-**Prerequisites:** Node.js 20+, Rust stable, and the required platform tools ([Windows](https://v2.tauri.app/start/prerequisites/): VS Build Tools 2022, Windows SDK, WebView2; **macOS:** Xcode CLT; **Linux:** WebKitGTK and Tauri dependencies).
+To run *HowLong?* from a local clone, follow these steps. If you already have Node.js 20+ and Rust set up, the whole process takes about 2 minutes. If you still need to install [Rust](https://www.rust-lang.org/tools/install) or meet the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/), complete those first.
+
+## Prerequisites
+
+- **Node.js:** Version 20 or higher
+- **Rust:** Stable toolchain  
+- **Platform tools:**  
+  - **Windows:** [VS Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/), Windows SDK, WebView2  
+  - **macOS:** Xcode Command Line Tools  
+  - **Linux:** WebKitGTK, plus all [Tauri Linux dependencies](https://v2.tauri.app/start/prerequisites/)
+
+## Steps to run locally
 
 1. Run `npm install` to install the project dependencies.
-2. Run `npm run tauri:dev` to start the full desktop app with filesystem access, dialogs, and native export.
-3. Run `npm run dev` to start the browser UI only. Native file features are unavailable there.
+2. Choose *one* of the following commands, depending on your use case:
+   - Run `npm run tauri:dev` to launch the full desktop app (with filesystem access, dialogs, and native export).
+   - Run `npm run dev` to launch the browser-based UI only (no native file integration; for frontend development/testing).
+   > Typically, you'll only run *one* of these at a time: `tauri:dev` for the full desktop experience, or `dev` if you want to test the frontend in the browser.
 
 ## Verify changes
 
-```bash
-npm run build
-npm run smoke
-npm run smoke:gantt
-npm run smoke:analytics
-```
+After making any changes, whether to the code or dependency versions, use the following scripts to check that the application still builds and its key workflows run correctly:
 
-`npm run build` checks the frontend types and bundles the app. The smoke scripts exercise contingency, Gantt dates, and Analytics projections so you can catch regressions in those areas.
+Run the following scripts as needed to verify your changes:
+
+- To type-check and build the frontend assets: `npm run build`
+  This ensures your code compiles without errors and the app can be bundled.
+- To run basic smoke tests on the core app features: `npm run smoke`
+  These quick end-to-end tests catch critical failures in key workflows.
+- To specifically test planning boards and Gantt chart functionality: `npm run smoke:gantt`
+  This checks that the creation and manipulation of planning boards and timeline/dependency logic work as expected.
+- To test the analytics and projection calculations: `npm run smoke:analytics`
+  This script runs through analytics scenarios, looking for calculation regressions or math errors.
+
+These scripts are designed to quickly detect major issues after changes. Running them together will help ensure you have not broken the build or introduced bugs in key areas like contingency management, timeline scheduling, or analytics reporting.
 
 ## Release builds
 
 This section is for maintainers who want to build installers or publish a release. Most users can skip it and use the Download section. Build outputs go to `src-tauri/target/release/bundle/`. Build on the target OS. For example, build Windows installers on Windows.
+
+The following scripts are provided to build pre-release and official release installers for each supported platform:
 
 | Platform | Pre-release script                      | Official release script             |
 | -------- | --------------------------------------- | ------------------------------------ |
@@ -249,18 +272,38 @@ This section is for maintainers who want to build installers or publish a releas
 | Linux    | `scripts/linux/build-prerelease.sh`    | `scripts/linux/build-release.sh`    |
 | Any      | `npm run tauri build` (default config) | Use the platform release script     |
 
-Use the prerelease scripts for local testing. They keep the application name **HowLong**, use a separate application identifier, and do not need a signing key or create official updater artifacts. Use the release scripts for official builds. They use `~/.tauri/howlong.key` (or `%USERPROFILE%\.tauri\howlong.key` on Windows) and require a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. To use another key locally, set `TAURI_SIGNING_PRIVATE_KEY` to its path or contents before running the release script. The scripts stop early when signing setup is incomplete.
+Pre-release scripts generate unsigned builds for local testing, while official release scripts create signed installers for public distribution.
+
+### Pre-release builds
+
+For local development and testing, use the prerelease scripts. These builds retain the application name **HowLong**, use a distinct application identifier, and do not require signing keys or generate official updater artifacts. 
+
+### Official releases
+
+For official releases, always use the release scripts. These scripts require a valid signing key and password to ensure releases are secure and trusted. By default, the signing key should be stored at `~/.tauri/howlong.key` on Unix-based systems, or `%USERPROFILE%\.tauri\howlong.key` on Windows. You must also provide a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` to unlock and use the signing key.
+
+If you prefer to use a different key for a local release build, you can set the `TAURI_SIGNING_PRIVATE_KEY` environment variable to specify either the file path or the actual contents of your private key.
+
+The release scripts are designed to check for both the presence of a valid key and a password. If the signing setup is missing or incomplete, the scripts will stop and display an error, preventing the creation of an unsigned or improperly signed official release. This process guarantees that every official build is signed and verifiable, helping users trust release downloads.
 
 For the full release process, including development, prereleases, stable releases, signing, tagging, and forks, see the [Build and release guide](docs/BUILD.md).
 
-Push a stable `v*` tag to publish an updater release through `.github/workflows/release.yml`. Tags containing a hyphen are ignored. The workflow builds Windows x64, Linux x64, macOS Intel, and macOS Apple Silicon artifacts, generates release notes from the tag and previous release, then uploads the signed installers, updater bundles, signatures, and `latest.json` to the GitHub Release.
+### Tags and Official Releases
 
-Before pushing the first release tag, add these GitHub Actions secrets:
+To publish an official updater release, push a stable Git tag in the format `v*` (e.g., `v1.2.3`). Tags that include a hyphen (such as `v1.2.3-beta`) are ignored for updater releases. When a valid tag is pushed, `.github/workflows/release.yml` is triggered, which performs the following:
 
-- `TAURI_SIGNING_PRIVATE_KEY`: the full contents of the private key generated with `npm run tauri -- signer generate -w ~/.tauri/howlong.key`
-- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: the non-empty passphrase used to generate the protected release key
+- Builds release artifacts for Windows x64, Linux x64, macOS Intel, and macOS Apple Silicon.
+- Automatically generates release notes by comparing the tag to the previous release.
+- Uploads the signed installers, updater bundles, signature files, and `latest.json` to the new GitHub Release.
+- *HowLong?*'s internal updater will automatically detect and download only official releases.
 
-Never commit the private key. Keep it protected and use the same key for future releases. If you lose or replace it, existing installations cannot accept new updates.
+**Before pushing your first release tag, make sure the following GitHub Actions secrets are configured:**
+
+- `TAURI_SIGNING_PRIVATE_KEY`: The entire contents of your Tauri private key, generated via `npm run tauri -- signer generate -w ~/.tauri/howlong.key`
+- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: The passphrase you set when generating the protected private key (must not be empty).
+
+> ⚠️ **Do not commit your private key.**  
+Keep your private key strictly confidential—secure it in a protected location and always reuse the same key for all future releases. Losing or replacing this key will prevent existing app installations from accepting or verifying future updates.
 
 ### Updater signing, passwords, and forks
 
