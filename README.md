@@ -17,7 +17,7 @@
   <a href="https://github.com/pietrodileo/howlong/releases"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat" alt="macOS | Windows | Linux"></a>
 </p>
 
-*HowLong?* helps you build, plan, analyze, compare, and deliver project estimates in a dedicated desktop app. Replace spreadsheets with clear, structured estimates stored locally as readable JSON files. No account or cloud service is required, so your estimates stay private and under your control.
+*HowLong?* is a desktop app for building, planning, analyzing, comparing, and delivering project estimates. It keeps estimates clear and structured, with data stored locally in readable JSON files. There is no account or cloud service, so your estimates stay private and under your control.
 
 <p align="center">
   <a href="#what-it-does">What it does</a> ·
@@ -35,39 +35,39 @@
 
 # What it does
 
-Spreadsheets make estimates difficult to reuse, audit, and hand off. *HowLong?* keeps effort, contingency, and structure in one editable document. It separates **internal planning** from **client delivery**.
+Spreadsheets can make estimates difficult to reuse, audit, or hand off. *HowLong?* keeps effort, contingency, and structure together in one editable document, with separate views for **internal planning** and **client delivery**.
 
-All data stays local. Settings, models, and estimates are stored as readable JSON files on disk. No account or cloud service is required.
+Settings, models, and estimates stay on disk as readable JSON files. They remain portable and under your control. No account or cloud service is required.
 
 # Features
 
 ## Estimates
 
-- Start with a bundled Italian or English model, or build your own reusable template.
-- Organize work into macros, subtasks, categories, labels, and notes.
-- Add formula rows (sum, average, min, max × %) for overhead and management effort.
-- Apply contingency globally, by category, or to individual rows. Compare scenarios A/B/C before committing.
-- Track project metadata and an audit history of saves.
+- Use a bundled Italian or English model, or create a reusable template of your own.
+- Break work into macros, subtasks, categories, labels, and notes.
+- Add formula rows for sums, averages, minimums, maximums, and percentage-based overhead or management effort.
+- Set contingency globally, by category, or for individual rows. Compare scenarios A/B/C before you commit.
+- Keep project metadata and an audit history of saves.
 
 ## Planning and analysis
 
-- **Plan:** Use a day- or month-based Gantt with configurable weekends. The plan changes dates only, so effort stays unchanged. XLSX exports include base, base + CTG, and planned days for each activity.
-- **Analytics:** View summary cards, an activity donut, and stacked base-vs-contingency bars. Drill into one macro or expand several.
-- **Compare:** Line up multiple saved estimates side by side.
-- **Manager view:** Round and redistribute values, include or exclude rows, and override the presented totals.
-- **Client view:** Preview the filtered version of what you deliver.
+- **Plan:** Build a day- or month-based Gantt, choose whether weekends count, and export a complete view of each activity with its effort, contingency, and planned timeline.
+- **Analytics:** Get an overview of the estimate with summary cards, a donut chart, and stacked bars. Drill into one macro or expand several.
+- **Compare:** Review saved estimates side by side.
+- **Manager view:** Adjust the presentation by rounding or redistributing values, including or excluding rows, and overriding totals.
+- **Client view:** Show a filtered version of the estimate with only what you plan to deliver.
 
 ## Files and workflow
 
-- Save estimates in a local **Library**, using the default app data folder or a custom path.
-- Import and export JSON, YAML, and XLSX. Bulk-export selected library files as a ZIP.
+- Save estimates in the local **Library**, either in the default app-data folder or in a folder you choose.
+- Import and export JSON, YAML, and XLSX. Export a selection of Library files as a ZIP.
 - Open exported files from the completion dialog.
 - Use keyboard shortcuts for saving, tabs, views, and undo/redo.
-- Choose an English or Italian UI and a light or dark theme.
+- Choose English or Italian, and switch between light and dark themes.
 
 # Download
 
-Download the latest stable installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases). If you already have the desktop app, use **Settings → Updates** to download and install the signed artifact for your system.
+Download the latest stable installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases). If the desktop app is already installed, use **Settings → Updates** to download and install the appropriate update for your system.
 
 ## Install
 
@@ -76,10 +76,10 @@ Download the latest stable installer from the [GitHub Releases page](https://git
 Download the `.dmg` installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or use the bootstrapper to install the latest stable release:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash
 ```
 
-The bootstrapper installs the matching macOS `.dmg` for the current user. Review the remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install.
+The bootstrapper installs the matching macOS `.dmg` for the current user. Check the remote script before piping it to a shell. To make the install reproducible, replace `main` with a reviewed commit or tag.
 
 ### Windows
 
@@ -89,31 +89,31 @@ Download the `.exe` or `.msi` installer from the [GitHub Releases page](https://
 irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1 | iex
 ```
 
-Review the remote script before piping it to PowerShell, or replace `main` with a reviewed commit or tag for a reproducible install.
+Check the remote script before piping it to PowerShell. To make the install reproducible, replace `main` with a reviewed commit or tag.
 
 ### Linux
 
 Download the `.AppImage` or another published package from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or use the bootstrapper to install the Linux x64 AppImage:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash
 ```
 
-Review the remote script before piping it to a shell, or replace `main` with a reviewed commit or tag for a reproducible install.
+Check the remote script before piping it to a shell. To make the install reproducible, replace `main` with a reviewed commit or tag.
 
-All bootstrapper commands install stable releases only. Use **Settings → Updates** for an existing installation.
+The bootstrapper installs stable releases only. For an existing installation, use **Settings → Updates**.
 
 ## Uninstall
 
-Remove HowLong? without deleting your estimates:
+To remove HowLong? without deleting your estimates:
 
-- **Windows:** Open **Settings → Apps → Installed apps**, select **HowLong**, and choose **Uninstall**. To open the settings page from PowerShell:
+- **Windows:** Open **Settings → Apps → Installed apps**, select **HowLong**, and choose **Uninstall**. You can open the settings page from PowerShell with:
 
   ```powershell
   Start-Process "ms-settings:appsfeatures"
   ```
 
-- **macOS:** The bootstrapper installs the app for the current user at `~/Applications/HowLong.app`:
+- **macOS:** The bootstrapper installs the app for the current user at `~/Applications/HowLong.app`. Remove it with:
 
   ```bash
   rm -rf "$HOME/Applications/HowLong.app"
@@ -121,59 +121,61 @@ Remove HowLong? without deleting your estimates:
 
   If you installed the app manually in `/Applications`, remove `/Applications/HowLong.app` instead.
 
-- **Linux:** The bootstrapper installs the AppImage at `~/.local/bin/howlong`:
+- **Linux:** The bootstrapper installs the AppImage at `~/.local/bin/howlong`. Remove it with:
 
   ```bash
   rm -f "$HOME/.local/bin/howlong"
   ```
 
-These commands remove only the application. Your workspace, estimates, and settings remain on disk. Delete them separately only if you want to reset all application data.
+These commands remove only the application. Your workspace, estimates, and settings stay on disk. Delete them separately if you want to reset all application data.
 
 # New in v0.7.1
 
-Version 0.7.1 adds redesigned settings and a safe, user-controlled update path for the desktop app:
+Version 0.7.1 brings redesigned settings and a user-controlled way to update the desktop app:
 
-- Settings use focused, collapsible groups with a search filter.
-- Workspace, estimate, planning, and application options use clearer summaries and full-width controls.
-- Planning and Analytics empty states offer the same **New Estimate**, **Open File**, and **Go to Library** actions as the home screen.
-- Manager and Client presentation sections can be collapsed to make dense estimates easier to scan.
-- Gantt XLSX exports include `Base (days)`, `Base + CTG (days)`, and `Planned (days)` for each activity. The obsolete Planning column is no longer exported.
-- Planned Gantt days follow the setting that determines whether weekend days count as working days.
-- Deleting an owner from the Gantt asks for confirmation, then removes that owner from all activities in the current estimate.
-- **Settings → Updates** checks the official GitHub feed only when you click **Check for updates**.
+- Settings now use focused, collapsible groups with a search filter.
+- Workspace, estimate, planning, and application options now have clearer summaries and full-width controls.
+- When no estimate is open, the Planning and Analytics empty states offer the same **New Estimate**, **Open File**, and **Go to Library** actions as the home screen.
+- Collapse the Manager and Client presentation sections to make dense estimates easier to scan.
+- Gantt XLSX exports include a complete view of each activity. The obsolete Planning column is no longer exported.
+- Planned Gantt days follow the setting that controls whether weekends count as working days.
+- Deleting an owner from the Gantt requires confirmation and removes that owner from all activities in the current estimate.
+- The **Settings → Updates** page checks the official GitHub feed only when you click **Check for updates**.
 - Only stable releases are considered. Prereleases are excluded.
-- The panel shows the installed version, available version, release notes, download progress, and install state.
-- The updater downloads the signed artifact for the current operating system and architecture, installs it, and restarts the app when required.
-- Updates go directly to the newest stable release. Intermediate versions are skipped, so each release must preserve or migrate existing workspace data.
+- The update panel shows the installed version, available version, release notes, download progress, and install state.
+- The updater downloads the update for the current operating system and architecture, installs it, and restarts the app when required.
+- The updater installs the newest stable release directly. Intermediate versions are skipped, so each release must preserve or migrate existing workspace data.
 - Browser previews do not update. Use the desktop app to check for and install updates.
 
-GitHub Actions produces the official platform builds and updater feed from stable tags. See the [Build and release guide](docs/BUILD.md) for signing, release assets, tagging, forks, and troubleshooting.
+GitHub Actions produces the official platform builds and updater feed from stable tags. For signing, release assets, tagging, forks, and troubleshooting, see the [Build and release guide](docs/BUILD.md).
 
 # Export outputs
 
-| Source   | What you get                                                           | Use when               |
-| -------- | ---------------------------------------------------------------------- | ---------------------- |
-| Estimate | Full calculation: hierarchy, formulas, contingency, notes              | Technical handover     |
-| Manager  | Rounded/redistributed presented values                                 | Internal approval      |
-| Client   | Only included activities and visible notes/labels                      | Client delivery        |
-| Plan     | XLSX Gantt with dates, status, owner, base/CTG/planned days, and timeline | Timeline communication |
+HowLong? lets you export the complete estimate or a focused view for internal review, client delivery, or timeline communication. Choose the source view based on who will use the file and what they need to see.
 
-| Format         | Role                                                                    |
-| -------------- | ----------------------------------------------------------------------- |
-| `.howlong.json` | Native editable estimate (the only format you can re-import)          |
-| YAML           | Structured input for reviewed AI workflows (e.g. drafting Jira tickets) |
-| XLSX           | Human-readable snapshot from any source view above                     |
-| ZIP            | Multiple library exports in one archive                                |
+| Source   | What it contains                                                   | Best for               |
+| -------- | ------------------------------------------------------------------ | ---------------------- |
+| Estimate | Full estimate with hierarchy, formulas, contingency, and notes    | Technical handover     |
+| Manager  | Rounded or redistributed values                                   | Internal approval      |
+| Client   | Included activities with visible notes and labels                 | Client delivery        |
+| Plan     | Gantt timeline with dates, status, owners, effort, and planned work | Timeline communication |
 
-Exports create a **delivery copy**. They do not replace **Save**, which updates the working file in the Library. YAML and XLSX cannot be imported back into the app.
+| Format         | Use it for                                                             |
+| -------------- | ---------------------------------------------------------------------- |
+| `.howlong.json` | Native editable estimate, and the only format you can re-import       |
+| YAML           | Structured data for reviewed AI workflows, such as drafting Jira tickets |
+| XLSX           | Readable snapshot of any source view                                  |
+| ZIP            | An archive containing multiple Library exports                        |
 
-# Screens
+Exports are copies of the current estimate or view. They do not replace **Save**, which updates the working file in the Library. `.howlong.json` is the only format you can import back into HowLong; YAML and XLSX are for reading, sharing, or downstream workflows, while ZIP bundles multiple exports.
 
-From Home, create or open an estimate, browse the Library, or open a recent file. Plan and Analytics require an open estimate tab.
+# App showcase
+
+Start on the Home screen to create or open an estimate, browse the Library, or reopen a recent file. Once an estimate is open, the editor gives you access to Plan and Analytics.
 
 ![HowLong home screen with navigation, creation actions, and recently opened estimates](docs/images/homepage.png)
 
-The editor keeps multiple estimates open in tabs and shows live base, contingency, and total figures.
+The editor screenshot shows multiple estimates open in tabs, with the current base, contingency, and total figures visible at a glance. From an open tab, switch to Plan for the Gantt timeline or Analytics for a visual summary, shown below.
 
 ![Estimate editor with multiple open tabs and hierarchical work items](docs/images/new_estimate_with_tabs.png)
 
@@ -181,7 +183,7 @@ The editor keeps multiple estimates open in tabs and shows live base, contingenc
 | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | ![Day-based Gantt planning board](docs/images/gantt_1.png) | ![Analytics overview with donut and stacked bars](docs/images/analytics.png) |
 
-For a full walkthrough of settings, shortcuts, formats, and troubleshooting, see the [English manual](docs/guides/GUIDE.en.md) or [manuale italiano](docs/guides/GUIDE.it.md).
+For a walkthrough of settings, shortcuts, formats, and troubleshooting, see the [English manual](docs/guides/GUIDE.en.md) or [manuale italiano](docs/guides/GUIDE.it.md).
 
 # Stack
 
@@ -193,17 +195,17 @@ For a full walkthrough of settings, shortcuts, formats, and troubleshooting, see
 | Spreadsheet export | ExcelJS                 |
 | Storage            | Local JSON files        |
 
-HowLong? uses the OS webview and does not bundle Chromium.
+HowLong? uses the OS webview, so it does not bundle Chromium.
 
 # Build from source
 
-**Time:** About 2 minutes with Node 20+ and Rust already installed, or 20 to 30 minutes if you still need [Rust](https://www.rust-lang.org/tools/install) and [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
+Use these steps to run HowLong? from a local checkout. Setup takes about 2 minutes if Node 20+ and Rust are already installed. Allow 20 to 30 minutes if you still need [Rust](https://www.rust-lang.org/tools/install) and [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
 
-**All platforms:** Node.js 20+, Rust stable, and the required platform tools ([Windows](https://v2.tauri.app/start/prerequisites/): VS Build Tools 2022, Windows SDK, WebView2; **macOS:** Xcode CLT; **Linux:** WebKitGTK and Tauri dependencies).
+**Prerequisites:** Node.js 20+, Rust stable, and the required platform tools ([Windows](https://v2.tauri.app/start/prerequisites/): VS Build Tools 2022, Windows SDK, WebView2; **macOS:** Xcode CLT; **Linux:** WebKitGTK and Tauri dependencies).
 
-1. `npm install`
-2. `npm run tauri:dev` for the full desktop app with filesystem access, dialogs, and native export.
-3. `npm run dev` for the browser UI only. Native file features are unavailable there.
+1. Run `npm install` to install the project dependencies.
+2. Run `npm run tauri:dev` to start the full desktop app with filesystem access, dialogs, and native export.
+3. Run `npm run dev` to start the browser UI only. Native file features are unavailable there.
 
 ## Verify changes
 
@@ -214,11 +216,11 @@ npm run smoke:gantt
 npm run smoke:analytics
 ```
 
-`build` type-checks and bundles the frontend. The smoke scripts cover contingency, Gantt dates, and Analytics projections.
+`npm run build` checks the frontend types and bundles the app. The smoke scripts exercise contingency, Gantt dates, and Analytics projections so you can catch regressions in those areas.
 
 ## Release builds
 
-Build outputs go to `src-tauri/target/release/bundle/`. Build on the target OS, such as Windows for Windows installers.
+This section is for maintainers who want to build installers or publish a release. Most users can skip it and use the Download section. Build outputs go to `src-tauri/target/release/bundle/`. Build on the target OS. For example, build Windows installers on Windows.
 
 | Platform | Pre-release script                      | Official release script             |
 | -------- | --------------------------------------- | ------------------------------------ |
@@ -227,28 +229,28 @@ Build outputs go to `src-tauri/target/release/bundle/`. Build on the target OS, 
 | Linux    | `scripts/linux/build-prerelease.sh`    | `scripts/linux/build-release.sh`    |
 | Any      | `npm run tauri build` (default config) | Use the platform release script     |
 
-The prerelease scripts keep the application name **HowLong**, use a separate application identifier, do not require a signing key, and do not create official updater artifacts. The release scripts use `~/.tauri/howlong.key` (or `%USERPROFILE%\.tauri\howlong.key` on Windows) and require a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. To use another key locally, set `TAURI_SIGNING_PRIVATE_KEY` to its path or contents before running the release script. The scripts fail early when signing setup is incomplete.
+Use the prerelease scripts for local testing. They keep the application name **HowLong**, use a separate application identifier, and do not need a signing key or create official updater artifacts. Use the release scripts for official builds. They use `~/.tauri/howlong.key` (or `%USERPROFILE%\.tauri\howlong.key` on Windows) and require a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. To use another key locally, set `TAURI_SIGNING_PRIVATE_KEY` to its path or contents before running the release script. The scripts stop early when signing setup is incomplete.
 
-For the complete development, prerelease, stable release, signing, tagging, and fork workflow, see the [Build and release guide](docs/BUILD.md).
+For the full release process, including development, prereleases, stable releases, signing, tagging, and forks, see the [Build and release guide](docs/BUILD.md).
 
-`.github/workflows/release.yml` publishes stable updater releases when you push a stable `v*` tag. Tags containing a hyphen are ignored. The workflow builds Windows x64, Linux x64, macOS Intel, and macOS Apple Silicon artifacts, generates release notes from the tag and previous release, then uploads the signed installers, updater bundles, signatures, and `latest.json` to the GitHub Release.
+Push a stable `v*` tag to publish an updater release through `.github/workflows/release.yml`. Tags containing a hyphen are ignored. The workflow builds Windows x64, Linux x64, macOS Intel, and macOS Apple Silicon artifacts, generates release notes from the tag and previous release, then uploads the signed installers, updater bundles, signatures, and `latest.json` to the GitHub Release.
 
 Before pushing the first release tag, add these GitHub Actions secrets:
 
 - `TAURI_SIGNING_PRIVATE_KEY`: the full contents of the private key generated with `npm run tauri -- signer generate -w ~/.tauri/howlong.key`
 - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: the non-empty passphrase used to generate the protected release key
 
-Never commit the private key. Keep the same key for all future releases. Losing or replacing it prevents existing installations from accepting new updates.
+Never commit the private key. Keep it protected and use the same key for future releases. If you lose or replace it, existing installations cannot accept new updates.
 
 ### Updater signing, passwords, and forks
 
-The updater public key is safe to commit because it only verifies releases. The private key can sign releases accepted by installed copies, so keep it in a protected local file and in GitHub Actions Secrets. Official release builds require a non-empty passphrase-protected key. This provides extra protection if the private key file or a backup is exposed. Set both `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` in the release build environment. Use an unprotected key only in a separate local or test setup, never for the official updater channel. After a public release, do not replace the key without a planned key-rotation path.
+The updater public key only verifies releases, so it is safe to commit. Protect the private key because it can sign releases that installed copies will accept. Keep it in a protected local file and in GitHub Actions Secrets. Official release builds require a non-empty passphrase-protected key, which offers extra protection if the private key file or a backup is exposed. Set both `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` in the release build environment. Use an unprotected key only in a separate local or test setup, never for the official updater channel. After a public release, do not replace the key without a planned key-rotation path.
 
-HowLong? is open source and can be forked. The default build trusts the official GitHub Releases endpoint and public key. A fork that publishes its own binaries should change the Tauri `identifier`, updater `endpoints`, and public key, then configure its own `TAURI_SIGNING_PRIVATE_KEY` secret. Otherwise, it may check for upstream updates and reject releases signed with the fork's key.
+HowLong? is open source and can be forked. The default build trusts the official GitHub Releases endpoint and public key. If your fork publishes its own binaries, change the Tauri `identifier`, updater `endpoints`, and public key, then configure your own `TAURI_SIGNING_PRIVATE_KEY` secret. Otherwise, it may check for upstream updates and reject releases signed with the fork's key.
 
 # Repository layout
 
-See [AGENTS.md](AGENTS.md) for contributor rules.
+Contributor rules are in [AGENTS.md](AGENTS.md).
 
 ```text
 .
@@ -268,7 +270,7 @@ See [AGENTS.md](AGENTS.md) for contributor rules.
 
 # Data and privacy
 
-By default, HowLong? stores data in the Tauri app-data directory for `com.pietrodileo.howlong`. You can point the Library to any folder from Settings.
+By default, HowLong? stores data in the Tauri app-data directory for `com.pietrodileo.howlong`. You can choose another folder for the Library in Settings.
 
 You can use a synced folder with OneDrive, Google Drive, or Dropbox to share models and estimates with colleagues. Everyone needs the sync client and access to the same shared folder. **Do not edit the same** `.howlong.json` **at the same time** because the app does not provide file locking or conflict merging.
 
@@ -276,4 +278,4 @@ Estimate files use the `.howlong.json` suffix.
 
 # License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See the [LICENSE](LICENSE).
