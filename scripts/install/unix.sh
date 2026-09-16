@@ -31,6 +31,9 @@ case "$system:$architecture" in
   Linux:x86_64)
     asset="HowLong_${version}_amd64.AppImage"
     ;;
+  Linux:aarch64|Linux:arm64)
+    asset="HowLong_${version}_aarch64.AppImage"
+    ;;
   *)
     echo "Error: no published HowLong installer for ${system} ${architecture}." >&2
     exit 1

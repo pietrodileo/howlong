@@ -96,7 +96,7 @@ Check the remote script before piping it to PowerShell. To make the install repr
 
 ### Linux
 
-Download the `.AppImage` or another published package from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or use the bootstrapper to install the Linux x64 AppImage:
+Download the `.AppImage` or another published package from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or use the bootstrapper to install the matching Linux x64 or ARM64 AppImage:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash
@@ -221,95 +221,7 @@ For a walkthrough of settings, shortcuts, formats, and troubleshooting, see the 
 
 # Build from source
 
-Build from source if you want the latest features, want to contribute, or need to run *HowLong?* on a platform or configuration not covered by the pre-built releases. This gives you full access to the source code and development tools, lets you test unreleased changes, and enables local debugging or customization.
-
-To run *HowLong?* from a local clone, follow these steps. If you already have Node.js 20+ and Rust set up, the whole process takes about 2 minutes. If you still need to install [Rust](https://www.rust-lang.org/tools/install) or meet the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/), complete those first.
-
-## Prerequisites
-
-- **Node.js:** Version 20 or higher
-- **Rust:** Stable toolchain  
-- **Platform tools:**  
-  - **Windows:** [VS Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/), Windows SDK, WebView2  
-  - **macOS:** Xcode Command Line Tools  
-  - **Linux:** WebKitGTK, plus all [Tauri Linux dependencies](https://v2.tauri.app/start/prerequisites/)
-
-## Steps to run locally
-
-1. Run `npm install` to install the project dependencies.
-2. Choose *one* of the following commands, depending on your use case:
-   - Run `npm run tauri:dev` to launch the full desktop app (with filesystem access, dialogs, and native export).
-   - Run `npm run dev` to launch the browser-based UI only (no native file integration; for frontend development/testing).
-   > Typically, you'll only run *one* of these at a time: `tauri:dev` for the full desktop experience, or `dev` if you want to test the frontend in the browser.
-
-## Verify changes
-
-After making any changes, whether to the code or dependency versions, use the following scripts to check that the application still builds and its key workflows run correctly:
-
-Run the following scripts as needed to verify your changes:
-
-- To type-check and build the frontend assets: `npm run build`
-  This ensures your code compiles without errors and the app can be bundled.
-- To run basic smoke tests on the core app features: `npm run smoke`
-  These quick end-to-end tests catch critical failures in key workflows.
-- To specifically test planning boards and Gantt chart functionality: `npm run smoke:gantt`
-  This checks that the creation and manipulation of planning boards and timeline/dependency logic work as expected.
-- To test the analytics and projection calculations: `npm run smoke:analytics`
-  This script runs through analytics scenarios, looking for calculation regressions or math errors.
-
-These scripts are designed to quickly detect major issues after changes. Running them together will help ensure you have not broken the build or introduced bugs in key areas like contingency management, timeline scheduling, or analytics reporting.
-
-## Release builds
-
-This section is for maintainers who want to build installers or publish a release. Most users can skip it and use the Download section. Build outputs go to `src-tauri/target/release/bundle/`. Build on the target OS. For example, build Windows installers on Windows.
-
-The following scripts are provided to build pre-release and official release installers for each supported platform:
-
-| Platform | Pre-release script                      | Official release script             |
-| -------- | --------------------------------------- | ------------------------------------ |
-| Windows  | `scripts\windows\build-prerelease.bat` | `scripts\windows\build-release.bat` |
-| macOS    | `scripts/osx/build-prerelease.sh`      | `scripts/osx/build-release.sh`      |
-| Linux    | `scripts/linux/build-prerelease.sh`    | `scripts/linux/build-release.sh`    |
-| Any      | `npm run tauri build` (default config) | Use the platform release script     |
-
-Pre-release scripts generate unsigned builds for local testing, while official release scripts create signed installers for public distribution.
-
-### Pre-release builds
-
-For local development and testing, use the prerelease scripts. These builds retain the application name **HowLong**, use a distinct application identifier, and do not require signing keys or generate official updater artifacts. 
-
-### Official releases
-
-For official releases, always use the release scripts. These scripts require a valid signing key and password to ensure releases are secure and trusted. By default, the signing key should be stored at `~/.tauri/howlong.key` on Unix-based systems, or `%USERPROFILE%\.tauri\howlong.key` on Windows. You must also provide a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` to unlock and use the signing key.
-
-If you prefer to use a different key for a local release build, you can set the `TAURI_SIGNING_PRIVATE_KEY` environment variable to specify either the file path or the actual contents of your private key.
-
-The release scripts are designed to check for both the presence of a valid key and a password. If the signing setup is missing or incomplete, the scripts will stop and display an error, preventing the creation of an unsigned or improperly signed official release. This process guarantees that every official build is signed and verifiable, helping users trust release downloads.
-
-For the full release process, including development, prereleases, stable releases, signing, tagging, and forks, see the [Build and release guide](docs/BUILD.md).
-
-### Tags and Official Releases
-
-To publish an official updater release, push a stable Git tag in the format `v*` (e.g., `v1.2.3`). Tags that include a hyphen (such as `v1.2.3-beta`) are ignored for updater releases. When a valid tag is pushed, `.github/workflows/release.yml` is triggered, which performs the following:
-
-- Builds release artifacts for Windows x64, Linux x64, macOS Intel, and macOS Apple Silicon.
-- Automatically generates release notes by comparing the tag to the previous release.
-- Uploads the signed installers, updater bundles, signature files, and `latest.json` to the new GitHub Release.
-- *HowLong?*'s internal updater will automatically detect and download only official releases.
-
-**Before pushing your first release tag, make sure the following GitHub Actions secrets are configured:**
-
-- `TAURI_SIGNING_PRIVATE_KEY`: The entire contents of your Tauri private key, generated via `npm run tauri -- signer generate -w ~/.tauri/howlong.key`
-- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: The passphrase you set when generating the protected private key (must not be empty).
-
-> ⚠️ **Do not commit your private key.**  
-Keep your private key strictly confidential—secure it in a protected location and always reuse the same key for all future releases. Losing or replacing this key will prevent existing app installations from accepting or verifying future updates.
-
-### Updater signing, passwords, and forks
-
-The updater public key only verifies releases, so it is safe to commit. Protect the private key because it can sign releases that installed copies will accept. Keep it in a protected local file and in GitHub Actions Secrets. Official release builds require a non-empty passphrase-protected key, which offers extra protection if the private key file or a backup is exposed. Set both `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` in the release build environment. Use an unprotected key only in a separate local or test setup, never for the official updater channel. After a public release, do not replace the key without a planned key-rotation path.
-
-HowLong? is open source and can be forked. The default build trusts the official GitHub Releases endpoint and public key. If your fork publishes its own binaries, change the Tauri `identifier`, updater `endpoints`, and public key, then configure your own `TAURI_SIGNING_PRIVATE_KEY` secret. Otherwise, it may check for upstream updates and reject releases signed with the fork's key.
+For detailed instructions on prerequisites, local development, testing, building for release, signing, tagging, and configuring the updater, refer to the [Build and Release Guide](docs/BUILD.md).
 
 # Repository layout
 

@@ -46,68 +46,55 @@ HowLong? `0.7.2` su Windows, macOS e Linux.
   - [12.4. Esportazione XLSX del Gantt](#esportazione-xlsx-del-gantt)
   - [12.5. Checklist di esportazione e backup](#checklist-di-esportazione-e-backup)
 - [13. Scorciatoie da tastiera](#13-scorciatoie-da-tastiera)
-- [14. Cosa mostrano o non modificano alcune schermate](#14-cosa-mostrano-alcune-schermate--e-cosa-non-fanno)
+- [14. Cosa mostrano alcune schermate e cosa non fanno](#14-cosa-mostrano-alcune-schermate-e-cosa-non-fanno)
 - [15. Risoluzione dei problemi e sicurezza](#15-risoluzione-dei-problemi-e-pratiche-sicure)
 
 ---
 
 ## Novità della v0.7.2
 
-HowLong? 0.7.2 include gli ultimi miglioramenti al flusso di stima e pianificazione, un'esperienza delle impostazioni ridisegnata, un flusso di aggiornamento integrato per le installazioni desktop e una pipeline di rilascio stabile per le build ufficiali.
+La versione 0.7.2 rende più semplice il lavoro quotidiano: le Impostazioni sono ricercabili e si salvano automaticamente, i temi funzionano nelle viste principali, Piano può salvare le modifiche alla pianificazione, Confronta mostra più dettagli di calcolo e l'esportazione Gantt presenta totali in giorni più chiari.
 
 ### Esperienza delle impostazioni
 
-Le impostazioni sono organizzate in sezioni mirate e richiudibili, con un campo di ricerca. Ogni opzione è contenuta in un pannello dedicato e accompagnata da un breve riepilogo, così puoi scorrere le preferenze disponibili prima di aprirne una. Le schermate vuote di Pianifica e Analisi offrono le stesse azioni della Home: **Nuova stima**, **Apri file** e **Vai alla libreria**.
+Le impostazioni sono organizzate in sezioni richiudibili. Usa il campo di ricerca per trovare un'opzione senza aprire ogni sezione. Le schermate vuote di Piano e Analisi offrono le stesse azioni della Home: **Nuova stima**, **Apri file** e **Vai alla libreria**.
 
-Le modifiche alle impostazioni vengono salvate automaticamente dopo una breve attesa e la pagina mostra per poco lo stato del salvataggio completato.
+Le impostazioni vengono salvate automaticamente dopo una breve attesa. La pagina mostra per poco quando il salvataggio è completato.
 
 Il pannello Aspetto supporta ora i temi chiaro e scuro nelle viste di stima, presentazione e pianificazione.
 
-Le sezioni di presentazione Manager e Cliente possono essere richiuse, rendendo più leggibili le stime lunghe senza modificare i calcoli sottostanti.
+Le sezioni di presentazione Manager e Cliente possono essere richiuse per leggere più facilmente le stime lunghe. I calcoli non cambiano.
 
-Confronta mantiene allineate le righe formula per ogni stima e mostra accanto al valore il riepilogo della formula e la percentuale CTG applicata. Il piè di pagina del confronto include anche **Totale + CTG**.
+Confronta mantiene allineate le righe formula e mostra il riepilogo della formula e la percentuale CTG applicata. Il piè di pagina include anche **Totale + CTG**.
 
-Piano ora dispone di un'azione **Salva** nell'intestazione, così puoi memorizzare le modifiche alla pianificazione senza tornare alla vista Stima.
+Piano ora dispone di un'azione **Salva** nell'intestazione, così puoi salvare le modifiche senza tornare alla vista Stima.
 
 Anche l'elenco delle stime in Confronta e il pannello delle attività nel Gantt possono essere compressi per lasciare più spazio al risultato.
 
 Il confronto della contingenza mostra gli scenari A/B/C con l'impegno di base invariato e consente di applicare lo scenario scelto alla sessione corrente.
 
-L'esportazione XLSX del Gantt ora include `Base (days)`, `Base + CTG (days)` e `Planned (days)` per ogni attività. La precedente colonna Planning non viene più esportata e i giorni pianificati seguono l'impostazione che stabilisce se i giorni del fine settimana contano come lavorativi.
+L'esportazione XLSX del Gantt include `Base (days)`, `Base + CTG (days)` e `Planned (days)` per ogni attività. La vecchia colonna Planning non viene più esportata e i giorni pianificati seguono l'impostazione relativa ai fine settimana.
 
 ### Pannello Aggiornamenti
 
-Apri **Impostazioni → Aggiornamenti** e fai clic su **Controlla aggiornamenti** quando vuoi cercare una nuova versione. L'app non controlla automaticamente gli aggiornamenti all'avvio né in background.
-
-- Controlla il feed ufficiale delle release GitHub e considera solo le release stabili.
-- Mostra la versione installata, quella disponibile e le note di rilascio.
-- Scarica l'aggiornamento firmato per il sistema operativo e l'architettura correnti, mostrando l'avanzamento quando disponibile.
-- Installa l'aggiornamento scaricato e riavvia l'app desktop quando necessario.
-- Passa direttamente all'ultima release stabile: le versioni intermedie non vengono installate né eseguite.
-- Resta disabilitato nelle anteprime browser, che non dispongono dell'updater nativo né dell'accesso all'installer.
-
-Tauri verifica la firma del publisher prima dell'installazione. Questo protegge il canale di aggiornamento ufficiale, mentre il codice sorgente resta aperto e forkabile. I maintainer di un fork dovrebbero configurare un proprio identificatore, endpoint, chiave pubblica e secret di firma; consulta la [guida di build e rilascio](../BUILD.md#open-source-forks).
-
-La pipeline ufficiale crea installer e artefatti updater specifici per piattaforma a partire dai tag stabili `vX.Y.Z`. Le note di rilascio vengono generate automaticamente dal tag e dalla release precedente. Per il flusso dei contributori, consulta la [guida di build e rilascio](../BUILD.md).
-
-I nuovi utenti possono scaricare l'installer normale dalla [pagina GitHub delle release](https://github.com/pietrodileo/howlong/releases). È disponibile anche un bootstrapper da terminale per Windows, macOS e Linux: consulta le [istruzioni per la prima installazione](../BUILD.md#first-install-bootstrapper).
+Gli utenti desktop possono cercare una release stabile da **Impostazioni → Aggiornamenti**. L'updater verifica la firma del publisher prima dell'installazione. Le anteprime browser non hanno accesso all'updater nativo. Per i dettagli, consulta [Aggiornamenti](#31-aggiornamenti) e le [istruzioni per la prima installazione](../BUILD.md#first-install-bootstrapper).
 
 ## 1. Avvio rapido
 
-1. **Impostazioni** — Imposta lingua, tema, nome utente e area di lavoro preferiti; le impostazioni vengono salvate automaticamente.
-2. **Stima** — Fai clic su **Nuova stima** (viene usato il modello predefinito, a meno che tu non ne selezioni uno diverso usando il menu a freccia).
+1. **Impostazioni:** imposta lingua, tema, nome utente e area di lavoro. Le impostazioni vengono salvate automaticamente.
+2. **Stima:** fai clic su **Nuova stima**. HowLong? usa il modello predefinito, a meno che tu ne scelga un altro dal menu a freccia.
 3. Inserisci un nome per la stima e il cliente, quindi compila le ore stimate per ciascuna attività.
-4. Fai clic su **Salva** — il file apparirà ora nella **Libreria**.
+4. Fai clic su **Salva**. Il file apparirà nella **Libreria**.
 5. Controlla le sezioni **Piano**, **Analisi** e **Anteprima cliente** per verificare il lavoro.
 
 | Azione            | Risultato                                                  |
 | ----------------- | ---------------------------------------------------------- |
-| **Salva**   | Aggiorna il file di lavoro`.howlong.json` nella Libreria |
+| **Salva**   | Aggiorna il file di lavoro `.howlong.json` nella Libreria |
 | **Esporta** | Crea un file di consegna separato; non salva la stima      |
 
 ## 2. Area di lavoro, Home e navigazione nella barra laterale
 
-Quando avvii *HowLong?* o chiudi tutte le stime, appare la vista **Home**, che mostra le azioni principali e una panoramica della navigazione.
+Quando non è aperta alcuna stima, la **Home** mostra le azioni principali e una panoramica dell'area di lavoro.
 
 ![Schermata Home che mostra navigazione, azioni principali e stime aperte di recente](../images/homepage.png)
 
@@ -115,7 +102,7 @@ Quando avvii *HowLong?* o chiudi tutte le stime, appare la vista **Home**, che m
 
 ### 2.1. Navigazione nella barra laterale
 
-La **barra laterale** è il pannello di navigazione centrale: usala per passare immediatamente tra le principali aree dell'app. Ogni icona della barra laterale porta a una funzionalità che supporta il flusso di lavoro di stima o la gestione dell'area di lavoro.
+Usa la **barra laterale** per passare tra le aree principali dell'app. Ogni icona apre una parte del flusso di stima o della gestione dell'area di lavoro.
 
 | Vista barra laterale   | Scopo                                                                                  |
 | ---------------------- | -------------------------------------------------------------------------------------- |
@@ -128,8 +115,6 @@ La **barra laterale** è il pannello di navigazione centrale: usala per passare 
 | **Impostazioni** | Personalizza lingua, aspetto, valori predefiniti, area di lavoro e informazioni utente |
 | **Informazioni** | Legge dettagli sull'app, sulla versione e sui riconoscimenti                           |
 
-Tieni presente che:
-
 - **Piano** e **Analisi** seguono sempre la scheda attualmente attiva. Se non è aperta alcuna stima, queste viste chiedono di crearne o caricarne una.
 - Puoi comprimere la barra laterale con la doppia freccia accanto al logo. In modalità compatta, passa il mouse su un'icona per visualizzarne l'etichetta.
 
@@ -137,7 +122,7 @@ Tieni presente che:
 
 ### 2.2. Vista Home (panoramica dell'area di lavoro)
 
-Quando non è aperta alcuna stima, la schermata **Home** ti aiuta a iniziare, riprendere un lavoro recente o esplorare l'area di lavoro. Riunisce le attività più usate per un accesso rapido.
+Quando non è aperta alcuna stima, la **Home** ti aiuta a iniziare, riaprire un lavoro recente o esplorare l'area di lavoro.
 
 **Azioni Home:**
 
@@ -152,24 +137,22 @@ Quando non è aperta alcuna stima, la schermata **Home** ti aiuta a iniziare, ri
 
 | Termine                     | Significato                                                                                 |
 | --------------------------- | ------------------------------------------------------------------------------------------- |
-| **Modello**           | Struttura riutilizzabile: memorizza valori predefiniti, categorie, etichette, formule e CTG |
-| **Stima**             | Documento di progetto basato su un modello o creato da zero                                 |
-| **Macro**             | Attività di primo livello in una stima; può contenere sottoattività                      |
-| **Sottoattività**    | Attività all'interno di una macro; il suo impegno contribuisce al totale della macro       |
-| **Formula**           | Riga calcolata usando attività selezionate                                                 |
-| **Contingenza / CTG** | Margine di rischio applicato al lavoro idoneo                                               |
-| **Sessione**          | Copia in memoria aperta in una scheda finché non salvi                                     |
-| **Libreria**          | Cartella locale contenente tutti i file di stima`.howlong.json`                           |
+| **Modello**           | Struttura riutilizzabile con valori predefiniti, categorie, etichette, formule e CTG         |
+| **Stima**             | Documento di progetto basato su un modello o creato da zero                                  |
+| **Macro**             | Attività di primo livello che può contenere sottoattività                                    |
+| **Sottoattività**     | Attività dentro una macro; il suo impegno contribuisce al totale della macro                |
+| **Formula**           | Riga calcolata in base ad attività selezionate                                               |
+| **Contingenza / CTG** | Margine di rischio applicato al lavoro idoneo                                                |
+| **Sessione**          | Copia in memoria aperta in una scheda finché non salvi                                       |
+| **Libreria**          | Cartella locale contenente i file di stima `.howlong.json`                                   |
 
 ## 3. Impostazioni
 
-La sezione **Impostazioni** ti consente di adattare HowLong? al tuo flusso di lavoro personale, agli standard del team e all'organizzazione dell'area di lavoro. Configura dettagli utente, lingua dell'interfaccia, aspetto, posizione dell'area di lavoro, valori predefiniti delle stime, formati di esportazione e altro ancora. Usa Impostazioni prima di iniziare la tua prima stima per assicurarti che l'ambiente corrisponda alle tue esigenze, e torna in questa sezione ogni volta che i requisiti cambiano.
-
-Apri **Impostazioni** prima della tua prima stima.
+Usa **Impostazioni** per scegliere lingua e tema, definire i valori predefiniti, selezionare un'area di lavoro e gestire gli aggiornamenti. Apri questa sezione prima della prima stima e torna qui quando cambia il tuo modo di lavorare.
 
 ![Schermata Impostazioni con sezioni di configurazione comprimibili](../images/settings.png)
 
-Apri un gruppo per visualizzare i relativi pannelli. La vista espansa mantiene ogni pannello sintetico finché non servono i controlli; il campo di ricerca apre automaticamente il gruppo e il pannello corrispondenti.
+Apri un gruppo per visualizzare i relativi pannelli. Usa il campo di ricerca per aprire automaticamente il gruppo e il pannello corrispondenti.
 
 ![Pannelli Impostazioni espansi con aspetto, aggiornamenti e scorciatoie da tastiera](../images/settings_expanded.png)
 
@@ -185,11 +168,11 @@ Apri **Impostazioni → Aggiornamenti** per cercare manualmente una nuova releas
 - L'aggiornamento passa direttamente all'ultima release stabile. Le versioni intermedie non vengono installate né eseguite, quindi ogni release deve mantenere o migrare i dati dell'area di lavoro esistente.
 - Leggi le note di rilascio e salva/esporta il lavoro importante prima di un aggiornamento principale. L'anteprima nel browser non può installare aggiornamenti: usa l'app desktop.
 
-Il pannello mantiene separati i passaggi: il controllo non scarica, il download non installa e l'installazione è disponibile solo dopo il completamento del download firmato. Se non ci sono aggiornamenti, il pannello comunica che la versione installata è aggiornata. Un controllo o un download non riuscito lascia invariata l'installazione corrente.
+I passaggi sono separati: il controllo non scarica e il download non installa. L'installazione diventa disponibile solo dopo il completamento del download firmato. Se il controllo o il download fallisce, l'installazione corrente resta invariata.
 
-L'updater verifica la firma della release prima dell'installazione. Questa fiducia appartiene al publisher ufficiale di HowLong?, non alla licenza open source. I fork possono compilare normalmente il codice, ma un fork indipendente dovrebbe usare un proprio identificatore applicativo, endpoint delle release, chiave pubblica e secret di firma; altrimenti potrebbe seguire il feed di aggiornamento upstream.
+L'updater verifica la firma della release prima dell'installazione. La firma identifica il publisher ufficiale di HowLong? e non limita il codice open source. Un fork che pubblica le proprie build dovrebbe usare un proprio identificatore applicativo, endpoint delle release, chiave pubblica e secret di firma.
 
-Ogni intestazione espande i relativi controlli. Le sezioni chiuse mantengono comunque le impostazioni. Le modifiche vengono salvate automaticamente; la pagina mostra brevemente lo stato di salvataggio mentre aggiorna le preferenze.
+Ogni intestazione espande i relativi controlli e le sezioni chiuse conservano le impostazioni. Le modifiche vengono salvate automaticamente; la pagina mostra brevemente lo stato del salvataggio.
 
 **Profilo e visualizzazione**
 
@@ -213,37 +196,37 @@ Il tema scuro si applica alle schermate di stima, presentazione e pianificazione
 
 **Area di lavoro**
 
-- **Area di lavoro** — percorsi di stime e modelli; **Scegli cartella…** o **Usa predefinita** (l'area di lavoro predefinita è una cartella `HowLong` all'interno della directory "Documents" del sistema).Tutte le stime, i modelli e i dati correlati vengono sincronizzati con la cartella dell'area di lavoro selezionata. Se cambi la posizione dell'area di lavoro, l'app mostrerà i dati presenti nella cartella corrente; tornando a un'area di lavoro precedente ritroverai i dati come li avevi lasciati. Cambiare area di lavoro non comporta perdita di dati; ogni area di lavoro conserva i propri dati.
+- **Area di lavoro** — percorsi di stime e modelli; **Scegli cartella…** o **Usa predefinita**. L'area predefinita è una cartella `HowLong` dentro la directory "Documents" del sistema. Ogni area di lavoro conserva le proprie stime, i propri modelli e i dati correlati. Cambiare cartella cambia i dati mostrati; tornando indietro ritrovi l'area di lavoro precedente.
 - **Importazione/esportazione area di lavoro** — solo impostazioni e modelli (le stime restano nella Libreria)
 
 ### 3.2. Cartelle sincronizzate
 
-Puoi impostare la cartella dell'Area di lavoro su una posizione mantenuta sincronizzata da un servizio cloud come OneDrive, Google Drive, Dropbox o uno strumento simile. Questo consente a te e ai tuoi colleghi di condividere automaticamente modelli e stime semplicemente lavorando in una cartella condivisa.
+Puoi collocare la cartella dell'Area di lavoro dentro una cartella sincronizzata da OneDrive, Google Drive, Dropbox o un servizio simile. In questo modo il team può condividere modelli e stime tramite la stessa cartella.
 
 **Come funziona:**
 
-- Chiunque necessiti di accesso deve avere installato il software di sincronizzazione appropriato (ad es. OneDrive, Google Drive, Dropbox) e disporre dell'autorizzazione ad accedere alla cartella condivisa.
-- Quando salvi o aggiorni file `.howlong.json`, i colleghi vedranno le modifiche non appena il loro client di sincronizzazione si aggiorna.
+- Chiunque debba accedere ai file deve avere installato il software di sincronizzazione e il permesso di usare la cartella condivisa.
+- I colleghi vedranno le modifiche dopo che il loro client avrà scaricato i file `.howlong.json` aggiornati.
 
 **Suggerimenti importanti per l'uso:**
 
-- *Attendi il completamento della sincronizzazione* prima di aprire un file che qualcun altro ha appena modificato. Ad esempio, se qualcuno salva una stima, gli altri dovrebbero lasciare che il proprio client di sincronizzazione completi l'aggiornamento prima di aprire lo stesso file.
-- **Non aprire e modificare mai contemporaneamente lo stesso file di stima su computer diversi.** Non esiste alcun supporto per il blocco o l'unione automatica: se due persone salvano modifiche nello stesso file, possono sovrascrivere accidentalmente il lavoro reciproco e perdere dati.
+- *Attendi la fine della sincronizzazione* prima di aprire un file modificato da qualcun altro.
+- **Non aprire e modificare mai lo stesso file di stima contemporaneamente su computer diversi.** HowLong? non blocca né unisce i file. Due salvataggi sullo stesso file possono sovrascrivere le modifiche dell'altro.
 
 **Esempi:**
 
-- *Esempio 1:* Il tuo team usa Google Drive per conservare tutti i file di stima `.howlong.json` in una cartella condivisa. Prima che qualcuno apra un file `.howlong.json`, è necessario verificare che Google Drive abbia terminato la sincronizzazione.
-- *Esempio 2:* Una collega modifica una stima in una cartella sincronizzata con Dropbox. Lascia che Dropbox termini la sincronizzazione prima di comunicare a qualcun altro che può aprirla sul proprio portatile. Evitano di aprirla contemporaneamente per prevenire conflitti.
+- *Esempio 1:* Il team conserva i file `.howlong.json` in una cartella Google Drive condivisa. Prima di aprire un file, verifica che Drive abbia terminato la sincronizzazione.
+- *Esempio 2:* Una collega modifica una stima in una cartella Dropbox. Attendi la fine della sincronizzazione prima di aprire quel file su un altro computer.
 
 ## 4. Modelli
 
-La sezione **Modelli** consente di definire, modificare e gestire strutture di progetto riutilizzabili per le tue stime. I modelli fanno risparmiare tempo e garantiscono coerenza registrando attività standard del team, categorie, macro, sottoattività, contingenze e formule di impegno, così da non dover ripartire da zero per ogni nuova stima. Usa questa sezione per creare modelli adatti ai tuoi progetti tipici, rendendo semplice creare nuove stime accurate con logica predefinita. I modelli sono particolarmente utili per i team con tipi di progetto ricorrenti, categorie standard o per chi vuole applicare buone pratiche nel proprio flusso di pianificazione.
+Usa **Modelli** per creare punti di partenza riutilizzabili per le stime. Un modello può contenere attività standard, categorie, macro, sottoattività, contingenze e formule. È utile quando i tuoi progetti hanno una struttura simile.
 
 Sono inclusi modelli in italiano e in inglese. Apri **Modelli** per modificare o creare strutture riutilizzabili.
 
 ![Editor dei modelli con elenco modelli, categorie, contingenza, macro, sottoattività e una formula](../images/models_example.png)
 
-Il pannello sinistro mostra l'elenco dei modelli (con quello predefinito indicato); il pannello destro mostra l'editor.
+Il pannello sinistro elenca i modelli e indica quello predefinito. Il pannello destro contiene l'editor.
 
 1. Fai clic su **Nuovo** o importa un modello compatibile.
 2. Specifica nome, icona, ID stabile e ore per giornata lavorativa del modello.
@@ -251,13 +234,13 @@ Il pannello sinistro mostra l'elenco dei modelli (con quello predefinito indicat
 4. Imposta il CTG predefinito (espandi **Come funziona** per maggiori informazioni).
 5. Aggiungi macro, sottoattività, valori di impegno predefiniti, flag CTG, etichette e formule.
 
-Trascina e rilascia gli elementi per riordinarli. Usa la freccia per espandere e mostrare i figli. Fai clic su **+ Attività** per aggiungere una sottoattività. Ogni riga offre opzioni per duplicare o eliminare (cestino) l'elemento. Usa **Salva**, **Elimina** o **Esporta** per gestire il modello.
+Trascina gli elementi per riordinarli. Usa la freccia per mostrare i figli e fai clic su **+ Attività** per aggiungere una sottoattività. Ogni riga può essere duplicata o eliminata. Usa **Salva**, **Elimina** o **Esporta** per gestire il modello.
 
-Il modello predefinito viene usato quando selezioni **Nuova stima** o premi `Ctrl/Cmd+T`. Tieni presente che le stime salvate sono istantanee: non si aggiornano se cambia il modello di origine.
+Il modello predefinito viene usato quando selezioni **Nuova stima** o premi `Ctrl/Cmd+T`. Le stime salvate sono istantanee: non si aggiornano se cambia il modello di origine.
 
 ## 5. Editor delle stime
 
-L'**Editor delle stime** è il luogo in cui crei, visualizzi e modifichi stime di progetto dettagliate. Usa questa sezione per suddividere il lavoro in attività, applicare contingenze, organizzare le attività gerarchicamente e calcolare sia l'impegno di base sia quello rettificato. L'editor è progettato per aiutarti a pianificare con precisione tempi e costi di progetto, dandoti al contempo il pieno controllo sulla struttura delle attività e sulle stime. Offre supporto multi-scheda per lavorare contemporaneamente su più stime o sessioni, modifica e riordino intuitivi e potenti strumenti per aggregare e confrontare l'impegno. Che tu stia creando nuove stime da zero, rivedendo quelle salvate o collaborando con il team, l'Editor delle stime offre tutte le funzionalità necessarie per una pianificazione di progetto precisa e flessibile.
+L'**Editor delle stime** è il punto in cui costruisci la struttura del lavoro e calcoli l'impegno. Aggiungi macro e sottoattività, inserisci le ore, applica la contingenza e controlla i totali. Ogni stima si apre in una scheda con stato non salvato e cronologia separati.
 
 ### La tua prima stima
 
@@ -270,7 +253,7 @@ Per creare la tua prima stima:
 
 ![Editor della stima con totali, controlli della contingenza e tabella completa delle attività](../images/estimate_view.png)
 
-L'editor supporta più stime in schede, ciascuna con il proprio stato di modifica e la propria cronologia.
+Ogni scheda ha il proprio stato non salvato e la propria cronologia.
 
 ![Editor delle stime con più schede, totali, macro, sottoattività, note e una formula](../images/new_estimate_with_tabs.png)
 
@@ -289,15 +272,15 @@ Ogni scheda ha il proprio annulla/ripristina: `Ctrl/Cmd+Z`; ripristina è `Ctrl+
 
 In alto puoi modificare **titolo**, **cliente** e **icona** della stima. I valori di impegno **Base**, **CTG** (contingenza) e **Totale** vengono visualizzati sia in ore sia in giorni.
 
-La barra degli strumenti offre accesso rapido a: selezione unità · ore al giorno · contingenza globale (CTG) · confronto contingenza · visibilità colonne · esportazione · ricaricamento · salvataggio · anteprima cliente.
+La barra degli strumenti offre accesso rapido a unità, ore al giorno, contingenza globale (CTG), confronto contingenza, visibilità colonne, esportazione, ricaricamento, salvataggio e anteprima cliente.
 
-La modifica delle **ore al giorno** cambia solo il modo in cui vengono visualizzati i giorni-persona: l'impegno sottostante viene sempre memorizzato in ore.
+La modifica delle **ore al giorno** cambia solo la visualizzazione dei giorni-persona. HowLong? memorizza sempre l'impegno in ore.
 
 ### Tabella delle attività
 
 | Colonna              | Descrizione                                                                     |
 | -------------------- | ------------------------------------------------------------------------------- |
-| Nome                 | Titolo dell'attività — macro, sottoattività o formula, mostrato in gerarchia |
+| Nome                 | Titolo dell'attività: macro, sottoattività o formula mostrato nella gerarchia |
 | Categoria            | Categoria/gruppo; può essere destinata alla contingenza (CTG)                  |
 | Ore / Giorni         | Impegno di base stimato, prima della contingenza (CTG)                          |
 | Applica CTG          | Indica se questa riga riceve una contingenza aggiuntiva                         |
@@ -322,30 +305,30 @@ La modifica delle **ore al giorno** cambia solo il modo in cui vengono visualizz
 
 ### Elementi calcolati
 
-Le righe contrassegnate come "elementi calcolati" usano formule per calcolare automaticamente i valori in base ad altre attività della stima. Invece di inserire manualmente l'impegno, queste righe aggregano o trasformano i dati di macro o sottoattività selezionate, ad esempio sommandoli, calcolandone la media o applicando un calcolo personalizzato. Gli elementi calcolati si aggiornano in tempo reale quando cambiano le attività a cui fanno riferimento, garantendo che totali e valori derivati restino sempre accurati e coerenti in tutta la stima.
+Gli **elementi calcolati** ricevono il proprio valore da altre attività tramite una formula. Usali quando un numero deve aggiornarsi da solo, ad esempio per sommare o calcolare la media di alcune righe. Si aggiornano quando cambiano le attività di riferimento.
 
 Una formula è `aggregazione(righe selezionate) × percentuale`.
 
 | Aggregazione | Opzioni                                                               |
 | ------------ | --------------------------------------------------------------------- |
 | Matematica   | Somma · media · min · max                                          |
-| CTG          | Si applica solo quando**Applica CTG** è attivo per quella riga |
+| CTG          | Si applica solo quando **Applica CTG** è attivo per quella riga |
 
 ### Confronto della contingenza
 
-Il confronto della contingenza consente di esplorare come diverse percentuali di contingenza influenzano la stima senza modificare l'impegno di base. Modellando più scenari ipotetici affiancati, puoi comunicare il rischio, mostrare l'effetto delle scelte di margine e aiutare gli stakeholder a prendere decisioni informate sul livello di contingenza più adatto alle esigenze del progetto.
+Usa il confronto della contingenza per provare percentuali CTG diverse senza modificare l'impegno di base. Mostra tre scenari affiancati, così puoi scegliere il margine più adatto al progetto.
 
 ![Tre scenari di contingenza sopra la tabella della stima](../images/compare_contingency.png)
 
 Confronta gli scenari **A**, **B** e **C** mentre **l'impegno di base resta fisso**.
 
-1. Imposta le percentuali nel pannello
-2. **Usa** — applica uno scenario alla sessione corrente; ogni scenario ha il proprio pulsante sotto il totale
-3. **Salva** — mantiene la scelta; **Chiudi** — nasconde il pannello
+1. Imposta le percentuali nel pannello.
+2. Fai clic su **Usa** sotto uno scenario per applicarlo alla sessione corrente.
+3. Fai clic su **Salva** per mantenere la scelta o su **Chiudi** per nascondere il pannello.
 
 ## 6. Presentazione per manager e cliente
 
-Esistono tre modalità principali di presentazione: **Stimatore**, **Manager** e **Cliente**. Ogni modalità è progettata per un pubblico diverso e offre livelli differenti di dettaglio e controllo sulle informazioni visualizzate o modificabili.
+HowLong? ha tre modalità di presentazione. **Stimatore** è la vista di lavoro, **Manager** prepara la stima per la condivisione e **Cliente** mostra le informazioni pubbliche selezionate.
 
 | Funzionalità / Vista             | Vista Stimatore                                               | Vista Manager                                                          | Vista Cliente                                              |
 | --------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------- |
@@ -359,26 +342,21 @@ Esistono tre modalità principali di presentazione: **Stimatore**, **Manager** e
 | **Esportazione**            | Tipicamente per revisione interna                             | Crea un file pronto per il cliente con le rettifiche del manager       | Output finale destinato al cliente                         |
 | **Confronta differenze**    | Non mostrato                                                  | Può visualizzare/modificare in anteprima le differenze nei totali     | Presentate solo come definito dal manager                  |
 
-Queste modalità di presentazione consentono di adattare il modo in cui la stima viene consegnata per revisioni interne o esterne senza alterare i calcoli o i dati principali.
-Ogni vista garantisce che venga mostrato il giusto livello di dettaglio al pubblico previsto, proteggendo le informazioni sensibili quando necessario.
+Usa queste modalità per preparare livelli diversi di dettaglio senza modificare i calcoli della stima.
 
 ### Accesso alle modalità di presentazione
 
-Per aprire queste viste, usa il pulsante **Anteprima cliente** nell'intestazione della stima. Si apre una pagina affiancata che mostra sia il layout manager sia quello cliente, così puoi confrontare facilmente ciò che vedrà ciascuno.
+Fai clic su **Anteprima cliente** nell'intestazione della stima. L'anteprima apre i layout Manager e Cliente affiancati.
 
 ---
 
 ### Vista Manager
 
-La vista Manager è progettata per uso interno e consente di finalizzare e regolare la stima prima di condividerla con il cliente.
+Usa la vista Manager per preparare ciò che verrà mostrato al cliente. Serve a modificare la presentazione, non le regole di calcolo della stima.
 
 ![Vista Manager con visibilità, totali presentati, differenze, note e ridistribuzione](../images/manager_view.png)
 
-Puoi:
-
-- Rifinire i totali e regolare il modo in cui vengono mostrati i numeri.
-- Aggiungere, nascondere o annotare informazioni che devono — o non devono — comparire nell'esportazione per il cliente.
-- Identificare visivamente le differenze tra i totali calcolati e quelli che verranno presentati.
+Puoi modificare i totali mostrati, scegliere quali righe includere e gestire note ed etichette. La vista mostra anche la differenza tra i totali calcolati e quelli presentati.
 
 | Controllo                              | Cosa fa                                                                                     |
 | -------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -388,17 +366,17 @@ Puoi:
 | Etichette e note                       | Regola il contenuto che verrà passato a valle                                              |
 | **Ridistribuisci**               | Ripartisce uniformemente un totale macro modificato tra le relative attività figlie        |
 
-Tutte le regolazioni qui sono **solo per la presentazione**: non alterano la logica di calcolo. Esporta da questa vista per generare un file modificato dal manager per la consegna al cliente.
+Tutte le regolazioni qui sono **solo per la presentazione**. Non alterano la logica di calcolo. Esporta da questa vista per creare il file destinato al cliente.
 
 ---
 
 ### Vista Cliente
 
-La vista Cliente mostra una versione semplificata della stima, che riflette solo le informazioni e il layout destinati al cliente. Applica automaticamente i filtri e le eventuali modifiche del manager.
+La vista Cliente è la versione in sola lettura preparata per il cliente. Applica i filtri e le modifiche di presentazione del Manager.
 
 ![Vista Cliente con attività selezionate e ore e giorni semplificati](../images/client_view.png)
 
-Visualizza in anteprima ciò che riceve il cliente.
+Usa questa vista per controllare esattamente ciò che riceverà il cliente.
 
 | Controllo                | Effetto                               |
 | ------------------------ | ------------------------------------- |
@@ -406,30 +384,28 @@ Visualizza in anteprima ciò che riceve il cliente.
 | Note / etichette         | Visibili solo quando abilitate        |
 | Ore / giorni             | Valori presentati con arrotondamento  |
 
-**Esporta** crea il file di consegna al cliente: attività incluse, modifiche del manager e filtri di visibilità applicati. Rivedi questa vista prima dell'invio.
+**Esporta** crea il file di consegna con attività incluse, modifiche del Manager e filtri di visibilità. Rivedi questa vista prima dell'invio.
 
 **Torna alla stima** chiude l'anteprima. **Salva** memorizza le modifiche di presentazione nella stima.
 
 ## 7. Salvataggio, apertura, ricaricamento e file recenti
 
-Gestire le stime in modo efficiente significa sapere come salvare il lavoro, aprire file esistenti, ricaricare versioni precedenti e accedere rapidamente ai file più recenti. Questa sezione spiega i diversi modi in cui puoi interagire con i file delle stime, che tu stia modificando, rivedendo o organizzando il lavoro.
+Questa sezione raccoglie le azioni principali sui file: salvare la stima attiva, aprire un altro file, ricaricare l'ultima versione salvata e riaprire i lavori recenti.
 
 | Azione                             | Cosa fa                                                                                            |
 | ---------------------------------- | -------------------------------------------------------------------------------------------------- |
 | **Salva** / `Ctrl/Cmd+S`   | Scrive la stima attiva nella Libreria                                                              |
-| **Apri file**                | Carica un`.howlong.json` dall'esterno della Libreria                                             |
+| **Apri file**                | Carica un `.howlong.json` dall'esterno della Libreria                                             |
 | **Ricarica**                 | Sostituisce la scheda con l'ultimo file salvato (chiede conferma se ci sono modifiche non salvate) |
 | **Aperti di recente** (Home) | Apre una delle cinque stime più recenti della Libreria                                            |
 
 Ogni salvataggio registra nome utente, ora e una voce di audit. La riga di stato mostra l'ultimo salvataggio.
 
-**Desktop vs browser:** usa `npm run tauri:dev` per l'app completa. `npm run dev` mostra solo l'interfaccia: niente finestre di dialogo native per i file o accesso al filesystem.
+**Desktop vs browser:** usa `npm run tauri:dev` per l'app completa. `npm run dev` mostra solo l'interfaccia, senza finestre di dialogo native per i file né accesso al filesystem.
 
 ## 8. Libreria
 
-La Libreria è il luogo in cui gestisci tutte le stime salvate in un unico posto. Questa sezione spiega come cercare, organizzare, aprire, confrontare ed esportare le stime, rendendo facile tenere traccia del lavoro e trovare o condividere rapidamente i file necessari.
-
-Gestisci facilmente le stime salvate: cercale, ordinalele, aprile, confrontale, importale, esportale, duplicale ed eliminale secondo necessità.
+La **Libreria** è l'elenco delle stime salvate nell'area di lavoro corrente. Da qui puoi cercare, ordinare, aprire, confrontare, importare, esportare, duplicare ed eliminare i file.
 
 ![Libreria con ricerca, ordinamento, selezione, importazione, esportazione, confronto e azioni sulle righe](../images/library.png)
 
@@ -445,7 +421,7 @@ Gestisci facilmente le stime salvate: cercale, ordinalele, aprile, confrontale, 
 
 ## 9. Confrontare le stime
 
-Allinea più stime affiancate. Sola lettura: non viene unito nulla.
+Confronta più stime affiancate. La vista è in sola lettura e non unisce mai i file.
 
 > Il confronto usa la versione **salvata più di recente** di ciascuna stima. Le modifiche non salvate in una scheda aperta non compaiono.
 
@@ -460,15 +436,15 @@ Allinea più stime affiancate. Sola lettura: non viene unito nulla.
 | Sopra la tabella  | Cambia unità (ore/giorni) e imposta la conversione            |
 | Righe inferiori   | Visualizza base, contingenza (CTG) e totale con CTG              |
 
-Le righe sono raggruppate per categoria e puoi espandere o comprimere le macro usando le frecce. Il selettore può essere compresso con la freccia in alto; le stime selezionate restano disponibili come icone mentre la tabella guadagna spazio. Le righe formula mostrano il riepilogo della formula e la percentuale CTG effettivamente applicata in ogni colonna. Quando una cella è vuota, significa che quell'attività non esiste in quella stima: *non* significa zero ore. Il confronto non modifica mai i file.
+Le righe sono raggruppate per categoria e puoi espandere o comprimere le macro usando le frecce. Comprimi il selettore con la freccia in alto per dare più spazio alla tabella; le stime selezionate restano disponibili come icone. Le righe formula mostrano il riepilogo della formula e la percentuale CTG applicata in ogni colonna. Una cella vuota significa che l'attività non esiste in quella stima, non che abbia zero ore. Il confronto non modifica mai i file.
 
 ## 10. Pianificare con il Gantt
 
 > Gli stati delle attività e i controlli per le note condivise sono stati aggiunti nella versione 0.6.1.
 
-Il pianificatore Gantt consente di programmare visivamente il progetto disponendo le attività su una timeline. Assegna date, metti in sequenza le attività e individua dipendenze o colli di bottiglia con strumenti intuitivi come selettori di data, barre trascinabili e ridimensionabili e zoom della timeline. Puoi vedere l'intero progetto a colpo d'occhio oppure ingrandire per rifinire attività specifiche, aiutandoti a organizzare il lavoro in modo chiaro per il team e gli stakeholder.
+Usa il pianificatore Gantt per disporre le attività su un calendario. Imposta le date, ridimensiona le barre, aggiorna gli stati e controlla la timeline del progetto.
 
-La pianificazione con il Gantt riguarda esclusivamente il calendario: non modifica mai l'impegno totale né la contingenza (CTG). Sposta e regola le date con tranquillità, sapendo che le stime restano invariate.
+Piano modifica solo date e dettagli di pianificazione. Non cambia mai l'impegno né la contingenza (CTG).
 
 Per iniziare: apri la stima, quindi fai clic su **Piano**.
 
@@ -508,10 +484,7 @@ Durante l'esportazione in XLSX, HowLong? usa la scala della vista corrente, l'in
 
 ## 11. Analisi
 
-La funzionalità Analisi di HowLong? mette a disposizione potenti strumenti visivi per analizzare e comprendere come l'impegno di base e la contingenza (CTG) del progetto sono distribuiti tra attività e macro. Usa Analisi per identificare i principali fattori di costo, individuare tendenze e presentare chiaramente le suddivisioni al team o agli stakeholder. Tramite grafici interattivi — incluse schede di riepilogo, grafici ad anello di macro/attività e grafici a barre impilate — puoi sia cogliere il quadro generale sia approfondire i dettagli, mantenendo sempre invariate le stime. Analisi è ideale per revisioni, report e discussioni di progetto guidate con chiarezza.
-
-Questi grafici sono sempre in sola lettura e si concentrano sull'allocazione dell'impegno di base e della contingenza.
-Per accedere ad Analisi: apri la stima e fai clic su **Analisi**.
+Analisi mostra come l'impegno di base e la contingenza (CTG) sono distribuiti tra macro e attività. I grafici sono in sola lettura, quindi puoi esaminare la stima senza modificarla. Apri una stima e fai clic su **Analisi**.
 
 ![Panoramica Analisi con schede di riepilogo, grafico ad anello delle macro e barre impilate](../images/analytics.png)
 
@@ -551,13 +524,13 @@ La modalità Analisi è temporanea e locale a ciascuna scheda; passando a un alt
 
 ## 12. Importazione, esportazione e backup
 
-Questa sezione spiega come importare, esportare ed eseguire il backup delle stime e dei dati di progetto in HowLong?. Usa queste funzionalità per condividere in modo sicuro le informazioni di progetto, creare esportazioni personalizzate per pubblici diversi e garantire la protezione dei dati conservando copie sicure. Gli strumenti di importazione ed esportazione aiutano a distribuire viste dettagliate o riepilogative (per uso tecnico, manageriale o cliente), spostare stime tra dispositivi o membri del team e ripristinare il lavoro se necessario. Formati e opzioni sono progettati per collaborazione, audit e integrazione con altri strumenti di progetto.
+Usa questa sezione per scegliere cosa esportare, condividere la vista adatta e conservare un backup recuperabile. Il formato JSON nativo è quello da usare quando devi riaprire o importare una stima.
 
 I file di esempio sono disponibili nella cartella [`examples/`](../../examples/).
 
 ### Scegliere la vista sorgente per l'esportazione
 
-Quando esporti la stima, puoi selezionare una **vista sorgente** per determinare esattamente quali valori e campi vengono inclusi nel file esportato. Questo consente di personalizzare le esportazioni per scopi diversi: che si tratti di un passaggio tecnico, di una revisione manageriale o della consegna al cliente, puoi assicurarti che ogni pubblico riceva solo le informazioni necessarie — niente di più, niente di meno. Ogni vista sorgente mette in evidenza i dati del progetto in modo specifico: scegliendo quella giusta, puoi condividere calcoli dettagliati, dati riepilogativi o presentazioni personalizzate mantenendo private le informazioni sensibili o irrilevanti. Ecco una panoramica delle opzioni:
+La **vista sorgente** decide quali valori e campi compaiono nell'esportazione. Scegli quella che corrisponde alla persona che leggerà il file:
 
 | Sorgente | Contenuti inclusi                                                                       | Ideale per                   |
 | -------- | --------------------------------------------------------------------------------------- | ---------------------------- |
@@ -568,7 +541,7 @@ Quando esporti la stima, puoi selezionare una **vista sorgente** per determinare
 
 | Formato      | Scopo                                                                             |
 | ------------ | --------------------------------------------------------------------------------- |
-| HowLong JSON | Stima nativa completa —**unico formato che supporta la reimportazione**    |
+| HowLong JSON | Stima nativa completa; **unico formato che supporta la reimportazione**    |
 | YAML         | Strutturato per l'IA (ad es. per la generazione di bozze Jira); non reimportabile |
 | XLSX         | Vista istantanea facile da usare da qualsiasi sorgente sopra                      |
 | ZIP          | Archivio contenente più esportazioni della Libreria                              |
@@ -577,14 +550,14 @@ Dopo l'esportazione, usa **Apri** nella finestra di completamento (su desktop, a
 
 ![Messaggio di completamento esportazione con azione Apri file](../images/exported_element.png)
 
-**Strategia di backup consigliata:** esegui sempre il backup sia dell'area di lavoro (impostazioni e modelli) sia della Libreria (stime).
+**Backup:** salva sia l'area di lavoro (impostazioni e modelli) sia la Libreria (stime).
 
 | Azione                    | Cosa fa                                                                             |
 | ------------------------- | ----------------------------------------------------------------------------------- |
 | **Salva**           | Aggiorna la stima attiva nella Libreria                                             |
-| **Esporta → JSON** | Esporta un backup portabile`.howlong.json`, anche dalle schermate Manager/Cliente |
+| **Esporta → JSON** | Esporta un backup portabile `.howlong.json`, anche dalle schermate Manager/Cliente |
 
-Le esportazioni YAML (Stima/Manager) sono sufficientemente dettagliate da consentire ad agenti IA di creare epiche Jira, ticket o registri dei rischi: rivedile sempre prima di usare strumenti automatizzati. Lo YAML Cliente è filtrato per la condivisione pubblica. Nota: le esportazioni YAML non attivano mai azioni da sole.
+Le esportazioni YAML di Stima e Manager contengono abbastanza dettagli da permettere a strumenti IA di preparare epiche Jira, ticket o registri dei rischi. Rivedile prima di usarle in un flusso automatizzato. Lo YAML Cliente è filtrato per la condivisione pubblica. Le esportazioni YAML non attivano azioni da sole.
 
 ### Formati e limiti
 
@@ -595,7 +568,7 @@ Le esportazioni YAML (Stima/Manager) sono sufficientemente dettagliate da consen
 | **XLSX**              | Istantanea leggibile da persone, generata dalla vista scelta; modificarla non aggiorna la stima e il file non può essere reimportato come documento nativo.                               |
 | **ZIP**               | Contenitore per più esportazioni selezionate dalla Libreria; ogni file mantiene formato e scopo originali.                                                                                |
 
-Il JSON esportato è una copia portabile distinta dal file associato alla sessione. Usalo per trasferire una stima modificabile tra installazioni o creare un backup prima di modifiche rischiose. Non usare l'esportazione Cliente come backup completo: le attività nascoste e i dettagli interni possono essere assenti intenzionalmente.
+Il JSON esportato è una copia portabile distinta dalla sessione. Usalo per spostare una stima modificabile tra installazioni o creare un backup prima di modifiche rischiose. L'esportazione Cliente non è un backup completo perché può omettere attività nascoste e dettagli interni.
 
 ### Esportazione XLSX della stima
 
@@ -641,7 +614,7 @@ Per un backup completo, salva sia l'area di lavoro (impostazioni e modelli) sia 
 
 ## 13. Scorciatoie da tastiera
 
-Questa sezione elenca le scorciatoie da tastiera disponibili in HowLong?, progettate per rendere il flusso di lavoro più rapido ed efficiente. Usa queste scorciatoie per navigare, modificare, gestire le schede ed eseguire azioni frequenti, così puoi lavorare sulle stime senza passare continuamente da tastiera a mouse. Consulta questa sezione ogni volta che vuoi aumentare la produttività o imparare un nuovo risparmio di tempo. Tutte le scorciatoie sono personalizzabili; visita il menu Impostazioni → Scorciatoie da tastiera per l'elenco corrente specifico della tua installazione.
+Le scorciatoie coprono navigazione, modifica, schede e azioni frequenti. Sono personalizzabili, quindi l'elenco in **Impostazioni → Scorciatoie da tastiera** è la fonte di riferimento per la tua installazione.
 
 macOS: sostituisci `Cmd` a `Ctrl/Cmd` nelle tabelle seguenti.
 
@@ -660,7 +633,7 @@ macOS: sostituisci `Cmd` a `Ctrl/Cmd` nelle tabelle seguenti.
 
 Se una scorciatoia cambia, la fonte autorevole è sempre Impostazioni → Scorciatoie da tastiera.
 
-## 14. Cosa mostrano alcune schermate — e cosa non fanno
+## 14. Cosa mostrano alcune schermate e cosa non fanno
 
 **Limiti:**
 
@@ -680,17 +653,17 @@ Se una scorciatoia cambia, la fonte autorevole è sempre Impostazioni → Scorci
 
 | Problema                                      | Soluzione                                                                                                                                                               |
 | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Stima salvata mancante                        | Controlla il percorso Area di lavoro/Stime → aggiorna la Libreria → verifica le schede aperte                                                                         |
-| CTG è zero                                   | Assicurati di aver applicato il CTG, impostato una % globale o personalizzata, oppure usato la modalità categoria; le formule richiedono separatamente “Applica CTG” |
-| Il cliente non vede un elemento               | L'inclusione Manager potrebbe essere disattivata → per Cliente: controlla**Sottoattività**, note, etichette                                                     |
-| Importazione rifiutata                        | Importa solo JSON nativo di HowLong; YAML o JSON generico non è`.howlong.json`                                                                                       |
-| Le azioni sui file non funzionano nel browser | Esegui`npm run tauri:dev`                                                                                                                                             |
+| Stima salvata mancante                        | Controlla il percorso Area di lavoro/Stime, aggiorna la Libreria e verifica le schede aperte                                                                         |
+| CTG è zero                                   | Applica il CTG e imposta una percentuale globale o personalizzata; le formule richiedono anche **Applica CTG**                                                     |
+| Il cliente non vede un elemento               | Controlla l'inclusione Manager e le impostazioni Cliente per **Sottoattività**, note ed etichette                                                                   |
+| Importazione rifiutata                        | Importa solo JSON nativo di HowLong; YAML o JSON generico non è un file `.howlong.json`                                                                            |
+| Le azioni sui file non funzionano nel browser | Esegui `npm run tauri:dev`                                                                                                                                            |
 
 **Prima di qualsiasi azione rischiosa:**
 
-1. Salva prima di chiudere, ricaricare o cambiare la cartella dell'area di lavoro
-2. Esporta un HowLong JSON per un backup portabile
-3. Esegui separatamente il backup sia dell'area di lavoro sia della Libreria
-4. Ricorda: eliminazione, ricaricamento o importazione di un'area di lavoro possono distruggere dati
+1. Salva prima di chiudere, ricaricare o cambiare la cartella dell'area di lavoro.
+2. Esporta un JSON HowLong per un backup portabile.
+3. Esegui separatamente il backup dell'area di lavoro e della Libreria.
+4. Considera eliminazione, ricaricamento e importazione di un'area di lavoro come azioni distruttive.
 
 Per installazione, sviluppo, test, note di rilascio e versioning, consulta la [guida di build e rilascio](../BUILD.md) e il [README](../../README.md).

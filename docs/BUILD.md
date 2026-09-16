@@ -1,79 +1,89 @@
 # Build and release workflow
 
-This document defines how HowLong? is developed, packaged, signed, and released. It keeps ordinary open-source builds independent from the private key used by the official updater channel. For the user-facing feature list, see the [English manual](guides/GUIDE.en.md) or [Italian manual](guides/GUIDE.it.md).
+This guide explains how to develop, package, sign, and release *HowLong?*. Local and pre-release builds do not depend on the private key used by the official updater channel. For user-facing features, see the [English manual](guides/GUIDE.en.md) or [Italian manual](guides/GUIDE.it.md).
 
-## Build types
+> **Release automation:** Official stable releases are created automatically by GitHub Actions when a stable `vX.Y.Z` tag is pushed to GitHub. The [`release.yml`](../.github/workflows/release.yml) workflow builds the supported installers, signs the updater artifacts, generates release notes, and publishes the GitHub Release. Tags with a hyphen, such as `v0.7.2-beta.1`, are ignored by the stable release workflow.
 
-| Build | Purpose | Signing key |
+## Build from source
+
+Build from source to use the latest features, contribute to the project, or run *HowLong?* on a platform or configuration not covered by the pre-built releases. This gives you access to the source code and development tools for testing, debugging, and customization.
+
+To run *HowLong?* from a local clone, follow the steps below. If Node.js 20+ and Rust are already installed, setup takes about two minutes. Otherwise, install [Rust](https://www.rust-lang.org/tools/install) and meet the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) first.
+
+## Prerequisites
+
+- **Node.js:** Version 20 or higher
+- **Rust:** Stable toolchain
+- **Platform tools:**
+  - **Windows:** [VS Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/), Windows SDK, WebView2
+  - **macOS:** Xcode Command Line Tools
+  - **Linux:** WebKitGTK, plus all [Tauri Linux dependencies](https://v2.tauri.app/start/prerequisites/)
+
+## Steps to run locally
+
+1. Run `npm install` to install the dependencies.
+2. Choose one development mode:
+   - `npm run tauri:dev` launches the full desktop app with filesystem access, dialogs, and native export.
+   - `npm run dev` launches the browser-only UI for frontend development and testing; native file integration is unavailable.
+
+   Run only one of these commands at a time.
+
+## Verify changes
+
+After changes to code or dependencies, run the build and the smoke tests that cover the affected areas:
+
+- `npm run build` — type-checks the project and bundles the frontend.
+- `npm run smoke` — checks core estimate and contingency workflows.
+- `npm run smoke:gantt` — checks planning boards and Gantt scheduling.
+- `npm run smoke:analytics` — checks analytics and projection calculations.
+
+Running the full set is recommended before a release.
+
+## Release builds
+
+This section is for maintainers preparing installers or a public release. Installer outputs are written to `src-tauri/target/release/bundle/`. Build on the target operating system to ensure compatibility; for example, build Windows installers on Windows.
+
+Use this sequence:
+
+1. Verify the change with the frontend build and the affected smoke tests.
+2. Use a pre-release build to test installers locally.
+3. Configure the protected signing key before creating an official release; see [Signing key handling](#signing-key-handling).
+4. Merge the version commit into `main` and push `main`.
+5. Create and push a stable `vX.Y.Z` tag; see [Stable release tagging](#stable-release-tagging).
+
+The following scripts build pre-release and official release installers for each supported platform:
+
+| Platform | Pre-release script | Official release script |
 | --- | --- | --- |
-| Development | Run and change the app locally | Not required |
-| Pre-release | Test an installer before a stable release | Not required; updater artifacts disabled |
-| Official stable release | Publish installers and updater artifacts | Required |
+| Windows | `scripts\windows\build-prerelease.bat` | `scripts\windows\build-release.bat` |
+| macOS | `scripts/osx/build-prerelease.sh` | `scripts/osx/build-release.sh` |
+| Linux | `scripts/linux/build-prerelease.sh` | `scripts/linux/build-release.sh` |
+| Any | `npm run tauri build` (default config) | Use the platform release script |
 
-### Development
-
-Install dependencies and run the frontend or desktop app:
-
-```text
-npm install
-npm run build
-npm run tauri:dev
-```
-
-`npm run build` checks and bundles the frontend. `npm run tauri:dev` runs the desktop app with native capabilities. Neither command needs the official updater private key.
+Pre-release scripts create unsigned installers for local testing. Release scripts create signed installers for distribution.
 
 ### Pre-release builds
 
-Pre-release builds are for local or contributor testing. They must remain independent from the official stable update channel:
+Use the pre-release scripts for local installer testing. They retain the application name **HowLong**, use a distinct application identifier, and neither require signing keys nor generate updater artifacts.
 
-```text
-# Windows
-scripts\windows\build-prerelease.bat
-# macOS
-./scripts/osx/build-prerelease.sh
-# Linux
-./scripts/linux/build-prerelease.sh
-```
+### Official releases
 
-The base Tauri configuration does not create updater artifacts. The prerelease overlay keeps the displayed product name as `HowLong` while using a separate application identifier, so it cannot collide with the official installation. The pre-release version or package identifies the build; do not use the official stable updater channel for prerelease testing.
+Use the release scripts for signed local installers. They require a valid key and a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`; see [Signing key handling](#signing-key-handling) for key locations, environment variables, and GitHub Actions secrets. If the signing setup is incomplete, the scripts stop instead of producing an unsigned official build.
 
-On macOS and Linux, the shell scripts need the executable bit. If a checkout reports `permission denied`, run `chmod u+x scripts/osx/build-prerelease.sh` (or the corresponding Linux script) once, or invoke the script with `bash`.
+### Stable tags and the release workflow
 
-Use a version such as `0.7.2-beta.1` for a pre-release. Pre-release tags are not part of the stable updater channel and must not replace a stable release.
+To publish an official updater release, push a stable tag such as `v1.2.3`. The workflow ignores tags containing a hyphen, such as `v1.2.3-beta`. For a stable tag, GitHub Actions:
 
-### Official stable releases
+- Builds release artifacts for Windows x64, Linux x64, Linux ARM64, macOS Intel, and macOS Apple Silicon.
+- Automatically generates release notes by comparing the tag to the previous release.
+- Uploads the signed installers, updater bundles, signature files, and `latest.json` to the new GitHub Release.
+- *HowLong?*'s updater detects the new official release.
 
-The signed release build uses a separate configuration overlay:
+The required GitHub Actions secrets are documented in [Signing key handling](#signing-key-handling).
 
-```text
-npm run tauri build -- --config src-tauri/tauri.release.conf.json
-```
+## Installer publishing
 
-Use the platform-specific release script for local signing:
-
-```text
-# Windows
-scripts\windows\build-release.bat
-# macOS
-./scripts/osx/build-release.sh
-# Linux
-./scripts/linux/build-release.sh
-```
-
-The release overlay enables `bundle.createUpdaterArtifacts`. The platform scripts and GitHub Actions use it for official builds. Tauri then creates the normal distribution packages and the signed updater artifacts for the target platform:
-
-| Platform | First installation | In-app updater artifact |
-| --- | --- | --- |
-| Windows x64 | NSIS `.exe` and MSI | Signed NSIS `.exe` |
-| macOS Intel | `.dmg` | Signed `.app.tar.gz` |
-| macOS Apple Silicon | `.dmg` | Signed `.app.tar.gz` |
-| Linux x64 | AppImage and other packages | Signed AppImage |
-
-The updater feed contains one entry per supported operating system and architecture. An installation downloads only the artifact matching its own platform.
-
-### Installer publishing
-
-Do not upload installers manually. When a stable tag is pushed, GitHub Actions builds the platform packages, signs the updater artifacts, generates release notes from the tag and previous release, creates the GitHub Release, and uploads the installers, signatures, and `latest.json`.
+After the workflow completes, new users download the installer from the GitHub Release and existing installations update through the signed artifact referenced by `latest.json`.
 
 New users download the normal installer from the GitHub Release:
 
@@ -81,11 +91,11 @@ New users download the normal installer from the GitHub Release:
 - macOS: `.dmg`
 - Linux: `.AppImage` or another published package
 
-Existing installations use the signed updater artifact referenced by `latest.json`. The Updates panel downloads only the artifact matching the current operating system and architecture, then installs it and relaunches the app when required.
+The Updates panel downloads only the artifact matching the current operating system and architecture, then installs it and relaunches the app when required.
 
 Local builds do not publish anything. Their packages remain under `src-tauri/target/release/bundle/`.
 
-### First-install bootstrapper
+## First-install bootstrapper
 
 The repository includes one-line bootstrapper commands for first installation from the latest stable GitHub Release:
 
@@ -94,10 +104,10 @@ irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/w
 ```
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | sh
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash
 ```
 
-The PowerShell script downloads and starts the Windows x64 NSIS installer. The Bash script downloads the matching macOS Intel/Apple Silicon DMG or Linux x64 AppImage; macOS installs per-user under `~/Applications`, while Linux installs the AppImage as `~/.local/bin/howlong`. The scripts query `/releases/latest`, reject prereleases, and never use the updater feed or private signing key.
+The PowerShell script downloads and starts the Windows x64 NSIS installer. The Bash script downloads the matching macOS Intel/Apple Silicon DMG or Linux x64/ARM64 AppImage; macOS installs per-user under `~/Applications`, while Linux installs the AppImage as `~/.local/bin/howlong`. The scripts query `/releases/latest`, reject prereleases, and never use the updater feed or private signing key.
 
 These commands execute a remote script, so review it before piping it to a shell. For reproducible automation, replace `main` in the raw URL with a reviewed commit or release tag. The bootstrapper is for first installation; after installation, use the signed Tauri updater from **Settings → Updates**.
 
@@ -105,7 +115,7 @@ The bootstrapper downloads the release installer over HTTPS but does not itself 
 
 ## Versioning
 
-HowLong? follows semantic versioning in the form `x.y.z`:
+*HowLong?* follows semantic versioning in the form `x.y.z`:
 
 | Part | Name | Increment when |
 | --- | --- | --- |
@@ -120,7 +130,7 @@ Examples:
 - `0.7.1` → `0.7.2` for a patch release
 - `0.5.1` → `1.0.0` for the first stable major release
 
-Stable release tags use a `v` prefix, for example `v0.7.2`. Pre-release versions may use a suffix such as `0.7.2-beta.1`; tags containing a hyphen are excluded from the stable release workflow.
+Stable release tags use a `v` prefix, for example `v0.7.2`. Pre-release versions may use a suffix such as `0.7.2-beta.1`.
 
 Keep the application version synchronized in:
 
@@ -132,9 +142,9 @@ The About dialog and Updates panel read the frontend version through `src/shared
 
 ## Signing key handling
 
-The public key belongs in `src-tauri/tauri.conf.json`; it is not secret and is needed by installed copies to verify updates. The private key must never be committed or placed in public documentation.
+The public key belongs in `src-tauri/tauri.conf.json`. It is safe to commit because installed copies use it to verify updates. Never commit or publish the private key.
 
-Generate the protected key once, and keep using the same key for every official release. On Windows PowerShell:
+Generate one protected key and keep using it for every official release. On Windows PowerShell:
 
 ```powershell
 npm.cmd run tauri -- signer generate -w "$env:USERPROFILE\.tauri\howlong.key"
@@ -146,16 +156,16 @@ On macOS/Linux:
 npm run tauri -- signer generate -w "$HOME/.tauri/howlong.key"
 ```
 
-The command asks for a non-empty passphrase. If the key file already exists, do not use `--force` unless you deliberately intend to replace the publisher key and have a key-rotation plan. Losing either the private key or its passphrase prevents future official update packages from being accepted by existing installations.
+The command asks for a non-empty passphrase. If the key file already exists, do not use `--force` unless you intend to replace the publisher key and have a key-rotation plan. Losing the key or its passphrase prevents existing installations from accepting future updates.
 
 For local official builds, the platform scripts use:
 
 - Windows: `%USERPROFILE%/.tauri/howlong.key`
 - macOS/Linux: `~/.tauri/howlong.key`
 
-An explicitly set `TAURI_SIGNING_PRIVATE_KEY` takes precedence. `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` must contain the non-empty passphrase used to generate the protected release key. A passphrase protects against theft of the key file alone.
+An explicitly set `TAURI_SIGNING_PRIVATE_KEY` takes precedence over the default path. `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` must contain the non-empty passphrase used to generate the key. The passphrase protects against theft of the key file alone.
 
-If a key was generated earlier without a passphrase, generate a new protected key before the first official release. Replacing the public key is safe until an update signed with the old key has been published; after publication, key replacement requires a planned rotation strategy.
+If an earlier key has no passphrase, generate a new protected key before the first official release. Replacing the public key is safe until an update signed with the old key has been published; after that, replacement requires a planned rotation strategy.
 
 On Windows, set the passphrase only for the current PowerShell session and run the release script:
 
@@ -165,24 +175,24 @@ $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = Read-Host "Tauri signing passphrase"
 Remove-Item Env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD
 ```
 
-`Read-Host` keeps the passphrase out of the PowerShell command history. Do not commit it, put it in a script, or send it in chat. For GitHub Actions, use the repository secret described below instead.
+`Read-Host` keeps the passphrase out of PowerShell history. Do not commit it, put it in a script, or share it in chat. For GitHub Actions, use the repository secrets below.
 
-For GitHub Actions, configure these repository secrets:
+For GitHub Actions, configure these repository secrets before pushing the first stable tag:
 
 - `TAURI_SIGNING_PRIVATE_KEY`: complete private-key contents
 - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: the non-empty passphrase used to generate the protected key
 
-Add them under the repository's **Settings → Secrets and variables → Actions → Secrets → New repository secret**. Use repository **Secrets**, not plain-text Variables. The passphrase is needed only by the release workflow; contributors and forks can build prereleases without either secret.
+Add them under **Settings → Secrets and variables → Actions → Secrets → New repository secret**. Use repository **Secrets**, not plain-text Variables. Contributors and forks can build pre-releases without them.
 
-Keep the same key for all releases. Changing the public key after publishing requires a deliberate key-rotation strategy.
+Keep this key for all releases. Changing the public key after publication requires a deliberate rotation strategy.
 
 ## Stable release tagging
 
-Stable releases should be created deliberately, not on every merge. Tag creation is currently a manual Git operation; pushing the tag is what activates the automatic release workflow.
+Create stable releases deliberately rather than on every merge. Tagging is manual; pushing the tag activates the automated release workflow.
 
 1. Choose the next stable version, for example `0.7.2`.
 2. Update and commit the synchronized version files listed in [Versioning](#versioning).
-3. Run the frontend, smoke, and platform checks.
+3. Run `npm run build` and the smoke tests affected by the change.
 4. Merge the version commit into `main` and push `main`.
 5. Pull the latest `main`, create an annotated stable tag, and push it:
 
@@ -192,17 +202,13 @@ Stable releases should be created deliberately, not on every merge. Tag creation
    git tag -a v0.7.2 -m "HowLong 0.7.2"
    git push origin v0.7.2
    ```
-
-6. The tag triggers `.github/workflows/release.yml`.
-7. GitHub Actions builds all four targets, signs updater artifacts, generates the release description, creates the stable GitHub Release, and uploads `latest.json`.
+6. Pushing the tag triggers `.github/workflows/release.yml`, which builds all five targets, signs the updater artifacts, generates release notes, creates the GitHub Release, and uploads `latest.json`.
 
 The release description is generated automatically from the new tag and the previous release tag through the Tauri release action. GitHub groups merged Pull Requests, lists contributors, and adds a full-changelog comparison link. Commits made directly without a Pull Request are included in that comparison link.
 
 Before publishing, optionally run the manual `Smoke test release notes` workflow from **GitHub → Actions**. Leave `tag_name` empty to use an isolated smoke-test name, or provide an existing tag to inspect that release context. Open the completed run and its `Summary` to inspect the generated title and release-note body. It generates notes only; it does not create a tag, GitHub Release, installer, or upload.
 
-Tags containing a hyphen, such as `v0.7.2-beta.1`, are excluded from the stable release job.
-
-There is no separate tag-creation workflow. The private signing key is not needed to create or push a tag; it is used only by the release build after the tag exists. The repository's `GITHUB_TOKEN` is used by the release workflow to create the GitHub Release and upload its assets.
+The private signing key is not needed to create or push a tag; GitHub Actions uses it only after the tag exists. The repository's `GITHUB_TOKEN` creates the GitHub Release and uploads its assets.
 
 ## Updates and skipped versions
 
@@ -210,9 +216,9 @@ The updater points to the newest stable `latest.json`. An installation goes dire
 
 ## Open-source forks
 
-Forks remain free to build and distribute HowLong?. The official updater signature is a publisher trust mechanism, not a restriction on the source code.
+Forks remain free to build and distribute *HowLong?*. The official updater signature is a publisher trust mechanism, not a restriction on the source code.
 
-An independent fork that publishes its own binaries should change:
+The default build trusts the official GitHub Releases endpoint and public key. Configure a fork that publishes its own binaries as follows:
 
 1. The Tauri `identifier`, to avoid installation and data-directory collisions.
 2. The updater `endpoints`, or disable the updater.

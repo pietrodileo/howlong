@@ -12,33 +12,33 @@ HowLong? `0.7.2` on Windows, macOS, and Linux.
 
 - [New in v0.7.2](#new-in-v072)
 - [1. Quick start](#1-quick-start)
-- [2. Workspace and navigation](#2-workspace-and-navigation)
-  - [2.1. Sidebar](#21-sidebar)
-  - [2.2. Home actions](#22-home-actions)
-    - [2.2.1. Key terms](#221-key-terms)
+- [2. Workspace, home, and sidebar navigation](#2-workspace-home-and-sidebar-navigation)
+  - [2.1. Sidebar navigation](#21-sidebar-navigation)
+  - [2.2. Home view](#22-home-view-workspace-overview)
+    - [2.2.1. Key terms](#key-terms-in-your-workspace)
 - [3. Settings](#3-settings)
   - [3.1. Updates](#31-updates)
   - [3.2. Synced folders](#32-synced-folders)
 - [4. Models](#4-models)
 - [5. Estimate editor](#5-estimate-editor)
-  - [5.1. Your first estimate](#51-your-first-estimate)
-  - [5.2. Tabs and state](#52-tabs-and-state)
-  - [5.3. Header and totals](#53-header-and-totals)
-  - [5.4. Activity table](#54-activity-table)
-  - [5.5. Calculated items](#55-calculated-items)
-  - [5.6. Contingency comparison](#56-contingency-comparison)
+  - [5.1. Your first estimate](#your-first-estimate)
+  - [5.2. Tabs and state](#tabs-and-state)
+  - [5.3. Header and totals](#header-and-totals)
+  - [5.4. Activity table](#activity-table)
+  - [5.5. Calculated items](#calculated-items)
+  - [5.6. Contingency comparison](#contingency-comparison)
 - [6. Manager and client presentation](#6-manager-and-client-presentation)
-  - [6.1. Accessing presentation modes](#61-accessing-presentation-modes)
-  - [6.2. Manager view](#62-manager-view)
-  - [6.3. Client view](#63-client-view)
+  - [6.1. Accessing presentation modes](#accessing-presentation-modes)
+  - [6.2. Manager view](#manager-view)
+  - [6.3. Client view](#client-view)
 - [7. Save, open, reload, and recent files](#7-save-open-reload-and-recent-files)
 - [8. Library](#8-library)
 - [9. Compare estimates](#9-compare-estimates)
 - [10. Plan with the Gantt](#10-plan-with-the-gantt)
 - [11. Analytics](#11-analytics)
-  - [11.1. Overview](#111-overview)
-  - [11.2. Show tasks (several macros)](#112-show-tasks-several-macros)
-  - [11.3. Focus (one macro)](#113-focus-one-macro)
+  - [11.1. Overview](#overview)
+  - [11.2. Show tasks (several macros)](#show-tasks-in-several-macros)
+  - [11.3. Focus (one macro)](#focus-single-macro)
 - [12. Import, export, and backup](#12-import-export-and-backup)
   - [12.1. Choose the source view](#choosing-the-source-view-for-export)
   - [12.2. Formats and limits](#formats-and-limits)
@@ -46,64 +46,51 @@ HowLong? `0.7.2` on Windows, macOS, and Linux.
   - [12.4. Gantt XLSX export](#gantt-xlsx-export)
   - [12.5. Export and backup checklist](#export-and-backup-checklist)
 - [13. Keyboard shortcuts](#13-keyboard-shortcuts)
-- [14. What screens do not show or change](#14-what-screens-do-not-show-or-change)
-- [15. Troubleshooting and safety](#15-troubleshooting-and-safety)
+- [14. What certain screens show and don't](#14-what-certain-screens-show-and-dont)
+- [15. Troubleshooting and safety](#15-troubleshooting-and-safe-practices)
 
 ---
 
 ## New in v0.7.2
 
-HowLong? 0.7.2 includes the latest planning and estimate workflow improvements, a redesigned settings experience, an in-app update flow for desktop installations, and a stable release pipeline for the official builds.
+Version 0.7.2 makes the everyday workflow easier: Settings are searchable and save automatically, themes work across the main views, Plan can save scheduling changes, Compare shows more calculation detail, and Gantt exports clearer day totals.
 
 ### Settings experience
 
-Settings are grouped into focused, collapsible sections with a search field. Each option appears in a dedicated panel with a short summary, so you can scan the available preferences before opening one. Planning and Analytics empty states use the same actions as the home screen: **New Estimate**, **Open File**, and **Go to Library**.
+Settings are grouped into collapsible sections. Use the search field to find an option without opening every section. Empty Planning and Analytics screens offer the same actions as Home: **New Estimate**, **Open File**, and **Go to Library**.
 
-Settings changes are saved automatically after a short delay, and the page briefly reports when the save completes.
+Settings save automatically after a short delay. The page briefly shows when the save is complete.
 
 The Appearance panel now supports light and dark themes across estimate, presentation, and planning views.
 
-Manager and Client presentation sections can also be collapsed, making long estimates easier to scan without changing the underlying calculations.
+Manager and Client sections can be collapsed to make long estimates easier to scan. This does not change the calculations.
 
-Compare keeps formula rows aligned per estimate and shows each row's formula summary and applied CTG percentage alongside its value. The comparison footer also includes **Total + CTG**.
+Compare keeps formula rows aligned and shows each row's formula summary and applied CTG percentage. The footer also includes **Total + CTG**.
 
-Plan now has a **Save** action in its header, so scheduling changes can be persisted without returning to the Estimate view.
+Plan now has a **Save** action in its header, so you can save scheduling changes without returning to Estimate.
 
-The Gantt XLSX export now includes `Base (days)`, `Base + CTG (days)`, and `Planned (days)` for every activity. The previous Planning column is no longer exported, and planned-day totals follow the setting that controls whether weekend days count as working days.
+The Gantt XLSX export includes `Base (days)`, `Base + CTG (days)`, and `Planned (days)` for every activity. It no longer includes the old Planning column, and planned-day totals follow the weekend setting.
 
 ### Updates panel
 
-Open **Settings → Updates** and click **Check for updates** when you want to look for a new version. The app does not check automatically at startup or in the background.
-
-- Checks the official GitHub Releases feed and considers stable releases only.
-- Shows the installed version, the available version, and the release notes.
-- Downloads the signed update for the current operating system and CPU architecture, with progress when available.
-- Installs the downloaded update and restarts the desktop app when required.
-- Jumps directly to the newest stable release; intermediate versions are not installed or executed.
-- Remains disabled in browser previews, which do not have the native updater or installer access.
-
-Tauri verifies the publisher signature before installation. This protects the official update channel, while the source remains open and forkable. Fork maintainers should configure their own identifier, endpoint, public key, and signing secrets; see the [Build and release guide](../BUILD.md#open-source-forks).
-
-The official release pipeline builds platform-specific installers and updater artifacts from stable `vX.Y.Z` tags. Release notes are generated automatically from the tag and previous release. See the [Build and release guide](../BUILD.md) for the contributor workflow.
-
-New users can download the normal installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases). A terminal bootstrapper is also available for Windows, macOS, and Linux; see the [first-install instructions](../BUILD.md#first-install-bootstrapper).
+Desktop users can check for a stable release from **Settings → Updates**. The updater verifies the publisher signature before installation. Browser previews do not have access to the native updater. For the full update and installation details, see [Updates](#31-updates) and the [first-install instructions](../BUILD.md#first-install-bootstrapper).
 
 ## 1. Quick start
 
-1. **Settings** — Set your preferred language, theme, username, and workspace; settings save automatically.
-2. **Estimate** — Click **New Estimate** (the default model is used unless you select a different one using the arrow menu).
+1. **Settings:** Set your preferred language, theme, username, and workspace. Settings save automatically.
+2. **Estimate:** Click **New Estimate**. HowLong? uses the default model unless you choose another from the arrow menu.
 3. Enter a name for your estimate and client, then fill in the estimated hours for each activity.
-4. Click **Save** — your file will now appear in the **Library**.
+4. Click **Save**. Your file now appears in the **Library**.
 5. Review the **Plan**, **Analytics**, and **Client preview** sections to check your work.
 
 | Action           | Result                                                       |
 | ---------------- | ------------------------------------------------------------ |
-| **Save**   | Updates the working`.howlong.json` in Library              |
+| **Save**   | Updates the working `.howlong.json` in Library              |
 | **Export** | Creates a separate delivery file; does not save the estimate |
 
 ## 2. Workspace, Home, and Sidebar Navigation
 
-When you start *HowLong?* or close all estimates, the **Home** view appears, showing key actions and a navigation overview.
+When no estimate is open, **Home** gives you the main actions and a quick view of your workspace.
 
 ![Home screen displaying navigation, main actions, and recently opened estimates](../images/homepage.png)
 
@@ -111,7 +98,7 @@ When you start *HowLong?* or close all estimates, the **Home** view appears, sho
 
 ### 2.1. Sidebar Navigation
 
-The **sidebar** is your central navigation panel—use it to switch instantly between major areas of the app. Each sidebar icon leads to a feature supporting your estimation workflow or workspace management.
+Use the **sidebar** to move between the main areas of the app. Each icon opens one part of the estimation workflow or workspace management.
 
 | Sidebar View        | Purpose                                                                  |
 | ------------------- | ------------------------------------------------------------------------ |
@@ -124,8 +111,6 @@ The **sidebar** is your central navigation panel—use it to switch instantly be
 | **Settings**  | Customize language, appearance, defaults, workspace, and user info       |
 | **About**     | Read details about the app, version, and credits                         |
 
-Please note that:
-
 - **Plan** and **Analytics** always follow the currently active tab. If no estimate is open, these views prompt you to create or load one.
 - You can collapse the sidebar with the double-chevron next to the logo. In compact mode, hover over any icon to see its label.
 
@@ -133,7 +118,7 @@ Please note that:
 
 ### 2.2. Home View (Workspace Overview)
 
-With no estimate open, the **Home** screen helps you get started, resume recent work, or explore your workspace. It centralizes your most-used tasks for quick access.
+With no estimate open, **Home** helps you start work, reopen a recent estimate, or browse the workspace.
 
 **Home actions:**
 
@@ -148,24 +133,22 @@ With no estimate open, the **Home** screen helps you get started, resume recent 
 
 | Term                        | Meaning                                                                |
 | --------------------------- | ---------------------------------------------------------------------- |
-| **Model**             | Reusable structure: stores defaults, categories, labels, formulas, CTG |
-| **Estimate**          | Project document based on a model or built from scratch                |
-| **Macro**             | Top-level activity in an estimate; may contain subtasks                |
-| **Subtask**           | Activity within a macro; its effort totals to the macro                |
-| **Formula**           | Calculated row using selected activities                               |
+| **Model**             | Reusable structure with defaults, categories, labels, formulas, and CTG |
+| **Estimate**          | Project document based on a model or built from scratch                 |
+| **Macro**             | Top-level activity that may contain subtasks                            |
+| **Subtask**           | Activity inside a macro; its effort contributes to the macro total      |
+| **Formula**           | Calculated row based on selected activities                             |
 | **Contingency / CTG** | Risk allowance applied to eligible work                                |
-| **Session**           | In-memory copy opened in one tab until you save                        |
-| **Library**           | Local folder containing all`.howlong.json` estimate files            |
+| **Session**           | In-memory copy opened in one tab until you save                         |
+| **Library**           | Local folder containing `.howlong.json` estimate files                  |
 
 ## 3. Settings
 
-The **Settings** section lets you tailor HowLong? to your personal workflow, team standards, and workspace organization. Configure user details, interface language, appearance, workspace location, estimate defaults, export formats, and more. Use Settings before you begin your first estimate to ensure your environment matches your needs, and revisit any time as requirements change.
-
-Open **Settings** before your first estimate.
+Use **Settings** to choose your language and theme, set defaults, select a workspace, and manage updates. Open it before your first estimate, then return whenever your workflow changes.
 
 ![Settings screen with collapsible configuration sections](../images/settings.png)
 
-Open a group to see its settings panels. The expanded view keeps each panel summarized until you need its controls, and the search field opens the matching group and panel automatically.
+Open a group to see its panels. Use the search field to open the matching group and panel automatically.
 
 ![Expanded settings panels with appearance, updates, and keyboard shortcut sections](../images/settings_expanded.png)
 
@@ -181,11 +164,11 @@ Open **Settings → Updates** to check for a newer stable release manually. HowL
 - The updater goes directly to the newest stable release. Intermediate versions are not installed or executed, so each release must preserve or migrate existing workspace data.
 - Review release notes and save/export important work before a major-version update. Browser previews cannot install updates; use the desktop app.
 
-The panel keeps these steps separate: checking does not download, downloading does not install, and installation is available only after the signed download completes. If no update is available, the panel reports that the installed version is current. A failed check or download leaves the current installation unchanged.
+The steps are separate: checking does not download, and downloading does not install. Installation becomes available only after the signed download completes. If a check or download fails, the current installation stays unchanged.
 
-The updater verifies the release signature before installation. This trust belongs to the official HowLong? publisher, not to the open-source license. Forks can build the source normally, but an independent fork should use its own application identifier, release endpoint, public key, and signing secret; otherwise it may follow the upstream update feed.
+The updater verifies the release signature before installation. This signature identifies the official HowLong? publisher; it does not restrict the open-source code. A fork that publishes its own builds should use its own application identifier, release endpoint, public key, and signing secret.
 
-Each heading expands its controls. Closed sections still hold settings. Settings changes are saved automatically; the page briefly shows a saving or saved status while it writes the updated preferences.
+Each heading expands its controls, and closed sections keep their settings. Changes save automatically; the page briefly shows the save status.
 
 **Profile and display**
 
@@ -209,37 +192,37 @@ The dark theme applies to the estimate, presentation, and planning screens as we
 
 **Workspace**
 
-- **Workspace** — estimate and model paths; **Choose folder…** or **Use default** (the default workspace is a `HowLong` folder inside your system's "Documents" directory).All your estimates, models, and related data are synced with your selected workspace folder. If you change the workspace location, the app will show the data in the current folder—switching back to a previous workspace will reveal your data as you left it. Changing workspaces does not cause data loss; each workspace keeps its own data.
+- **Workspace** — estimate and model paths; **Choose folder…** or **Use default**. The default workspace is a `HowLong` folder inside your system's "Documents" directory. Each workspace keeps its own estimates, models, and related data. Switching folders changes which data the app shows; switching back restores the previous workspace.
 - **Workspace import/export** — settings and models only (estimates stay in Library)
 
 ### 3.2. Synced folders
 
-You can set your Workspace folder to a location that is kept in sync by a cloud service like OneDrive, Google Drive, Dropbox, or a similar tool. This enables you and your colleagues to share models and estimates automatically, just by working in a shared folder.
+You can place the Workspace folder inside a OneDrive, Google Drive, Dropbox, or similar synced folder. This lets a team share models and estimates through that folder.
 
 **How it works:**
 
-- Everyone who needs access must have the appropriate sync software (e.g., OneDrive, Google Drive, Dropbox) installed and permission to access the shared folder.
-- As you save or update `.howlong.json` files, your colleagues will see the changes once their sync client updates.
+- Everyone who needs access must have the sync software installed and permission to use the shared folder.
+- Colleagues see changes after their sync client downloads the updated `.howlong.json` files.
 
 **Important usage tips:**
 
-- *Wait for the sync to finish* before opening a file that someone else has just modified. For example, if someone saves an estimate, the others should let their sync client fully update before opening the same file.
-- **Never open and edit the same estimate file at the same time on different computers.** There is no locking or auto-merge support — if two people save changes to the same file, they can accidentally overwrite each other's work, and you may lose data.
+- *Wait for synchronization to finish* before opening a file someone else has modified.
+- **Never open and edit the same estimate file at the same time on different computers.** HowLong? does not lock or merge files. Two people saving the same file can overwrite each other's changes.
 
 **Examples:**
 
-- *Example 1:* Your team uses Google Drive to keep all `.howlong.json` estimate files in a shared folder. Before someone opens an `.howlong.json` file, he should check that Google Drive has finished syncing.
-- *Example 2:* A colleague edits an estimate in a Dropbox-synced folder. She lets Dropbox finish syncing before telling someone else he can open it on his laptop. They avoid opening it at the same time to prevent any conflicts.
+- *Example 1:* Your team stores `.howlong.json` files in a shared Google Drive folder. Check that Drive has finished syncing before opening a file.
+- *Example 2:* A colleague edits an estimate in a Dropbox folder. Wait for Dropbox to finish syncing before opening that file on another computer.
 
 ## 4. Models
 
-The **Models** section allows you to define, edit, and manage reusable project structures for your estimates. Models save you time and ensure consistency by capturing your team's standard activities, categories, macros, subtasks, contingencies, and effort formulas, so you don't need to start from scratch for every new estimate. Use this section to build templates tailored to your typical projects, making it easy to create new, accurate estimates with predefined logic. Models are especially useful for teams with recurring project types, standard categories, or those who want to enforce best practices in their planning workflow.
+Use **Models** to create reusable starting points for estimates. A model can include standard activities, categories, macros, subtasks, contingencies, and formulas. This is useful when your projects follow a similar structure.
 
 Bundled Italian and English models are included. Open **Models** to edit or build reusable structures.
 
 ![Model editor with model list, categories, contingency, macros, subtasks, and a formula](../images/models_example.png)
 
-The left panel displays the list of models (with the default one indicated); the right panel shows the editor.
+The left panel lists the models and marks the default one. The right panel contains the editor.
 
 1. Click **New** or import a compatible model.
 2. Specify the model’s name, icon, stable ID, and hours per workday.
@@ -247,13 +230,13 @@ The left panel displays the list of models (with the default one indicated); the
 4. Set the default CTG (expand **How it works** for more information).
 5. Add macros, subtasks, default effort values, CTG flags, labels, and formulas.
 
-Drag and drop items to reorder them. Use the chevron to expand and show children. Click **+ Task** to add a subtask. Each row has options to duplicate or delete (trash) the item. Use **Save**, **Delete**, or **Export** to manage the model.
+Drag items to reorder them. Use the chevron to show children, and click **+ Task** to add a subtask. Each row can be duplicated or deleted. Use **Save**, **Delete**, or **Export** to manage the model.
 
-The default model is used when you select **New Estimate** or press `Ctrl/Cmd+T`. Keep in mind that saved estimates are snapshots—they do not update if the source model changes.
+The default model is used when you select **New Estimate** or press `Ctrl/Cmd+T`. Saved estimates are snapshots: they do not update if the source model changes.
 
 ## 5. Estimate editor
 
-The **Estimate editor** is where you create, view, and modify detailed project estimates. Use this section to break down your work into activities, apply contingencies, organize tasks hierarchically, and calculate both base and adjusted effort. The editor is designed to help you plan project time and cost accurately while giving you full control over task structure and estimates. It features multi-tab support for working on several estimates or sessions at once, intuitive editing and reordering, and powerful tools for aggregating and comparing effort. Whether you’re building new estimates from scratch, revising saved ones, or collaborating with your team, the Estimate editor provides all the features you need for precise, flexible project planning.
+The **Estimate editor** is where you build the work breakdown and calculate effort. Add macros and subtasks, enter hours, apply contingency, and review the totals. Each estimate opens in its own tab with separate unsaved state and history.
 
 ### Your first estimate
 
@@ -266,7 +249,7 @@ To create your first estimate:
 
 ![Estimate editor with totals, contingency controls, and the full activity table](../images/estimate_view.png)
 
-The editor supports multiple estimates in tabs, each with its own dirty state and history.
+Each tab has its own unsaved state and history.
 
 ![Estimate editor with multiple tabs, totals, macros, subtasks, notes, and a formula](../images/new_estimate_with_tabs.png)
 
@@ -285,15 +268,15 @@ Each tab has its own undo/redo: `Ctrl/Cmd+Z`; redo is `Ctrl+Y` (Windows/Linux) o
 
 At the top, you can edit the **title**, **client**, and **icon** for your estimate. The **Base**, **CTG** (contingency), and **Total** effort values are displayed in both hours and days.
 
-The toolbar gives you quick access to: unit selection · hours per day · global contingency (CTG) · contingency comparison · column visibility · export · reload · save · and client preview.
+The toolbar gives you quick access to units, hours per day, global contingency (CTG), contingency comparison, column visibility, export, reload, save, and client preview.
 
-Adjusting **hours per day** only changes how person-days are displayed—underlying effort is always stored in hours.
+Changing **hours per day** changes only the display of person-days. HowLong? always stores effort in hours.
 
 ### Activity table
 
 | Column       | Description                                                    |
 | ------------ | -------------------------------------------------------------- |
-| Name         | Activity title—macro, subtask, or formula, shown in hierarchy |
+| Name         | Activity title: macro, subtask, or formula shown in the hierarchy |
 | Category     | Category/group; may be targeted for contingency (CTG)          |
 | Hours / Days | Estimated base effort, before contingency (CTG)                |
 | Apply CTG    | Whether this row receives added contingency                    |
@@ -318,30 +301,30 @@ Adjusting **hours per day** only changes how person-days are displayed—underly
 
 ### Calculated items
 
-Rows marked as "calculated items" use formulas to automatically compute values based on other activities in your estimate. Instead of manually entering effort, these rows aggregate or transform data from selected macros or subtasks—such as summing, averaging, or applying a custom calculation. Calculated items update in real time when the activities they reference change, ensuring totals and derived values always stay accurate and consistent throughout your estimate.
+**Calculated items** get their values from other activities through a formula. Use them when a number should update automatically, for example when it is the sum or average of selected rows. They update whenever the referenced activities change.
 
 A formula is `aggregation(selected rows) × percentage`.
 
 | Aggregation | Options                                                 |
 | ----------- | ------------------------------------------------------- |
 | Math        | Sum · average · min · max                            |
-| CTG         | Applies only when**Apply CTG** is on for that row |
+| CTG         | Applies only when **Apply CTG** is on for that row |
 
 ### Contingency Comparison
 
-Contingency comparison lets you explore how different contingency percentages impact your estimate without changing your base effort. By modeling multiple "what-if" scenarios side by side, you can communicate risk, show the effect of buffer choices, and help stakeholders make informed decisions about which level of contingency best fits the project's needs.
+Use contingency comparison to test different CTG percentages without changing the base effort. It shows three what-if scenarios side by side so you can choose the margin that fits the project.
 
 ![Three contingency scenarios above the estimate table](../images/compare_contingency.png)
 
 Compare scenarios **A**, **B**, and **C** while **base effort stays fixed**.
 
-1. Set percentages in the panel
-2. **Use** — apply one scenario to the current session; each scenario has its own button below its total
-3. **Save** — keep the choice; **Close** — hide the panel
+1. Set the percentages in the panel.
+2. Click **Use** under a scenario to apply it to the current session.
+3. Click **Save** to keep the choice or **Close** to hide the panel.
 
 ## 6. Manager and Client Presentation
 
-There are three main presentation modes: **Estimator**, **Manager**, and **Client**. Each mode is designed for a different audience and offers varying levels of detail and control over what information is displayed or editable.
+HowLong? has three presentation modes. **Estimator** is the working view, **Manager** prepares the estimate for sharing, and **Client** shows the selected public information.
 
 | Feature / View               | Estimator View                                 | Manager View                                       | Client View                                   |
 | ---------------------------- | ---------------------------------------------- | -------------------------------------------------- | --------------------------------------------- |
@@ -355,26 +338,21 @@ There are three main presentation modes: **Estimator**, **Manager**, and **Clien
 | **Export**             | Typically for internal review                  | Creates client-ready file with manager adjustments | Final client-facing output                    |
 | **Compare Deltas**     | Not shown                                      | Can preview/edit differences in totals             | Presented only as defined by manager          |
 
-These presentation modes let you adapt how your estimate is delivered for internal or external review without altering your core calculations or data.
-Each view ensures the right level of detail is shown to the intended audience while protecting sensitive information as needed.
+Use these modes to prepare different levels of detail without changing the underlying estimate calculations.
 
 ### Accessing Presentation Modes
 
-To open these views, use the **Client preview** button in the estimate header. This brings up a side-by-side page showing both the manager and client layouts, so you can easily compare what each will see.
+Click **Client preview** in the estimate header. The preview opens the Manager and Client layouts side by side.
 
 ---
 
 ### Manager View
 
-The Manager view is designed for internal use, letting you finalize and adjust the estimate before sharing with the client.
+Use the Manager view to prepare what will be shown to the client. It is for presentation changes, not for changing the estimate's calculation rules.
 
 ![Manager view with visibility, presented totals, deltas, notes, and redistribution](../images/manager_view.png)
 
-You can:
-
-- Fine-tune totals and tweak how numbers are shown.
-- Add, hide, or annotate information that should—or shouldn’t—appear in the client export.
-- Visually identify changes between calculated totals and what will be presented.
+You can adjust displayed totals, choose which rows are included, and control notes and labels. The view also shows the difference between calculated and presented totals.
 
 | Control                      | What it does                                                         |
 | ---------------------------- | -------------------------------------------------------------------- |
@@ -384,17 +362,17 @@ You can:
 | Labels and notes             | Adjust content that will be passed downstream                        |
 | **Redistribute**       | Evenly allocate a changed macro total among its child tasks          |
 
-All adjustments here are **for presentation only**—they don't alter your calculation logic. Export from this view to generate a manager-adjusted file for client delivery.
+All adjustments here are **for presentation only**. They do not alter the calculation logic. Export from this view to create the manager-adjusted client file.
 
 ---
 
 ### Client View
 
-The Client view displays a simplified version of the estimate, reflecting only the information and layout meant for the client. It automatically applies your filtering and any manager edits.
+The Client view is the read-only version prepared for the client. It applies the manager's filters and presentation changes.
 
 ![Client view with chosen activities and simplified hours and days](../images/client_view.png)
 
-Preview what the client receives.
+Use this view to check exactly what the client will receive.
 
 | Control        | Effect                         |
 | -------------- | ------------------------------ |
@@ -402,30 +380,28 @@ Preview what the client receives.
 | Notes / labels | Visible only when enabled      |
 | Hours / days   | Presented values with rounding |
 
-**Export** creates the client delivery file — included activities, manager edits, and your visibility filters applied. Review this view before sending.
+**Export** creates the client delivery file with the included activities, manager edits, and visibility filters. Review this view before sending.
 
 **Back to estimate** leaves the preview. **Save** stores presentation changes in the estimate.
 
 ## 7. Save, open, reload, and recent files
 
-Managing your estimates efficiently means knowing how to save your work, open existing files, reload previous versions, and quickly access your most recent files. This section explains the different ways you can interact with your estimate files, whether you’re editing, reviewing, or organizing your work.
+This section covers the basic file actions: save the active estimate, open another file, reload the last saved version, and reopen recent work.
 
 | Action                           | What it does                                                 |
 | -------------------------------- | ------------------------------------------------------------ |
 | **Save** / `Ctrl/Cmd+S`  | Write the active estimate to Library                         |
-| **Open File**              | Load a`.howlong.json` from outside Library                 |
+| **Open File**              | Load a `.howlong.json` from outside Library                 |
 | **Reload**                 | Replace the tab with the last saved file (confirms if dirty) |
 | **Opened recently** (Home) | Open one of the five latest Library estimates                |
 
 Each save records username, time, and an audit entry. The status line shows the last save.
 
-**Desktop vs browser:** use `npm run tauri:dev` for the full app. `npm run dev` shows the UI only — no native file dialogs or filesystem access.
+**Desktop vs browser:** use `npm run tauri:dev` for the full app. `npm run dev` shows the UI only, without native file dialogs or filesystem access.
 
 ## 8. Library
 
-The Library is where you manage all your saved estimates in one place. This section explains how to search, organize, open, compare, and export your estimates, making it easy to keep track of your work and quickly find or share the files you need.
-
-Easily manage your saved estimates: search, sort, open, compare, import, export, duplicate, and delete them as needed.
+The **Library** is the list of saved estimates in the current workspace. Search, sort, open, compare, import, export, duplicate, or delete files from here.
 
 ![Library with search, sorting, selection, import, export, comparison, and row actions](../images/library.png)
 
@@ -441,7 +417,7 @@ Easily manage your saved estimates: search, sort, open, compare, import, export,
 
 ## 9. Compare estimates
 
-Align multiple estimates side by side. Read-only — nothing is merged.
+Compare multiple estimates side by side. This view is read-only; it never merges files.
 
 > Compare uses the **last saved** version of each estimate. Unsaved changes in an open tab do not appear.
 
@@ -456,15 +432,15 @@ Align multiple estimates side by side. Read-only — nothing is merged.
 | Above table | Switch units (hours/days) and set conversion     |
 | Bottom rows | See base effort, contingency (CTG), and total with CTG |
 
-Rows are grouped by category, and you can expand or collapse macros using chevrons. The selector can be collapsed with the arrow at its top; selected estimates remain available as icons while the comparison table gains space. Formula rows show their formula summary and the CTG percentage actually applied in each estimate column. When a cell is empty, it means that activity doesn’t exist in that estimate—it does *not* mean zero hours. Comparing never edits your files.
+Rows are grouped by category, and you can expand or collapse macros using chevrons. Collapse the selector with the arrow at its top to give the comparison table more space; selected estimates remain available as icons. Formula rows show their formula summary and the CTG percentage applied in each estimate column. An empty cell means that the activity does not exist in that estimate, not that it has zero hours. Comparing never edits your files.
 
 ## 10. Plan with the Gantt
 
 > Activity statuses and shared-note controls were added in version 0.6.1.
 
-The Gantt planner lets you schedule your project visually by laying out activities on a timeline. Assign dates, sequence tasks, and spot dependencies or bottlenecks with intuitive tools like date pickers, drag-to-resize bars, and timeline zoom. You can see the full project at a glance or zoom in to fine-tune specific activities, helping you organize work clearly for your team and stakeholders.
+Use the Gantt planner to put activities on a calendar. Set dates, resize bars, update statuses, and inspect the project timeline.
 
-Planning with Gantt is all about setting your schedule—it never changes total effort or contingency (CTG). Move and adjust dates with confidence, knowing your estimates remain unchanged.
+Plan changes dates and planning details only. It never changes effort or contingency (CTG).
 
 To get started: Open your estimate, then click **Plan**.
 
@@ -504,10 +480,7 @@ When exporting to XLSX, HowLong? uses the current view's scale, visible date ran
 
 ## 11. Analytics
 
-The Analytics feature in HowLong? equips you with powerful visual tools to analyze and understand how your project’s base effort and contingency (CTG) are distributed across activities and macros. Use Analytics to identify key cost drivers, uncover trends, and present breakdowns clearly to your team or stakeholders. Through interactive charts—including summary cards, macro/task donuts, and stacked bar graphs—you can both grasp the overall picture and dive deep into the details, all while keeping your estimates unmodified. Analytics is ideal for reviewing, reporting, and steering project discussions with clarity.
-
-These charts are always read-only and focus on base effort and contingency allocation.
-To access Analytics: Open your estimate and click **Analytics**.
+Analytics shows how base effort and contingency (CTG) are distributed across macros and activities. The charts are read-only, so you can inspect the estimate without changing it. Open an estimate and click **Analytics**.
 
 ![Analytics overview with summary cards, macro donut, and stacked bars](../images/analytics.png)
 
@@ -547,13 +520,13 @@ Analytics mode is temporary and local to each tab; switching to another document
 
 ## 12. Import, export, and backup
 
-This section explains how to import, export, and back up your estimates and project data in HowLong?. Use these features to safely share project information, create tailored exports for different audiences, and ensure data protection by keeping secure copies. The import and export tools help you distribute detailed or summary views (for technical, managerial, or client use), move estimates between devices or team members, and restore work if necessary. Formats and options are designed for collaboration, audit, and integration with other project tools.
+Use this section to choose what to export, share a suitable view, and keep a recoverable backup. The native JSON format is the one to use when you need to reopen or import an estimate.
 
 Sample files are available in [`examples/`](../../examples/).
 
 ### Choosing the Source View for Export
 
-When exporting your estimate, you can select a **source view** to determine exactly which values and fields are included in the export file. This allows you to customize exports for different purposes: whether it’s a technical handoff, management review, or client delivery, you can ensure every audience receives just the information they need—nothing more, nothing less. Each source view highlights your project’s data in a specific way—so by picking the right one, you can share detailed calculations, summarized data, or tailored presentations while keeping sensitive or irrelevant info private. Here’s an overview of your options:
+The **source view** decides which values and fields appear in the export. Choose the view that matches the person who will read the file:
 
 | Source   | Contents Included                                                                  | Best For               |
 | -------- | ---------------------------------------------------------------------------------- | ---------------------- |
@@ -564,7 +537,7 @@ When exporting your estimate, you can select a **source view** to determine exac
 
 | Format       | Purpose                                                                |
 | ------------ | ---------------------------------------------------------------------- |
-| HowLong JSON | Native full estimate —**only format that supports re-import**   |
+| HowLong JSON | Native full estimate; **the only format that supports re-import**   |
 | YAML         | Structured for AI (e.g., for Jira draft generation); not re-importable |
 | XLSX         | User-friendly snapshot view from any source above                      |
 | ZIP          | Archive containing multiple Library exports                            |
@@ -573,14 +546,14 @@ Once you export, use **Open** in the completion dialog (on desktop, this links t
 
 ![Export completion message with Open File action](../images/exported_element.png)
 
-**Recommended backup strategy:** Always back up both your workspace (settings and models) and your Library (estimates).
+**Backup:** Save both the workspace (settings and models) and the Library (estimates).
 
 | Action                   | What it does                                                                 |
 | ------------------------ | ---------------------------------------------------------------------------- |
 | **Save**           | Updates the active estimate in your Library                                  |
-| **Export → JSON** | Exports a portable`.howlong.json` backup—even from Manager/Client screens |
+| **Export → JSON** | Exports a portable `.howlong.json` backup, including from Manager/Client screens |
 
-YAML exports (Estimate/Manager) are detailed enough for AI agents to create Jira epics, tickets, or risk logs—always review before using automated tools. Client YAML is filtered for public sharing. Note: YAML exports never trigger actions by themselves.
+YAML exports from Estimate and Manager contain enough detail for AI tools to draft Jira epics, tickets, or risk logs. Review them before using them in an automated workflow. Client YAML is filtered for public sharing. YAML exports never trigger actions by themselves.
 
 ### Formats and limits
 
@@ -591,7 +564,7 @@ YAML exports (Estimate/Manager) are detailed enough for AI agents to create Jira
 | **XLSX** | Human-readable snapshot generated from the selected view; editing it does not update the estimate and it cannot be re-imported as a native document. |
 | **ZIP** | Container for multiple exports selected from the Library; each file keeps its original format and purpose. |
 
-The exported JSON is a separate portable copy of the session file. Use it to transfer an editable estimate between installations or to create a backup before risky changes. Do not use a Client export as a complete backup: hidden activities and internal details may be intentionally omitted.
+The exported JSON is a separate, portable copy of the session. Use it to move an editable estimate between installations or to create a backup before risky changes. A Client export is not a complete backup because it may omit hidden activities and internal details.
 
 ### Estimate XLSX export
 
@@ -635,7 +608,7 @@ For a complete backup, save both the workspace (settings and models) and the Lib
 
 ## 13. Keyboard Shortcuts
 
-This section lists available keyboard shortcuts in HowLong?, designed to make your workflow faster and more efficient. Use these shortcuts to navigate, edit, manage tabs, and perform frequent actions—so you can handle your estimates without switching between keyboard and mouse. Check here whenever you want to boost productivity or learn a new time-saver. All shortcuts are customizable; visit the Settings → Keyboard Shortcuts menu for the current list specific to your installation.
+Keyboard shortcuts cover navigation, editing, tabs, and common actions. They are customizable, so the list in **Settings → Keyboard Shortcuts** is the source of truth for your installation.
 
 macOS: substitute `Cmd` for `Ctrl/Cmd` in the tables below.
 
@@ -654,7 +627,7 @@ macOS: substitute `Cmd` for `Ctrl/Cmd` in the tables below.
 
 If a shortcut changes, the authoritative source is always Settings → Keyboard shortcuts.
 
-## 14. What Certain Screens Show — and Don’t
+## 14. What certain screens show and don't
 
 **Limits:**
 
@@ -674,17 +647,17 @@ If a shortcut changes, the authoritative source is always Settings → Keyboard 
 
 | Problem                      | Solution                                                                                                           |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Saved estimate missing       | Check Workspace/Estimates path → refresh Library → review open tabs                                              |
-| CTG is zero                  | Ensure you applied CTG, set a global or custom %, or used category mode; formulas require “Apply CTG” separately |
-| Client can’t see an item    | Manager inclusion may be off → for Client: check**Subs**, notes, labels                                     |
-| Import rejected              | Only import native HowLong JSON; YAML or general JSON is not`.howlong.json`                                      |
-| File actions fail in browser | Run`npm run tauri:dev`                                                                                           |
+| Saved estimate missing       | Check the Workspace/Estimates path, refresh the Library, and review open tabs                                  |
+| CTG is zero                  | Apply CTG and set a global or custom percentage; formulas also need **Apply CTG**                              |
+| Client can’t see an item     | Check Manager inclusion and the Client **Subs**, notes, and labels settings                                   |
+| Import rejected              | Import only native HowLong JSON; YAML or generic JSON is not a `.howlong.json` file                           |
+| File actions fail in browser | Run `npm run tauri:dev`                                                                                         |
 
 **Before any risky actions:**
 
-1. Save before closing, reloading, or changing your workspace folder
-2. Export a HowLong JSON for a portable backup
-3. Back up both workspace and Library separately
-4. Remember: delete, reload, or importing a workspace can destroy data
+1. Save before closing, reloading, or changing the workspace folder.
+2. Export a HowLong JSON for a portable backup.
+3. Back up the workspace and Library separately.
+4. Treat delete, reload, and workspace import as destructive actions.
 
 For installation, development, testing, release notes, and versioning, see the [Build and release guide](../BUILD.md) and the [README](../../README.md).
