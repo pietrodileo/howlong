@@ -107,7 +107,22 @@ irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/w
 curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash
 ```
 
-The PowerShell script downloads and starts the Windows x64 NSIS installer. The Bash script downloads the matching macOS Intel/Apple Silicon DMG or Linux x64/ARM64 AppImage; macOS installs per-user under `~/Applications`, while Linux installs the AppImage as `~/.local/bin/howlong`. The scripts query `/releases/latest`, reject prereleases, and never use the updater feed or private signing key.
+The PowerShell script downloads and starts the Windows x64 NSIS installer. The Bash script downloads the matching macOS Intel/Apple Silicon DMG or Linux x64/ARM64 AppImage; macOS installs per-user under `~/Applications`, while Linux installs the AppImage as `~/.local/bin/howlong`. The scripts query GitHub Releases for the latest release or requested tag, reject prereleases, and never use the updater feed or private signing key.
+
+To install a specific stable version, pass `0.7.2` or `v0.7.2` to the Unix script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.7.2
+```
+
+On Windows, download and invoke the PowerShell script with its `-Version` parameter:
+
+```powershell
+$script = irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1
+& ([scriptblock]::Create($script)) -Version '0.7.2'
+```
+
+Leave the version out to install the latest stable release. The requested release must contain an installer for the current operating system and architecture.
 
 These commands execute a remote script, so review it before piping it to a shell. For reproducible automation, replace `main` in the raw URL with a reviewed commit or release tag. The bootstrapper is for first installation; after installation, use the signed Tauri updater from **Settings → Updates**.
 

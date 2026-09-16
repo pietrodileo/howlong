@@ -3,6 +3,16 @@ set -euo pipefail
 
 repository="pietrodileo/howlong"
 api_url="https://api.github.com/repos/${repository}/releases/latest"
+requested_version="${1:-}"
+
+if [[ -n "$requested_version" ]]; then
+  if [[ ! "$requested_version" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo 'Error: version must be a stable release in the form X.Y.Z or vX.Y.Z.' >&2
+    exit 1
+  fi
+  requested_tag="v${requested_version#v}"
+  api_url="https://api.github.com/repos/${repository}/releases/tags/${requested_tag}"
+fi
 
 command -v curl >/dev/null || {
   echo "Error: curl is required." >&2
@@ -13,7 +23,11 @@ release_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' -A 'HowLong-
 tag_name="$(printf '%s\n' "$release_json" | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
 
 if [[ ! "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "Error: the latest GitHub release is not a stable release." >&2
+  if [[ -n "$requested_version" ]]; then
+    echo "Error: requested release ${requested_tag} is not a stable release." >&2
+  else
+    echo "Error: the latest GitHub release is not a stable release." >&2
+  fi
   exit 1
 fi
 

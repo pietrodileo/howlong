@@ -84,6 +84,12 @@ curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/in
 
 The bootstrapper installs the matching macOS `.dmg` for the current user. Check the remote script before piping it to a shell. To make the install reproducible, replace `main` with a reviewed commit or tag.
 
+To install a specific stable version, pass its version to the script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.7.2
+```
+
 ### Windows
 
 Download the `.exe` or `.msi` installer from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or use PowerShell to install the Windows x64 `.exe`:
@@ -94,6 +100,13 @@ irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/w
 
 Check the remote script before piping it to PowerShell. To make the install reproducible, replace `main` with a reviewed commit or tag.
 
+To install a specific stable version:
+
+```powershell
+$script = irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1
+& ([scriptblock]::Create($script)) -Version '0.7.2'
+```
+
 ### Linux
 
 Download the `.AppImage` or another published package from the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases), or use the bootstrapper to install the matching Linux x64 or ARM64 AppImage:
@@ -103,6 +116,12 @@ curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/in
 ```
 
 Check the remote script before piping it to a shell. To make the install reproducible, replace `main` with a reviewed commit or tag.
+
+To install a specific stable version, pass its version to the script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.7.2
+```
 
 The bootstrapper installs stable releases only. For an existing installation, use **Settings → Updates**.
 

@@ -1,3 +1,7 @@
+param(
+  [string]$Version
+)
+
 $ErrorActionPreference = 'Stop'
 
 $repository = 'pietrodileo/howlong'
@@ -6,11 +10,28 @@ $headers = @{
   'User-Agent' = 'HowLong-installer'
 }
 
+$requestedTag = $null
+if (-not [string]::IsNullOrWhiteSpace($Version)) {
+  if ($Version -notmatch '^v?[0-9]+\.[0-9]+\.[0-9]+$') {
+    throw 'Version must be a stable release in the form X.Y.Z or vX.Y.Z.'
+  }
+  $requestedTag = "v$($Version -replace '^v', '')"
+}
+
+$releaseUri = if ($requestedTag) {
+  "https://api.github.com/repos/$repository/releases/tags/$requestedTag"
+} else {
+  "https://api.github.com/repos/$repository/releases/latest"
+}
+
 $release = Invoke-RestMethod `
-  -Uri "https://api.github.com/repos/$repository/releases/latest" `
+  -Uri $releaseUri `
   -Headers $headers
 
 if ($release.draft -or $release.prerelease -or $release.tag_name -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
+  if ($requestedTag) {
+    throw "Requested release $requestedTag is not a stable release."
+  }
   throw 'The latest GitHub release is not a stable release.'
 }
 

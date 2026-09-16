@@ -9,7 +9,8 @@ run_case() {
   local system="$1"
   local architecture="$2"
   local expected_asset="$3"
-  local home="$test_root/$architecture"
+  local requested_version="${4:-}"
+  local home="$test_root/$architecture${requested_version:+-$requested_version}"
   local output
 
   mkdir -p "$home"
@@ -18,6 +19,7 @@ run_case() {
       HOWLONG_TEST_SYSTEM="$system" \
       HOWLONG_TEST_ARCHITECTURE="$architecture" \
       HOWLONG_EXPECTED_ASSET="$expected_asset" \
+      HOWLONG_TEST_VERSION="$requested_version" \
       bash -c '
         uname() {
           case "$1" in
@@ -28,7 +30,12 @@ run_case() {
         }
 
         curl() {
-          if [[ "$*" == *"/releases/latest" ]]; then
+          if [[ "$*" != *"/releases/download/"* ]]; then
+            if [[ -n "$HOWLONG_TEST_VERSION" ]]; then
+              [[ "$*" == *"/releases/tags/v9.9.9" ]] || return 1
+            else
+              [[ "$*" == *"/releases/latest" ]] || return 1
+            fi
             printf '%s\n' "{\"tag_name\":\"v9.9.9\"}"
             return 0
           fi
@@ -50,7 +57,7 @@ run_case() {
         }
 
         export -f uname curl
-        bash "$1"
+        bash "$1" "$HOWLONG_TEST_VERSION"
       ' bash "$script_path"
   )"; then
     printf '%s\n' "$output" >&2
@@ -66,5 +73,6 @@ run_case() {
 run_case Linux x86_64 HowLong_9.9.9_amd64.AppImage
 run_case Linux aarch64 HowLong_9.9.9_aarch64.AppImage
 run_case Linux arm64 HowLong_9.9.9_aarch64.AppImage
+run_case Linux x86_64 HowLong_9.9.9_amd64.AppImage 9.9.9
 
 printf '%s\n' 'installer smoke tests passed'
