@@ -59,7 +59,6 @@ function applyScenario(index: 0 | 1 | 2) {
     <header class="compare-head">
       <div>
         <h3>{{ t('ctg.compareTitle') }}</h3>
-        <p class="lede">{{ t('ctg.compareLede') }}</p>
       </div>
       <button type="button" class="ghost" :aria-label="t('about.close')" @click="open = false">
         {{ t('about.close') }}
@@ -161,13 +160,6 @@ function applyScenario(index: 0 | 1 | 2) {
   font-family: var(--font-ui);
   font-size: 0.95rem;
   font-weight: 650;
-}
-
-.lede {
-  margin: 0.25rem 0 0;
-  font-size: 0.82rem;
-  color: var(--muted);
-  line-height: 1.4;
 }
 
 .pct-row {
@@ -283,14 +275,26 @@ function applyScenario(index: 0 | 1 | 2) {
 
 .total-row td {
   background: color-mix(in srgb, var(--accent-soft) 55%, var(--surface));
-  text-align: center;
+  text-align: left;
   vertical-align: middle;
 }
 
 .apply {
-  display: block;
-  margin: 0.35rem auto 0;
-  padding: 0.2rem 0;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.45rem;
+  padding: 0.28rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.apply:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 </style>

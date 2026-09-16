@@ -157,6 +157,7 @@ h2 {
   background: var(--page-soft);
   color: var(--ink);
   font: inherit;
+  font-size: 1rem;
   line-height: 1.45;
   white-space: pre-wrap;
 }

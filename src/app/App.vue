@@ -7,6 +7,7 @@ import WorkingView from '../features/estimate/WorkingView.vue';
 import { useSettingsStore } from '../features/settings/settings';
 import { useModelsStore } from '../features/models/models';
 import { useLibraryStore } from '../features/library/library';
+import { useEstimateStore } from '../features/estimate/estimate';
 import { useDocumentsStore } from '../shared/documents';
 import { useUiStore, type AppView } from './ui';
 import { useI18n } from './i18n/useI18n';
@@ -27,6 +28,7 @@ const DocumentTabs = defineAsyncComponent(() => import('./components/DocumentTab
 const settings = useSettingsStore();
 const models = useModelsStore();
 const library = useLibraryStore();
+const estimate = useEstimateStore();
 const docs = useDocumentsStore();
 const ui = useUiStore();
 const { t } = useI18n();
@@ -62,6 +64,24 @@ async function openToastFolder() {
 /** Keep document-aware feature views open when the active session changes. */
 function onActivateDocument() {
   if (ui.currentView !== 'gantt' && ui.currentView !== 'analytics') ui.navigate('working');
+}
+
+/** Persist the active estimate from the shared Gantt header action. */
+async function onSaveGantt() {
+  try {
+    const { path, data } = await library.saveEstimate(estimate.estimate);
+    estimate.estimate.meta.updatedAt = data.meta.updatedAt;
+    estimate.estimate.auditHistory = data.auditHistory;
+    estimate.markSaved(path);
+    const session = docs.activeSession;
+    if (session) {
+      docs.updateSessionEstimate(session.sessionId, estimate.estimate);
+      docs.markSaved(session.sessionId, path);
+    }
+    ui.notify(t('working.saved', { path }));
+  } catch (error) {
+    ui.notify(toErrorMessage(error), true);
+  }
 }
 
 
@@ -112,22 +132,39 @@ watch(() => docs.hasSessions, (hasSessions) => {
       <TitleBar />
       <DocumentTabs v-if="(ui.currentView === 'working' || ui.currentView === 'gantt' || ui.currentView === 'analytics') && docs.hasSessions" @activate="onActivateDocument" />
       <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare' || ui.currentView === 'gantt' || ui.currentView === 'analytics'" class="topbar" :class="{ 'topbar-feature': ui.currentView === 'gantt' || ui.currentView === 'analytics' }">
-        <h2>{{ pageTitle }}</h2>
-        <p v-if="ui.currentView === 'library'" class="sub">
-          {{ t('library.lede') }}
-        </p>
-        <p v-else-if="ui.currentView === 'models'" class="sub">
-          {{ t('models.lede') }}
-        </p>
-        <p v-else-if="ui.currentView === 'compare'" class="sub">
-          {{ t('compare.lede') }}
-        </p>
-        <p v-else-if="ui.currentView === 'gantt'" class="sub">
-          {{ t('gantt.lede') }}
-        </p>
-        <p v-else-if="ui.currentView === 'analytics'" class="sub">
-          {{ t('analytics.lede') }}
-        </p>
+        <div class="topbar-copy">
+          <h2>{{ pageTitle }}</h2>
+          <p v-if="ui.currentView === 'library'" class="sub">
+            {{ t('library.lede') }}
+          </p>
+          <p v-else-if="ui.currentView === 'models'" class="sub">
+            {{ t('models.lede') }}
+          </p>
+          <p v-else-if="ui.currentView === 'compare'" class="sub">
+            {{ t('compare.lede') }}
+          </p>
+          <p v-else-if="ui.currentView === 'gantt'" class="sub">
+            {{ t('gantt.lede') }}
+          </p>
+          <p v-else-if="ui.currentView === 'analytics'" class="sub">
+            {{ t('analytics.lede') }}
+          </p>
+        </div>
+        <button
+          v-if="ui.currentView === 'gantt' && docs.hasSessions"
+          type="button"
+          class="primary save-action"
+          @click="onSaveGantt"
+        >
+          {{ t('common.save') }}
+          <span
+            v-if="estimate.dirty || docs.activeSession?.dirty === true"
+            class="save-dirty-dot"
+            role="status"
+            :aria-label="t('common.unsavedF')"
+            v-tip="t('common.unsavedF')"
+          />
+        </button>
       </header>
 
       <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome', 'centered-empty-view': (ui.currentView === 'gantt' || ui.currentView === 'analytics') && !docs.hasSessions }">
@@ -195,9 +232,33 @@ watch(() => docs.hasSessions, (hasSessions) => {
 }
 
 .topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
   padding: 1.15rem 1.75rem 0.85rem;
   border-bottom: 1px solid var(--line);
   margin-bottom: 0.15rem;
+}
+
+.topbar-copy {
+  min-width: 0;
+}
+
+.save-action {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.save-dirty-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--page);
+  border-radius: 50%;
+  background: var(--warn);
 }
 
 .topbar h2 {

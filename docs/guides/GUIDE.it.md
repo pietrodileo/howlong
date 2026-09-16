@@ -1,6 +1,6 @@
 # Manuale utente di HowLong?
 
-HowLong? `0.7.1` su Windows, macOS e Linux.
+HowLong? `0.7.2` su Windows, macOS e Linux.
 
 [README del progetto](../../README.md) · [Manuale inglese](GUIDE.en.md) · [Guida di build e rilascio](../BUILD.md)
 
@@ -10,7 +10,7 @@ HowLong? `0.7.1` su Windows, macOS e Linux.
 
 ## Indice
 
-- [Novità della v0.7.1](#novità-della-v071)
+- [Novità della v0.7.2](#novità-della-v072)
 - [1. Avvio rapido](#1-avvio-rapido)
 - [2. Area di lavoro e navigazione](#2-area-di-lavoro-home-e-navigazione-nella-barra-laterale)
   - [2.1. Barra laterale](#21-navigazione-nella-barra-laterale)
@@ -51,15 +51,27 @@ HowLong? `0.7.1` su Windows, macOS e Linux.
 
 ---
 
-## Novità della v0.7.1
+## Novità della v0.7.2
 
-HowLong? 0.7.1 introduce un'esperienza delle impostazioni ridisegnata, un flusso di aggiornamento integrato per le installazioni desktop e una pipeline di rilascio stabile per le build ufficiali.
+HowLong? 0.7.2 include gli ultimi miglioramenti al flusso di stima e pianificazione, un'esperienza delle impostazioni ridisegnata, un flusso di aggiornamento integrato per le installazioni desktop e una pipeline di rilascio stabile per le build ufficiali.
 
 ### Esperienza delle impostazioni
 
 Le impostazioni sono organizzate in sezioni mirate e richiudibili, con un campo di ricerca. Ogni opzione è contenuta in un pannello dedicato e accompagnata da un breve riepilogo, così puoi scorrere le preferenze disponibili prima di aprirne una. Le schermate vuote di Pianifica e Analisi offrono le stesse azioni della Home: **Nuova stima**, **Apri file** e **Vai alla libreria**.
 
+Le modifiche alle impostazioni vengono salvate automaticamente dopo una breve attesa e la pagina mostra per poco lo stato del salvataggio completato.
+
+Il pannello Aspetto supporta ora i temi chiaro e scuro nelle viste di stima, presentazione e pianificazione.
+
 Le sezioni di presentazione Manager e Cliente possono essere richiuse, rendendo più leggibili le stime lunghe senza modificare i calcoli sottostanti.
+
+Confronta mantiene allineate le righe formula per ogni stima e mostra accanto al valore il riepilogo della formula e la percentuale CTG applicata. Il piè di pagina del confronto include anche **Totale + CTG**.
+
+Piano ora dispone di un'azione **Salva** nell'intestazione, così puoi memorizzare le modifiche alla pianificazione senza tornare alla vista Stima.
+
+Anche l'elenco delle stime in Confronta e il pannello delle attività nel Gantt possono essere compressi per lasciare più spazio al risultato.
+
+Il confronto della contingenza mostra gli scenari A/B/C con l'impegno di base invariato e consente di applicare lo scenario scelto alla sessione corrente.
 
 L'esportazione XLSX del Gantt ora include `Base (days)`, `Base + CTG (days)` e `Planned (days)` per ogni attività. La precedente colonna Planning non viene più esportata e i giorni pianificati seguono l'impostazione che stabilisce se i giorni del fine settimana contano come lavorativi.
 
@@ -82,7 +94,7 @@ I nuovi utenti possono scaricare l'installer normale dalla [pagina GitHub delle 
 
 ## 1. Avvio rapido
 
-1. **Impostazioni** — Imposta lingua, tema, nome utente e area di lavoro preferiti, quindi fai clic su **Salva**.
+1. **Impostazioni** — Imposta lingua, tema, nome utente e area di lavoro preferiti; le impostazioni vengono salvate automaticamente.
 2. **Stima** — Fai clic su **Nuova stima** (viene usato il modello predefinito, a meno che tu non ne selezioni uno diverso usando il menu a freccia).
 3. Inserisci un nome per la stima e il cliente, quindi compila le ore stimate per ciascuna attività.
 4. Fai clic su **Salva** — il file apparirà ora nella **Libreria**.
@@ -157,9 +169,15 @@ Apri **Impostazioni** prima della tua prima stima.
 
 ![Schermata Impostazioni con sezioni di configurazione comprimibili](../images/settings.png)
 
+Apri un gruppo per visualizzare i relativi pannelli. La vista espansa mantiene ogni pannello sintetico finché non servono i controlli; il campo di ricerca apre automaticamente il gruppo e il pannello corrispondenti.
+
+![Pannelli Impostazioni espansi con aspetto, aggiornamenti e scorciatoie da tastiera](../images/settings_expanded.png)
+
 ### 3.1. Aggiornamenti
 
 Apri **Impostazioni → Aggiornamenti** per cercare manualmente una nuova release stabile. HowLong? non controlla gli aggiornamenti all'avvio né in background.
+
+![Pannello Aggiornamenti filtrato dalle Impostazioni con versione installata e controllo manuale](../images/updates.png)
 
 - **Controlla aggiornamenti** contatta il feed delle release ufficiali su GitHub e considera solo le release stabili.
 - **Scarica aggiornamento** scarica l'artefatto per il sistema operativo e l'architettura correnti, ma non lo installa.
@@ -171,7 +189,7 @@ Il pannello mantiene separati i passaggi: il controllo non scarica, il download 
 
 L'updater verifica la firma della release prima dell'installazione. Questa fiducia appartiene al publisher ufficiale di HowLong?, non alla licenza open source. I fork possono compilare normalmente il codice, ma un fork indipendente dovrebbe usare un proprio identificatore applicativo, endpoint delle release, chiave pubblica e secret di firma; altrimenti potrebbe seguire il feed di aggiornamento upstream.
 
-Ogni intestazione espande i relativi controlli. Le sezioni chiuse mantengono comunque le impostazioni. **Salva** dopo le modifiche: la sola anteprima non le rende persistenti.
+Ogni intestazione espande i relativi controlli. Le sezioni chiuse mantengono comunque le impostazioni. Le modifiche vengono salvate automaticamente; la pagina mostra brevemente lo stato di salvataggio mentre aggiorna le preferenze.
 
 **Profilo e visualizzazione**
 
@@ -179,6 +197,12 @@ Ogni intestazione espande i relativi controlli. Le sezioni chiuse mantengono com
 - **Lingua** — interfaccia in inglese o italiano
 - **Aspetto** — tema chiaro o scuro
 - **Scorciatoie da tastiera** — combinazioni attive; elenco completo nella [Sezione 13](#13-scorciatoie-da-tastiera)
+
+Il tema scuro si applica alle schermate di stima, presentazione e pianificazione oltre che alle Impostazioni. Modifica solo la presentazione: i valori e le date salvati restano invariati.
+
+| Tema scuro in una vista di presentazione | Tema scuro in Piano |
+| --------------------------------------- | ------------------- |
+| ![Tema scuro nella vista Manager](../images/dark_mode1.png) | ![Tema scuro nella vista Gantt](../images/dark_mode2.png) |
 
 **Valori predefiniti della stima**
 
@@ -243,6 +267,10 @@ Per creare la tua prima stima:
 - **Da un documento aperto:** usa il pulsante **+** nella barra delle schede per aprire una nuova stima (modello predefinito), oppure scegli un modello dall'elenco.
 
 ![Selettore modelli ricercabile aperto dal controllo nuova scheda](../images/shortcut_new_estimate_from_model.png)
+
+![Editor della stima con totali, controlli della contingenza e tabella completa delle attività](../images/estimate_view.png)
+
+L'editor supporta più stime in schede, ciascuna con il proprio stato di modifica e la propria cronologia.
 
 ![Editor delle stime con più schede, totali, macro, sottoattività, note e una formula](../images/new_estimate_with_tabs.png)
 
@@ -312,7 +340,7 @@ Il confronto della contingenza consente di esplorare come diverse percentuali di
 Confronta gli scenari **A**, **B** e **C** mentre **l'impegno di base resta fisso**.
 
 1. Imposta le percentuali nel pannello
-2. **Usa** — applica uno scenario alla sessione corrente
+2. **Usa** — applica uno scenario alla sessione corrente; ogni scenario ha il proprio pulsante sotto il totale
 3. **Salva** — mantiene la scelta; **Chiudi** — nasconde il pannello
 
 ## 6. Presentazione per manager e cliente
@@ -423,16 +451,16 @@ Allinea più stime affiancate. Sola lettura: non viene unito nulla.
 
 **Apri:** barra laterale **Confronta**, oppure seleziona ≥2 righe nella Libreria → **Confronta**.
 
-![Schermata di confronto con selezione delle stime e valori allineati](../images/compare.png)
+![Schermata di confronto con selettore compresso e valori delle stime allineati](../images/compare.png)
 
 | Area              | Cosa puoi fare                                                 |
 | ----------------- | -------------------------------------------------------------- |
 | Pannello sinistro | Cerca, ordina e scegli le stime da confrontare                 |
 | Tabella destra    | Ogni stima è una colonna; le righe si allineano per attività |
 | Sopra la tabella  | Cambia unità (ore/giorni) e imposta la conversione            |
-| Righe inferiori   | Visualizza i totali per impegno di base e contingenza (CTG)    |
+| Righe inferiori   | Visualizza base, contingenza (CTG) e totale con CTG              |
 
-Le righe sono raggruppate per categoria e puoi espandere le sottoattività usando le frecce. Quando una cella è vuota, significa che quell'attività non esiste in quella stima: *non* significa zero ore. Il confronto non modifica mai i file.
+Le righe sono raggruppate per categoria e puoi espandere o comprimere le macro usando le frecce. Il selettore può essere compresso con la freccia in alto; le stime selezionate restano disponibili come icone mentre la tabella guadagna spazio. Le righe formula mostrano il riepilogo della formula e la percentuale CTG effettivamente applicata in ogni colonna. Quando una cella è vuota, significa che quell'attività non esiste in quella stima: *non* significa zero ore. Il confronto non modifica mai i file.
 
 ## 10. Pianificare con il Gantt
 
@@ -459,7 +487,7 @@ Le barre Gantt rappresentano **intervalli di date** per ciascuna attività; la l
 2. Regola direttamente le date di inizio/fine nella riga, oppure trascina/ridimensiona la barra sulla timeline.
 3. Usa **Da/A** per limitare le date visibili; **Oggi** passa alla colonna di oggi.
 4. Passa tra **Giorni** e **Mesi**; **Mostra fine settimana** segue le Impostazioni dell'app.
-5. Usa gli strumenti rapidi: **Espandi tutto**, **Comprimi tutto**, **Aggiungi macro**, **Esporta XLSX**.
+5. Usa gli strumenti rapidi: **Espandi tutto**, **Comprimi tutto** ed **Esporta XLSX**. **Aggiungi macro** è disponibile sotto la timeline.
 
 **Suggerimenti:**
 
@@ -470,9 +498,11 @@ Le barre Gantt rappresentano **intervalli di date** per ciascuna attività; la l
 - La barra di una macro si estende dall'inizio più precoce di un figlio alla fine più tardiva di un figlio.
 - L'eliminazione di un assegnatario dal selettore richiede una conferma; confermando, l'assegnatario viene rimosso da tutte le attività della stima corrente.
 
-![Gantt compatto con il pannello attività compresso](../images/gantt_2_compact.png)
+![Gantt compatto con il pannello attività compresso](../images/gantt_2_collapsed.png)
 
 Puoi ridimensionare il pannello attività usando il divisore. Comprimilo per ottenere una timeline più ampia, quindi usa la freccia in alto a sinistra per riaprirlo.
+
+Usa **Salva** nell'intestazione di Piano per memorizzare modifiche a date, stato, note, assegnatario e colore. Un punto accanto al pulsante indica modifiche di pianificazione non salvate.
 
 Durante l'esportazione in XLSX, HowLong? usa la scala della vista corrente, l'intervallo di date visibile e le impostazioni dei fine settimana. Dopo le colonne fisse dell'attività, il file mantiene la timeline con queste colonne: `Activity`, `Macro`, `Start`, `End`, `Base (days)`, `Base + CTG (days)`, `Planned (days)`, `Status`, `Notes` e `Owner`. `Planned (days)` conta l'intervallo pianificato secondo l'impostazione dei giorni lavorativi.
 

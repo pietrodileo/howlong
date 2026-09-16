@@ -117,9 +117,37 @@ function getCategoryItems(category: string): { item: LineItem; children: LineIte
   return result;
 }
 
+/** Find the corresponding row in one estimate by its stable item ID. */
+function findComparableItem(estimate: Estimate, reference: LineItem): LineItem | undefined {
+  return estimate.items.find((item) => item.id === reference.id);
+}
+
 /** Format one row's hours for a specific estimate column. */
-function formatItemHours(estimate: Estimate, itemId: string): string {
-  return formatEffort(comparisonItemHours(estimate, itemId), effortUnit.value, hoursPerDaySetting.value);
+function formatItemHours(estimate: Estimate, item: LineItem): string {
+  const comparableItem = findComparableItem(estimate, item);
+  return formatEffort(
+    comparisonItemHours(estimate, comparableItem?.id ?? item.id),
+    effortUnit.value,
+    hoursPerDaySetting.value,
+  );
+}
+
+/** Return the formula summary for an item in one estimate column. */
+function formulaLabelForEstimate(estimate: Estimate, item: LineItem): string {
+  const comparableItem = findComparableItem(estimate, item);
+  return comparableItem && isFormulaItem(comparableItem) && comparableItem.formula
+    ? formulaLabel(comparableItem.formula)
+    : '';
+}
+
+/** Return the CTG percentage actually applied to an item in one estimate column. */
+function contingencyPercentForEstimate(estimate: Estimate, item: LineItem): number | null {
+  const comparableItem = findComparableItem(estimate, item);
+  if (!comparableItem || !isFormulaItem(comparableItem)) return null;
+  return (
+    computeTotals(estimate).lines.find((line) => line.item.id === comparableItem.id)
+      ?.contingencyPercentApplied ?? 0
+  );
 }
 
 // Check if an item has children in any estimate
@@ -245,17 +273,19 @@ function setUnit(unit: EffortUnit) {
                   </button>
                   <span v-else class="row-spacer"></span>
                   <span class="item-name-text">{{ entry.item.name }}</span>
-                  <span
-                    v-if="entry.isMacro && isFormulaItem(entry.item) && entry.item.formula"
-                    class="formula-badge"
-                    v-tip="formulaLabel(entry.item.formula)"
-                  >
-                    {{ formulaLabel(entry.item.formula) }}
-                  </span>
                   <span v-if="!entry.item.clientVisible" class="hidden-tag">({{ t('client.hiddenRow') }})</span>
                 </td>
                 <td v-for="(est, estIndex) in estimates" :key="`${est.meta.id}-${estIndex}`" class="item-value">
-                  {{ formatItemHours(est, entry.item.id) }}
+                  <span>{{ formatItemHours(est, entry.item) }}</span>
+                  <span v-if="formulaLabelForEstimate(est, entry.item)" class="formula-detail">
+                    {{ formulaLabelForEstimate(est, entry.item) }}
+                  </span>
+                  <span
+                    v-if="contingencyPercentForEstimate(est, entry.item) !== null"
+                    class="ctg-detail"
+                  >
+                    {{ t('compare.contingencyPercent', { percent: String(contingencyPercentForEstimate(est, entry.item)) }) }}
+                  </span>
                 </td>
               </tr>
             </template>
@@ -500,15 +530,23 @@ function setUnit(unit: EffortUnit) {
   font-style: italic;
 }
 
-.formula-badge {
-  flex-shrink: 0;
-  padding: 0.1rem 0.4rem;
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-  font-size: 0.72rem;
+.formula-detail,
+.ctg-detail {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.68rem;
+  line-height: 1.2;
   font-weight: 600;
-  color: var(--accent);
   white-space: nowrap;
+}
+
+.formula-detail {
+  color: var(--accent);
+}
+
+.ctg-detail {
+  color: var(--muted);
+  font-weight: 500;
 }
 
 tr.item-row:hover td {

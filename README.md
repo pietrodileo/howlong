@@ -22,9 +22,9 @@
 <p align="center">
   <a href="#what-it-does">What it does</a> ·
   <a href="#features">Features</a> ·
-  <a href="#new-in-v071">New in v0.7.1</a> ·
+  <a href="#new-in-v072">New in v0.7.2</a> ·
   <a href="#export-outputs">Exports</a> ·
-  <a href="#screens">Screens</a> ·
+  <a href="#app-showcase">Screens</a> ·
   <a href="#download">Download</a> ·
   <a href="#build-from-source">Build from source</a> ·
   <a href="docs/guides/GUIDE.en.md">🇬🇧 English guide</a> ·
@@ -51,9 +51,9 @@ Settings, models, and estimates stay on disk as readable JSON files. They remain
 
 ## Planning and analysis
 
-- **Plan:** Build a day- or month-based Gantt, choose whether weekends count, and export a complete view of each activity with its effort, contingency, and planned timeline.
+- **Plan:** Build a day- or month-based Gantt, choose whether weekends count, save scheduling edits directly from Plan, and export a complete view of each activity with its effort, contingency, and planned timeline.
 - **Analytics:** Get an overview of the estimate with summary cards, a donut chart, and stacked bars. Drill into one macro or expand several.
-- **Compare:** Review saved estimates side by side.
+- **Compare:** Review saved estimates side by side, including each estimate's formula details, applied CTG, and total with contingency.
 - **Manager view:** Adjust the presentation by rounding or redistributing values, including or excluding rows, and overriding totals.
 - **Client view:** Show a filtered version of the estimate with only what you plan to deliver.
 
@@ -63,7 +63,8 @@ Settings, models, and estimates stay on disk as readable JSON files. They remain
 - Import and export JSON, YAML, and XLSX. Export a selection of Library files as a ZIP.
 - Open exported files from the completion dialog.
 - Use keyboard shortcuts for saving, tabs, views, and undo/redo.
-- Choose English or Italian, and switch between light and dark themes.
+- Search settings by name, expand only the group you need, and let changes save automatically.
+- Choose English or Italian, and switch between light and dark themes across the app.
 
 # Download
 
@@ -131,14 +132,19 @@ To remove HowLong? without deleting your estimates:
 
 These commands remove only the application. Your workspace, estimates, and settings stay on disk. Delete them separately if you want to reset all application data.
 
-# New in v0.7.1
+# New in v0.7.2
 
-Version 0.7.1 brings redesigned settings and a user-controlled way to update the desktop app:
+Version 0.7.2 brings the latest planning and estimate workflow improvements, along with redesigned settings and a user-controlled way to update the desktop app:
 
 - Settings now use focused, collapsible groups with a search filter.
+- Settings changes are saved automatically and show a brief saved state.
 - Workspace, estimate, planning, and application options now have clearer summaries and full-width controls.
 - When no estimate is open, the Planning and Analytics empty states offer the same **New Estimate**, **Open File**, and **Go to Library** actions as the home screen.
 - Collapse the Manager and Client presentation sections to make dense estimates easier to scan.
+- Collapse the Compare estimate list or the Gantt activity panel to give the result more room.
+- Compare contingency scenarios A/B/C with a fixed base effort, then apply the chosen scenario to the current estimate session.
+- Compare formula rows now keep their per-estimate calculation and applied CTG details aligned.
+- Save scheduling changes directly from the Plan header; **Add Macro** is available below the timeline.
 - Gantt XLSX exports include a complete view of each activity. The obsolete Planning column is no longer exported.
 - Planned Gantt days follow the setting that controls whether weekends count as working days.
 - Deleting an owner from the Gantt requires confirmation and removes that owner from all activities in the current estimate.
@@ -177,9 +183,21 @@ Start on the Home screen to create or open an estimate, browse the Library, or r
 
 ![HowLong home screen with navigation, creation actions, and recently opened estimates](docs/images/homepage.png)
 
-The editor screenshot shows multiple estimates open in tabs, with the current base, contingency, and total figures visible at a glance. From an open tab, switch to Plan for the Gantt timeline or Analytics for a visual summary, shown below.
+The Estimate view keeps the base, contingency, and total figures visible above a hierarchical activity table. Use the unit, hours-per-day, contingency, column, export, reload, and save controls from the header.
+
+![Estimate editor with totals, contingency controls, and the full activity table](docs/images/estimate_view.png)
+
+The editor also supports multiple estimates in tabs. From an open tab, switch to Plan for the Gantt timeline or Analytics for a visual summary, shown below.
 
 ![Estimate editor with multiple open tabs and hierarchical work items](docs/images/new_estimate_with_tabs.png)
+
+Settings are grouped into searchable panels. Choose a light or dark theme, configure the workspace and estimate defaults, and access updates and keyboard shortcuts without leaving the app.
+
+![Expanded settings panels with appearance, updates, and keyboard shortcut sections](docs/images/settings_expanded.png)
+
+| Dark theme manager view | Dark theme plan view |
+| ----------------------- | -------------------- |
+| ![Manager view in the dark theme](docs/images/dark_mode1.png) | ![Plan view in the dark theme](docs/images/dark_mode2.png) |
 
 | Planning                                                   | Analytics                                                                    |
 | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |

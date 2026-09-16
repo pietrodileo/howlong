@@ -4,8 +4,8 @@
     "title": "Test",
     "clientLabel": "Awesome Client",
     "createdAt": "2026-09-08T08:52:36.457Z",
-    "updatedAt": "2026-09-08T08:55:00.718Z",
-    "unit": "hours",
+    "updatedAt": "2026-09-16T12:41:52.349Z",
+    "unit": "days",
     "hoursPerDay": 8,
     "icon": "rocket"
   },
@@ -19,7 +19,9 @@
     ],
     "placement": "both"
   },
-  "tagOptions": [],
+  "tagOptions": [
+    "Test"
+  ],
   "items": [
     {
       "id": "1",
@@ -30,6 +32,8 @@
       "parentId": null,
       "contingencyPercentOverride": null,
       "notes": "",
+      "owner": "Peter",
+      "status": "to-plan",
       "tags": [],
       "clientVisible": true,
       "applyContingency": true
@@ -43,6 +47,8 @@
       "parentId": "1",
       "contingencyPercentOverride": null,
       "notes": "",
+      "owner": "Peter",
+      "status": "completed",
       "tags": [],
       "clientVisible": true,
       "applyContingency": true
@@ -56,6 +62,8 @@
       "parentId": "1",
       "contingencyPercentOverride": null,
       "notes": "",
+      "owner": "Peter",
+      "status": "completed",
       "tags": [],
       "clientVisible": true,
       "applyContingency": true
@@ -69,7 +77,12 @@
       "parentId": "1",
       "contingencyPercentOverride": null,
       "notes": "",
-      "tags": [],
+      "owner": "Jerry",
+      "status": "completed",
+      "color": "#9aa60e",
+      "tags": [
+        "Test"
+      ],
       "clientVisible": true,
       "applyContingency": true
     },
@@ -82,6 +95,8 @@
       "parentId": null,
       "contingencyPercentOverride": null,
       "notes": "",
+      "owner": "Jerry",
+      "status": "to-plan",
       "tags": [],
       "clientVisible": true,
       "applyContingency": true
@@ -95,6 +110,8 @@
       "parentId": "2",
       "contingencyPercentOverride": null,
       "notes": "",
+      "owner": "Jerry",
+      "status": "in-progress",
       "tags": [],
       "clientVisible": true,
       "applyContingency": true
@@ -108,6 +125,8 @@
       "parentId": "2",
       "contingencyPercentOverride": null,
       "notes": "",
+      "owner": "Marta",
+      "status": "planned",
       "tags": [],
       "clientVisible": true,
       "applyContingency": true
@@ -121,6 +140,8 @@
       "parentId": null,
       "contingencyPercentOverride": null,
       "notes": "",
+      "owner": "John",
+      "status": "at-risk",
       "tags": [],
       "clientVisible": true,
       "applyContingency": true
@@ -134,6 +155,7 @@
       "parentId": null,
       "contingencyPercentOverride": null,
       "notes": "",
+      "status": "planned",
       "tags": [],
       "clientVisible": true,
       "applyContingency": true
@@ -147,6 +169,7 @@
       "parentId": null,
       "contingencyPercentOverride": null,
       "notes": "",
+      "status": "planned",
       "tags": [],
       "clientVisible": true,
       "applyContingency": true
@@ -160,8 +183,9 @@
       "parentId": null,
       "contingencyPercentOverride": null,
       "notes": "",
+      "status": "to-plan",
       "tags": [],
-      "clientVisible": true,
+      "clientVisible": false,
       "applyContingency": false,
       "formula": {
         "percent": 10,
@@ -184,8 +208,42 @@
     "hideManagerTags": false,
     "hideClientNotes": true,
     "hideClientTags": false,
-    "titleOverride": "",
-    "lineOverrides": {},
+    "titleOverride": "A great project",
+    "lineOverrides": {
+      "1": {
+        "hoursPresented": 18.4468085106383
+      },
+      "2": {
+        "hoursPresented": 18.4468085106383
+      },
+      "3": {
+        "hoursPresented": 5.425531914893617
+      },
+      "4": {
+        "hoursPresented": 3.25531914893617
+      },
+      "5": {
+        "hoursPresented": 5.425531914893617
+      },
+      "task-a93ba200": {
+        "hoursPresented": 4.340425531914893
+      },
+      "task-33a34ea6": {
+        "hoursPresented": 8.680851063829786
+      },
+      "task-d6907a88": {
+        "hoursPresented": 5.425531914893617
+      },
+      "task-22be2e14": {
+        "hoursPresented": 13.02127659574468
+      },
+      "task-c0f4fa31": {
+        "hoursPresented": 5.425531914893617
+      },
+      "formula-7eac896d": {
+        "hoursPresented": 0
+      }
+    },
     "macroPresentation": {}
   },
   "auditHistory": [
@@ -216,10 +274,59 @@
     {
       "at": "2026-09-08T08:55:00.718Z",
       "username": "p.dileo"
+    },
+    {
+      "at": "2026-09-16T12:31:08.291Z",
+      "username": "pietrodileo"
+    },
+    {
+      "at": "2026-09-16T12:39:02.922Z",
+      "username": "pietrodileo"
+    },
+    {
+      "at": "2026-09-16T12:41:27.706Z",
+      "username": "pietrodileo"
+    },
+    {
+      "at": "2026-09-16T12:41:52.349Z",
+      "username": "pietrodileo"
     }
   ],
   "planning": {
-    "items": {}
+    "items": {
+      "3": {
+        "startDate": "2026-09-16",
+        "endDate": "2026-09-17"
+      },
+      "4": {
+        "startDate": "2026-09-18",
+        "endDate": "2026-09-18"
+      },
+      "5": {
+        "startDate": "2026-09-21",
+        "endDate": "2026-09-23"
+      },
+      "task-22be2e14": {
+        "startDate": "2026-09-08",
+        "endDate": "2026-09-10"
+      },
+      "task-c0f4fa31": {
+        "startDate": "2026-09-13",
+        "endDate": "2026-09-15"
+      },
+      "task-a93ba200": {
+        "startDate": "2026-09-01",
+        "endDate": "2026-09-03"
+      },
+      "task-33a34ea6": {
+        "startDate": "2026-09-02",
+        "endDate": "2026-09-03"
+      },
+      "task-d6907a88": {
+        "startDate": "2026-09-03",
+        "endDate": "2026-09-07"
+      }
+    }
   },
   "schemaVersion": 3
 }

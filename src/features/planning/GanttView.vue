@@ -645,7 +645,6 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
       </div>
       <button type="button" class="ghost" @click="setAllCollapsed(false)">{{ t('gantt.expandAll') }}</button>
       <button type="button" class="ghost" @click="setAllCollapsed(true)">{{ t('gantt.collapseAll') }}</button>
-      <button type="button" class="ghost" @click="addMacro">{{ t('gantt.addMacro') }}</button>
       <button type="button" class="primary" :disabled="exporting" @click="exportXlsx">{{ t('gantt.exportXlsx') }}</button>
     </div>
 
@@ -785,6 +784,10 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
       </div>
     </div>
 
+    <div class="gantt-add-row">
+      <button type="button" class="ghost" @click="addMacro">{{ t('gantt.addMacro') }}</button>
+    </div>
+
     <Teleport to="body">
       <div v-if="activeOverlayItem && (statusMenuId || notesEditId || dateEditorId || actionsMenuId)" class="gantt-overlay" data-gantt-overlay :class="[overlayPosition.placement, { 'status-overlay': statusMenuId, 'actions-overlay': actionsMenuId, 'dates-overlay': dateEditorId, 'notes-overlay': notesEditId }]" :style="{ top: `${overlayPosition.top}px`, left: `${overlayPosition.left}px` }">
         <div v-if="statusMenuId" class="status-menu" role="menu">
@@ -916,9 +919,11 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .segmented { display: inline-flex; padding: 2px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .segmented button { border: 0; background: transparent; padding: .42rem .68rem; color: var(--muted); }
 .segmented button.active { background: var(--accent-subtle); color: var(--accent); }
+.gantt-head { gap: .55rem; align-items: flex-end; }
 .gantt-actions { justify-content: flex-end; margin-bottom: .55rem; }
 .gantt-help { margin-right: auto; color: var(--muted); font-size: .76rem; }
 .gantt-shell { overflow: auto; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--page-soft); max-height: calc(100vh - 245px); box-shadow: var(--shadow-soft); }
+.gantt-add-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .15rem; }
 .gantt-grid { display: grid; grid-template-columns: var(--activity-w) var(--timeline-w); width: max-content; min-width: 100%; }
 .activity-head, .timeline-head { position: sticky; top: 0; z-index: 4; height: 48px; background: var(--table-head); border-bottom: 1px solid var(--line-strong); }
 .activity-head { left: 0; z-index: 6; padding: .55rem .7rem; font-weight: 650; border-right: 1px solid var(--line); }

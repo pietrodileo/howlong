@@ -1,6 +1,6 @@
 # HowLong? user manual
 
-HowLong? `0.7.1` on Windows, macOS, and Linux.
+HowLong? `0.7.2` on Windows, macOS, and Linux.
 
 [Project README](../../README.md) · [Italian manual](GUIDE.it.md) · [Build and release guide](../BUILD.md)
 
@@ -10,7 +10,7 @@ HowLong? `0.7.1` on Windows, macOS, and Linux.
 
 ## Contents
 
-- [New in v0.7.1](#new-in-v071)
+- [New in v0.7.2](#new-in-v072)
 - [1. Quick start](#1-quick-start)
 - [2. Workspace and navigation](#2-workspace-and-navigation)
   - [2.1. Sidebar](#21-sidebar)
@@ -41,22 +41,33 @@ HowLong? `0.7.1` on Windows, macOS, and Linux.
   - [11.3. Focus (one macro)](#113-focus-one-macro)
 - [12. Import, export, and backup](#12-import-export-and-backup)
   - [12.1. Choose the source view](#choosing-the-source-view-for-export)
-  - [12.2. Gantt XLSX export](#gantt-xlsx-export)
+  - [12.2. Formats and limits](#formats-and-limits)
+  - [12.3. Estimate XLSX export](#estimate-xlsx-export)
+  - [12.4. Gantt XLSX export](#gantt-xlsx-export)
+  - [12.5. Export and backup checklist](#export-and-backup-checklist)
 - [13. Keyboard shortcuts](#13-keyboard-shortcuts)
 - [14. What screens do not show or change](#14-what-screens-do-not-show-or-change)
 - [15. Troubleshooting and safety](#15-troubleshooting-and-safety)
 
 ---
 
-## New in v0.7.1
+## New in v0.7.2
 
-HowLong? 0.7.1 introduces a redesigned settings experience, an in-app update flow for desktop installations, and a stable release pipeline for the official builds.
+HowLong? 0.7.2 includes the latest planning and estimate workflow improvements, a redesigned settings experience, an in-app update flow for desktop installations, and a stable release pipeline for the official builds.
 
 ### Settings experience
 
 Settings are grouped into focused, collapsible sections with a search field. Each option appears in a dedicated panel with a short summary, so you can scan the available preferences before opening one. Planning and Analytics empty states use the same actions as the home screen: **New Estimate**, **Open File**, and **Go to Library**.
 
+Settings changes are saved automatically after a short delay, and the page briefly reports when the save completes.
+
+The Appearance panel now supports light and dark themes across estimate, presentation, and planning views.
+
 Manager and Client presentation sections can also be collapsed, making long estimates easier to scan without changing the underlying calculations.
+
+Compare keeps formula rows aligned per estimate and shows each row's formula summary and applied CTG percentage alongside its value. The comparison footer also includes **Total + CTG**.
+
+Plan now has a **Save** action in its header, so scheduling changes can be persisted without returning to the Estimate view.
 
 The Gantt XLSX export now includes `Base (days)`, `Base + CTG (days)`, and `Planned (days)` for every activity. The previous Planning column is no longer exported, and planned-day totals follow the setting that controls whether weekend days count as working days.
 
@@ -79,7 +90,7 @@ New users can download the normal installer from the [GitHub Releases page](http
 
 ## 1. Quick start
 
-1. **Settings** — Set your preferred language, theme, username, and workspace, then click **Save**.
+1. **Settings** — Set your preferred language, theme, username, and workspace; settings save automatically.
 2. **Estimate** — Click **New Estimate** (the default model is used unless you select a different one using the arrow menu).
 3. Enter a name for your estimate and client, then fill in the estimated hours for each activity.
 4. Click **Save** — your file will now appear in the **Library**.
@@ -154,9 +165,15 @@ Open **Settings** before your first estimate.
 
 ![Settings screen with collapsible configuration sections](../images/settings.png)
 
+Open a group to see its settings panels. The expanded view keeps each panel summarized until you need its controls, and the search field opens the matching group and panel automatically.
+
+![Expanded settings panels with appearance, updates, and keyboard shortcut sections](../images/settings_expanded.png)
+
 ### 3.1. Updates
 
 Open **Settings → Updates** to check for a newer stable release manually. HowLong? does not check at startup or in the background.
+
+![Updates panel filtered from Settings with the installed version and manual check action](../images/updates.png)
 
 - **Check for updates** contacts the official GitHub Releases feed and only considers stable releases.
 - **Download update** downloads the artifact for the current operating system and architecture but does not install it.
@@ -168,7 +185,7 @@ The panel keeps these steps separate: checking does not download, downloading do
 
 The updater verifies the release signature before installation. This trust belongs to the official HowLong? publisher, not to the open-source license. Forks can build the source normally, but an independent fork should use its own application identifier, release endpoint, public key, and signing secret; otherwise it may follow the upstream update feed.
 
-Each heading expands its controls. Closed sections still hold settings. **Save** after changes — a preview alone does not persist.
+Each heading expands its controls. Closed sections still hold settings. Settings changes are saved automatically; the page briefly shows a saving or saved status while it writes the updated preferences.
 
 **Profile and display**
 
@@ -176,6 +193,12 @@ Each heading expands its controls. Closed sections still hold settings. **Save**
 - **Language** — English or Italian UI
 - **Appearance** — light or dark theme
 - **Keyboard shortcuts** — active bindings; full list in [Section 13](#13-keyboard-shortcuts)
+
+The dark theme applies to the estimate, presentation, and planning screens as well as Settings. It changes presentation only; the stored estimate values and dates are unchanged.
+
+| Dark theme in a presentation view | Dark theme in Plan |
+| -------------------------------- | ----------------- |
+| ![Dark theme in Manager view](../images/dark_mode1.png) | ![Dark theme in the Gantt planning view](../images/dark_mode2.png) |
 
 **Estimate defaults**
 
@@ -240,6 +263,10 @@ To create your first estimate:
 - **From an open document:** Use the tab bar **+** button to open a new estimate (default model), or pick a model from the list.
 
 ![Searchable model picker opened from the new-tab control](../images/shortcut_new_estimate_from_model.png)
+
+![Estimate editor with totals, contingency controls, and the full activity table](../images/estimate_view.png)
+
+The editor supports multiple estimates in tabs, each with its own dirty state and history.
 
 ![Estimate editor with multiple tabs, totals, macros, subtasks, notes, and a formula](../images/new_estimate_with_tabs.png)
 
@@ -309,7 +336,7 @@ Contingency comparison lets you explore how different contingency percentages im
 Compare scenarios **A**, **B**, and **C** while **base effort stays fixed**.
 
 1. Set percentages in the panel
-2. **Use** — apply one scenario to the current session
+2. **Use** — apply one scenario to the current session; each scenario has its own button below its total
 3. **Save** — keep the choice; **Close** — hide the panel
 
 ## 6. Manager and Client Presentation
@@ -420,16 +447,16 @@ Align multiple estimates side by side. Read-only — nothing is merged.
 
 **Open:** sidebar **Compare**, or select ≥2 Library rows → **Compare**.
 
-![Comparison screen with estimate selection and aligned values](../images/compare.png)
+![Comparison screen with the collapsed selector and aligned estimate values](../images/compare.png)
 
 | Area        | What you can do                                  |
 | ----------- | ------------------------------------------------ |
 | Left panel  | Search, sort, and choose estimates to compare    |
 | Right table | Each estimate is a column; rows align by task    |
 | Above table | Switch units (hours/days) and set conversion     |
-| Bottom rows | See totals for base effort and contingency (CTG) |
+| Bottom rows | See base effort, contingency (CTG), and total with CTG |
 
-Rows are grouped by category, and you can expand subtasks using chevrons. When a cell is empty, it means that activity doesn’t exist in that estimate—it does *not* mean zero hours. Comparing never edits your files.
+Rows are grouped by category, and you can expand or collapse macros using chevrons. The selector can be collapsed with the arrow at its top; selected estimates remain available as icons while the comparison table gains space. Formula rows show their formula summary and the CTG percentage actually applied in each estimate column. When a cell is empty, it means that activity doesn’t exist in that estimate—it does *not* mean zero hours. Comparing never edits your files.
 
 ## 10. Plan with the Gantt
 
@@ -456,7 +483,7 @@ Gantt bars represent **date ranges** for each activity; length shows duration, n
 2. Adjust start/end dates directly in the row, or drag/rescale the bar on the timeline.
 3. Use **From/To** to limit visible dates; **Today** jumps to today’s column.
 4. Toggle between **Days** or **Months**; **Show weekends** follows your app Settings.
-5. Use quick tools: **Expand all**, **Collapse all**, **Add Macro**, **Export XLSX**.
+5. Use quick tools: **Expand all**, **Collapse all**, and **Export XLSX**. **Add Macro** is available below the timeline.
 
 **Tips:**
 
@@ -467,9 +494,11 @@ Gantt bars represent **date ranges** for each activity; length shows duration, n
 - A macro's bar stretches from its earliest child start to the latest child finish.
 - Deleting an owner from the owner picker asks for confirmation; confirming removes that owner from every activity in the current estimate.
 
-![Compact Gantt with the activity panel collapsed](../images/gantt_2_compact.png)
+![Compact Gantt with the activity panel collapsed](../images/gantt_2_collapsed.png)
 
 You can resize the activity panel using the divider. Collapse for a larger timeline view, then use the top-left arrow to reopen.
+
+Use **Save** in the Plan header to persist date, status, note, owner, and color changes. A dirty dot on the button indicates unsaved scheduling changes.
 
 When exporting to XLSX, HowLong? uses the current view's scale, visible date range, and weekend settings. The export keeps the timeline columns after these fixed activity columns: `Activity`, `Macro`, `Start`, `End`, `Base (days)`, `Base + CTG (days)`, `Planned (days)`, `Status`, `Notes`, and `Owner`. `Planned (days)` counts the scheduled range using the working-day weekend setting.
 
@@ -520,7 +549,7 @@ Analytics mode is temporary and local to each tab; switching to another document
 
 This section explains how to import, export, and back up your estimates and project data in HowLong?. Use these features to safely share project information, create tailored exports for different audiences, and ensure data protection by keeping secure copies. The import and export tools help you distribute detailed or summary views (for technical, managerial, or client use), move estimates between devices or team members, and restore work if necessary. Formats and options are designed for collaboration, audit, and integration with other project tools.
 
-Sample files are available in [`examples/`](../../examples/). The complete export reference, including the Excel screenshots and rapid macro compression workflow, is in the [Italian manual](GUIDE.it.md).
+Sample files are available in [`examples/`](../../examples/).
 
 ### Choosing the Source View for Export
 
@@ -553,6 +582,29 @@ Once you export, use **Open** in the completion dialog (on desktop, this links t
 
 YAML exports (Estimate/Manager) are detailed enough for AI agents to create Jira epics, tickets, or risk logs—always review before using automated tools. Client YAML is filtered for public sharing. Note: YAML exports never trigger actions by themselves.
 
+### Formats and limits
+
+| Format | Purpose and limits |
+| ------ | ------------------ |
+| **`.howlong.json`** | Complete, validated native format; the only format that can be reopened or imported into HowLong. Preserves metadata, hierarchy, calculations, CTG rules, presentation, and planning. |
+| **YAML** | Structured format for reading, sharing, and assisted AI workflows; it cannot be imported into HowLong. |
+| **XLSX** | Human-readable snapshot generated from the selected view; editing it does not update the estimate and it cannot be re-imported as a native document. |
+| **ZIP** | Container for multiple exports selected from the Library; each file keeps its original format and purpose. |
+
+The exported JSON is a separate portable copy of the session file. Use it to transfer an editable estimate between installations or to create a backup before risky changes. Do not use a Client export as a complete backup: hidden activities and internal details may be intentionally omitted.
+
+### Estimate XLSX export
+
+An XLSX export from the Estimate or Client view includes the title, client, unit, hours per day, CTG percentage, hierarchy, hours, days, contingency, presented totals, and notes. The detailed layout keeps each subtask below its parent macro:
+
+![Client estimate Excel export with expanded macros and subtasks](../images/client_estimate_excel_1.png)
+
+For a compact macro summary, use Excel's outline controls on the left. Click **2** to keep macros and subtasks visible, or **1** to collapse the detail and show only macros. You can also click a macro's **−** control to collapse one group; it becomes **+** when the group can be reopened.
+
+Collapsing hides child rows in Excel; it does not remove data from the estimate or change totals.
+
+![Excel export compressed to macro rows with the outline controls](../images/client_estimate_excel_2_rapid_compression.png)
+
 ### Gantt XLSX export
 
 Use **Export XLSX** from **Plan**. The workbook contains the estimate title, client, visible date range, timeline scale, weekend display setting, a color legend, and one row per macro or subtask. Each activity row includes:
@@ -568,6 +620,18 @@ Use **Export XLSX** from **Plan**. The workbook contains the estimate title, cli
 | Timeline columns | Daily or monthly cells for the exported range |
 
 The former Planning column is not included. The export is a snapshot of the current Gantt range and does not replace the native estimate export or alter the estimate.
+
+![Gantt Excel export with dates, statuses, legend, and calendar bars](../images/gantt_excel.png)
+
+### Export and backup checklist
+
+1. Confirm the active estimate and choose **Estimate**, **Manager**, **Client**, or **Plan** for the audience.
+2. For Manager and Client, check inclusions, rounding, redistributed totals, subtasks, notes, and labels in the view.
+3. Choose JSON for recovery, YAML for data/AI workflows, and XLSX for human review or delivery.
+4. Open the generated file from the completion message and verify its title, totals, and visible activities.
+5. Keep a `.howlong.json` copy whenever the work must remain editable.
+
+For a complete backup, save both the workspace (settings and models) and the Library (estimates). A synced folder mirrors files but does not provide simultaneous collaboration: wait for synchronization and do not edit the same `.howlong.json` on multiple computers at once.
 
 ## 13. Keyboard Shortcuts
 
