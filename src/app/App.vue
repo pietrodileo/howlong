@@ -111,7 +111,7 @@ watch(() => docs.hasSessions, (hasSessions) => {
     <div class="workspace">
       <TitleBar />
       <DocumentTabs v-if="(ui.currentView === 'working' || ui.currentView === 'gantt' || ui.currentView === 'analytics') && docs.hasSessions" @activate="onActivateDocument" />
-      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare' || ui.currentView === 'gantt' || ui.currentView === 'analytics'" class="topbar">
+      <header v-if="ui.currentView === 'library' || ui.currentView === 'models' || ui.currentView === 'compare' || ui.currentView === 'gantt' || ui.currentView === 'analytics'" class="topbar" :class="{ 'topbar-feature': ui.currentView === 'gantt' || ui.currentView === 'analytics' }">
         <h2>{{ pageTitle }}</h2>
         <p v-if="ui.currentView === 'library'" class="sub">
           {{ t('library.lede') }}
@@ -130,7 +130,7 @@ watch(() => docs.hasSessions, (hasSessions) => {
         </p>
       </header>
 
-      <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome' }">
+      <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome', 'centered-empty-view': (ui.currentView === 'gantt' || ui.currentView === 'analytics') && !docs.hasSessions }">
         <WelcomeView v-if="ui.currentView === 'welcome' || (ui.currentView === 'working' && !docs.hasSessions)" />
         <WorkingView v-else-if="ui.currentView === 'working' && docs.hasSessions" />
         <GanttView v-else-if="ui.currentView === 'gantt'" />
@@ -210,11 +210,20 @@ watch(() => docs.hasSessions, (hasSessions) => {
   color: var(--ink);
 }
 
+.topbar-feature h2 {
+  font-size: clamp(1.55rem, 2.2vw, 2rem);
+  line-height: 1.1;
+}
+
 .sub {
   margin: 0.35rem 0 0;
   color: var(--muted);
   font-size: 0.88rem;
   line-height: 1.4;
+}
+
+.topbar-feature .sub {
+  margin-top: 0.15rem;
 }
 
 main {
@@ -226,6 +235,18 @@ main {
 
 main.flush {
   padding-top: 0.85rem;
+}
+
+main.centered-empty-view {
+  display: flex;
+  flex-direction: column;
+}
+
+main.centered-empty-view > .gantt-empty,
+main.centered-empty-view > .analytics-empty {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 
 .toast {

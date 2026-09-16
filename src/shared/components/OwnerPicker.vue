@@ -53,7 +53,7 @@ function toggle() {
 }
 function choose(name: string) { emit('update:modelValue', name.trim()); close(); }
 function clear(event: MouseEvent) { event.stopPropagation(); emit('update:modelValue', ''); }
-function deleteOption(event: MouseEvent, name: string) { event.stopPropagation(); emit('delete-option', name); }
+function deleteOption(event: MouseEvent, name: string) { event.stopPropagation(); close(); emit('delete-option', name); }
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') { event.preventDefault(); close(); }
   if (event.key === 'Enter' && canCreate.value) { event.preventDefault(); choose(query.value); }
@@ -106,13 +106,14 @@ onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointe
 .owner-menu { position: fixed; z-index: 1000; max-height: 14rem; overflow: auto; padding: .35rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); box-shadow: var(--shadow-md, 0 8px 24px rgb(0 0 0 / 12%)); }
 .owner-filter { width: 100%; box-sizing: border-box; margin: 0 0 .35rem; padding: .4rem .5rem; font: inherit; font-size: .74rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); }
 .owner-menu ul { display: flex; flex-direction: column; gap: .25rem; list-style: none; margin: 0; padding: 0; }
-.owner-option-row { display: flex; align-items: center; gap: .2rem; background: color-mix(in srgb, var(--ink) 7%, var(--surface)); border-radius: var(--radius-sm); }
+.owner-option-row { display: flex; align-items: center; gap: .2rem; background: var(--surface); border-radius: var(--radius-sm); }
 .owner-option { display: flex; flex: 1; min-width: 0; padding: .35rem .4rem; font: inherit; font-size: .74rem; text-align: left; background: transparent; border: 0; border-radius: var(--radius-sm); cursor: pointer; }
 .owner-option-pill { display: inline-flex; align-items: center; max-width: 100%; padding: .1rem .42rem; line-height: 1.35; white-space: nowrap; background: var(--surface); border: 1px solid; border-radius: 999px; }
 .owner-delete { flex: 0 0 auto; padding: .2rem .35rem; font-size: .8rem; color: var(--muted); background: transparent; border: 0; cursor: pointer; }
 .owner-delete:hover:not(:disabled) { color: var(--danger, #b42318); }
 .owner-delete:disabled { color: var(--muted-soft); cursor: default; opacity: .55; }
-.owner-option-row:hover, .owner-option-row.selected { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.owner-option-row:hover { background: color-mix(in srgb, var(--accent) 3%, var(--surface)); }
+.owner-option-row.selected { background: color-mix(in srgb, var(--accent) 7%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, var(--line)); }
 .owner-option.create { color: var(--accent); font-weight: 500; }
 .owner-empty { padding: .35rem .4rem; font-size: .78rem; color: var(--muted); }
 </style>

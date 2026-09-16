@@ -107,6 +107,20 @@ export type MessageTree = {
   };
   settings: {
     title: string;
+    intro: string;
+    filterLabel: string;
+    filterPlaceholder: string;
+    filterNoResults: string;
+    groupPreferences: string;
+    groupPreferencesIntro: string;
+    groupWorkspace: string;
+    groupWorkspaceIntro: string;
+    groupEstimates: string;
+    groupEstimatesIntro: string;
+    groupPlanning: string;
+    groupPlanningIntro: string;
+    groupApplication: string;
+    groupApplicationIntro: string;
     import: string;
     save: string;
     export: string;
@@ -145,6 +159,23 @@ export type MessageTree = {
     tipImport: string;
     tipExport: string;
     saved: string;
+    savedBrief: string;
+    saving: string;
+    none: string;
+    enabled: string;
+    disabled: string;
+    required: string;
+    summaryLocale: string;
+    summaryAppearance: string;
+    summaryWorkspaceImportExport: string;
+    summaryEstimateColumns: string;
+    summaryPresentation: string;
+    summaryExport: string;
+    summaryWorkingCalendar: string;
+    summaryWorkingDays: string;
+    summaryActivityStatuses: string;
+    summaryUpdates: string;
+    summaryShortcuts: string;
     importOk: string;
     importOkFull: string;
     importOkLegacy: string;
@@ -182,6 +213,7 @@ export type MessageTree = {
     sectionShortcuts: string;
     sectionGantt: string;
     sectionGanttWeekends: string;
+    sectionGanttWorkingDays: string;
     sectionGanttStatuses: string;
     ganttAllowedStatuses: string;
     ganttWeekendIntro: string;
@@ -386,6 +418,9 @@ export type MessageTree = {
     allOwners: string;
     createOwner: string;
     ownerAssignedHint: string;
+    deleteOwnerTitle: string;
+    deleteOwnerBody: string;
+    deleteOwnerConfirm: string;
     status_to_plan: string;
     status_planned: string;
     status_in_progress: string;
@@ -980,6 +1015,20 @@ const it: MessageTree = {
   },
   settings: {
     title: 'Impostazioni',
+    intro: 'Personalizza aspetto, workspace, stime e strumenti di pianificazione di HowLong.',
+    filterLabel: 'Cerca in impostazioni',
+    filterPlaceholder: 'Cerca in impostazioni…',
+    filterNoResults: 'Nessuna impostazione corrisponde al filtro.',
+    groupPreferences: 'Preferenze',
+    groupPreferencesIntro: 'Profilo, lingua e aspetto.',
+    groupWorkspace: 'Workspace',
+    groupWorkspaceIntro: 'Cartelle e backup del workspace.',
+    groupEstimates: 'Stime',
+    groupEstimatesIntro: 'Colonne della stima, presentazione e nomi file di export.',
+    groupPlanning: 'Pianificazione',
+    groupPlanningIntro: 'Calendario di lavoro e stati delle attività.',
+    groupApplication: 'Applicazione',
+    groupApplicationIntro: 'Aggiornamenti e scorciatoie da tastiera.',
     import: 'Importa',
     save: 'Salva',
     export: 'Esporta',
@@ -1021,6 +1070,23 @@ const it: MessageTree = {
     tipImport: '**Import:** Importa e sostituisce impostazioni e modelli nella cartella workspace attiva.',
     tipExport: '**Export:** Esporta impostazioni e modelli.',
     saved: 'Impostazioni salvate',
+    savedBrief: 'Salvato',
+    saving: 'Salvataggio…',
+    none: 'Nessuno',
+    enabled: 'attivata',
+    disabled: 'disattivata',
+    required: 'obbligatorio',
+    summaryLocale: '{language}',
+    summaryAppearance: '{theme}',
+    summaryWorkspaceImportExport: 'Importa o esporta il workspace',
+    summaryEstimateColumns: '{visible} di {total} colonne visibili',
+    summaryPresentation: 'Impostazioni predefinite per manager e cliente',
+    summaryExport: 'Data {date} · ora {time}',
+    summaryWorkingCalendar: 'Weekend: {days}',
+    summaryWorkingDays: 'Esclusione dei giorni selezionati: {excluded}',
+    summaryActivityStatuses: '{enabled} di {total} stati attivi',
+    summaryUpdates: 'Versione {version}',
+    summaryShortcuts: '{count} scorciatoie',
     importOk: 'Settings importati',
     importOkFull: 'Importati impostazioni e {count} modelli',
     importOkLegacy: 'Importate solo le impostazioni (file senza modelli)',
@@ -1050,33 +1116,34 @@ const it: MessageTree = {
     sectionProfile: 'Profilo',
     sectionLocale: 'Lingua',
     sectionAppearance: 'Aspetto',
-    sectionEstimate: 'Vista Stima',
+    sectionEstimate: 'Colonne della stima',
     sectionPresentation: 'Presentazione',
-    sectionExport: 'Nome file export',
-    sectionFolder: 'Workspace',
-    sectionWorkspace: 'Import / export workspace',
+    sectionExport: 'Nomi file di export',
+    sectionFolder: 'Cartella workspace',
+    sectionWorkspace: 'Import / export del workspace',
     sectionShortcuts: 'Scorciatoie da tastiera',
     sectionGantt: 'Gantt',
-    sectionGanttWeekends: 'Gantt — Weekend',
-    sectionGanttStatuses: 'Gantt — Stati',
-    ganttAllowedStatuses: 'Scegli gli stati disponibili nel menu. Da pianificare e Pianificata sono necessari per la pianificazione automatica. Gli stati già assegnati vengono conservati.',
-    ganttWeekendIntro: 'Scegli quali giorni vengono trattati come weekend quando li nascondi nel Gantt.',
-    ganttStatusIntro: 'Gli stati descrivono l’avanzamento senza modificare date o ore.',
-    ganttStatusPriority: 'Priorità macro: Bloccata → Ferma → A rischio → In corso → In pausa → Pianificata → Da pianificare → Completata.',
-    ganttStatusCancelledRule: 'Le attività annullate vengono ignorate; se sono tutte annullate, anche la macro è Annullata.',
-    statusToPlanMeaning: 'Da pianificare — non ancora organizzata.',
-    statusPlannedMeaning: 'Pianificata — pronta e calendarizzata.',
-    statusInProgressMeaning: 'In corso — lavoro attivo.',
-    statusAtRiskMeaning: 'A rischio — procede, ma risultato o scadenza sono a rischio.',
-    statusStuckMeaning: 'Ferma — il team possiede la prossima azione, ma non riesce ad avanzare.',
-    statusBlockedMeaning: 'Bloccata — dipende da una persona, decisione o dipendenza esterna.',
-    statusOnHoldMeaning: 'In pausa — sospesa intenzionalmente.',
-    statusCompletedMeaning: 'Completata — lavoro concluso.',
-    statusCancelledMeaning: 'Annullata — lavoro abbandonato intenzionalmente.',
+    sectionGanttWeekends: 'Calendario di lavoro',
+    sectionGanttWorkingDays: 'Conteggio giorni lavorativi',
+    sectionGanttStatuses: 'Stati delle attività',
+    ganttAllowedStatuses: 'Scegli gli stati da mostrare nel menu. Gli stati Da pianificare e Pianificata servono per la pianificazione automatica. Gli stati già assegnati restano associati alle attività.',
+    ganttWeekendIntro: 'Scegli i giorni da trattare come weekend quando li nascondi nel Gantt.',
+    ganttStatusIntro: 'Gli stati descrivono l’avanzamento senza cambiare date o ore.',
+    ganttStatusPriority: 'La priorità delle macro segue questo ordine: Bloccata, Ferma, A rischio, In corso, In pausa, Pianificata, Da pianificare, Completata.',
+    ganttStatusCancelledRule: 'Le attività annullate non incidono sullo stato della macro. Se sono tutte annullate, la macro risulta Annullata.',
+    statusToPlanMeaning: 'non ancora organizzata.',
+    statusPlannedMeaning: 'pronta per essere calendarizzata.',
+    statusInProgressMeaning: 'il lavoro è attivo.',
+    statusAtRiskMeaning: 'il lavoro procede, ma il risultato o la scadenza sono a rischio.',
+    statusStuckMeaning: 'il team sa qual è la prossima azione, ma non riesce ad avanzare.',
+    statusBlockedMeaning: 'dipende da una persona, da una decisione o da una dipendenza esterna.',
+    statusOnHoldMeaning: 'sospesa intenzionalmente.',
+    statusCompletedMeaning: 'il lavoro è concluso.',
+    statusCancelledMeaning: 'il lavoro è stato abbandonato intenzionalmente.',
     saturday: 'Sabato',
     sunday: 'Domenica',
-    ganttWorkingDaysExcludeWeekend: 'Escludi weekend dai giorni lavorativi',
-    ganttWorkingDaysExcludeWeekendHelp: 'Se attivo, Sabato e Domenica non vengono contati nel calcolo dei giorni lavorativi.',
+    ganttWorkingDaysExcludeWeekend: 'Non contare i giorni indicati come weekend nel conteggio dei giorni lavorativi',
+    ganttWorkingDaysExcludeWeekendHelp: 'Attiva questa opzione per escludere dal conteggio i giorni indicati come weekend.',
     shortcutsIntro: 'Utilizza i tasti di scelta rapida per salvare, aprire e chiudere stime.',
     shortcutSave: 'Salva la stima corrente',
     shortcutNewTab: 'Apri una nuova scheda dal modello predefinito',
@@ -1251,6 +1318,9 @@ const it: MessageTree = {
     allOwners: 'Tutti gli owner',
     createOwner: 'Crea',
     ownerAssignedHint: 'Owner assegnato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
+    deleteOwnerTitle: 'Elimina assegnatario',
+    deleteOwnerBody: 'Se elimini «{name}», verrà rimosso da tutte le altre voci di questa stima.',
+    deleteOwnerConfirm: 'Elimina assegnatario',
     status_to_plan: 'Da pianificare',
     status_planned: 'Pianificata',
     status_in_progress: 'In corso',
@@ -1855,6 +1925,20 @@ const en: MessageTree = {
   },
   settings: {
     title: 'Settings',
+    intro: "Customize HowLong's appearance, workspace, estimates, and planning tools.",
+    filterLabel: 'Search settings',
+    filterPlaceholder: 'Search settings…',
+    filterNoResults: 'No settings match your filter.',
+    groupPreferences: 'Preferences',
+    groupPreferencesIntro: 'Profile, language, and appearance.',
+    groupWorkspace: 'Workspace',
+    groupWorkspaceIntro: 'Folders and workspace backups.',
+    groupEstimates: 'Estimates',
+    groupEstimatesIntro: 'Estimate columns, presentation, and export filenames.',
+    groupPlanning: 'Planning',
+    groupPlanningIntro: 'Working calendar and activity statuses.',
+    groupApplication: 'Application',
+    groupApplicationIntro: 'Updates and keyboard shortcuts.',
     import: 'Import',
     save: 'Save',
     export: 'Export',
@@ -1896,6 +1980,23 @@ const en: MessageTree = {
     tipImport: '**Import:** Import and replace settings and models in the active workspace folder.',
     tipExport: '**Export:** Export settings and models.',
     saved: 'Settings saved',
+    savedBrief: 'Saved',
+    saving: 'Saving…',
+    none: 'None',
+    enabled: 'on',
+    disabled: 'off',
+    required: 'required',
+    summaryLocale: '{language}',
+    summaryAppearance: '{theme}',
+    summaryWorkspaceImportExport: 'Import or export the workspace',
+    summaryEstimateColumns: '{visible} of {total} columns visible',
+    summaryPresentation: 'Default settings for manager and client views',
+    summaryExport: 'Date {date} · time {time}',
+    summaryWorkingCalendar: 'Weekend: {days}',
+    summaryWorkingDays: 'Exclusion of selected days: {excluded}',
+    summaryActivityStatuses: '{enabled} of {total} statuses enabled',
+    summaryUpdates: 'Version {version}',
+    summaryShortcuts: '{count} shortcuts',
     importOk: 'Settings imported',
     importOkFull: 'Imported settings and {count} models',
     importOkLegacy: 'Imported settings only (file had no models)',
@@ -1925,33 +2026,34 @@ const en: MessageTree = {
     sectionProfile: 'Profile',
     sectionLocale: 'Language',
     sectionAppearance: 'Appearance',
-    sectionEstimate: 'Estimate view',
+    sectionEstimate: 'Estimate columns',
     sectionPresentation: 'Presentation',
-    sectionExport: 'Export filename',
-    sectionFolder: 'Workspace',
-    sectionWorkspace: 'Workspace import / export',
+    sectionExport: 'Export filenames',
+    sectionFolder: 'Workspace folder',
+    sectionWorkspace: 'Workspace import/export',
     sectionShortcuts: 'Keyboard shortcuts',
     sectionGantt: 'Gantt',
-    sectionGanttWeekends: 'Gantt — Weekends',
-    sectionGanttStatuses: 'Gantt — Statuses',
-    ganttAllowedStatuses: 'Choose the statuses available in the menu. To plan and Planned are required for automatic scheduling. Existing activity statuses are preserved.',
-    ganttWeekendIntro: 'Choose which days count as weekends when weekends are hidden in the Gantt.',
+    sectionGanttWeekends: 'Working calendar',
+    sectionGanttWorkingDays: 'Working-day count',
+    sectionGanttStatuses: 'Activity statuses',
+    ganttAllowedStatuses: 'Choose the statuses to show in the menu. To plan and Planned are required for automatic scheduling. Existing activity statuses stay assigned to their activities.',
+    ganttWeekendIntro: 'Choose which days to treat as weekends when you hide weekends in the Gantt.',
     ganttStatusIntro: 'Statuses describe progress without changing dates or effort.',
-    ganttStatusPriority: 'Macro priority: Blocked → Stuck → At risk → In progress → On hold → Planned → To plan → Completed.',
-    ganttStatusCancelledRule: 'Cancelled activities are ignored; when all are cancelled, the macro is Cancelled.',
-    statusToPlanMeaning: 'To plan — not organized yet.',
-    statusPlannedMeaning: 'Planned — ready and scheduled.',
-    statusInProgressMeaning: 'In progress — active work.',
-    statusAtRiskMeaning: 'At risk — progressing, but its deadline or outcome is threatened.',
-    statusStuckMeaning: 'Stuck — progress stopped and the team owns the next action.',
-    statusBlockedMeaning: 'Blocked — waiting for an external person, decision, or dependency.',
-    statusOnHoldMeaning: 'On hold — intentionally paused.',
-    statusCompletedMeaning: 'Completed — work finished.',
-    statusCancelledMeaning: 'Cancelled — work deliberately abandoned.',
+    ganttStatusPriority: 'Macro priority follows this order: Blocked, Stuck, At risk, In progress, On hold, Planned, To plan, Completed.',
+    ganttStatusCancelledRule: 'Cancelled activities do not affect the macro status. If all activities are cancelled, the macro is Cancelled.',
+    statusToPlanMeaning: 'not organized yet.',
+    statusPlannedMeaning: 'ready to schedule.',
+    statusInProgressMeaning: 'work is active.',
+    statusAtRiskMeaning: 'work is moving forward, but its outcome or deadline is at risk.',
+    statusStuckMeaning: 'the team knows the next action, but cannot move forward.',
+    statusBlockedMeaning: 'waiting for a person, decision, or external dependency.',
+    statusOnHoldMeaning: 'paused intentionally.',
+    statusCompletedMeaning: 'the work is finished.',
+    statusCancelledMeaning: 'the work was intentionally abandoned.',
     saturday: 'Saturday',
     sunday: 'Sunday',
-    ganttWorkingDaysExcludeWeekend: 'Exclude weekend from working days',
-    ganttWorkingDaysExcludeWeekendHelp: 'When enabled, Saturday and Sunday are excluded from working days calculation.',
+    ganttWorkingDaysExcludeWeekend: 'Do not count days indicated as weekend as working days',
+    ganttWorkingDaysExcludeWeekendHelp: 'Enable this option to exclude the days indicated as weekend from the count of working days.',
     shortcutsIntro: 'Use keyboard shortcuts to save, open and close estimates.',
     shortcutSave: 'Save the current estimate',
     shortcutNewTab: 'Open a new tab from the default model',
@@ -2125,6 +2227,9 @@ const en: MessageTree = {
     allOwners: 'All owners',
     createOwner: 'Create',
     ownerAssignedHint: 'Owner assigned to a task; remove assignments before deleting.',
+    deleteOwnerTitle: 'Delete owner',
+    deleteOwnerBody: 'If you delete “{name}”, it will be removed from all other entries in this estimate.',
+    deleteOwnerConfirm: 'Delete owner',
     status_to_plan: 'To plan',
     status_planned: 'Planned',
     status_in_progress: 'In progress',

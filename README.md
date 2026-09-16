@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pietrodileo/howlong/releases"><img src="https://img.shields.io/github/v/release/pietrodileo/howlong?style=flat&label=version" alt="latest stable version"></a>
+  <a href="https://github.com/pietrodileo/howlong/releases"><img src="https://img.shields.io/github/v/release/pietrodileo/howlong?style=flat&label=latest stable version" alt="latest stable version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea043?style=flat" alt="MIT License"></a>
   <a href="https://v2.tauri.app"><img src="https://img.shields.io/badge/Tauri-2-24c8db?style=flat" alt="Tauri 2"></a>
   <a href="https://github.com/pietrodileo/howlong/releases"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-555?style=flat" alt="macOS | Windows | Linux"></a>
@@ -22,7 +22,7 @@
 <p align="center">
   <a href="#what-it-does">What it does</a> ·
   <a href="#features">Features</a> ·
-  <a href="#new-in-v070">New in v0.7.0</a> ·
+  <a href="#new-in-v071">New in v0.7.1</a> ·
   <a href="#export-outputs">Exports</a> ·
   <a href="#screens">Screens</a> ·
   <a href="#download">Download</a> ·
@@ -51,7 +51,7 @@ Everything is stored locally. Settings, models, and estimates live as JSON on di
 
 ### Planning and analysis
 
-- **Plan:** day-based or month-based Gantt with configurable weekends; dates only — effort stays unchanged.
+- **Plan:** day-based or month-based Gantt with configurable weekends; dates only — effort stays unchanged. XLSX exports include base, base + CTG, and planned days for each activity.
 - **Analytics:** summary cards, activity donut, and stacked base-vs-contingency bars; drill into one macro or expand several.
 - **Compare:** align multiple saved estimates side by side.
 - **Manager view:** round, redistribute, include/exclude rows, and override presented totals.
@@ -65,10 +65,17 @@ Everything is stored locally. Settings, models, and estimates live as JSON on di
 - Keyboard shortcuts for save, tabs, views, and undo/redo.
 - English or Italian UI; light or dark theme.
 
-## New in v0.7.0
+## New in v0.7.1
 
-Version 0.7.0 adds a safe, user-controlled update path for the desktop app:
+Version 0.7.1 adds a redesigned settings experience alongside the safe, user-controlled update path for the desktop app:
 
+- Settings are organized into focused, collapsible groups with a search filter.
+- Workspace, estimate, planning, and application options use clearer summaries and full-width controls.
+- Planning and Analytics empty states now offer the same **New Estimate**, **Open File**, and **Go to Library** actions as the home screen.
+- Manager and Client presentation sections can be collapsed to keep dense estimates easier to scan.
+- Gantt XLSX exports include `Base (days)`, `Base + CTG (days)`, and `Planned (days)` for each activity; the obsolete Planning column is no longer exported.
+- Planned Gantt days follow the setting that determines whether weekend days count as working days.
+- Deleting an owner from the Gantt asks for confirmation and removes that owner from all activities in the current estimate.
 - **Settings → Updates** checks the official GitHub feed only when you click **Check for updates**.
 - Only stable releases are considered; prereleases are excluded.
 - The panel shows the installed version, available version, release notes, download progress, and install state.
@@ -85,7 +92,7 @@ The official platform builds and updater feed are produced by GitHub Actions fro
 | Estimate | Full calculation: hierarchy, formulas, contingency, notes | Technical handover     |
 | Manager  | Rounded/redistributed presented values                    | Internal approval      |
 | Client   | Only included activities and visible notes/labels         | Client delivery        |
-| Plan     | XLSX Gantt from the visible range, scale, and colors      | Timeline communication |
+| Plan     | XLSX Gantt with dates, status, owner, base/CTG/planned days, and timeline | Timeline communication |
 
 | Format            | Role                                                                    |
 | ----------------- | ----------------------------------------------------------------------- |
@@ -220,7 +227,7 @@ Outputs land in `src-tauri/target/release/bundle/`. Build on the target OS (Wind
 | Linux    | `scripts/linux/build-prerelease.sh`       | `scripts/linux/build-release.sh`        |
 | Any      | `npm run tauri build` (default config)    | Use the platform release script         |
 
-The prerelease scripts do not require a signing key and do not create official updater artifacts. The release scripts use `~/.tauri/howlong.key` (or `%USERPROFILE%\.tauri\howlong.key` on Windows) and require a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. To use another key locally, set `TAURI_SIGNING_PRIVATE_KEY` to its path or contents before running the release script. The scripts fail early when signing setup is incomplete.
+The prerelease scripts keep the application name **HowLong**, use a separate application identifier, do not require a signing key, and do not create official updater artifacts. The release scripts use `~/.tauri/howlong.key` (or `%USERPROFILE%\.tauri\howlong.key` on Windows) and require a non-empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. To use another key locally, set `TAURI_SIGNING_PRIVATE_KEY` to its path or contents before running the release script. The scripts fail early when signing setup is incomplete.
 
 For the complete development, pre-release, stable release, signing, tagging, and fork workflow, see the [Build and release guide](docs/BUILD.md).
 

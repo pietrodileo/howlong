@@ -1,6 +1,6 @@
 # Manuale utente di HowLong?
 
-HowLong? `0.7.0` su Windows, macOS e Linux.
+HowLong? `0.7.1` su Windows, macOS e Linux.
 
 [README del progetto](../../README.md) · [Manuale inglese](GUIDE.en.md) · [Guida di build e rilascio](../BUILD.md)
 
@@ -10,7 +10,7 @@ HowLong? `0.7.0` su Windows, macOS e Linux.
 
 ## Indice
 
-- [Novità della v0.7.0](#novità-della-v070)
+- [Novità della v0.7.1](#novità-della-v071)
 - [1. Avvio rapido](#1-avvio-rapido)
 - [2. Area di lavoro e navigazione](#2-area-di-lavoro-home-e-navigazione-nella-barra-laterale)
   - [2.1. Barra laterale](#21-navigazione-nella-barra-laterale)
@@ -41,15 +41,27 @@ HowLong? `0.7.0` su Windows, macOS e Linux.
   - [11.3. Focus (una macro)](#focus-singola-macro)
 - [12. Importazione, esportazione e backup](#12-importazione-esportazione-e-backup)
   - [12.1. Scegliere la vista sorgente](#scegliere-la-vista-sorgente-per-lesportazione)
+  - [12.2. Formati e limiti](#formati-e-limiti)
+  - [12.3. Esportazione XLSX della stima](#esportazione-xlsx-della-stima)
+  - [12.4. Esportazione XLSX del Gantt](#esportazione-xlsx-del-gantt)
+  - [12.5. Checklist di esportazione e backup](#checklist-di-esportazione-e-backup)
 - [13. Scorciatoie da tastiera](#13-scorciatoie-da-tastiera)
 - [14. Cosa mostrano o non modificano alcune schermate](#14-cosa-mostrano-alcune-schermate--e-cosa-non-fanno)
 - [15. Risoluzione dei problemi e sicurezza](#15-risoluzione-dei-problemi-e-pratiche-sicure)
 
 ---
 
-## Novità della v0.7.0
+## Novità della v0.7.1
 
-HowLong? 0.7.0 introduce un flusso di aggiornamento integrato per le installazioni desktop e una pipeline di rilascio stabile per le build ufficiali.
+HowLong? 0.7.1 introduce un'esperienza delle impostazioni ridisegnata, un flusso di aggiornamento integrato per le installazioni desktop e una pipeline di rilascio stabile per le build ufficiali.
+
+### Esperienza delle impostazioni
+
+Le impostazioni sono organizzate in sezioni mirate e richiudibili, con un campo di ricerca. Ogni opzione è contenuta in un pannello dedicato e accompagnata da un breve riepilogo, così puoi scorrere le preferenze disponibili prima di aprirne una. Le schermate vuote di Pianifica e Analisi offrono le stesse azioni della Home: **Nuova stima**, **Apri file** e **Vai alla libreria**.
+
+Le sezioni di presentazione Manager e Cliente possono essere richiuse, rendendo più leggibili le stime lunghe senza modificare i calcoli sottostanti.
+
+L'esportazione XLSX del Gantt ora include `Base (days)`, `Base + CTG (days)` e `Planned (days)` per ogni attività. La precedente colonna Planning non viene più esportata e i giorni pianificati seguono l'impostazione che stabilisce se i giorni del fine settimana contano come lavorativi.
 
 ### Pannello Aggiornamenti
 
@@ -456,12 +468,13 @@ Le barre Gantt rappresentano **intervalli di date** per ciascuna attività; la l
 - Gli stati delle macro sono calcolati dai sotto-task.
 - Comprimere una macro nasconde le attività figlie.
 - La barra di una macro si estende dall'inizio più precoce di un figlio alla fine più tardiva di un figlio.
+- L'eliminazione di un assegnatario dal selettore richiede una conferma; confermando, l'assegnatario viene rimosso da tutte le attività della stima corrente.
 
 ![Gantt compatto con il pannello attività compresso](../images/gantt_2_compact.png)
 
 Puoi ridimensionare il pannello attività usando il divisore. Comprimilo per ottenere una timeline più ampia, quindi usa la freccia in alto a sinistra per riaprirlo.
 
-Durante l'esportazione in XLSX, HowLong? usa la scala della vista corrente, l'intervallo di date visibile e le impostazioni dei fine settimana.
+Durante l'esportazione in XLSX, HowLong? usa la scala della vista corrente, l'intervallo di date visibile e le impostazioni dei fine settimana. Dopo le colonne fisse dell'attività, il file mantiene la timeline con queste colonne: `Activity`, `Macro`, `Start`, `End`, `Base (days)`, `Base + CTG (days)`, `Planned (days)`, `Status`, `Notes` e `Owner`. `Planned (days)` conta l'intervallo pianificato secondo l'impostazione dei giorni lavorativi.
 
 ## 11. Analisi
 
@@ -521,7 +534,7 @@ Quando esporti la stima, puoi selezionare una **vista sorgente** per determinare
 | Stima    | Calcolo completo, gerarchia completa, formule, CTG, note ed etichette                   | Passaggio tecnico            |
 | Manager  | Numeri arrotondati, valori ridistribuiti/rettificati come mostrati ai manager           | Approvazione interna         |
 | Cliente  | Solo attività incluse, gerarchia visibile, valori presentati, note/etichette pubbliche | Consegna al cliente          |
-| Gantt    | Date, gerarchia, codifica colore, intervallo date, scala, fine settimana                | Comunicazione della timeline |
+| Gantt    | Date, gerarchia, stato, assegnatario, note, colori, giorni base/CTG/pianificati e timeline | Comunicazione della timeline |
 
 | Formato      | Scopo                                                                             |
 | ------------ | --------------------------------------------------------------------------------- |
@@ -568,9 +581,19 @@ La compressione nasconde le righe figlie nel foglio Excel e non elimina dati dal
 
 ### Esportazione XLSX del Gantt
 
-> Le colonne Stato e Note sono state aggiunte nella versione 0.6.1.
+Usa **Esporta XLSX** dalla vista **Piano**. Il workbook contiene titolo, cliente, intervallo Da/A, scala, impostazione dei fine settimana, legenda dei colori e una riga per ogni macro o sottoattività. Ogni riga contiene:
 
-Usa **Esporta XLSX** dalla vista **Piano**. Il workbook contiene cliente, intervallo Da/A, scala, impostazione dei fine settimana, legenda dei colori, attività, macro, date di inizio/fine, pianificazione, stato operativo, note e barre sul calendario. La barra di una macro aggregata riassume l'intervallo dei figli; la lunghezza rappresenta il tempo di calendario, non le ore stimate.
+| Colonna | Significato |
+| ------- | ----------- |
+| `Activity` / `Macro` | Nome dell'attività e macro padre |
+| `Start` / `End` | Date pianificate; le date delle macro aggregano quelle dei figli |
+| `Base (days)` | Impegno di base convertito usando le ore per giornata della stima |
+| `Base + CTG (days)` | Impegno comprensivo di contingenza, convertito in giorni |
+| `Planned (days)` | Numero di giorni nell'intervallo pianificato; i weekend seguono l'impostazione dei giorni lavorativi |
+| `Status` / `Notes` / `Owner` | Stato operativo e metadati dell'attività |
+| Colonne timeline | Celle giornaliere o mensili dell'intervallo esportato |
+
+La precedente colonna Planning non è inclusa. L'esportazione è un'istantanea dell'intervallo Gantt corrente, non sostituisce l'esportazione nativa della stima e non modifica la stima.
 
 ![Esportazione Excel del Gantt con date, stati, legenda e barre sul calendario](../images/gantt_excel.png)
 

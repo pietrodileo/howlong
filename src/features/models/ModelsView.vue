@@ -776,7 +776,10 @@ function setMacroApplyContingency(id: string, value: boolean) {
             @input="models.updateSelected({ name: ($event.target as HTMLInputElement).value })"
           />
           <span v-if="models.isDefault(current.id)" class="default-badge" v-tip="t('models.defaultBadge')">
-            <span class="star">★</span> {{ t('common.default') }}
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m12 3.5 2.58 5.23 5.77.84-4.18 4.07.99 5.75L12 16.67l-5.16 2.72.99-5.75-4.18-4.07 5.77-.84L12 3.5Z" />
+            </svg>
+            {{ t('common.default') }}
           </span>
           <button
             v-else
@@ -785,17 +788,32 @@ function setMacroApplyContingency(id: string, value: boolean) {
             v-tip="t('models.setDefault')"
             @click="setAsDefault"
           >
-            <span class="star">★</span> {{ t('models.setDefault') }}
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m12 3.5 2.58 5.23 5.77.84-4.18 4.07.99 5.75L12 16.67l-5.16 2.72.99-5.75-4.18-4.07 5.77-.84L12 3.5Z" />
+            </svg>
+            {{ t('models.setDefault') }}
           </button>
           <div class="chrome-btn-group">
             <span v-if="models.currentDirty" class="dirty">{{ t('common.unsaved') }}</span>
-            <button type="button" class="model-action-btn save-btn" v-tip="t('models.saveModel')" @click="save">{{ t('common.save') }}</button>
+            <button type="button" class="model-action-btn save-btn" v-tip="t('models.saveModel')" @click="save">
+              <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 4h11l3 3v13H5z" />
+                <path d="M8 4v5h8V4M8 20v-6h8v6" />
+              </svg>
+              {{ t('common.save') }}
+            </button>
             <button
               type="button"
               class="model-action-btn delete-btn"
               v-tip="t('models.deleteModel')"
               @click="onDeleteModel"
             >
+              <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 7h16" />
+                <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                <path d="M6.5 7l.7 12.2A1.5 1.5 0 0 0 8.7 21h6.6a1.5 1.5 0 0 0 1.5-1.8L17.5 7" />
+                <path d="M10 11v6M14 11v6" />
+              </svg>
               {{ t('common.delete') }}
             </button>
             <button type="button" class="model-action-btn export-btn" v-tip="t('models.exportModel')" @click="onExport">
@@ -998,7 +1016,6 @@ function setMacroApplyContingency(id: string, value: boolean) {
                       class="formula-mark"
                       aria-hidden="true"
                     >=</span>
-                    <span v-else-if="!isTopLevel(a)" class="task-mark" aria-hidden="true">·</span>
                     <span v-else class="collapse-spacer" aria-hidden="true" />
                     <textarea
                       class="name-input"
@@ -1382,21 +1399,9 @@ li.active .mark {
   flex-shrink: 0;
 }
 
-.default-badge .star {
-  font-size: 0.85rem;
-  color: var(--accent);
-}
-
 .model-action-btn.default-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
   height: 1.9rem;
   padding: 0 0.75rem;
-}
-
-.model-action-btn.default-btn .star {
-  font-size: 0.85rem;
 }
 
 .editor {
@@ -1838,6 +1843,9 @@ th.collapsed {
 
 /* Custom action buttons with very soft colored backgrounds and visible borders */
 .model-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   height: 1.9rem;
   padding: 0 0.85rem;
   border: 1px solid;
@@ -1846,6 +1854,12 @@ th.collapsed {
   font-weight: 550;
   cursor: pointer;
   white-space: nowrap;
+}
+
+.action-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
 }
 
 .model-action-btn.save-btn {
@@ -2046,16 +2060,6 @@ th.collapsed {
   flex-shrink: 0;
 }
 
-.task-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.4rem;
-  text-align: center;
-  color: var(--line-strong);
-  flex-shrink: 0;
-}
-
 .cat {
   font-size: 0.9rem;
 }
@@ -2065,7 +2069,7 @@ th.collapsed {
 }
 
 tr.macro td {
-  background: var(--page-soft);
+  background: var(--surface);
 }
 
 tr.sub td {

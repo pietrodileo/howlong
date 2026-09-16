@@ -26,7 +26,8 @@ import {
   workingDaysBetween,
 } from '../../domain/gantt';
 import { daysToHours, hoursToDays, HOURS_PER_DAY } from '../../domain/rounding';
-import { exportGanttXlsx } from '../../platform/files/io';
+import { exportGanttXlsx, openEstimateFile } from '../../platform/files/io';
+import { isDialogCancelled, isDialogDesktopOnly } from '../../platform/files/dialogResult';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import { useDocumentSync } from '../../shared/composables/useDocumentSync';
 import IconBtn from '../../shared/components/IconBtn.vue';
@@ -47,7 +48,6 @@ const ownerOptions = computed(() => mergeOwners([
   ...libraryStore.ownerOptions,
   ...estimate.estimate.items.map((item) => item.owner ?? ''),
 ]));
-const assignedOwners = computed(() => mergeOwners(estimate.estimate.items.map((item) => item.owner ?? '')));
 
 watch(() => [settings.settings.workspaceDir, settings.appDataDir], () => {
   void libraryStore.loadOwners().catch((error) => ui.notify(String(error), true));
@@ -71,10 +71,27 @@ async function onOwnerChange(item: LineItem, name: string) {
   }
 }
 
-/** Delete a reusable owner suggestion while preserving any existing assignments. */
-async function onOwnerDelete(name: string) {
-  try { await libraryStore.forgetOwner(name); }
-  catch (error) { ui.notify(error instanceof Error ? error.message : String(error), true); }
+/** Ask before deleting an owner and removing it from every activity in this estimate. */
+function onOwnerDelete(name: string) {
+  pendingOwnerDelete.value = { name, sessionId: docs.activeId };
+}
+
+/** Confirm owner deletion, clear matching assignments once, and persist the change. */
+async function confirmOwnerDelete() {
+  const request = pendingOwnerDelete.value;
+  pendingOwnerDelete.value = null;
+  if (!request || request.sessionId !== docs.activeId) return;
+  const normalizedName = request.name.trim().toLowerCase();
+  try {
+    await libraryStore.forgetOwner(request.name);
+    if (request.sessionId !== docs.activeId) return;
+    const matchingItems = estimate.estimate.items.filter((item) => item.owner?.trim().toLowerCase() === normalizedName);
+    if (matchingItems.length > 0) {
+      mutate(() => matchingItems.forEach((item) => estimate.updateItem(item.id, { owner: '' })));
+    }
+  } catch (error) {
+    ui.notify(error instanceof Error ? error.message : String(error), true);
+  }
 }
 
 const modelsStore = useModelsStore();
@@ -94,6 +111,7 @@ const exporting = ref(false);
 const ganttShell = ref<HTMLElement | null>(null);
 const ganttShellWidth = ref(0);
 const pendingDelete = ref<LineItem | null>(null);
+const pendingOwnerDelete = ref<{ name: string; sessionId: string | null } | null>(null);
 const newMenuOpen = ref(false);
 const modelSearch = ref('');
 const activityWidth = ref(340);
@@ -448,6 +466,20 @@ function createEstimateFromModel(id: string) {
   if (model) createEstimate(model);
 }
 
+/** Open an estimate file and switch to its editor. */
+async function onOpenEstimate() {
+  const result = await openEstimateFile();
+  if (!result.ok) {
+    if (!isDialogCancelled(result)) {
+      ui.notify(isDialogDesktopOnly(result) ? t('library.desktopOnly') : result.error, true);
+    }
+    return;
+  }
+  const sessionId = await docs.openFromFile(result.data, result.path);
+  docs.activate(sessionId);
+  ui.navigate('working');
+}
+
 function addSubtask(macroId: string) {
   mutate(() => estimate.addSubtask(macroId));
   const next = new Set(collapsed.value);
@@ -490,6 +522,7 @@ async function exportXlsx() {
       scale: scale.value,
       includeWeekends: showWeekends.value,
       weekendDays: weekendDays.value,
+      excludeWeekend: settings.settings.ganttWorkingDaysExcludeWeekend,
     }, settings.settings);
     if (path) ui.notify(t('gantt.exported', { path }), false, path);
   } catch (error) {
@@ -797,8 +830,6 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               :placeholder="t('gantt.ownerPlaceholder')"
               :filter-placeholder="t('gantt.ownerFilter')"
               :create-label="t('gantt.createOwner')"
-              :locked-options="assignedOwners"
-              :locked-label="t('gantt.ownerAssignedHint')"
               @update:model-value="onOwnerChange(activeOverlayItem, $event)"
               @delete-option="onOwnerDelete"
             />
@@ -822,6 +853,15 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
       @cancel="pendingDelete = null"
       @confirm="confirmDelete"
     />
+    <ConfirmModal
+      :open="pendingOwnerDelete != null"
+      :title="t('gantt.deleteOwnerTitle')"
+      :message="t('gantt.deleteOwnerBody', { name: pendingOwnerDelete?.name ?? '' })"
+      :confirm-label="t('gantt.deleteOwnerConfirm')"
+      danger
+      @cancel="pendingOwnerDelete = null"
+      @confirm="confirmOwnerDelete"
+    />
   </section>
 
   <section v-else class="gantt-empty">
@@ -829,13 +869,13 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
     <div class="empty-actions">
       <div class="new-estimate-menu">
         <div class="new-estimate-split">
-          <button type="button" class="primary new-estimate-main" @click="createEstimate()">
+          <button type="button" class="action-btn primary new-estimate-main" @click="createEstimate()">
             <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
               <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M8 2.5v11M2.5 8h11" />
             </svg>
             {{ t('welcome.newEstimate') }}
           </button>
-          <button type="button" class="primary new-estimate-caret" :aria-expanded="newMenuOpen" :aria-label="t('working.pickModel')" @click.stop="newMenuOpen = !newMenuOpen">▾</button>
+          <button type="button" class="action-btn primary new-estimate-caret" :aria-expanded="newMenuOpen" :aria-label="t('working.pickModel')" @click.stop="newMenuOpen = !newMenuOpen">▾</button>
         </div>
         <div v-if="newMenuOpen" class="model-menu" role="menu" @pointerdown.stop>
           <input v-model="modelSearch" type="search" :placeholder="t('working.searchModel')" />
@@ -846,7 +886,20 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
           <p v-if="filteredModels.length === 0">{{ t('working.noModels') }}</p>
         </div>
       </div>
-      <button type="button" class="ghost" @click="ui.navigate('library')">{{ t('gantt.openLibrary') }}</button>
+      <button type="button" class="action-btn" @click="onOpenEstimate">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3.5 8.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a1.5 1.5 0 0 0-1.5-1.5H12l-1.6-1.8A1.5 1.5 0 0 0 9.3 5.5H5.5A2 2 0 0 0 3.5 7.5v1Z" />
+        </svg>
+        <span>{{ t('welcome.openEstimate') }}</span>
+      </button>
+      <button type="button" class="action-btn" @click="ui.navigate('library')">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 6.5h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5Z" />
+          <path d="M6 6.5V4.5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          <path d="M12 4.5v2" />
+        </svg>
+        <span>{{ t('welcome.openLibrary') }}</span>
+      </button>
     </div>
   </section>
 </template>
@@ -854,7 +907,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 <style scoped>
 .gantt-view { min-height: 100%; padding-bottom: 2rem; }
 .gantt-head { display: flex; justify-content: flex-end; margin-bottom: .8rem; }
-.gantt-empty p { margin: 0 0 1rem; color: var(--muted); font-size: 1rem; }
+.gantt-empty p { margin: 0 0 1.25rem; color: var(--ink); font-family: var(--font-brand); font-size: clamp(1.35rem, 2vw, 1.75rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.25; }
 .gantt-controls, .gantt-actions { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
 .gantt-controls .range-field { align-items: flex-start; gap: .25rem; color: var(--muted); font-size: .68rem; font-weight: 600; line-height: 1; text-transform: uppercase; letter-spacing: .06em; }
 .gantt-controls .range-field input[type='date'] { width: 9.4rem; height: 2.35rem; padding: .45rem .65rem; color: var(--ink); font-size: .8rem; letter-spacing: 0; text-transform: none; }
@@ -902,7 +955,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .activity-row.compact .status-pill { width: 1.85rem; padding: 0; font-size: 0; }
 .activity-row.compact .status-pill > span { width: .7rem; height: .7rem; }
 .activity-row.compact .status-pill small { display: none; }
-.activity-row.alternate { background: color-mix(in srgb, var(--page-soft) 72%, var(--surface)); }
+.activity-row.alternate { background: var(--surface); }
 .activity-row.sub { padding-left: 1.15rem; }
 .activity-title { display: flex; align-items: center; min-width: 0; gap: .25rem; }
 .activity-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; font-weight: 600; }
@@ -994,7 +1047,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .timeline-row.alternate { background-color: var(--surface); }
 .timeline-row.schedulable { cursor: cell; }
 .today-line { position: absolute; inset-block: 0; width: 2px; background: var(--accent); opacity: .45; pointer-events: none; }
-.selected-day { position: absolute; inset-block: 0; background: color-mix(in srgb, var(--accent) 10%, transparent); pointer-events: none; }
+.selected-day { position: absolute; inset-block: 0; background: color-mix(in srgb, var(--accent) 20%, transparent); pointer-events: none; }
 .gantt-bar { position: absolute; top: 24px; height: 28px; display: flex; align-items: center; border-radius: 6px; color: var(--bar-text); background: var(--bar-color); cursor: grab; touch-action: none; user-select: none; overflow: hidden; box-shadow: 0 2px 7px color-mix(in srgb, var(--bar-color) 28%, transparent); }
 .gantt-bar:active { cursor: grabbing; }
 .gantt-bar.sub { opacity: .82; }
@@ -1006,12 +1059,17 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .handle.start::after { left: 3px; }
 .handle.end { right: 0; }
 .handle.end::after { right: 3px; }
-.gantt-empty { display: grid; place-content: center; justify-items: center; min-height: 100%; padding: 2rem; text-align: center; }
-.empty-actions { display: flex; justify-content: center; gap: .55rem; }
+.gantt-empty { display: grid; align-content: start; justify-items: center; min-height: 100%; padding: clamp(7rem, 24vh, 12rem) 2rem 2rem; text-align: center; }
+.empty-actions { display: flex; align-items: stretch; justify-content: center; flex-wrap: wrap; gap: .75rem; }
+.action-btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.25rem; font-size: .95rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); cursor: pointer; transition: all .15s ease; }
+.action-btn:hover { border-color: var(--accent); background: var(--accent-subtle); }
+.action-btn.primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.action-btn.primary:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
+.action-btn svg { flex-shrink: 0; }
 .new-estimate-menu { position: relative; }
 .new-estimate-split { display: flex; }
-.new-estimate-main { display: flex; align-items: center; gap: .4rem; border-radius: var(--radius-sm) 0 0 var(--radius-sm); border-right: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent); }
-.new-estimate-caret { min-width: 2.1rem; padding-inline: .45rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.new-estimate-main { display: flex; align-items: center; gap: .5rem; border-radius: var(--radius-sm) 0 0 var(--radius-sm); border-right: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent); }
+.new-estimate-caret { min-width: auto; padding: .75rem 1.25rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 .model-menu { position: absolute; top: calc(100% + .4rem); left: 0; z-index: 40; width: 280px; padding: .5rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-menu); }
 .model-menu input { width: 100%; margin-bottom: .4rem; }
 .model-menu button { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; min-width: 0; padding: .5rem .65rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); text-align: left; }
@@ -1064,6 +1122,5 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .actions-summary .summary-days { display: block; margin-top: .15rem; color: var(--muted); font-weight: 400; white-space: nowrap; }
 .timeline-head.daily-head { flex-direction: column; }
 .month-band, .day-band { display: flex; flex: 1; min-height: 0; }
-.month-heading { text-align: center; background: color-mix(in srgb, var(--ink) 7%, var(--surface)); flex: 0 0 auto; padding: .2rem .5rem; border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); color: var(--ink); font-size: .7rem; font-weight: 600; text-transform: capitalize; overflow: hidden; white-space: nowrap; }
+.month-heading { text-align: center; background: var(--surface); flex: 0 0 auto; padding: .2rem .5rem; border-right: .5px solid color-mix(in srgb, var(--accent) 12%, var(--line-strong)); border-bottom: .5px solid var(--line); border-radius: 0; box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); font-size: .7rem; font-weight: 700; text-transform: capitalize; overflow: hidden; white-space: nowrap; }
 </style>
-

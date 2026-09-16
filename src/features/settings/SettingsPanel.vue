@@ -4,22 +4,55 @@ import DisclosureIcon from '../../shared/components/DisclosureIcon.vue';
 
 const props = defineProps<{
   title: string;
+  summary?: string;
+  summaryTitle?: string;
   intro?: string;
   /** Se true, la sezione parte (o diventa) aperta. */
   open?: boolean;
+  /** Keep a matching panel open while settings are filtered. */
+  forceOpen?: boolean;
+}>();
+
+const emit = defineEmits<{
+  toggle: [open: boolean];
 }>();
 
 const root = ref<HTMLDetailsElement | null>(null);
+const openBeforeForce = ref<boolean | null>(null);
 
 async function applyOpen(shouldOpen: boolean) {
-  if (!shouldOpen || !root.value) return;
-  root.value.open = true;
-  await nextTick();
-  root.value.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!root.value || props.forceOpen) return;
+  if (root.value.open === shouldOpen) return;
+  root.value.open = shouldOpen;
+  if (shouldOpen) {
+    await nextTick();
+    root.value.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+/** Open a filtered panel and restore its previous disclosure state afterward. */
+function applyForcedOpen(shouldOpen: boolean) {
+  if (!root.value) return;
+  if (shouldOpen) {
+    if (openBeforeForce.value === null) openBeforeForce.value = root.value.open;
+    root.value.open = true;
+    return;
+  }
+  if (openBeforeForce.value !== null) {
+    root.value.open = openBeforeForce.value;
+    openBeforeForce.value = null;
+  }
+}
+
+/** Report user disclosure changes so the parent can coordinate sibling panels. */
+function onToggle(event: Event) {
+  if (props.forceOpen) return;
+  emit('toggle', (event.currentTarget as HTMLDetailsElement).open);
 }
 
 onMounted(() => {
   void applyOpen(!!props.open);
+  applyForcedOpen(!!props.forceOpen);
 });
 
 watch(
@@ -28,12 +61,22 @@ watch(
     void applyOpen(!!value);
   },
 );
+
+watch(
+  () => props.forceOpen,
+  (value) => {
+    void nextTick(() => applyForcedOpen(!!value));
+  },
+);
 </script>
 
 <template>
-  <details ref="root" class="settings-panel">
+  <details ref="root" class="settings-panel" @toggle="onToggle">
     <summary class="settings-panel-head">
-      <span class="settings-panel-title">{{ title }}</span>
+      <span class="settings-panel-copy">
+        <span class="settings-panel-title">{{ title }}</span>
+        <span v-if="summary" class="settings-panel-summary" :title="summaryTitle || summary">{{ summary }}</span>
+      </span>
       <span class="settings-panel-chev"><DisclosureIcon :expanded="true" /></span>
     </summary>
     <div v-if="intro" class="settings-panel-intro">{{ intro }}</div>
@@ -53,12 +96,12 @@ watch(
 }
 
 .settings-panel-head {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
-  margin: 0 -0.45rem;
-  padding: 0.75rem 0.45rem;
+  margin: 0;
+  padding: 0.75rem 0.55rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
   list-style: none;
@@ -66,12 +109,18 @@ watch(
   transition: background 0.12s ease, color 0.12s ease;
 }
 
-.settings-panel-head:hover {
-  background: color-mix(in srgb, var(--page-soft) 80%, transparent);
+.settings-panel:not([open]) .settings-panel-head:hover {
+  background: color-mix(in srgb, var(--accent-soft) 34%, var(--surface));
 }
 
 .settings-panel-head::-webkit-details-marker {
   display: none;
+}
+
+.settings-panel-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
 }
 
 .settings-panel-title {
@@ -81,6 +130,18 @@ watch(
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-soft);
+}
+
+.settings-panel-summary {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .settings-panel[open] .settings-panel-title {
@@ -94,7 +155,7 @@ watch(
   transition: transform 0.15s ease, color 0.12s ease;
 }
 
-.settings-panel-head:hover .settings-panel-chev,
+.settings-panel:not([open]) .settings-panel-head:hover .settings-panel-chev,
 .settings-panel[open] .settings-panel-chev {
   color: var(--ink-soft);
 }
@@ -108,10 +169,19 @@ watch(
   line-height: 1.45;
 }
 
+.settings-panel[open] > .settings-panel-head {
+  border-left: 3px solid color-mix(in srgb, var(--accent) 58%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 24%, var(--surface));
+}
+
+.settings-panel[open] .settings-panel-title {
+  color: var(--ink);
+}
+
 .settings-panel-body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 0.15rem 0 1.15rem;
+  padding: 0.75rem 0.55rem 1rem;
 }
 </style>

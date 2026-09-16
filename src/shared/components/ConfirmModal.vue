@@ -45,7 +45,7 @@ const { t } = useI18n();
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 90;
+  z-index: 10000;
   display: grid;
   place-items: center;
   padding: 1.5rem;

@@ -11,6 +11,9 @@ const estimate = createEmptyEstimate(DEFAULT_SETTINGS);
 const macro = estimate.items[0];
 const first = { ...macro, id: 'sub-1', parentId: macro.id };
 const second = { ...macro, id: 'sub-2', parentId: macro.id };
+macro.hours = 24;
+first.hours = 16;
+second.hours = 8;
 first.color = '#c2410c';
 first.tags = ['Backend'];
 first.notes = 'Internal note';
@@ -88,33 +91,37 @@ await workbook.xlsx.load(xlsx as unknown as ArrayBuffer);
 const ganttSheet = workbook.getWorksheet('Gantt')!;
 assert.equal(ganttSheet.views[0].showGridLines, false);
 assert.equal(ganttSheet.views[0].state, 'frozen');
-assert.equal(ganttSheet.views[0].xSplit, 8);
+assert.equal(ganttSheet.views[0].xSplit, 10);
 assert.equal(ganttSheet.views[0].ySplit, 6);
-assert.equal(ganttSheet.autoFilter, 'A6:H6');
-assert.equal(ganttSheet.getCell('I5').numFmt, 'mmmm yyyy');
-assert.equal(ganttSheet.getCell('M5').master.address, 'I5');
+assert.equal(ganttSheet.autoFilter, 'A6:J6');
+assert.deepEqual(ganttSheet.getRow(6).values.slice(1, 11), ['Activity', 'Macro', 'Start', 'End', 'Base (days)', 'Base + CTG (days)', 'Planned (days)', 'Status', 'Notes', 'Owner']);
+assert.equal(ganttSheet.getCell('K5').numFmt, 'mmmm yyyy');
+assert.equal(ganttSheet.getCell('O5').master.address, 'K5');
 const monthBoundaryWorkbook = new ExcelJS.Workbook();
 await monthBoundaryWorkbook.xlsx.load(await ganttToXlsx(estimate, {
   from: '2026-09-29', to: '2026-10-02', scale: 'day', includeWeekends: false,
 }) as unknown as ArrayBuffer);
 const monthBoundarySheet = monthBoundaryWorkbook.getWorksheet('Gantt')!;
-assert.equal(monthBoundarySheet.getCell('J5').master.address, 'I5');
 assert.equal(monthBoundarySheet.getCell('L5').master.address, 'K5');
-assert.equal((monthBoundarySheet.getCell('I5').value as Date).getUTCMonth(), 8);
-assert.equal((monthBoundarySheet.getCell('K5').value as Date).getUTCMonth(), 9);
+assert.equal(monthBoundarySheet.getCell('N5').master.address, 'M5');
+assert.equal((monthBoundarySheet.getCell('K5').value as Date).getUTCMonth(), 8);
+assert.equal((monthBoundarySheet.getCell('M5').value as Date).getUTCMonth(), 9);
 assert.equal(ganttSheet.getCell('B3').value instanceof Date, true);
-assert.equal(ganttSheet.getCell('I6').numFmt, 'ddd dd');
-assert.equal(ganttSheet.getCell('I7').border.right?.style, 'thin');
-assert.equal(ganttSheet.getCell('L7').fill.type, 'pattern');
-assert.equal((ganttSheet.getCell('L8').fill as { fgColor?: { argb?: string } }).fgColor?.argb, 'FFC2410C');
-assert.equal(ganttSheet.getCell('F7').value, 'blocked');
-assert.equal(ganttSheet.getCell('G8').value, 'Internal note');
-assert.equal(ganttSheet.getCell('H6').value, 'Owner');
-assert.equal(ganttSheet.getCell('H8').value, 'Alice');
-assert.equal(ganttSheet.getCell('H7').value, '');
+assert.equal(ganttSheet.getCell('K6').numFmt, 'ddd dd');
+assert.equal(ganttSheet.getCell('K7').border.right?.style, 'thin');
+assert.equal(ganttSheet.getCell('N7').fill.type, 'pattern');
+assert.equal((ganttSheet.getCell('N8').fill as { fgColor?: { argb?: string } }).fgColor?.argb, 'FFC2410C');
+assert.equal(ganttSheet.getCell('E7').value, 3);
+assert.equal(ganttSheet.getCell('F7').value, 3.6);
+assert.equal(ganttSheet.getCell('G7').value, 6);
+assert.equal(ganttSheet.getCell('H7').value, 'blocked');
+assert.equal(ganttSheet.getCell('I8').value, 'Internal note');
+assert.equal(ganttSheet.getCell('J6').value, 'Owner');
+assert.equal(ganttSheet.getCell('J8').value, 'Alice');
+assert.equal(ganttSheet.getCell('J7').value, '');
 assert.equal(ganttSheet.getRow(8).outlineLevel, 1);
 assert.deepEqual(
-  ganttSheet.getRow(6).values.slice(9).map((value) => (value as Date).toISOString().slice(0, 10)),
+  ganttSheet.getRow(6).values.slice(11).map((value) => (value as Date).toISOString().slice(0, 10)),
   ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-07'],
 );
 
@@ -127,8 +134,8 @@ const weekendsShown = await ganttToXlsx({ ...estimate, planning: { items: {} } }
 const weekendsWorkbook = new ExcelJS.Workbook();
 await weekendsWorkbook.xlsx.load(weekendsShown as unknown as ArrayBuffer);
 const weekendsSheet = weekendsWorkbook.getWorksheet('Gantt')!;
-const timelineFills = weekendsSheet.getRow(7).values.slice(9).map((_, index) =>
-  (weekendsSheet.getRow(7).getCell(9 + index).fill as { fgColor?: { argb?: string } }).fgColor?.argb,
+const timelineFills = weekendsSheet.getRow(7).values.slice(11).map((_, index) =>
+  (weekendsSheet.getRow(7).getCell(11 + index).fill as { fgColor?: { argb?: string } }).fgColor?.argb,
 );
 assert.deepEqual(timelineFills, [undefined, 'FFF3F5F8', 'FFF3F5F8', undefined]);
 
