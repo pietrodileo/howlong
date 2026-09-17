@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue';
 import { useUiStore } from '../../app/ui';
-import { mergeOwners, normalizeOwner } from '../../domain/owners';
+import { mergeOwners, normalizeOwners } from '../../domain/owners';
 import type { LineItem } from '../../models/estimate';
 import { useLibraryStore } from '../../features/library/library';
 import { useSettingsStore } from '../../features/settings/settings';
@@ -20,7 +20,7 @@ export function useOwnerAssignment(mutate: OwnerMutation) {
   const pendingOwnerDelete = ref<{ name: string; sessionId: string | null } | null>(null);
   const ownerOptions = computed(() => mergeOwners([
     ...library.ownerOptions,
-    ...estimate.estimate.items.map((item) => item.owner ?? ''),
+    ...estimate.estimate.items.flatMap((item) => item.owners ?? []),
   ]));
 
   watch(() => [settings.settings.workspaceDir, settings.appDataDir], () => {
@@ -28,16 +28,25 @@ export function useOwnerAssignment(mutate: OwnerMutation) {
   }, { immediate: true });
 
   /** Persist reusable names before assigning and discard late edits after a tab or workspace switch. */
-  async function onOwnerChange(item: LineItem, name: string) {
+  async function onOwnerChange(item: LineItem, value: string | string[]) {
     if (isSavingOwner.value) return;
+    const owners = normalizeOwners(Array.isArray(value) ? value : [value]);
+    if (!settings.settings.allowMultipleOwners && owners.length > 1) {
+      const currentOwners = normalizeOwners(item.owners ?? []);
+      const currentOwnerIds = new Set(currentOwners.map((owner) => owner.toLowerCase()));
+      const isReduction = owners.length < currentOwners.length
+        && owners.every((owner) => currentOwnerIds.has(owner.toLowerCase()));
+      if (!isReduction) return;
+    }
     const sessionId = docs.activeId;
     const workspaceDir = settings.settings.workspaceDir;
     isSavingOwner.value = true;
     try {
-      if (item.owner) await library.rememberOwner(item.owner);
-      const owner = normalizeOwner(name) ? await library.rememberOwner(name) : '';
+      await Promise.all(owners.map((owner) => library.rememberOwner(owner)));
       if (docs.activeId !== sessionId || settings.settings.workspaceDir !== workspaceDir) return;
-      if (item.owner !== owner) mutate(() => estimate.updateItem(item.id, { owner }));
+      if (JSON.stringify(item.owners ?? []) !== JSON.stringify(owners)) {
+        mutate(() => estimate.updateItem(item.id, { owners }));
+      }
     } catch (error) {
       ui.notify(error instanceof Error ? error.message : String(error), true);
     } finally {
@@ -59,9 +68,13 @@ export function useOwnerAssignment(mutate: OwnerMutation) {
     try {
       await library.forgetOwner(request.name);
       if (request.sessionId !== docs.activeId) return;
-      const matchingItems = estimate.estimate.items.filter((item) => item.owner?.trim().toLowerCase() === normalizedName);
+      const matchingItems = estimate.estimate.items.filter((item) =>
+        (item.owners ?? []).some((owner) => owner.trim().toLowerCase() === normalizedName),
+      );
       if (matchingItems.length > 0) {
-        mutate(() => matchingItems.forEach((item) => estimate.updateItem(item.id, { owner: '' })));
+        mutate(() => matchingItems.forEach((item) => estimate.updateItem(item.id, {
+          owners: (item.owners ?? []).filter((owner) => owner.trim().toLowerCase() !== normalizedName),
+        })));
       }
     } catch (error) {
       ui.notify(error instanceof Error ? error.message : String(error), true);

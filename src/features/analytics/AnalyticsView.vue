@@ -10,6 +10,7 @@ import { formatEffort, type EffortUnit } from '../../domain/rounding';
 import {
   buildGraphEntries,
   buildOwnerEntries,
+  buildPercentageShares,
   graphValue,
   type GraphEntry,
   type GraphMode,
@@ -53,8 +54,10 @@ const donutMetrics = computed(() => donutEntries.value.reduce<MetricEntry>((sum,
 }), { base: 0, contingency: 0, combined: 0 }));
 const hoveredEntry = computed(() => donutEntries.value.find((entry) => entry.id === hoveredEntryId.value) ?? null);
 const selectedOwnerEntry = computed(() => ownerEntries.value.find((entry) => entry.id === selectedOwnerId.value) ?? null);
-const selectedOwnerTotal = computed(() => selectedOwnerEntry.value ? graphValue(selectedOwnerEntry.value, mode.value) : 0);
-const ownerTotal = computed(() => ownerEntries.value.reduce((sum, entry) => sum + graphValue(entry, mode.value), 0));
+const ownerPercentages = computed(() => buildPercentageShares(ownerEntries.value, mode.value));
+const ownerTaskPercentages = computed(() => selectedOwnerEntry.value
+  ? buildPercentageShares(selectedOwnerEntry.value.tasks, mode.value)
+  : []);
 const hasAnalyticsData = computed(() => entries.value.length > 0 || ownerEntries.value.length > 0);
 const selectedMacroName = computed(() => {
   if (!estimate.value || !selectedMacroId.value) return '';
@@ -404,10 +407,12 @@ async function onOpenEstimate(): Promise<void> {
           </div>
           <div class="owner-task-list">
             <div class="owner-task-heading"><span>{{ t('common.name') }}</span><span>{{ t(`analytics.${mode}`) }}</span></div>
-            <div v-for="task in selectedOwnerEntry.tasks" :key="task.id" class="owner-task-row">
+            <div v-for="(task, taskIndex) in selectedOwnerEntry.tasks" :key="task.id" class="owner-task-row">
               <span class="owner-task-main">
-                <span v-if="task.type === 'subtask'" class="subtask-badge">{{ t('analytics.subtasks') }}</span>
-                <span v-else class="type-icon" :class="task.type" aria-hidden="true" />
+                <span class="owner-task-type">
+                  <span v-if="task.type === 'subtask'" class="subtask-badge">{{ t('analytics.subtasks') }}</span>
+                  <span v-else class="type-icon" :class="task.type" aria-hidden="true" />
+                </span>
                 <span class="owner-task-label">
                   <span class="owner-task-name">{{ task.name }}</span>
                   <small v-if="task.parentName" class="owner-task-context">{{ t('analytics.subtaskOf', { name: task.parentName }) }}</small>
@@ -416,7 +421,7 @@ async function onOpenEstimate(): Promise<void> {
               <strong class="metric-value">
                 <span>{{ formatValue(graphValue(task, mode)) }}</span>
                 <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(task.base) }} | {{ formatBreakdownValue(task.contingency) }}</span>
-                <small>{{ formatPercentage(task, selectedOwnerTotal) }}</small>
+                <small>{{ ownerTaskPercentages[taskIndex] }}%</small>
               </strong>
             </div>
           </div>
@@ -424,7 +429,7 @@ async function onOpenEstimate(): Promise<void> {
 
         <div v-else class="owner-list" :aria-label="t('analytics.owners')">
           <button
-            v-for="entry in ownerEntries"
+            v-for="(entry, ownerIndex) in ownerEntries"
             :key="entry.id"
             type="button"
             class="owner-row"
@@ -435,7 +440,7 @@ async function onOpenEstimate(): Promise<void> {
             <strong class="metric-value">
               <span>{{ formatValue(graphValue(entry, mode)) }}</span>
               <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(entry.base) }} | {{ formatBreakdownValue(entry.contingency) }}</span>
-              <small>{{ formatPercentage(entry, ownerTotal) }}</small>
+              <small>{{ ownerPercentages[ownerIndex] }}%</small>
             </strong>
           </button>
         </div>
@@ -581,7 +586,9 @@ async function onOpenEstimate(): Promise<void> {
 .owner-task-row { padding: .7rem .8rem; }
 .owner-task-row + .owner-task-row { border-top: 1px solid var(--line); }
 .owner-task-row:hover { background: var(--page-soft); }
-.owner-task-main { display: flex; align-items: flex-start; min-width: 0; gap: .45rem; }
+.owner-task-main { display: grid; grid-template-columns: 5.15rem minmax(0, 1fr); align-items: start; min-width: 0; gap: .55rem; }
+.owner-task-type { min-height: 1rem; display: flex; align-items: center; }
+.owner-task-type .type-icon { margin: 0; }
 .owner-task-label { display: grid; gap: .15rem; }
 .owner-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .owner-task-context { color: var(--muted); font-size: .68rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

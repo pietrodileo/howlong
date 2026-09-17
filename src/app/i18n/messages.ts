@@ -170,6 +170,7 @@ export type MessageTree = {
     summaryAppearance: string;
     summaryWorkspaceImportExport: string;
     summaryEstimateColumns: string;
+    summaryOwners: string;
     summaryPresentation: string;
     summaryExport: string;
     summaryWorkingCalendar: string;
@@ -207,6 +208,7 @@ export type MessageTree = {
     sectionLocale: string;
     sectionAppearance: string;
     sectionEstimate: string;
+    sectionOwners: string;
     sectionPresentation: string;
     sectionExport: string;
     sectionFolder: string;
@@ -244,6 +246,9 @@ export type MessageTree = {
     shortcutUndo: string;
     shortcutRedo: string;
     estimateColumnsIntro: string;
+    multiOwner: string;
+    multiOwnerHelp: string;
+    multiOwnerDisabledWarning: string;
     presentationIntro: string;
     managerViewLegend: string;
     clientOutputLegend: string;
@@ -1031,7 +1036,7 @@ const it: MessageTree = {
     groupWorkspace: 'Workspace',
     groupWorkspaceIntro: 'Cartelle e backup del workspace.',
     groupEstimates: 'Stime',
-    groupEstimatesIntro: 'Colonne della stima, presentazione e nomi file di export.',
+    groupEstimatesIntro: 'Colonne della stima, assegnatari, presentazione e nomi file di export.',
     groupPlanning: 'Pianificazione',
     groupPlanningIntro: 'Calendario di lavoro e stati delle attività.',
     groupApplication: 'Applicazione',
@@ -1087,6 +1092,7 @@ const it: MessageTree = {
     summaryAppearance: '{theme}',
     summaryWorkspaceImportExport: 'Importa o esporta il workspace',
     summaryEstimateColumns: '{visible} di {total} colonne visibili',
+    summaryOwners: 'Più assegnatari: {state}',
     summaryPresentation: 'Impostazioni predefinite per manager e cliente',
     summaryExport: 'Data {date} · ora {time}',
     summaryWorkingCalendar: 'Weekend: {days}',
@@ -1124,6 +1130,7 @@ const it: MessageTree = {
     sectionLocale: 'Lingua',
     sectionAppearance: 'Aspetto',
     sectionEstimate: 'Colonne della stima',
+    sectionOwners: 'Assegnatari',
     sectionPresentation: 'Presentazione',
     sectionExport: 'Nomi file di export',
     sectionFolder: 'Cartella workspace',
@@ -1161,6 +1168,9 @@ const it: MessageTree = {
     shortcutUndo: 'Annulla l’ultima modifica nella scheda corrente',
     shortcutRedo: 'Ripristina l’ultima modifica annullata',
     estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
+    multiOwner: 'Consenti più assegnatari per attività',
+    multiOwnerHelp: 'Se disattivata, puoi rimuovere gli assegnatari multipli già presenti, ma non aggiungerne altri.',
+    multiOwnerDisabledWarning: 'Puoi ridurre gli assegnatari multipli già presenti, ma non aggiungerne altri finché la funzione non viene riattivata.',
     presentationIntro: 'Definisce la visibilità predefinita delle colonne nella vista Presentazione.',
     managerViewLegend: 'Vista manager',
     clientOutputLegend: 'Vista cliente',
@@ -1318,13 +1328,13 @@ const it: MessageTree = {
     editNote: 'Apri e modifica la nota',
     owner: 'Assegnatario',
     unassigned: 'Non assegnato',
-    newOwner: 'Nuovo owner',
+    newOwner: 'Nuovo assegnatario',
     assignOwner: 'Assegna',
     ownerPlaceholder: 'Non assegnato',
     ownerFilter: 'Cerca o crea…',
-    allOwners: 'Tutti gli owner',
+    allOwners: 'Tutti gli assegnatari',
     createOwner: 'Crea',
-    ownerAssignedHint: 'Owner assegnato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
+    ownerAssignedHint: 'Assegnatario associato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
     deleteOwnerTitle: 'Elimina assegnatario',
     deleteOwnerBody: 'Se elimini «{name}», verrà rimosso da tutte le altre voci di questa stima.',
     deleteOwnerConfirm: 'Elimina assegnatario',
@@ -1947,7 +1957,7 @@ const en: MessageTree = {
     groupWorkspace: 'Workspace',
     groupWorkspaceIntro: 'Folders and workspace backups.',
     groupEstimates: 'Estimates',
-    groupEstimatesIntro: 'Estimate columns, presentation, and export filenames.',
+    groupEstimatesIntro: 'Estimate columns, owners, presentation, and export filenames.',
     groupPlanning: 'Planning',
     groupPlanningIntro: 'Working calendar and activity statuses.',
     groupApplication: 'Application',
@@ -2003,6 +2013,7 @@ const en: MessageTree = {
     summaryAppearance: '{theme}',
     summaryWorkspaceImportExport: 'Import or export the workspace',
     summaryEstimateColumns: '{visible} of {total} columns visible',
+    summaryOwners: 'Multiple owners: {state}',
     summaryPresentation: 'Default settings for manager and client views',
     summaryExport: 'Date {date} · time {time}',
     summaryWorkingCalendar: 'Weekend: {days}',
@@ -2040,6 +2051,7 @@ const en: MessageTree = {
     sectionLocale: 'Language',
     sectionAppearance: 'Appearance',
     sectionEstimate: 'Estimate columns',
+    sectionOwners: 'Owners',
     sectionPresentation: 'Presentation',
     sectionExport: 'Export filenames',
     sectionFolder: 'Workspace folder',
@@ -2077,6 +2089,9 @@ const en: MessageTree = {
     shortcutUndo: 'Undo the last change in the current tab',
     shortcutRedo: 'Redo the last undone change',
     estimateColumnsIntro: 'Columns shown when you open an estimate.',
+    multiOwner: 'Allow multiple owners per activity',
+    multiOwnerHelp: 'When off, you can remove existing multiple owners, but cannot add more.',
+    multiOwnerDisabledWarning: 'You can reduce existing multiple-owner assignments, but cannot add more until the feature is enabled again.',
     presentationIntro: 'Defines the default visibility of columns in the Presentation view.',
     managerViewLegend: 'Manager view',
     clientOutputLegend: 'Client view',

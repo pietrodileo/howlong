@@ -1,8 +1,8 @@
 import type { Estimate } from '../src/models/estimate';
-import { buildGraphEntries, buildOwnerEntries, graphValue } from '../src/features/analytics/graphData';
+import { buildGraphEntries, buildOwnerEntries, buildPercentageShares, graphValue } from '../src/features/analytics/graphData';
 
 const estimate = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   meta: {
     id: 'analytics-smoke',
     title: 'Analytics smoke',
@@ -41,6 +41,15 @@ if (graphValue(subtasks[0], 'base') !== 10 || graphValue(subtasks[0], 'contingen
   throw new Error('metric selection returned the wrong value');
 }
 
+const roundedShares = buildPercentageShares([
+  { base: 1, contingency: 0, combined: 1 },
+  { base: 1, contingency: 0, combined: 1 },
+  { base: 1, contingency: 0, combined: 1 },
+], 'combined');
+if (roundedShares.reduce((sum, share) => sum + Math.round(share * 10), 0) !== 1000) {
+  throw new Error(`rounded analytics shares must add up to 100%: ${roundedShares}`);
+}
+
 const expanded = buildGraphEntries(estimate, null, new Set(['macro']));
 if (expanded.length !== 1 || expanded[0].name !== 'Visible task' || expanded[0].parentName !== 'Build') {
   throw new Error(`expanded overview must replace macros with owned subtasks: ${JSON.stringify(expanded)}`);
@@ -52,12 +61,12 @@ if (expanded[0].canDrillDown || expanded[0].color === macros[0].color) {
 const ownerEstimate = {
   ...estimate,
   items: [
-    { ...estimate.items[0], owner: 'Macro owner' },
-    { ...estimate.items[1], owner: 'Alice' },
-    { ...estimate.items[2], owner: 'Bob' },
+    { ...estimate.items[0], owners: ['Macro owner'] },
+    { ...estimate.items[1], owners: ['Alice', 'Bob'] },
+    { ...estimate.items[2], owners: ['Bob'] },
     estimate.items[3],
     { id: 'unassigned', name: 'Unassigned task', hours: 4, category: 'Other', kind: 'operational', parentId: null, contingencyPercentOverride: null, notes: '', tags: [], clientVisible: true, applyContingency: true },
-    { id: 'formula', name: 'Calculated overhead', hours: 0, category: 'Other', kind: 'formula', parentId: null, contingencyPercentOverride: null, notes: '', owner: 'Alice', tags: [], clientVisible: true, applyContingency: true, formula: { percent: 50, sourceIds: ['visible'], aggregate: 'sum', includeFormulaSources: true, applyGlobalContingency: true } },
+    { id: 'formula', name: 'Calculated overhead', hours: 0, category: 'Other', kind: 'formula', parentId: null, contingencyPercentOverride: null, notes: '', owners: ['Alice'], tags: [], clientVisible: true, applyContingency: true, formula: { percent: 50, sourceIds: ['visible'], aggregate: 'sum', includeFormulaSources: true, applyGlobalContingency: true } },
   ],
 } as Estimate;
 
@@ -65,14 +74,17 @@ const owners = buildOwnerEntries(ownerEstimate);
 const alice = owners.find((entry) => entry.owner === 'Alice');
 const bob = owners.find((entry) => entry.owner === 'Bob');
 const unassigned = owners.find((entry) => entry.owner === null);
-if (!alice || bob || !unassigned || owners.some((entry) => entry.owner === 'Macro owner')) {
+if (!alice || !bob || !unassigned || owners.some((entry) => entry.owner === 'Macro owner')) {
   throw new Error(`owner aggregation has the wrong buckets: ${JSON.stringify(owners)}`);
 }
-if (alice.base !== 15 || alice.combined !== 18 || !alice.tasks.some((task) => task.id === 'formula' && task.type === 'formula')) {
+if (alice.base !== 10 || alice.combined !== 12 || !alice.tasks.some((task) => task.id === 'formula' && task.type === 'formula')) {
   throw new Error(`formula contribution is missing from Alice: ${JSON.stringify(alice)}`);
 }
 if (unassigned.base !== 4) {
   throw new Error(`visible or unassigned work is missing: ${JSON.stringify(owners)}`);
+}
+if (bob.base !== 5 || bob.combined !== 6) {
+  throw new Error(`multi-owner effort was not split equally: ${JSON.stringify(bob)}`);
 }
 const ownerBase = owners.reduce((sum, entry) => sum + entry.base, 0);
 const visibleBase = buildGraphEntries(ownerEstimate).reduce((sum, entry) => sum + entry.base, 0);
@@ -81,7 +93,7 @@ if (ownerBase !== visibleBase) {
 }
 const macroOwners = buildOwnerEntries(ownerEstimate, 'macro');
 const macroAlice = macroOwners.find((entry) => entry.owner === 'Alice');
-if (!macroAlice || macroAlice.base !== 10 || macroAlice.combined !== 12 || macroAlice.tasks.some((task) => task.id === 'formula')) {
+if (!macroAlice || macroAlice.base !== 5 || macroAlice.combined !== 6 || macroAlice.tasks.some((task) => task.id === 'formula')) {
   throw new Error(`macro owner scope is wrong: ${JSON.stringify(macroOwners)}`);
 }
 

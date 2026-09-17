@@ -1,6 +1,6 @@
 import type { Estimate } from '../../models/estimate';
 import { computeTotals, type ComputedLineHours } from '../../domain/contingency';
-import { normalizeOwner } from '../../domain/owners';
+import { normalizeOwners } from '../../domain/owners';
 
 export type GraphMode = 'base' | 'contingency' | 'combined';
 
@@ -58,6 +58,22 @@ export function graphValue(entry: MetricEntry, mode: GraphMode): number {
   return entry[mode];
 }
 
+/** Round chart shares to tenths while keeping the displayed total at exactly 100%. */
+export function buildPercentageShares<T extends MetricEntry>(entries: T[], mode: GraphMode): number[] {
+  const values = entries.map((entry) => Math.max(0, graphValue(entry, mode)));
+  const total = values.reduce((sum, value) => sum + value, 0);
+  if (!total) return values.map(() => 0);
+
+  const exactTenths = values.map((value) => (value / total) * 1000);
+  const shares = exactTenths.map(Math.floor);
+  const remaining = 1000 - shares.reduce((sum, value) => sum + value, 0);
+  const order = exactTenths
+    .map((value, index) => ({ index, remainder: value - shares[index] }))
+    .sort((a, b) => b.remainder - a.remainder || a.index - b.index);
+  for (let index = 0; index < remaining; index += 1) shares[order[index].index] += 1;
+  return shares.map((value) => value / 10);
+}
+
 /** Aggregate visible, non-overlapping contributions by owner within the active macro scope. */
 export function buildOwnerEntries(estimate: Estimate, macroId: string | null = null): OwnerGraphEntry[] {
   const totals = computeTotals(estimate);
@@ -67,29 +83,33 @@ export function buildOwnerEntries(estimate: Estimate, macroId: string | null = n
   for (const line of totals.lines) {
     if (!line.item.clientVisible || !line.contributesToTotals || line.hoursWithContingency <= 0) continue;
     if (macroId && line.item.parentId !== macroId) continue;
-    const owner = normalizeOwner(line.item.owner ?? '');
-    const id = owner.toLowerCase() || '__unassigned__';
-    const entry = owners.get(id) ?? {
-      id,
-      owner: owner || null,
-      base: 0,
-      contingency: 0,
-      combined: 0,
-      tasks: [],
-    };
-    entry.base += line.hoursBase;
-    entry.contingency += line.hoursContingency;
-    entry.combined += line.hoursWithContingency;
-    entry.tasks.push({
-      id: line.item.id,
-      name: line.item.name,
-      type: line.isFormula ? 'formula' : line.item.parentId ? 'subtask' : 'macro',
-      parentName: line.item.parentId ? itemById.get(line.item.parentId)?.name : undefined,
-      base: line.hoursBase,
-      contingency: line.hoursContingency,
-      combined: line.hoursWithContingency,
-    });
-    owners.set(id, entry);
+    const assignedOwners = normalizeOwners(line.item.owners);
+    const ownerNames: (string | null)[] = assignedOwners.length > 0 ? assignedOwners : [null];
+    const divisor = ownerNames.length;
+    for (const owner of ownerNames) {
+      const id = owner?.toLowerCase() || '__unassigned__';
+      const entry = owners.get(id) ?? {
+        id,
+        owner,
+        base: 0,
+        contingency: 0,
+        combined: 0,
+        tasks: [],
+      };
+      entry.base += line.hoursBase / divisor;
+      entry.contingency += line.hoursContingency / divisor;
+      entry.combined += line.hoursWithContingency / divisor;
+      entry.tasks.push({
+        id: line.item.id,
+        name: line.item.name,
+        type: line.isFormula ? 'formula' : line.item.parentId ? 'subtask' : 'macro',
+        parentName: line.item.parentId ? itemById.get(line.item.parentId)?.name : undefined,
+        base: line.hoursBase / divisor,
+        contingency: line.hoursContingency / divisor,
+        combined: line.hoursWithContingency / divisor,
+      });
+      owners.set(id, entry);
+    }
   }
 
   return [...owners.values()].sort((a, b) =>

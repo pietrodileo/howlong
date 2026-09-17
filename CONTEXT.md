@@ -33,8 +33,20 @@ A calculated line item whose effort is derived from other line items and a formu
 _Avoid_: Calculated item when the line item is specifically formula-driven
 
 **Owner**:
-A named person responsible for a line item. An owner assignment is shared across the Estimate, Manager, and Plan views and does not change effort, contingency, or planning calculations.
+A named person responsible for a line item. A line item may have one or more owners, and the owner assignment is shared across the Estimate, Manager, and Plan views without changing effort, contingency, or planning calculations.
 _Avoid_: Assignee when referring to the estimate domain
+
+**Multi-owner line item**:
+A line item with multiple owners who share equal responsibility. For owner distribution, the line item's effort is divided equally among its owners so owner totals remain consistent with the estimate total.
+_Avoid_: Primary owner, secondary owner, weighted owner
+
+**Owner distribution**:
+A read-only projection of effort grouped by owner. It uses the most specific contributing work level when a macro contains subtasks, so parent and child effort is not counted twice. An unassigned line item remains part of the unassigned distribution.
+_Avoid_: Owner workload duplication
+
+**Multi-owner mode**:
+A workspace capability that allows a line item to have multiple owners. It is disabled by default. Existing multi-owner assignments remain visible but cannot be edited while the capability is disabled.
+_Avoid_: Per-estimate owner mode
 
 **Base effort**:
 The calculated amount of work before contingency is applied.

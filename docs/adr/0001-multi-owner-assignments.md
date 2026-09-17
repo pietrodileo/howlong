@@ -1,0 +1,3 @@
+# Multi-owner assignments
+
+HowLong stores line-item ownership as an ordered list of equally responsible owners, while reading legacy single-owner values during migration. Multi-owner editing is a workspace setting disabled by default; owner distribution splits each contributing line item's effort equally across its owners and uses non-overlapping parent/subtask contributions so Analytics totals remain consistent. The shared assignment is editable in Estimate, Manager, and Plan, preserved in native and readable exports, and existing multi-owner values remain visible but read-only when the setting is disabled.

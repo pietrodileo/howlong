@@ -781,8 +781,9 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
           <div class="owner-picker">
             <label>{{ t('gantt.owner') }}</label>
             <OwnerPicker
-              :model-value="activeOverlayItem.owner ?? ''"
+              :model-value="activeOverlayItem.owners"
               :options="ownerOptions"
+              :multiple="settings.settings.allowMultipleOwners"
               :disabled="isSavingOwner"
               :aria-label="t('gantt.owner')"
               :placeholder="t('gantt.ownerPlaceholder')"

@@ -944,8 +944,9 @@ async function onExportFromMenu(
               >
                 <OwnerPicker
                   v-if="!cols.collapsed.owner"
-                  :model-value="line.item.owner ?? ''"
+                  :model-value="line.item.owners"
                   :options="ownerOptions"
+                  :multiple="settings.settings.allowMultipleOwners"
                   :disabled="isSavingOwner"
                   :aria-label="`${t('columns.owner')}: ${line.item.name}`"
                   :placeholder="t('gantt.ownerPlaceholder')"

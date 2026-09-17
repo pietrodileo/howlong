@@ -29,8 +29,8 @@ export const LineItemSchema = z.object({
   parentId: z.string().nullable().default(null),
   contingencyPercentOverride: z.number().min(0).max(100).nullable().default(null),
   notes: z.string().default(''),
-  /** Independent task assignment; absent on estimates saved before owners were introduced. */
-  owner: z.string().optional(),
+  /** Equal-responsibility assignments; empty means unassigned. */
+  owners: z.array(z.string()).default([]),
   /** Stato operativo mostrato nel Gantt; le macro con figli lo aggregano. */
   status: ActivityStatusSchema.default('to-plan'),
   /** Colore personalizzato della barra Gantt. */
@@ -103,7 +103,7 @@ export const EstimatePlanningSchema = z.object({
 });
 
 export const EstimateSchema = z.object({
-  schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
   meta: EstimateMetaSchema,
   modelId: z.string().optional(),
   contingency: EstimateContingencySchema,
@@ -129,7 +129,7 @@ export type LineItem = z.infer<typeof LineItemSchema>;
 export type ActivityStatus = z.infer<typeof ActivityStatusSchema>;
 export type AuditEntry = z.infer<typeof AuditEntrySchema>;
 export type Estimate = Omit<z.infer<typeof EstimateSchema>, 'schemaVersion'> & {
-  schemaVersion: 3;
+  schemaVersion: 4;
 };
 export type PlanningRange = z.infer<typeof PlanningRangeSchema>;
 export type EstimateContingency = z.infer<typeof EstimateContingencySchema>;
@@ -147,7 +147,7 @@ export function parseEstimate(data: unknown): { ok: true; data: Estimate } | { o
     ok: true,
     data: {
       ...rest,
-      schemaVersion: 3,
+      schemaVersion: 4,
       auditHistory: result.data.auditHistory ?? [],
       planning: result.data.planning ?? { items: {} },
     },

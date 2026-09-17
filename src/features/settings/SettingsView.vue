@@ -40,7 +40,7 @@ const settingsFilter = ref('');
 const settingsGroupRows = {
   preferences: ['profile', 'locale', 'appearance'],
   workspace: ['folder', 'workspace'],
-  estimates: ['estimate', 'presentation', 'export'],
+  estimates: ['estimate', 'owners', 'presentation', 'export'],
   planning: ['workingCalendar', 'workingDays', 'activityStatuses'],
   application: ['updates', 'shortcuts'],
 } as const;
@@ -60,6 +60,7 @@ const settingsPanelOpen = ref<Record<string, boolean>>({
   folder: openFolderSection.value,
   workspace: false,
   estimate: false,
+  owners: false,
   presentation: false,
   export: false,
   workingCalendar: false,
@@ -309,6 +310,11 @@ const settingsRowSearchText = computed<Record<string, string>>(() => ({
     t('settings.estimateColumnsIntro'),
     ...estimateColumnKeys.map(estimateColumnLabel),
   ].join(' '),
+  owners: [
+    t('settings.sectionOwners'),
+    t('settings.multiOwner'),
+    t('settings.multiOwnerHelp'),
+  ].join(' '),
   presentation: [
     t('settings.sectionPresentation'),
     t('settings.presentationIntro'),
@@ -454,6 +460,14 @@ function onStatusAvailabilityChange(status: typeof ACTIVITY_STATUSES[number], en
     : [...new Set([...settings.settings.ganttDisabledStatuses, status])];
 }
 
+/** Toggle shared multi-owner editing and warn when existing assignments become read-only. */
+function onMultipleOwnersChange(enabled: boolean) {
+  settings.settings.allowMultipleOwners = enabled;
+  if (!enabled && documentsStore.sessions.some((session) => session.estimate.items.some((item) => item.owners.length > 1))) {
+    ui.notify(t('settings.multiOwnerDisabledWarning'));
+  }
+}
+
 const settingsPanelSummaries = computed<Record<string, string>>(() => {
   const workspacePath = settings.settings.workspaceDir.trim() || t('settings.workspaceFolderDefault');
   const visibleEstimateColumns = estimateColumnKeys.filter((key) => settings.settings.estimateColumnVisibility[key]).length;
@@ -476,6 +490,9 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
     estimate: t('settings.summaryEstimateColumns', {
       visible: String(visibleEstimateColumns),
       total: String(estimateColumnKeys.length),
+    }),
+    owners: t('settings.summaryOwners', {
+      state: settings.settings.allowMultipleOwners ? t('settings.enabled') : t('settings.disabled'),
     }),
     presentation: t('settings.summaryPresentation'),
     export: t('settings.summaryExport', {
@@ -765,6 +782,25 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
               <span>{{ estimateColumnLabel(key) }}</span>
             </label>
           </div>
+        </SettingsPanel>
+
+        <SettingsPanel
+          v-show="shouldShowSettingsRow('estimates', 'owners')"
+          :title="t('settings.sectionOwners')"
+          :summary="settingsPanelSummaries.owners"
+          :open="isSettingsPanelOpen('owners')"
+          :force-open="shouldForceOpenSettingsRow('owners')"
+          @toggle="onSettingsPanelToggle('owners', $event)"
+        >
+          <p class="field-hint">{{ t('settings.multiOwnerHelp') }}</p>
+          <label class="lang-opt compact">
+            <input
+              type="checkbox"
+              :checked="settings.settings.allowMultipleOwners"
+              @change="onMultipleOwnersChange(($event.target as HTMLInputElement).checked)"
+            />
+            <span>{{ t('settings.multiOwner') }}</span>
+          </label>
         </SettingsPanel>
 
         <SettingsPanel

@@ -3,6 +3,11 @@ export function normalizeOwner(name: string): string {
   return name.trim().replace(/\s+/g, ' ');
 }
 
+/** Normalize an owner list, removing blank and case-insensitive duplicates. */
+export function normalizeOwners(names: readonly unknown[] = []): string[] {
+  return mergeOwners(names.filter((name): name is string => typeof name === 'string'));
+}
+
 /** Merge owner suggestions case-insensitively, retaining the first spelling. */
 export function mergeOwners(names: string[]): string[] {
   const owners = new Map<string, string>();
