@@ -20,6 +20,7 @@ import {
 import { openEstimateFile } from '../../platform/files/io';
 import { isDialogCancelled, isDialogDesktopOnly } from '../../platform/files/dialogResult';
 import { tagBorderColor } from '../../shared/tagColors';
+import SubtaskIcon from './SubtaskIcon.vue';
 
 const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
@@ -343,7 +344,7 @@ async function onOpenEstimate(): Promise<void> {
             <button v-for="entry in donutEntries" :key="entry.id" type="button" :class="{ inert: !entry.canDrillDown }" :aria-disabled="!entry.canDrillDown" v-tip="entryHint(entry)" @click="onSelectEntry(entry)">
               <span class="swatch" :style="{ background: entry.color }" />
               <span class="legend-name">
-                <span v-if="entry.type === 'subtask'" class="subtask-badge">{{ t('analytics.subtasks') }}</span>
+                <SubtaskIcon v-if="entry.type === 'subtask'" />
                 <span v-else-if="entry.canDrillDown" class="type-icon" :class="entry.type" aria-hidden="true"></span>
                 <span class="legend-label">{{ entry.name }}</span>
               </span>
@@ -368,7 +369,7 @@ async function onOpenEstimate(): Promise<void> {
         <div class="bar-list">
           <button v-for="entry in entries" :key="entry.id" type="button" class="bar-row" :class="{ inert: !entry.canDrillDown }" :aria-disabled="!entry.canDrillDown" v-tip="entryHint(entry)" @click="onSelectEntry(entry)">
             <span class="bar-label"><span class="bar-name">
-              <span v-if="entry.type === 'subtask'" class="subtask-badge">{{ t('analytics.subtasks') }}</span>
+              <SubtaskIcon v-if="entry.type === 'subtask'" />
               <span v-else-if="entry.canDrillDown" class="type-icon" :class="entry.type" aria-hidden="true"></span>
               <span class="bar-name-text">{{ entry.name }}</span>
             </span><strong class="metric-value">
@@ -415,11 +416,15 @@ async function onOpenEstimate(): Promise<void> {
             </strong>
           </div>
           <div class="owner-task-list">
-            <div class="owner-task-heading"><span>{{ t('common.name') }}</span><span>{{ t(`analytics.${mode}`) }}</span></div>
+            <div class="owner-task-heading">
+              <span>{{ t('common.name') }}</span>
+              <span>{{ t(`analytics.${mode}`) }}</span>
+              <span>{{ t('analytics.effort') }}</span>
+            </div>
             <div v-for="(task, taskIndex) in selectedOwnerEntry.tasks" :key="task.id" class="owner-task-row">
               <span class="owner-task-main">
                 <span class="owner-task-type">
-                  <span v-if="task.type === 'subtask'" class="subtask-badge">{{ t('analytics.subtasks') }}</span>
+                  <SubtaskIcon v-if="task.type === 'subtask'" />
                   <span v-else class="type-icon" :class="task.type" aria-hidden="true" />
                 </span>
                 <span class="owner-task-label">
@@ -430,8 +435,8 @@ async function onOpenEstimate(): Promise<void> {
               <strong class="metric-value">
                 <span>{{ formatValue(graphValue(task, mode)) }}</span>
                 <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(task.base) }} | {{ formatBreakdownValue(task.contingency) }}</span>
-                <small>{{ ownerTaskPercentages[taskIndex] }}%</small>
               </strong>
+              <small class="owner-task-effort">{{ ownerTaskPercentages[taskIndex] }}%</small>
             </div>
           </div>
         </div>
@@ -562,7 +567,6 @@ async function onOpenEstimate(): Promise<void> {
 .type-icon.macro::before { content: ''; position: absolute; inset: 1px 2px 2px 1px; border: 1.5px solid currentColor; border-radius: 2px; box-shadow: 2px -2px 0 -1px var(--surface), 2px -2px 0 0 currentColor; }
 .type-icon.formula { color: var(--muted); }
 .type-icon.formula::before { content: 'Σ'; position: absolute; inset: -.12rem 0 0; font-size: .75rem; font-weight: 700; line-height: 1; }
-.subtask-badge { flex: 0 0 auto; max-width: 7rem; overflow: hidden; padding: .14rem .35rem; border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--line)); border-radius: 999px; background: var(--accent-subtle); color: var(--accent); font-size: .58rem; font-weight: 700; letter-spacing: .04em; line-height: 1.1; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .metric-value { display: inline-flex; align-items: baseline; gap: .22rem; min-width: 0; white-space: nowrap; }
 .metric-breakdown { color: var(--muted); font-size: .68rem; font-weight: 500; }
 .legend strong { font-size: .75rem; }
@@ -591,18 +595,21 @@ async function onOpenEstimate(): Promise<void> {
 .owner-detail-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .owner-detail-total { margin-left: auto; white-space: nowrap; }
 .owner-task-list { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-sm); }
-.owner-task-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .75rem; padding: .45rem .8rem; color: var(--muted); background: var(--page-soft); font-size: .68rem; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; }
-.owner-task-row { padding: .7rem .8rem; }
+.owner-task-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(9rem, auto) 4rem; gap: .75rem; padding: .45rem .8rem; color: var(--muted); background: var(--page-soft); font-size: .68rem; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; }
+.owner-task-heading span:not(:first-child) { text-align: right; }
+.owner-task-row { grid-template-columns: minmax(0, 1fr) minmax(9rem, auto) 4rem; padding: .7rem .8rem; }
 .owner-task-row + .owner-task-row { border-top: 1px solid var(--line); }
 .owner-task-row:hover { background: var(--page-soft); }
-.owner-task-main { display: grid; grid-template-columns: 5.15rem minmax(0, 1fr); align-items: start; min-width: 0; gap: .55rem; }
+.owner-task-main { display: grid; grid-template-columns: 1rem minmax(0, 1fr); align-items: center; min-width: 0; gap: .55rem; }
 .owner-task-type { min-height: 1rem; display: flex; align-items: center; }
 .owner-task-type .type-icon { margin: 0; }
+.owner-task-row > .metric-value { justify-self: end; }
 .owner-task-label { display: grid; gap: .15rem; }
 .owner-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .owner-task-context { color: var(--muted); font-size: .68rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.owner-task-effort { margin: 0; color: var(--muted); font-size: .68rem; font-weight: 500; text-align: right; white-space: nowrap; }
 .owner-row strong, .owner-task-row strong { font-size: .75rem; }
-.owner-row small, .owner-task-row small { margin-left: .25rem; color: var(--muted); font-size: .68rem; font-weight: 500; }
+.owner-row small { margin-left: .25rem; color: var(--muted); font-size: .68rem; font-weight: 500; }
 .empty-chart { margin: 2rem 0; color: var(--muted); text-align: center; }
 .empty-chart.standalone { padding: 4rem 1rem; border: 1px dashed var(--line-strong); border-radius: var(--radius); }
 .analytics-empty { min-height: 100%; display: grid; align-content: start; justify-items: center; padding-top: clamp(7rem, 24vh, 12rem); text-align: center; }

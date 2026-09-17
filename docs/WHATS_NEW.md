@@ -15,7 +15,8 @@ For the complete generated changelog for a release, see the [GitHub Releases pag
 - The shared Analytics metric selector controls the donut, bar chart, and owner distribution. Bars now rescale for Base or Contingency and show solid base plus striped CTG in the combined mode.
 - **Base + contingency** is the first and default Analytics metric.
 - Analytics percentages use coordinated rounding so every displayed distribution totals 100%.
-- Subtask, macro, and calculated-item markers are aligned consistently in owner details.
+- Analytics uses a compact hierarchy icon for subtasks and aligns subtask, macro, and calculated-item markers consistently.
+- Owner task details separate the selected metric from its Effort percentage for easier comparison.
 
 ## v0.7.2
 

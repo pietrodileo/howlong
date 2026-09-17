@@ -451,6 +451,7 @@ export type MessageTree = {
     macros: string;
     subtasks: string;
     effortDistribution: string;
+    effort: string;
     allMacros: string;
     donutAria: string;
     legend: string;
@@ -1362,6 +1363,7 @@ const it: MessageTree = {
     macros: 'Macro',
     subtasks: 'Sotto-task',
     effortDistribution: 'Distribuzione delle attività',
+    effort: 'Effort',
     allMacros: 'Tutte le macro',
     donutAria: 'Grafico ad anello della distribuzione delle attività',
     legend: 'Legenda del grafico',
@@ -2282,6 +2284,7 @@ const en: MessageTree = {
     macros: 'Macros',
     subtasks: 'Subtasks',
     effortDistribution: 'Activity distribution',
+    effort: 'Effort',
     allMacros: 'All macros',
     donutAria: 'Donut chart of effort distribution',
     legend: 'Chart legend',

@@ -473,7 +473,7 @@ Analisi mostra come l'impegno di base e la contingenza (CTG) sono distribuiti tr
 
 Il selettore condiviso controlla il grafico ad anello, le barre e la distribuzione per assegnatario. **Base + contingenza** è l'opzione predefinita e la prima nell'elenco, seguita da Base e Contingenza. Nelle modalità con una sola metrica le barre si ridimensionano su quella metrica; la modalità combinata mantiene base e CTG visivamente distinte. Le macro con sottoattività hanno un'icona attività e possono essere esplorate. Passa il mouse su segmenti o etichette per visualizzare le percentuali.
 
-La distribuzione per assegnatario comprende il lavoro non assegnato e divide equamente un'attività con più assegnatari. Le percentuali visualizzate vengono arrotondate insieme affinché ogni distribuzione totalizzi il 100%. Apri un assegnatario per esaminare macro, sotto-task e voci derivate assegnate; i relativi indicatori di tipo condividono una colonna allineata.
+La distribuzione per assegnatario comprende il lavoro non assegnato e divide equamente un'attività con più assegnatari. Le percentuali visualizzate vengono arrotondate insieme affinché ogni distribuzione totalizzi il 100%. Apri un assegnatario per esaminare macro, sotto-task e voci derivate assegnate; i relativi indicatori di tipo condividono una colonna allineata e una colonna Effort separata mostra la quota di ogni riga per la metrica selezionata.
 
 ### Mostra attività (in più macro)
 

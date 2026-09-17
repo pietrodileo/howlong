@@ -41,13 +41,16 @@ if (graphValue(subtasks[0], 'base') !== 10 || graphValue(subtasks[0], 'contingen
   throw new Error('metric selection returned the wrong value');
 }
 
-const roundedShares = buildPercentageShares([
-  { base: 1, contingency: 0, combined: 1 },
-  { base: 1, contingency: 0, combined: 1 },
-  { base: 1, contingency: 0, combined: 1 },
-], 'combined');
-if (roundedShares.reduce((sum, share) => sum + Math.round(share * 10), 0) !== 1000) {
-  throw new Error(`rounded analytics shares must add up to 100%: ${roundedShares}`);
+const percentageEntries = [
+  { base: 1, contingency: 2, combined: 3 },
+  { base: 1, contingency: 3, combined: 4 },
+  { base: 1, contingency: 4, combined: 5 },
+];
+for (const mode of ['base', 'contingency', 'combined'] as const) {
+  const shares = buildPercentageShares(percentageEntries, mode);
+  if (shares.reduce((sum, share) => sum + Math.round(share * 10), 0) !== 1000) {
+    throw new Error(`rounded ${mode} analytics shares must add up to 100%: ${shares}`);
+  }
 }
 
 const expanded = buildGraphEntries(estimate, null, new Set(['macro']));
