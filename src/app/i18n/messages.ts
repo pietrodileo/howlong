@@ -469,6 +469,30 @@ export type MessageTree = {
     ownerTasks: string;
     allOwners: string;
     unassigned: string;
+    planning: string;
+    planningAnalytics: string;
+    planningDescription: string;
+    planningCoverage: string;
+    plannedWork: string;
+    unplannedWork: string;
+    activeOperationalEffort: string;
+    plannedVsUnplanned: string;
+    statuses: string;
+    statusByCategory: string;
+    statusWeight: string;
+    activityCount: string;
+    cancelledActivities: string;
+    noPlanningStatusData: string;
+    timeline: string;
+    activitiesOverTime: string;
+    timelineWindow: string;
+    allPlanning: string;
+    nextMonths: string;
+    noTimelineData: string;
+    timelinePlannedOnly: string;
+    planningDetail: string;
+    category: string;
+    planningRange: string;
   };
   models: {
     lede: string;
@@ -1381,6 +1405,30 @@ const it: MessageTree = {
     ownerTasks: 'Task assegnati a {name}',
     allOwners: 'Tutti gli assegnatari',
     unassigned: 'Non assegnato',
+    planning: 'Pianificazione',
+    planningAnalytics: 'Analisi della pianificazione',
+    planningDescription: 'Controlla copertura, stati e distribuzione temporale delle attività pianificate.',
+    planningCoverage: 'Copertura pianificazione',
+    plannedWork: 'Effort pianificato',
+    unplannedWork: 'Effort non pianificato',
+    activeOperationalEffort: 'Effort operativo attivo',
+    plannedVsUnplanned: 'Pianificato e non pianificato',
+    statuses: 'Stato',
+    statusByCategory: 'Distribuzione degli stati per categoria',
+    statusWeight: 'Peso della distribuzione degli stati',
+    activityCount: 'Numero attività',
+    cancelledActivities: '{count} annullate',
+    noPlanningStatusData: 'Nessun dato di stato disponibile.',
+    timeline: 'Timeline',
+    activitiesOverTime: 'Attività pianificate nel tempo',
+    timelineWindow: 'Intervallo temporale',
+    allPlanning: 'Tutta la pianificazione',
+    nextMonths: 'Prossimi {count} mesi',
+    noTimelineData: 'Nessuna attività pianificata nell’intervallo selezionato.',
+    timelinePlannedOnly: 'Il grafico include solo attività con date pianificate e non annullate.',
+    planningDetail: 'Dettaglio pianificazione',
+    category: 'Categoria',
+    planningRange: 'Intervallo pianificato',
   },
   models: {
     lede: 'Gestisci modelli per le tue stime',
@@ -2302,6 +2350,30 @@ const en: MessageTree = {
     ownerTasks: 'Tasks owned by {name}',
     allOwners: 'All owners',
     unassigned: 'Unassigned',
+    planning: 'Planning',
+    planningAnalytics: 'Planning analytics',
+    planningDescription: 'Review planning coverage, statuses, and the timing of scheduled activities.',
+    planningCoverage: 'Planning coverage',
+    plannedWork: 'Planned effort',
+    unplannedWork: 'Unplanned effort',
+    activeOperationalEffort: 'Active operational effort',
+    plannedVsUnplanned: 'Planned and unplanned',
+    statuses: 'Status',
+    statusByCategory: 'Status distribution by category',
+    statusWeight: 'Status distribution weighting',
+    activityCount: 'Activity count',
+    cancelledActivities: '{count} cancelled',
+    noPlanningStatusData: 'No status data is available.',
+    timeline: 'Timeline',
+    activitiesOverTime: 'Scheduled activities over time',
+    timelineWindow: 'Timeline window',
+    allPlanning: 'All planning',
+    nextMonths: 'Next {count} months',
+    noTimelineData: 'No scheduled activities fall in the selected range.',
+    timelinePlannedOnly: 'The chart includes only scheduled, non-cancelled activities.',
+    planningDetail: 'Planning detail',
+    category: 'Category',
+    planningRange: 'Planning range',
   },
   models: {
     lede: 'Manage your models for estimates',

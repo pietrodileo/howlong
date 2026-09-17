@@ -11,6 +11,7 @@ For the complete generated changelog for a release, see the [GitHub Releases pag
 - Activities can have multiple equal-responsibility owners when the workspace setting is enabled. Existing multiple assignments remain visible and removable when the setting is disabled.
 - Owner assignments stay synchronized across Estimate, Manager, Client, and Plan views, imports, exports, history, and saved estimates.
 - Analytics adds coordinated owner donut and bar charts, with drill-down into assigned macros, subtasks, and calculated items. Multi-owner effort is divided equally so owner totals reconcile with the estimate.
+- Analytics adds planning coverage, status distribution by category, and scheduled-activity timeline charts. Planning charts reuse Gantt statuses and support read-only drill-down without treating date ranges as capacity or progress.
 - Analytics can expand subtasks from several macros at once or focus on one macro across both charts.
 - The shared Analytics metric selector controls the activity and owner charts. Bars rescale for Base or Contingency and show solid base plus striped CTG in the combined mode.
 - **Base + contingency** is the first and default Analytics metric.

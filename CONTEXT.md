@@ -64,6 +64,10 @@ _Avoid_: Final effort when the contingency is included
 The scheduled start and end date interval for a line item. It represents calendar duration, not estimated effort or work hours.
 _Avoid_: Effort range, estimate duration
 
+**Planning coverage**:
+The share of contributing operational effort whose line items have a planning range. It describes whether estimated work has been placed on the calendar; it does not measure progress, capacity, or schedule quality.
+_Avoid_: Completion, utilization, schedule health
+
 ## Views and presentations
 
 **Estimate view**:

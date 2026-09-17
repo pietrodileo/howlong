@@ -21,6 +21,7 @@ import { openEstimateFile } from '../../platform/files/io';
 import { isDialogCancelled, isDialogDesktopOnly } from '../../platform/files/dialogResult';
 import { tagBorderColor } from '../../shared/tagColors';
 import SubtaskIcon from './SubtaskIcon.vue';
+import PlanningAnalytics from './PlanningAnalytics.vue';
 
 const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
@@ -604,6 +605,7 @@ async function onOpenEstimate(): Promise<void> {
       </article>
     </div>
     <p v-else class="empty-chart standalone">{{ t('analytics.noData') }}</p>
+    <PlanningAnalytics :estimate="estimate" :mode="mode" :unit="unit" />
   </section>
 
   <section v-else class="analytics-empty">

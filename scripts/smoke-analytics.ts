@@ -1,5 +1,6 @@
 import type { Estimate } from '../src/models/estimate';
 import { buildGraphEntries, buildOwnerEntries, buildPercentageShares, graphValue } from '../src/features/analytics/graphData';
+import { buildPlanningCoverage, buildPlanningEntries, buildStatusCategoryGroups, buildTimelineBuckets } from '../src/features/analytics/planningData';
 
 const estimate = {
   schemaVersion: 4,
@@ -98,6 +99,48 @@ const macroOwners = buildOwnerEntries(ownerEstimate, 'macro');
 const macroAlice = macroOwners.find((entry) => entry.owner === 'Alice');
 if (!macroAlice || macroAlice.base !== 5 || macroAlice.combined !== 6 || macroAlice.tasks.some((task) => task.id === 'formula')) {
   throw new Error(`macro owner scope is wrong: ${JSON.stringify(macroOwners)}`);
+}
+
+const planningEstimate = {
+  ...estimate,
+  items: [
+    { ...estimate.items[0], status: 'planned' },
+    { ...estimate.items[1], status: 'in-progress', owners: ['Alice'] },
+    { ...estimate.items[2], status: 'cancelled', owners: [] },
+    { ...estimate.items[3], status: 'to-plan', owners: [] },
+    { id: 'standalone', name: 'Test', hours: 5, category: 'Test', kind: 'operational', parentId: null, contingencyPercentOverride: null, notes: '', owners: [], status: 'blocked', tags: [], clientVisible: true, applyContingency: true },
+    { id: 'formula-plan', name: 'Formula', hours: 0, category: 'Other', kind: 'formula', parentId: null, contingencyPercentOverride: null, notes: '', owners: [], status: 'planned', tags: [], clientVisible: true, applyContingency: true, formula: { percent: 10, sourceIds: ['visible'], aggregate: 'sum', includeFormulaSources: true, applyGlobalContingency: true } },
+  ],
+  planning: {
+    items: {
+      visible: { startDate: '2026-01-01', endDate: '2026-01-15' },
+      hidden: { startDate: '2026-01-08', endDate: '2026-01-10' },
+      standalone: { startDate: '2026-01-10', endDate: '2026-01-20' },
+      'formula-plan': { startDate: '2026-01-01', endDate: '2026-01-02' },
+    },
+  },
+} as Estimate;
+
+const planningEntries = buildPlanningEntries(planningEstimate);
+if (planningEntries.some((entry) => entry.id === 'macro' || entry.id === 'formula-plan')) {
+  throw new Error(`planning analytics must exclude aggregate macros and formulas: ${JSON.stringify(planningEntries)}`);
+}
+const planningCoverage = buildPlanningCoverage(planningEntries, 'base');
+if (planningCoverage.planned !== 15 || planningCoverage.unplanned !== 0 || planningCoverage.percentage !== 100) {
+  throw new Error(`planning coverage is wrong: ${JSON.stringify(planningCoverage)}`);
+}
+const statusGroups = buildStatusCategoryGroups(planningEntries, 'base', 'effort');
+const buildGroup = statusGroups.find((group) => group.category === 'Build');
+if (!buildGroup || buildGroup.total !== 10 || buildGroup.cancelledCount !== 1) {
+  throw new Error(`status-by-category aggregation is wrong: ${JSON.stringify(statusGroups)}`);
+}
+const countGroups = buildStatusCategoryGroups(planningEntries, 'base', 'count');
+if (countGroups.find((group) => group.category === 'Build')?.total !== 1) {
+  throw new Error(`status activity counts are wrong: ${JSON.stringify(countGroups)}`);
+}
+const timeline = buildTimelineBuckets(planningEntries, 'all', '2026-01-01');
+if (timeline.length !== 3 || timeline[0].total !== 1 || timeline[1].total !== 2 || timeline.some((bucket) => bucket.entryIds.includes('hidden'))) {
+  throw new Error(`planning timeline buckets are wrong: ${JSON.stringify(timeline)}`);
 }
 
 console.log('analytics smoke: OK');
