@@ -1,5 +1,5 @@
 import type { Estimate } from '../src/models/estimate';
-import { buildGraphEntries, graphValue } from '../src/features/analytics/graphData';
+import { buildGraphEntries, buildOwnerEntries, graphValue } from '../src/features/analytics/graphData';
 
 const estimate = {
   schemaVersion: 3,
@@ -47,6 +47,42 @@ if (expanded.length !== 1 || expanded[0].name !== 'Visible task' || expanded[0].
 }
 if (expanded[0].canDrillDown || expanded[0].color === macros[0].color) {
   throw new Error('expanded subtasks must be terminal and use a shaded macro color');
+}
+
+const ownerEstimate = {
+  ...estimate,
+  items: [
+    { ...estimate.items[0], owner: 'Macro owner' },
+    { ...estimate.items[1], owner: 'Alice' },
+    { ...estimate.items[2], owner: 'Bob' },
+    estimate.items[3],
+    { id: 'unassigned', name: 'Unassigned task', hours: 4, category: 'Other', kind: 'operational', parentId: null, contingencyPercentOverride: null, notes: '', tags: [], clientVisible: true, applyContingency: true },
+    { id: 'formula', name: 'Calculated overhead', hours: 0, category: 'Other', kind: 'formula', parentId: null, contingencyPercentOverride: null, notes: '', owner: 'Alice', tags: [], clientVisible: true, applyContingency: true, formula: { percent: 50, sourceIds: ['visible'], aggregate: 'sum', includeFormulaSources: true, applyGlobalContingency: true } },
+  ],
+} as Estimate;
+
+const owners = buildOwnerEntries(ownerEstimate);
+const alice = owners.find((entry) => entry.owner === 'Alice');
+const bob = owners.find((entry) => entry.owner === 'Bob');
+const unassigned = owners.find((entry) => entry.owner === null);
+if (!alice || bob || !unassigned || owners.some((entry) => entry.owner === 'Macro owner')) {
+  throw new Error(`owner aggregation has the wrong buckets: ${JSON.stringify(owners)}`);
+}
+if (alice.base !== 15 || alice.combined !== 18 || !alice.tasks.some((task) => task.id === 'formula' && task.type === 'formula')) {
+  throw new Error(`formula contribution is missing from Alice: ${JSON.stringify(alice)}`);
+}
+if (unassigned.base !== 4) {
+  throw new Error(`visible or unassigned work is missing: ${JSON.stringify(owners)}`);
+}
+const ownerBase = owners.reduce((sum, entry) => sum + entry.base, 0);
+const visibleBase = buildGraphEntries(ownerEstimate).reduce((sum, entry) => sum + entry.base, 0);
+if (ownerBase !== visibleBase) {
+  throw new Error(`owner base does not reconcile with visible chart totals: ${ownerBase}`);
+}
+const macroOwners = buildOwnerEntries(ownerEstimate, 'macro');
+const macroAlice = macroOwners.find((entry) => entry.owner === 'Alice');
+if (!macroAlice || macroAlice.base !== 10 || macroAlice.combined !== 12 || macroAlice.tasks.some((task) => task.id === 'formula')) {
+  throw new Error(`macro owner scope is wrong: ${JSON.stringify(macroOwners)}`);
 }
 
 console.log('analytics smoke: OK');

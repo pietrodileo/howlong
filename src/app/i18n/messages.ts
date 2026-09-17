@@ -458,6 +458,11 @@ export type MessageTree = {
     clearTasks: string;
     clickForSubtasks: string;
     subtaskOf: string;
+    owners: string;
+    ownerDistribution: string;
+    ownerTasks: string;
+    allOwners: string;
+    unassigned: string;
   };
   models: {
     lede: string;
@@ -1336,7 +1341,7 @@ const it: MessageTree = {
   analytics: {
     navLabel: 'Analisi Dati',
     title: 'Analisi Dati',
-    lede: 'Esplora la distribuzione delle attività e della contingency nella stima.',
+    lede: 'Esplora la distribuzione delle attività, della contingency e degli assegnatari nella stima.',
     unit: 'Unità dei grafici',
     metric: 'Metrica del grafico',
     base: 'Base',
@@ -1359,6 +1364,11 @@ const it: MessageTree = {
     clearTasks: 'Cancella selezione',
     clickForSubtasks: 'Clicca per vedere i dettagli dei sotto-task',
     subtaskOf: 'Sotto-task di {name}',
+    owners: 'Assegnatari',
+    ownerDistribution: 'Distribuzione per assegnatario',
+    ownerTasks: 'Task assegnati a {name}',
+    allOwners: 'Tutti gli assegnatari',
+    unassigned: 'Non assegnato',
   },
   models: {
     lede: 'Gestisci modelli per le tue stime',
@@ -2246,7 +2256,7 @@ const en: MessageTree = {
   analytics: {
     navLabel: 'Analytics',
     title: 'Analytics',
-    lede: 'Explore effort and contingency distribution in the open estimate.',
+    lede: 'Explore effort, contingency, and owner distribution in the open estimate.',
     unit: 'Chart unit',
     metric: 'Chart metric',
     base: 'Base',
@@ -2269,6 +2279,11 @@ const en: MessageTree = {
     clearTasks: 'Clear selection',
     clickForSubtasks: 'Click to see subtask details',
     subtaskOf: 'Subtask of {name}',
+    owners: 'Owners',
+    ownerDistribution: 'Distribution by owner',
+    ownerTasks: 'Tasks owned by {name}',
+    allOwners: 'All owners',
+    unassigned: 'Unassigned',
   },
   models: {
     lede: 'Manage your models for estimates',

@@ -7,9 +7,18 @@ import { useI18n } from '../../app/i18n/useI18n';
 import { useModelsStore } from '../models/models';
 import { computeTotals } from '../../domain/contingency';
 import { formatEffort, type EffortUnit } from '../../domain/rounding';
-import { buildGraphEntries, graphValue, type GraphEntry, type GraphMode } from './graphData';
+import {
+  buildGraphEntries,
+  buildOwnerEntries,
+  graphValue,
+  type GraphEntry,
+  type GraphMode,
+  type MetricEntry,
+  type OwnerGraphEntry,
+} from './graphData';
 import { openEstimateFile } from '../../platform/files/io';
 import { isDialogCancelled, isDialogDesktopOnly } from '../../platform/files/dialogResult';
+import { tagBorderColor } from '../../shared/tagColors';
 
 const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
@@ -22,6 +31,7 @@ const { t } = useI18n();
 const unit = ref<EffortUnit>('hours');
 const mode = ref<GraphMode>('combined');
 const selectedMacroId = ref<string | null>(null);
+const selectedOwnerId = ref<string | null>(null);
 const hoveredEntryId = ref<string | null>(null);
 const expandedMacroIds = ref<Set<string>>(new Set());
 const newMenuOpen = ref(false);
@@ -33,9 +43,19 @@ const overviewMacros = computed(() => estimate.value ? buildGraphEntries(estimat
 const entries = computed(() => estimate.value
   ? buildGraphEntries(estimate.value, selectedMacroId.value, expandedMacroIds.value)
   : []);
+const ownerEntries = computed(() => estimate.value ? buildOwnerEntries(estimate.value, selectedMacroId.value) : []);
 const donutEntries = computed(() => entries.value.filter((entry) => graphValue(entry, mode.value) > 0));
 const donutTotal = computed(() => donutEntries.value.reduce((sum, entry) => sum + graphValue(entry, mode.value), 0));
+const donutMetrics = computed(() => donutEntries.value.reduce<MetricEntry>((sum, entry) => ({
+  base: sum.base + entry.base,
+  contingency: sum.contingency + entry.contingency,
+  combined: sum.combined + entry.combined,
+}), { base: 0, contingency: 0, combined: 0 }));
 const hoveredEntry = computed(() => donutEntries.value.find((entry) => entry.id === hoveredEntryId.value) ?? null);
+const selectedOwnerEntry = computed(() => ownerEntries.value.find((entry) => entry.id === selectedOwnerId.value) ?? null);
+const selectedOwnerTotal = computed(() => selectedOwnerEntry.value ? graphValue(selectedOwnerEntry.value, mode.value) : 0);
+const ownerTotal = computed(() => ownerEntries.value.reduce((sum, entry) => sum + graphValue(entry, mode.value), 0));
+const hasAnalyticsData = computed(() => entries.value.length > 0 || ownerEntries.value.length > 0);
 const selectedMacroName = computed(() => {
   if (!estimate.value || !selectedMacroId.value) return '';
   return estimate.value.items.find((item) => item.id === selectedMacroId.value)?.name ?? '';
@@ -63,10 +83,17 @@ onUnmounted(() => document.removeEventListener('pointerdown', onDocumentPointerD
 
 watch(() => documentsStore.activeId, () => {
   selectedMacroId.value = null;
+  selectedOwnerId.value = null;
   expandedMacroIds.value = new Set();
+});
+watch(selectedMacroId, () => {
+  selectedOwnerId.value = null;
 });
 watch(entries, (next) => {
   if (selectedMacroId.value && next.length === 0) selectedMacroId.value = null;
+});
+watch(ownerEntries, (next) => {
+  if (selectedOwnerId.value && !next.some((entry) => entry.id === selectedOwnerId.value)) selectedOwnerId.value = null;
 });
 
 /** Format canonical hours in the dashboard's selected global unit. */
@@ -75,10 +102,31 @@ function formatValue(hours: number): string {
   return `${formatEffort(hours, unit.value, hoursPerDay.value)} ${suffix}`;
 }
 
-/** Format one donut entry's share of the active metric. */
-function formatPercentage(entry: GraphEntry): string {
-  if (!donutTotal.value) return '0%';
-  return `${Math.round((graphValue(entry, mode.value) / donutTotal.value) * 1000) / 10}%`;
+/** Format one base or contingency value with the selected chart unit. */
+function formatBreakdownValue(hours: number): string {
+  return formatValue(hours);
+}
+
+/** Format one metric entry with its visible base and contingency breakdown. */
+function formatMetricValue(entry: MetricEntry): string {
+  if (mode.value !== 'combined') return formatValue(graphValue(entry, mode.value));
+  return `${formatValue(entry.combined)} · ${formatBreakdownValue(entry.base)} | ${formatBreakdownValue(entry.contingency)}`;
+}
+
+/** Format one metric entry's share of a chart total. */
+function formatPercentage(entry: MetricEntry, total: number): string {
+  if (!total) return '0%';
+  return `${Math.round((graphValue(entry, mode.value) / total) * 1000) / 10}%`;
+}
+
+/** Format one owner entry's label for the current locale. */
+function ownerLabel(entry: OwnerGraphEntry): string {
+  return entry.owner ?? t('analytics.unassigned');
+}
+
+/** Return the deterministic color used for one owner in Analytics. */
+function ownerColor(entry: OwnerGraphEntry): string {
+  return entry.owner ? tagBorderColor(entry.owner) : 'var(--muted)';
 }
 
 /** Build stroke offsets for one native SVG donut segment. */
@@ -94,6 +142,30 @@ function donutStyle(entryIndex: number): Record<string, string> {
     strokeDasharray: `${fraction * DONUT_CIRCUMFERENCE} ${DONUT_CIRCUMFERENCE}`,
     strokeDashoffset: `${-offset * DONUT_CIRCUMFERENCE}`,
   };
+}
+
+/** Build one base or contingency arc for the combined donut. */
+function donutPath(entryIndex: number, part: 'base' | 'contingency'): string {
+  const entry = donutEntries.value[entryIndex];
+  if (!entry || donutTotal.value <= 0 || entry.combined <= 0) return '';
+
+  const before = donutEntries.value
+    .slice(0, entryIndex)
+    .reduce((sum, currentEntry) => sum + currentEntry.combined, 0);
+  const segmentStart = (before / donutTotal.value) * Math.PI * 2;
+  const segmentLength = (entry.combined / donutTotal.value) * Math.PI * 2;
+  const baseLength = (entry.base / entry.combined) * segmentLength;
+  const start = part === 'base' ? segmentStart : segmentStart + baseLength;
+  const length = part === 'base' ? baseLength : segmentLength - baseLength;
+  if (length <= 0) return '';
+
+  const end = start + length;
+  const point = (angle: number): string => `${90 + DONUT_RADIUS * Math.cos(angle)} ${90 + DONUT_RADIUS * Math.sin(angle)}`;
+  if (length >= Math.PI * 2 - 0.0001) {
+    return `M ${point(start)} A ${DONUT_RADIUS} ${DONUT_RADIUS} 0 1 1 ${point(start + Math.PI)} A ${DONUT_RADIUS} ${DONUT_RADIUS} 0 1 1 ${point(start)}`;
+  }
+
+  return `M ${point(start)} A ${DONUT_RADIUS} ${DONUT_RADIUS} 0 ${length > Math.PI ? 1 : 0} 1 ${point(end)}`;
 }
 
 /** Drill both graphs into a macro when it has visible, non-zero subtasks. */
@@ -152,6 +224,11 @@ async function onOpenEstimate(): Promise<void> {
         <button type="button" :class="{ active: unit === 'hours' }" @click="unit = 'hours'">{{ t('common.hours') }}</button>
         <button type="button" :class="{ active: unit === 'days' }" @click="unit = 'days'">{{ t('common.days') }}</button>
       </div>
+      <select v-model="mode" class="metric-select" :aria-label="t('analytics.metric')">
+        <option value="base">{{ t('common.base') }}</option>
+        <option value="contingency">{{ t('analytics.contingencyOnly') }}</option>
+        <option value="combined">{{ t('analytics.combined') }}</option>
+      </select>
     </div>
 
     <div class="summary-grid">
@@ -161,14 +238,15 @@ async function onOpenEstimate(): Promise<void> {
       <article class="summary-card"><span>{{ t('analytics.contingencyRate') }}</span><strong>{{ totals?.totalBase ? formatEffort((totals.totalContingency / totals.totalBase) * 100, 'hours') : '0' }}%</strong></article>
     </div>
 
-    <div v-if="entries.length" class="chart-grid">
+    <div v-if="hasAnalyticsData" class="chart-grid">
+      <template v-if="entries.length">
       <article class="chart-card donut-card">
         <div class="chart-heading">
           <div>
             <p class="eyebrow">{{ selectedMacroId ? t('analytics.subtasks') : t('analytics.macros') }}</p>
             <h3>{{ selectedMacroName || t('analytics.effortDistribution') }}</h3>
           </div>
-          <div class="chart-actions">
+          <div class="chart-actions" :class="{ 'has-back': selectedMacroId }">
             <button v-if="selectedMacroId" type="button" class="ghost back" @click="selectedMacroId = null">← {{ t('analytics.allMacros') }}</button>
             <details v-else class="task-menu">
               <summary>
@@ -193,49 +271,84 @@ async function onOpenEstimate(): Promise<void> {
                 >{{ t('analytics.clearTasks') }}</button>
               </div>
             </details>
-            <select v-model="mode" class="metric-select" :aria-label="t('analytics.metric')">
-              <option value="base">{{ t('common.base') }}</option>
-              <option value="contingency">{{ t('analytics.contingencyOnly') }}</option>
-              <option value="combined">{{ t('analytics.combined') }}</option>
-            </select>
           </div>
         </div>
 
         <div v-if="donutEntries.length" class="donut-layout">
           <div class="donut-wrap">
             <svg class="donut" viewBox="0 0 180 180" role="img" :aria-label="t('analytics.donutAria')">
+              <defs>
+                <pattern id="donut-contingency-pattern" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <rect x="3" width="2" height="8" fill="rgb(255 255 255 / .35)" />
+                </pattern>
+              </defs>
               <circle class="donut-track" cx="90" cy="90" :r="DONUT_RADIUS" />
-              <circle
-                v-for="(entry, index) in donutEntries"
-                :key="entry.id"
-                class="donut-segment"
-                :class="{ clickable: entry.canDrillDown }"
-                cx="90"
-                cy="90"
-                :r="DONUT_RADIUS"
-                :style="donutStyle(index)"
-                :tabindex="entry.canDrillDown ? 0 : undefined"
-                :role="entry.canDrillDown ? 'button' : undefined"
-                :aria-label="`${entry.name}: ${formatValue(graphValue(entry, mode))}, ${formatPercentage(entry)}`"
-                @click="onSelectEntry(entry)"
-                @keydown.enter.prevent="onSelectEntry(entry)"
-                @keydown.space.prevent="onSelectEntry(entry)"
-                @mouseenter="hoveredEntryId = entry.id"
-                @mouseleave="hoveredEntryId = null"
-                @focus="hoveredEntryId = entry.id"
-                @blur="hoveredEntryId = null"
-              ><title>{{ entry.name }}: {{ formatValue(graphValue(entry, mode)) }} · {{ formatPercentage(entry) }}</title></circle>
+              <template v-if="mode === 'combined'">
+                <g
+                  v-for="(entry, index) in donutEntries"
+                  :key="entry.id"
+                  class="donut-entry"
+                  :class="{ clickable: entry.canDrillDown }"
+                  :tabindex="entry.canDrillDown ? 0 : undefined"
+                  :role="entry.canDrillDown ? 'button' : undefined"
+                  :aria-label="`${entry.name}: ${formatMetricValue(entry)}, ${formatPercentage(entry, donutTotal)}`"
+                  @click="onSelectEntry(entry)"
+                  @keydown.enter.prevent="onSelectEntry(entry)"
+                  @keydown.space.prevent="onSelectEntry(entry)"
+                  @mouseenter="hoveredEntryId = entry.id"
+                  @mouseleave="hoveredEntryId = null"
+                  @focus="hoveredEntryId = entry.id"
+                  @blur="hoveredEntryId = null"
+                >
+                  <path v-if="entry.base > 0" class="donut-segment" :d="donutPath(index, 'base')" :style="{ stroke: entry.color }" />
+                  <template v-if="entry.contingency > 0">
+                    <path class="donut-segment donut-contingency" :d="donutPath(index, 'contingency')" :style="{ stroke: entry.color }" />
+                    <path class="donut-segment donut-contingency-stripes" :d="donutPath(index, 'contingency')" stroke="url(#donut-contingency-pattern)" />
+                  </template>
+                  <title>{{ entry.name }}: {{ formatMetricValue(entry) }} · {{ formatPercentage(entry, donutTotal) }}</title>
+                </g>
+              </template>
+              <template v-else>
+                <circle
+                  v-for="(entry, index) in donutEntries"
+                  :key="entry.id"
+                  class="donut-segment"
+                  :class="{ clickable: entry.canDrillDown }"
+                  cx="90"
+                  cy="90"
+                  :r="DONUT_RADIUS"
+                  :style="donutStyle(index)"
+                  :tabindex="entry.canDrillDown ? 0 : undefined"
+                  :role="entry.canDrillDown ? 'button' : undefined"
+                  :aria-label="`${entry.name}: ${formatMetricValue(entry)}, ${formatPercentage(entry, donutTotal)}`"
+                  @click="onSelectEntry(entry)"
+                  @keydown.enter.prevent="onSelectEntry(entry)"
+                  @keydown.space.prevent="onSelectEntry(entry)"
+                  @mouseenter="hoveredEntryId = entry.id"
+                  @mouseleave="hoveredEntryId = null"
+                  @focus="hoveredEntryId = entry.id"
+                  @blur="hoveredEntryId = null"
+                ><title>{{ entry.name }}: {{ formatMetricValue(entry) }} · {{ formatPercentage(entry, donutTotal) }}</title></circle>
+              </template>
             </svg>
             <div class="donut-total">
-              <strong>{{ hoveredEntry ? formatPercentage(hoveredEntry) : formatValue(donutTotal) }}</strong>
+              <strong>{{ hoveredEntry ? formatPercentage(hoveredEntry, donutTotal) : formatValue(graphValue(donutMetrics, mode)) }}</strong>
               <span>{{ hoveredEntry?.name || t(`analytics.${mode}`) }}</span>
             </div>
           </div>
           <div class="legend" :aria-label="t('analytics.legend')">
             <button v-for="entry in donutEntries" :key="entry.id" type="button" :class="{ inert: !entry.canDrillDown }" :aria-disabled="!entry.canDrillDown" v-tip="entryHint(entry)" @click="onSelectEntry(entry)">
               <span class="swatch" :style="{ background: entry.color }" />
-              <span class="legend-name"><span v-if="entry.type === 'subtask' || entry.canDrillDown" class="type-icon" :class="entry.type" aria-hidden="true"></span>{{ entry.name }}</span>
-              <strong>{{ formatValue(graphValue(entry, mode)) }} <small>{{ formatPercentage(entry) }}</small></strong>
+              <span class="legend-name">
+                <span v-if="entry.type === 'subtask'" class="subtask-badge">{{ t('analytics.subtasks') }}</span>
+                <span v-else-if="entry.canDrillDown" class="type-icon" :class="entry.type" aria-hidden="true"></span>
+                <span class="legend-label">{{ entry.name }}</span>
+              </span>
+              <strong class="metric-value">
+                <span>{{ formatValue(graphValue(entry, mode)) }}</span>
+                <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(entry.base) }} | {{ formatBreakdownValue(entry.contingency) }}</span>
+                <small>{{ formatPercentage(entry, donutTotal) }}</small>
+              </strong>
             </button>
           </div>
         </div>
@@ -251,7 +364,14 @@ async function onOpenEstimate(): Promise<void> {
         </div>
         <div class="bar-list">
           <button v-for="entry in entries" :key="entry.id" type="button" class="bar-row" :class="{ inert: !entry.canDrillDown }" :aria-disabled="!entry.canDrillDown" v-tip="entryHint(entry)" @click="onSelectEntry(entry)">
-            <span class="bar-label"><span><span v-if="entry.type === 'subtask' || entry.canDrillDown" class="type-icon" :class="entry.type" aria-hidden="true"></span>{{ entry.name }}</span><strong>{{ formatValue(entry.combined) }}</strong></span>
+            <span class="bar-label"><span class="bar-name">
+              <span v-if="entry.type === 'subtask'" class="subtask-badge">{{ t('analytics.subtasks') }}</span>
+              <span v-else-if="entry.canDrillDown" class="type-icon" :class="entry.type" aria-hidden="true"></span>
+              <span class="bar-name-text">{{ entry.name }}</span>
+            </span><strong class="metric-value">
+              <span>{{ formatValue(graphValue(entry, mode)) }}</span>
+              <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(entry.base) }} | {{ formatBreakdownValue(entry.contingency) }}</span>
+            </strong></span>
             <span class="bar-track">
               <span class="bar-base" :style="{ width: `${maxCombined ? (entry.base / maxCombined) * 100 : 0}%`, background: entry.color }" />
               <span class="bar-contingency" :style="{ width: `${maxCombined ? (entry.contingency / maxCombined) * 100 : 0}%`, background: entry.color }" />
@@ -259,6 +379,66 @@ async function onOpenEstimate(): Promise<void> {
           </button>
         </div>
         <div class="bar-key"><span><i class="base-key" />{{ t('common.base') }}</span><span><i class="ctg-key" />{{ t('analytics.contingencyOnly') }}</span></div>
+      </article>
+      </template>
+
+      <article v-if="ownerEntries.length" class="chart-card owner-card">
+        <div class="chart-heading">
+          <div>
+            <p class="eyebrow">{{ selectedOwnerEntry ? t('analytics.ownerTasks', { name: ownerLabel(selectedOwnerEntry) }) : t('analytics.owners') }}</p>
+            <h3>{{ selectedOwnerEntry ? ownerLabel(selectedOwnerEntry) : t('analytics.ownerDistribution') }}</h3>
+          </div>
+          <button v-if="selectedOwnerEntry" type="button" class="ghost back" @click="selectedOwnerId = null">← {{ t('analytics.allOwners') }}</button>
+        </div>
+
+        <div v-if="selectedOwnerEntry" class="owner-detail">
+          <div class="owner-detail-summary">
+            <span class="owner-swatch" :style="{ background: ownerColor(selectedOwnerEntry) }" aria-hidden="true" />
+            <div class="owner-detail-name">
+              <span class="eyebrow">{{ t(`analytics.${mode}`) }}</span>
+            </div>
+            <strong class="owner-detail-total metric-value">
+              <span>{{ formatValue(graphValue(selectedOwnerEntry, mode)) }}</span>
+              <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(selectedOwnerEntry.base) }} | {{ formatBreakdownValue(selectedOwnerEntry.contingency) }}</span>
+            </strong>
+          </div>
+          <div class="owner-task-list">
+            <div class="owner-task-heading"><span>{{ t('common.name') }}</span><span>{{ t(`analytics.${mode}`) }}</span></div>
+            <div v-for="task in selectedOwnerEntry.tasks" :key="task.id" class="owner-task-row">
+              <span class="owner-task-main">
+                <span v-if="task.type === 'subtask'" class="subtask-badge">{{ t('analytics.subtasks') }}</span>
+                <span v-else class="type-icon" :class="task.type" aria-hidden="true" />
+                <span class="owner-task-label">
+                  <span class="owner-task-name">{{ task.name }}</span>
+                  <small v-if="task.parentName" class="owner-task-context">{{ t('analytics.subtaskOf', { name: task.parentName }) }}</small>
+                </span>
+              </span>
+              <strong class="metric-value">
+                <span>{{ formatValue(graphValue(task, mode)) }}</span>
+                <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(task.base) }} | {{ formatBreakdownValue(task.contingency) }}</span>
+                <small>{{ formatPercentage(task, selectedOwnerTotal) }}</small>
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="owner-list" :aria-label="t('analytics.owners')">
+          <button
+            v-for="entry in ownerEntries"
+            :key="entry.id"
+            type="button"
+            class="owner-row"
+            @click="selectedOwnerId = entry.id"
+          >
+            <span class="owner-swatch" :style="{ background: ownerColor(entry) }" aria-hidden="true" />
+            <span class="owner-name">{{ ownerLabel(entry) }}</span>
+            <strong class="metric-value">
+              <span>{{ formatValue(graphValue(entry, mode)) }}</span>
+              <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(entry.base) }} | {{ formatBreakdownValue(entry.contingency) }}</span>
+              <small>{{ formatPercentage(entry, ownerTotal) }}</small>
+            </strong>
+          </button>
+        </div>
       </article>
     </div>
     <p v-else class="empty-chart standalone">{{ t('analytics.noData') }}</p>
@@ -309,7 +489,7 @@ async function onOpenEstimate(): Promise<void> {
 .analytics-controls { display: flex; justify-content: flex-end; gap: .65rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .segmented { display: inline-flex; padding: 2px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); }
 .segmented button { border: 0; background: transparent; padding: .42rem .7rem; color: var(--muted); }
-.segmented button.active { background: var(--accent-subtle); color: var(--accent); }
+.segmented button.active { background: var(--accent-subtle); color: var(--accent); font-weight: 700; }
 .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-bottom: .75rem; }
 .summary-card, .chart-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-soft); }
 .summary-card { display: grid; gap: .35rem; padding: 1rem; }
@@ -317,13 +497,18 @@ async function onOpenEstimate(): Promise<void> {
 .summary-card strong { color: var(--ink); font-size: 1.25rem; }
 .chart-grid { display: grid; grid-template-columns: minmax(320px, .85fr) minmax(360px, 1.15fr); gap: .75rem; }
 .chart-card { min-width: 0; padding: 1.1rem; }
+.owner-card { grid-column: 1 / -1; }
 .donut-card { container-type: inline-size; }
 .chart-heading { min-height: 2.7rem; display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; }
 .chart-heading h3, .eyebrow { margin: 0; }
 .chart-heading h3 { margin-top: .2rem; font-family: var(--font-ui); font-size: 1rem; }
 .chart-actions { display: flex; align-items: center; gap: .5rem; }
-.back { padding: .35rem .55rem; font-size: .75rem; }
-.metric-select { min-height: 2rem; max-width: 12rem; padding: .35rem 1.8rem .35rem .55rem; color: var(--ink); font-size: .75rem; }
+.back { padding: .35rem .55rem; font-size: .9rem; }
+.metric-select { min-height: 2.25rem; max-width: 12rem; padding: .35rem 1.8rem .35rem .65rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); box-shadow: var(--shadow-soft); color: var(--ink); font-family: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; }
+.metric-select:hover { border-color: var(--line-strong); }
+.metric-select:focus-visible { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+.chart-actions.has-back { justify-content: flex-end; }
+.chart-actions.has-back .back { justify-self: end; }
 .task-menu { position: relative; }
 .task-menu summary { min-width: 8.5rem; min-height: 2rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .35rem .55rem; border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink); font-size: .75rem; cursor: pointer; list-style: none; }
 .task-menu summary::-webkit-details-marker { display: none; }
@@ -343,6 +528,11 @@ async function onOpenEstimate(): Promise<void> {
 .donut-segment { transition: opacity .15s, stroke-width .15s; }
 .donut-segment.clickable { cursor: pointer; }
 .donut-segment:hover, .donut-segment:focus { opacity: .82; stroke-width: 33; outline: none; }
+.donut-entry.clickable { cursor: pointer; }
+.donut-entry:focus { outline: none; }
+.donut-entry:hover .donut-segment, .donut-entry:focus .donut-segment { opacity: .82; stroke-width: 33; }
+.donut-contingency { opacity: .42; }
+.donut-contingency-stripes { opacity: .42; }
 .donut-total { position: absolute; inset: 28%; display: grid; place-content: center; text-align: center; pointer-events: none; }
 .donut-total strong { color: var(--ink); font-size: 1.05rem; }
 .donut-total span { color: var(--muted); font-size: .7rem; }
@@ -352,18 +542,23 @@ async function onOpenEstimate(): Promise<void> {
 .legend button:not(:disabled):hover, .legend button:not(:disabled):focus { background: var(--page-soft); }
 .legend button.inert, .bar-row.inert { cursor: default; opacity: 1; }
 .swatch { width: .65rem; height: .65rem; border-radius: 50%; }
-.legend-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legend-name { display: flex; align-items: center; min-width: 0; gap: .35rem; }
+.legend-label, .bar-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .type-icon { position: relative; display: inline-block; width: .8rem; height: .8rem; margin-right: .35rem; color: var(--muted); vertical-align: -.1rem; }
 .type-icon.macro::before { content: ''; position: absolute; inset: 1px 2px 2px 1px; border: 1.5px solid currentColor; border-radius: 2px; box-shadow: 2px -2px 0 -1px var(--surface), 2px -2px 0 0 currentColor; }
-.type-icon.subtask { color: var(--accent); }
-.type-icon.subtask::before { content: '↳'; position: absolute; inset: -.3rem 0 0; font-size: 1rem; font-weight: 700; line-height: 1; }
+.type-icon.formula { color: var(--muted); }
+.type-icon.formula::before { content: 'Σ'; position: absolute; inset: -.12rem 0 0; font-size: .75rem; font-weight: 700; line-height: 1; }
+.subtask-badge { flex: 0 0 auto; max-width: 7rem; overflow: hidden; padding: .14rem .35rem; border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--line)); border-radius: 999px; background: var(--accent-subtle); color: var(--accent); font-size: .58rem; font-weight: 700; letter-spacing: .04em; line-height: 1.1; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.metric-value { display: inline-flex; align-items: baseline; gap: .22rem; min-width: 0; white-space: nowrap; }
+.metric-breakdown { color: var(--muted); font-size: .68rem; font-weight: 500; }
 .legend strong { font-size: .75rem; }
 .legend small { margin-left: .25rem; color: var(--muted); font-size: .68rem; font-weight: 500; }
 .bar-list { display: grid; gap: .8rem; margin-top: 1rem; }
 .bar-row { display: grid; gap: .35rem; width: 100%; padding: .25rem; text-align: left; }
 .bar-row:not(:disabled):hover, .bar-row:not(:disabled):focus { background: var(--page-soft); }
 .bar-label { display: flex; justify-content: space-between; gap: .75rem; font-size: .78rem; }
-.bar-label > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-label > span { min-width: 0; }
+.bar-name { display: flex; align-items: center; min-width: 0; gap: .35rem; overflow: hidden; }
 .bar-track { display: flex; width: 100%; height: .8rem; border-radius: 999px; overflow: hidden; background: var(--page-soft); }
 .bar-base, .bar-contingency { height: 100%; min-width: 0; }
 .bar-contingency { opacity: .42; background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgb(255 255 255 / .35) 3px 5px) !important; }
@@ -371,6 +566,27 @@ async function onOpenEstimate(): Promise<void> {
 .bar-key span { display: flex; align-items: center; gap: .35rem; }
 .bar-key i { width: .75rem; height: .75rem; border-radius: 2px; background: var(--accent); }
 .bar-key .ctg-key { opacity: .42; background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgb(255 255 255 / .35) 3px 5px); }
+.owner-list, .owner-detail { display: grid; gap: .75rem; margin-top: .75rem; }
+.owner-row, .owner-task-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .75rem; min-width: 0; padding: .65rem .55rem; color: var(--ink); text-align: left; }
+.owner-row { grid-template-columns: .7rem minmax(0, 1fr) auto; width: 100%; border: 0; background: transparent; cursor: pointer; }
+.owner-row:hover, .owner-row:focus { background: var(--page-soft); }
+.owner-swatch { width: .65rem; height: .65rem; border-radius: 50%; }
+.owner-name, .owner-task-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.owner-detail-summary { display: flex; align-items: center; gap: .6rem; padding: .75rem .8rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--page-soft); }
+.owner-detail-name { display: grid; min-width: 0; gap: .15rem; }
+.owner-detail-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.owner-detail-total { margin-left: auto; white-space: nowrap; }
+.owner-task-list { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.owner-task-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .75rem; padding: .45rem .8rem; color: var(--muted); background: var(--page-soft); font-size: .68rem; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; }
+.owner-task-row { padding: .7rem .8rem; }
+.owner-task-row + .owner-task-row { border-top: 1px solid var(--line); }
+.owner-task-row:hover { background: var(--page-soft); }
+.owner-task-main { display: flex; align-items: flex-start; min-width: 0; gap: .45rem; }
+.owner-task-label { display: grid; gap: .15rem; }
+.owner-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.owner-task-context { color: var(--muted); font-size: .68rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.owner-row strong, .owner-task-row strong { font-size: .75rem; }
+.owner-row small, .owner-task-row small { margin-left: .25rem; color: var(--muted); font-size: .68rem; font-weight: 500; }
 .empty-chart { margin: 2rem 0; color: var(--muted); text-align: center; }
 .empty-chart.standalone { padding: 4rem 1rem; border: 1px dashed var(--line-strong); border-radius: var(--radius); }
 .analytics-empty { min-height: 100%; display: grid; align-content: start; justify-items: center; padding-top: clamp(7rem, 24vh, 12rem); text-align: center; }
@@ -393,8 +609,9 @@ async function onOpenEstimate(): Promise<void> {
 .model-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge { flex-shrink: 0; padding: .12rem .4rem; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: .65rem; text-transform: uppercase; }
 @container (max-width: 540px) {
-  .chart-heading { display: grid; }
+  .chart-heading { display: grid; grid-template-columns: minmax(0, 1fr); }
   .chart-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chart-actions.has-back { grid-template-columns: 1fr; }
   .task-menu summary, .metric-select { width: 100%; max-width: none; }
   .donut-layout { grid-template-columns: 1fr; }
   .donut-wrap { width: min(100%, 220px); }
@@ -407,7 +624,7 @@ async function onOpenEstimate(): Promise<void> {
 @media (max-width: 560px) {
   .summary-grid { grid-template-columns: 1fr; }
   .donut-layout { grid-template-columns: 1fr; }
-  .chart-heading { display: grid; }
+  .chart-heading { display: grid; grid-template-columns: minmax(0, 1fr); }
   .chart-actions { width: 100%; display: grid; grid-template-columns: 1fr; }
   .task-menu summary, .metric-select { width: 100%; max-width: none; }
   .task-menu-popover { width: 100%; }

@@ -1064,7 +1064,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 
 .gantt-overlay.notes-overlay { width: min(320px, calc(100vw - 16px)); padding: .75rem; }
 .note-popover strong { margin: 0 0 .6rem; white-space: normal; overflow-wrap: anywhere; font-size: .85rem; line-height: 1.4; font-weight: 600; }
-.note-popover textarea { display: block; box-sizing: border-box; width: 100%; min-height: 8rem; padding: .55rem .65rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font-family: inherit; font-size: .8rem; line-height: 1.5; }
+.note-popover textarea { display: block; box-sizing: border-box; width: 100%; min-height: 8rem; padding: .55rem .65rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font-family: inherit; font-size: .9rem; line-height: 1.5; }
 .note-popover textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .note-popover textarea::placeholder { color: var(--muted); }
 .note-popover > div { gap: .4rem; margin-top: .65rem; }

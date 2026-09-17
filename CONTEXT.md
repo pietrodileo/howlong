@@ -75,7 +75,7 @@ The scheduling surface for dates, statuses, owners, colors, notes, and planning 
 _Avoid_: Timeline view when referring to the product surface
 
 **Analytics view**:
-A read-only projection of the active estimate's effort and contingency distribution.
+A read-only projection of the active estimate's effort, contingency, and owner distribution. Selecting an owner reveals the contributing line items without changing the estimate.
 _Avoid_: Reports view
 
 **Compare view**:

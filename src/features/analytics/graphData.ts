@@ -1,18 +1,35 @@
 import type { Estimate } from '../../models/estimate';
 import { computeTotals, type ComputedLineHours } from '../../domain/contingency';
+import { normalizeOwner } from '../../domain/owners';
 
 export type GraphMode = 'base' | 'contingency' | 'combined';
 
-export interface GraphEntry {
-  id: string;
-  name: string;
-  color: string;
+export interface MetricEntry {
   base: number;
   contingency: number;
   combined: number;
+}
+
+export interface GraphEntry extends MetricEntry {
+  id: string;
+  name: string;
+  color: string;
   canDrillDown: boolean;
   type: 'macro' | 'subtask';
   parentName?: string;
+}
+
+export interface OwnerTaskEntry extends MetricEntry {
+  id: string;
+  name: string;
+  type: 'macro' | 'subtask' | 'formula';
+  parentName?: string;
+}
+
+export interface OwnerGraphEntry extends MetricEntry {
+  id: string;
+  owner: string | null;
+  tasks: OwnerTaskEntry[];
 }
 
 const FALLBACK_COLORS = ['#304764', '#675482', '#356d63', '#9a6047', '#59743b', '#8b6a36', '#536d8a', '#7c5268'];
@@ -36,9 +53,48 @@ export function buildGraphEntries(
       : [entry]);
 }
 
-/** Return the metric used by the active donut mode. */
-export function graphValue(entry: GraphEntry, mode: GraphMode): number {
+/** Return the metric used by the active chart mode. */
+export function graphValue(entry: MetricEntry, mode: GraphMode): number {
   return entry[mode];
+}
+
+/** Aggregate visible, non-overlapping contributions by owner within the active macro scope. */
+export function buildOwnerEntries(estimate: Estimate, macroId: string | null = null): OwnerGraphEntry[] {
+  const totals = computeTotals(estimate);
+  const itemById = new Map(estimate.items.map((item) => [item.id, item]));
+  const owners = new Map<string, OwnerGraphEntry>();
+
+  for (const line of totals.lines) {
+    if (!line.item.clientVisible || !line.contributesToTotals || line.hoursWithContingency <= 0) continue;
+    if (macroId && line.item.parentId !== macroId) continue;
+    const owner = normalizeOwner(line.item.owner ?? '');
+    const id = owner.toLowerCase() || '__unassigned__';
+    const entry = owners.get(id) ?? {
+      id,
+      owner: owner || null,
+      base: 0,
+      contingency: 0,
+      combined: 0,
+      tasks: [],
+    };
+    entry.base += line.hoursBase;
+    entry.contingency += line.hoursContingency;
+    entry.combined += line.hoursWithContingency;
+    entry.tasks.push({
+      id: line.item.id,
+      name: line.item.name,
+      type: line.isFormula ? 'formula' : line.item.parentId ? 'subtask' : 'macro',
+      parentName: line.item.parentId ? itemById.get(line.item.parentId)?.name : undefined,
+      base: line.hoursBase,
+      contingency: line.hoursContingency,
+      combined: line.hoursWithContingency,
+    });
+    owners.set(id, entry);
+  }
+
+  return [...owners.values()].sort((a, b) =>
+    b.combined - a.combined || (a.owner ?? '').localeCompare(b.owner ?? ''),
+  );
 }
 
 /** Convert one computed line without recalculating contingency rules. */
