@@ -35,6 +35,7 @@ const mode = ref<GraphMode>('combined');
 const selectedMacroId = ref<string | null>(null);
 const selectedOwnerId = ref<string | null>(null);
 const hoveredEntryId = ref<string | null>(null);
+const hoveredOwnerId = ref<string | null>(null);
 const expandedMacroIds = ref<Set<string>>(new Set());
 const newMenuOpen = ref(false);
 const modelSearch = ref('');
@@ -46,6 +47,9 @@ const entries = computed(() => estimate.value
   ? buildGraphEntries(estimate.value, selectedMacroId.value, expandedMacroIds.value)
   : []);
 const ownerEntries = computed(() => estimate.value ? buildOwnerEntries(estimate.value, selectedMacroId.value) : []);
+const ownerChartEntries = computed(() => ownerEntries.value
+  .filter((entry) => graphValue(entry, mode.value) > 0)
+  .sort((a, b) => graphValue(b, mode.value) - graphValue(a, mode.value) || ownerLabel(a).localeCompare(ownerLabel(b))));
 const donutEntries = computed(() => entries.value.filter((entry) => graphValue(entry, mode.value) > 0));
 const donutTotal = computed(() => donutEntries.value.reduce((sum, entry) => sum + graphValue(entry, mode.value), 0));
 const donutMetrics = computed(() => donutEntries.value.reduce<MetricEntry>((sum, entry) => ({
@@ -55,7 +59,18 @@ const donutMetrics = computed(() => donutEntries.value.reduce<MetricEntry>((sum,
 }), { base: 0, contingency: 0, combined: 0 }));
 const hoveredEntry = computed(() => donutEntries.value.find((entry) => entry.id === hoveredEntryId.value) ?? null);
 const selectedOwnerEntry = computed(() => ownerEntries.value.find((entry) => entry.id === selectedOwnerId.value) ?? null);
-const ownerPercentages = computed(() => buildPercentageShares(ownerEntries.value, mode.value));
+const ownerPercentages = computed(() => buildPercentageShares(ownerChartEntries.value, mode.value));
+const ownerTotal = computed(() => ownerChartEntries.value.reduce((sum, entry) => sum + graphValue(entry, mode.value), 0));
+const ownerMetrics = computed(() => ownerChartEntries.value.reduce<MetricEntry>((sum, entry) => ({
+  base: sum.base + entry.base,
+  contingency: sum.contingency + entry.contingency,
+  combined: sum.combined + entry.combined,
+}), { base: 0, contingency: 0, combined: 0 }));
+const hoveredOwner = computed(() => ownerChartEntries.value.find((entry) => entry.id === hoveredOwnerId.value) ?? null);
+const hoveredOwnerPercentage = computed(() => {
+  const index = ownerChartEntries.value.findIndex((entry) => entry.id === hoveredOwnerId.value);
+  return index >= 0 ? ownerPercentages.value[index] : null;
+});
 const ownerTaskPercentages = computed(() => selectedOwnerEntry.value
   ? buildPercentageShares(selectedOwnerEntry.value.tasks, mode.value)
   : []);
@@ -66,6 +81,7 @@ const selectedMacroName = computed(() => {
 });
 const hoursPerDay = computed(() => estimate.value?.meta.hoursPerDay ?? 8);
 const maxBarValue = computed(() => Math.max(0, ...entries.value.map((entry) => graphValue(entry, mode.value))));
+const maxOwnerValue = computed(() => Math.max(0, ...ownerChartEntries.value.map((entry) => graphValue(entry, mode.value))));
 const filteredModels = computed(() => {
   const query = modelSearch.value.trim().toLowerCase();
   return models.value.filter((model) => model.name.toLowerCase().includes(query));
@@ -97,6 +113,9 @@ watch(entries, (next) => {
   if (selectedMacroId.value && next.length === 0) selectedMacroId.value = null;
 });
 watch(ownerEntries, (next) => {
+  if (selectedOwnerId.value && !next.some((entry) => entry.id === selectedOwnerId.value)) selectedOwnerId.value = null;
+});
+watch(ownerChartEntries, (next) => {
   if (selectedOwnerId.value && !next.some((entry) => entry.id === selectedOwnerId.value)) selectedOwnerId.value = null;
 });
 
@@ -131,6 +150,39 @@ function ownerLabel(entry: OwnerGraphEntry): string {
 /** Return the deterministic color used for one owner in Analytics. */
 function ownerColor(entry: OwnerGraphEntry): string {
   return entry.owner ? tagBorderColor(entry.owner) : 'var(--muted)';
+}
+
+/** Build stroke offsets for one owner donut segment. */
+function ownerDonutStyle(entryIndex: number): Record<string, string> {
+  const before = ownerChartEntries.value
+    .slice(0, entryIndex)
+    .reduce((sum, entry) => sum + graphValue(entry, mode.value), 0);
+  const value = graphValue(ownerChartEntries.value[entryIndex], mode.value);
+  return {
+    stroke: ownerColor(ownerChartEntries.value[entryIndex]),
+    strokeDasharray: `${ownerTotal.value ? (value / ownerTotal.value) * DONUT_CIRCUMFERENCE : 0} ${DONUT_CIRCUMFERENCE}`,
+    strokeDashoffset: `${ownerTotal.value ? -(before / ownerTotal.value) * DONUT_CIRCUMFERENCE : 0}`,
+  };
+}
+
+/** Build one base or contingency arc for the combined owner donut. */
+function ownerDonutPath(entryIndex: number, part: 'base' | 'contingency'): string {
+  const entry = ownerChartEntries.value[entryIndex];
+  if (!entry || ownerTotal.value <= 0 || entry.combined <= 0) return '';
+
+  const before = ownerChartEntries.value.slice(0, entryIndex).reduce((sum, current) => sum + current.combined, 0);
+  const segmentStart = (before / ownerTotal.value) * Math.PI * 2;
+  const segmentLength = (entry.combined / ownerTotal.value) * Math.PI * 2;
+  const baseLength = (entry.base / entry.combined) * segmentLength;
+  const start = part === 'base' ? segmentStart : segmentStart + baseLength;
+  const length = part === 'base' ? baseLength : segmentLength - baseLength;
+  if (length <= 0) return '';
+
+  const point = (angle: number): string => `${90 + DONUT_RADIUS * Math.cos(angle)} ${90 + DONUT_RADIUS * Math.sin(angle)}`;
+  if (length >= Math.PI * 2 - 0.0001) {
+    return `M ${point(start)} A ${DONUT_RADIUS} ${DONUT_RADIUS} 0 1 1 ${point(start + Math.PI)} A ${DONUT_RADIUS} ${DONUT_RADIUS} 0 1 1 ${point(start)}`;
+  }
+  return `M ${point(start)} A ${DONUT_RADIUS} ${DONUT_RADIUS} 0 ${length > Math.PI ? 1 : 0} 1 ${point(start + length)}`;
 }
 
 /** Build stroke offsets for one native SVG donut segment. */
@@ -398,13 +450,122 @@ async function onOpenEstimate(): Promise<void> {
       <article v-if="ownerEntries.length" class="chart-card owner-card">
         <div class="chart-heading">
           <div>
-            <p class="eyebrow">{{ selectedOwnerEntry ? t('analytics.ownerTasks', { name: ownerLabel(selectedOwnerEntry) }) : t('analytics.owners') }}</p>
-            <h3>{{ selectedOwnerEntry ? ownerLabel(selectedOwnerEntry) : t('analytics.ownerDistribution') }}</h3>
+            <p class="eyebrow">{{ t('analytics.owners') }}</p>
+            <h3>{{ t('analytics.ownerDistribution') }}</h3>
           </div>
-          <button v-if="selectedOwnerEntry" type="button" class="ghost back" @click="selectedOwnerId = null">← {{ t('analytics.allOwners') }}</button>
         </div>
 
+        <div v-if="ownerChartEntries.length" class="owner-charts">
+          <div class="owner-donut-wrap">
+            <svg class="donut owner-donut" viewBox="0 0 180 180" role="img" :aria-label="t('analytics.ownerDistribution')">
+              <defs>
+                <pattern id="owner-contingency-pattern" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <rect x="3" width="2" height="8" fill="rgb(255 255 255 / .35)" />
+                </pattern>
+              </defs>
+              <circle class="donut-track" cx="90" cy="90" :r="DONUT_RADIUS" />
+              <template v-if="mode === 'combined'">
+                <g
+                  v-for="(entry, index) in ownerChartEntries"
+                  :key="entry.id"
+                  class="donut-entry clickable owner-chart-entry"
+                  :class="{ dimmed: (hoveredOwnerId || selectedOwnerId) && (hoveredOwnerId || selectedOwnerId) !== entry.id }"
+                  tabindex="0"
+                  role="button"
+                  :aria-label="`${ownerLabel(entry)}: ${formatMetricValue(entry)}, ${ownerPercentages[index]}%`"
+                  @click="selectedOwnerId = entry.id"
+                  @keydown.enter.prevent="selectedOwnerId = entry.id"
+                  @keydown.space.prevent="selectedOwnerId = entry.id"
+                  @mouseenter="hoveredOwnerId = entry.id"
+                  @mouseleave="hoveredOwnerId = null"
+                  @focus="hoveredOwnerId = entry.id"
+                  @blur="hoveredOwnerId = null"
+                >
+                  <path v-if="entry.base > 0" class="donut-segment" :d="ownerDonutPath(index, 'base')" :style="{ stroke: ownerColor(entry) }" />
+                  <template v-if="entry.contingency > 0">
+                    <path class="donut-segment donut-contingency" :d="ownerDonutPath(index, 'contingency')" :style="{ stroke: ownerColor(entry) }" />
+                    <path class="donut-segment donut-contingency-stripes" :d="ownerDonutPath(index, 'contingency')" stroke="url(#owner-contingency-pattern)" />
+                  </template>
+                  <title>{{ ownerLabel(entry) }}: {{ formatMetricValue(entry) }} · {{ ownerPercentages[index] }}%</title>
+                </g>
+              </template>
+              <template v-else>
+                <circle
+                  v-for="(entry, index) in ownerChartEntries"
+                  :key="entry.id"
+                  class="donut-segment clickable owner-chart-entry"
+                  :class="{ dimmed: (hoveredOwnerId || selectedOwnerId) && (hoveredOwnerId || selectedOwnerId) !== entry.id }"
+                  cx="90"
+                  cy="90"
+                  :r="DONUT_RADIUS"
+                  :style="ownerDonutStyle(index)"
+                  tabindex="0"
+                  role="button"
+                  :aria-label="`${ownerLabel(entry)}: ${formatMetricValue(entry)}, ${ownerPercentages[index]}%`"
+                  @click="selectedOwnerId = entry.id"
+                  @keydown.enter.prevent="selectedOwnerId = entry.id"
+                  @keydown.space.prevent="selectedOwnerId = entry.id"
+                  @mouseenter="hoveredOwnerId = entry.id"
+                  @mouseleave="hoveredOwnerId = null"
+                  @focus="hoveredOwnerId = entry.id"
+                  @blur="hoveredOwnerId = null"
+                ><title>{{ ownerLabel(entry) }}: {{ formatMetricValue(entry) }} · {{ ownerPercentages[index] }}%</title></circle>
+              </template>
+            </svg>
+            <div class="donut-total">
+              <strong>{{ hoveredOwnerPercentage !== null ? `${hoveredOwnerPercentage}%` : formatValue(graphValue(ownerMetrics, mode)) }}</strong>
+              <span>{{ hoveredOwner ? ownerLabel(hoveredOwner) : t(`analytics.${mode}`) }}</span>
+            </div>
+          </div>
+
+          <div class="owner-bar-list">
+            <button
+              v-for="(entry, ownerIndex) in ownerChartEntries"
+              :key="entry.id"
+              type="button"
+              class="owner-bar-row owner-chart-entry"
+              :class="{ dimmed: (hoveredOwnerId || selectedOwnerId) && (hoveredOwnerId || selectedOwnerId) !== entry.id }"
+              @click="selectedOwnerId = entry.id"
+              @mouseenter="hoveredOwnerId = entry.id"
+              @mouseleave="hoveredOwnerId = null"
+              @focus="hoveredOwnerId = entry.id"
+              @blur="hoveredOwnerId = null"
+            >
+              <span class="owner-bar-label">
+                <span class="owner-name"><i class="owner-swatch" :style="{ background: ownerColor(entry) }" aria-hidden="true" />{{ ownerLabel(entry) }}</span>
+                <strong class="metric-value">
+                  <span>{{ formatValue(graphValue(entry, mode)) }}</span>
+                  <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(entry.base) }} | {{ formatBreakdownValue(entry.contingency) }}</span>
+                </strong>
+                <small>{{ ownerPercentages[ownerIndex] }}%</small>
+              </span>
+              <span class="bar-track">
+                <template v-if="mode === 'combined'">
+                  <span class="bar-base" :style="{ width: `${maxOwnerValue ? (entry.base / maxOwnerValue) * 100 : 0}%`, background: ownerColor(entry) }" />
+                  <span class="bar-contingency" :style="{ width: `${maxOwnerValue ? (entry.contingency / maxOwnerValue) * 100 : 0}%`, background: ownerColor(entry) }" />
+                </template>
+                <span v-else class="bar-base" :style="{ width: `${maxOwnerValue ? (graphValue(entry, mode) / maxOwnerValue) * 100 : 0}%`, background: ownerColor(entry) }" />
+              </span>
+            </button>
+            <div class="bar-key">
+              <template v-if="mode === 'combined'">
+                <span><i class="base-key" />{{ t('common.base') }}</span>
+                <span><i class="ctg-key" />{{ t('analytics.contingencyOnly') }}</span>
+              </template>
+              <span v-else><i class="base-key" />{{ t(`analytics.${mode}`) }}</span>
+            </div>
+          </div>
+        </div>
+        <p v-else class="empty-chart">{{ t('analytics.noMetricData') }}</p>
+
         <div v-if="selectedOwnerEntry" class="owner-detail">
+          <div class="owner-detail-heading">
+            <div>
+              <p class="eyebrow">{{ t('analytics.ownerTasks', { name: ownerLabel(selectedOwnerEntry) }) }}</p>
+              <h4>{{ ownerLabel(selectedOwnerEntry) }}</h4>
+            </div>
+            <button type="button" class="owner-detail-close" :aria-label="t('common.close')" @click="selectedOwnerId = null">×</button>
+          </div>
           <div class="owner-detail-summary">
             <span class="owner-swatch" :style="{ background: ownerColor(selectedOwnerEntry) }" aria-hidden="true" />
             <div class="owner-detail-name">
@@ -439,24 +600,6 @@ async function onOpenEstimate(): Promise<void> {
               <small class="owner-task-effort">{{ ownerTaskPercentages[taskIndex] }}%</small>
             </div>
           </div>
-        </div>
-
-        <div v-else class="owner-list" :aria-label="t('analytics.owners')">
-          <button
-            v-for="(entry, ownerIndex) in ownerEntries"
-            :key="entry.id"
-            type="button"
-            class="owner-row"
-            @click="selectedOwnerId = entry.id"
-          >
-            <span class="owner-swatch" :style="{ background: ownerColor(entry) }" aria-hidden="true" />
-            <span class="owner-name">{{ ownerLabel(entry) }}</span>
-            <strong class="metric-value">
-              <span>{{ formatValue(graphValue(entry, mode)) }}</span>
-              <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(entry.base) }} | {{ formatBreakdownValue(entry.contingency) }}</span>
-              <small>{{ ownerPercentages[ownerIndex] }}%</small>
-            </strong>
-          </button>
         </div>
       </article>
     </div>
@@ -584,7 +727,22 @@ async function onOpenEstimate(): Promise<void> {
 .bar-key span { display: flex; align-items: center; gap: .35rem; }
 .bar-key i { width: .75rem; height: .75rem; border-radius: 2px; background: var(--accent); }
 .bar-key .ctg-key { opacity: .42; background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgb(255 255 255 / .35) 3px 5px); }
-.owner-list, .owner-detail { display: grid; gap: .75rem; margin-top: .75rem; }
+.owner-charts { display: grid; grid-template-columns: minmax(220px, .75fr) minmax(360px, 1.25fr); align-items: center; gap: 1.5rem; margin-top: .75rem; }
+.owner-donut-wrap { position: relative; width: min(100%, 250px); aspect-ratio: 1; margin: auto; }
+.owner-donut { width: 100%; height: 100%; }
+.owner-bar-list { display: grid; gap: .65rem; max-height: 26rem; padding-right: .25rem; overflow: auto; }
+.owner-bar-row { display: grid; gap: .35rem; min-width: 0; padding: .45rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); text-align: left; }
+.owner-bar-row:hover, .owner-bar-row:focus { background: var(--page-soft); }
+.owner-bar-label { display: grid; grid-template-columns: minmax(0, 1fr) auto 3.5rem; align-items: baseline; gap: .65rem; font-size: .78rem; }
+.owner-bar-label .owner-name { display: flex; align-items: center; gap: .5rem; }
+.owner-bar-label small { color: var(--muted); font-size: .68rem; text-align: right; }
+.owner-chart-entry { transition: opacity .15s; }
+.owner-chart-entry.dimmed { opacity: .28; }
+.owner-detail { display: grid; gap: .75rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.owner-detail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.owner-detail-heading h4 { margin: .2rem 0 0; font-size: 1rem; }
+.owner-detail-close { display: grid; width: 1.8rem; height: 1.8rem; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 1.25rem; line-height: 1; }
+.owner-detail-close:hover, .owner-detail-close:focus-visible { background: var(--page-soft); color: var(--ink); }
 .owner-row, .owner-task-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .75rem; min-width: 0; padding: .65rem .55rem; color: var(--ink); text-align: left; }
 .owner-row { grid-template-columns: .7rem minmax(0, 1fr) auto; width: 100%; border: 0; background: transparent; cursor: pointer; }
 .owner-row:hover, .owner-row:focus { background: var(--page-soft); }
@@ -643,6 +801,7 @@ async function onOpenEstimate(): Promise<void> {
 @media (max-width: 900px) {
   .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .chart-grid { grid-template-columns: 1fr; }
+  .owner-charts { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
   .summary-grid { grid-template-columns: 1fr; }

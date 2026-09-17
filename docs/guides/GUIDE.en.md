@@ -473,7 +473,7 @@ Analytics shows how base effort and contingency (CTG) are distributed across mac
 
 The shared selector controls the donut, bars, and owner distribution. **Base + contingency** is the default and first option, followed by Base and Contingency. In single-metric modes the bars rescale to that metric; combined mode keeps base and CTG visually distinct. Macros with subtasks have a task icon and can be explored. Hover over segments or labels to see percentages.
 
-Owner distribution includes unassigned work and divides a multi-owner activity equally among its owners. Displayed percentages are rounded together so each distribution totals 100%. Open an owner to inspect assigned macros, subtasks, and calculated items; their type markers share one aligned column, and a separate Effort column shows each row's share of the selected metric.
+Owner distribution includes unassigned work and divides a multi-owner activity equally among its owners. A donut shows each owner's share, while bars compare workloads on one common scale and separate base effort from contingency in combined mode. Both charts follow the shared metric selector, omit zero-value owners, and keep deterministic owner colors. Select a donut segment or bar to keep the charts visible and open the assigned macros, subtasks, and calculated items below; their type markers share one aligned column, and a separate Effort column shows each row's share of the selected metric. Lists longer than eight owners scroll within the chart.
 
 ### Show tasks (in several macros)
 
