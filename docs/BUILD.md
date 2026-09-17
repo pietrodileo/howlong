@@ -2,7 +2,7 @@
 
 This guide explains how to develop, package, sign, and release *HowLong?*. Local and pre-release builds do not depend on the private key used by the official updater channel. For user-facing features, see [What's new](WHATS_NEW.md), the [English manual](guides/GUIDE.en.md), or the [Italian manual](guides/GUIDE.it.md).
 
-> **Release automation:** Official stable releases are created automatically by GitHub Actions when a stable `vX.Y.Z` tag is pushed to GitHub. The [`release.yml`](../.github/workflows/release.yml) workflow builds the supported installers, signs the updater artifacts, generates release notes, and publishes the GitHub Release. Tags with a hyphen, such as `v0.7.2-beta.1`, are ignored by the stable release workflow.
+> **Release automation:** Official stable releases are created automatically by GitHub Actions when a stable `vX.Y.Z` tag is pushed to GitHub. The [`release.yml`](../.github/workflows/release.yml) workflow builds the supported installers, signs the updater artifacts, generates release notes, and publishes the GitHub Release. Tags with a hyphen, such as `v0.8.0-beta.1`, are ignored by the stable release workflow.
 
 ## Build from source
 
@@ -109,17 +109,17 @@ curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/in
 
 The PowerShell script downloads and starts the Windows x64 NSIS installer. The Bash script downloads the matching macOS Intel/Apple Silicon DMG or Linux x64/ARM64 AppImage; macOS installs per-user under `~/Applications`, while Linux installs the AppImage as `~/.local/bin/howlong`. The scripts query GitHub Releases for the latest release or requested tag, reject prereleases, and never use the updater feed or private signing key.
 
-To install a specific stable version, pass `0.7.2` or `v0.7.2` to the Unix script:
+To install a specific stable version, pass `0.8.0` or `v0.8.0` to the Unix script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.7.2
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.8.0
 ```
 
 On Windows, download and invoke the PowerShell script with its `-Version` parameter:
 
 ```powershell
 $script = irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1
-& ([scriptblock]::Create($script)) -Version '0.7.2'
+& ([scriptblock]::Create($script)) -Version '0.8.0'
 ```
 
 Leave the version out to install the latest stable release. The requested release must contain an installer for the current operating system and architecture.
@@ -142,10 +142,10 @@ Examples:
 
 - `0.5.1` → `0.5.2` for a bug fix
 - `0.5.1` → `0.6.0` for a new feature
-- `0.7.1` → `0.7.2` for a patch release
+- `0.8.0` → `0.8.1` for a patch release
 - `0.5.1` → `1.0.0` for the first stable major release
 
-Stable release tags use a `v` prefix, for example `v0.7.2`. Pre-release versions may use a suffix such as `0.7.2-beta.1`.
+Stable release tags use a `v` prefix, for example `v0.8.0`. Pre-release versions may use a suffix such as `0.8.0-beta.1`.
 
 Keep the application version synchronized in:
 
@@ -205,7 +205,7 @@ Keep this key for all releases. Changing the public key after publication requir
 
 Create stable releases deliberately rather than on every merge. Tagging is manual; pushing the tag activates the automated release workflow.
 
-1. Choose the next stable version, for example `0.7.2`.
+1. Choose the next stable version, for example `0.8.0`.
 2. Update and commit the synchronized version files listed in [Versioning](#versioning).
 3. Run `npm run build` and the smoke tests affected by the change.
 4. Merge the version commit into `main` and push `main`.
@@ -214,8 +214,8 @@ Create stable releases deliberately rather than on every merge. Tagging is manua
    ```powershell
    git switch main
    git pull --ff-only origin main
-   git tag -a v0.7.2 -m "HowLong 0.7.2"
-   git push origin v0.7.2
+   git tag -a v0.8.0 -m "HowLong 0.8.0"
+   git push origin v0.8.0
    ```
 6. Pushing the tag triggers `.github/workflows/release.yml`, which builds all five targets, signs the updater artifacts, generates release notes, creates the GitHub Release, and uploads `latest.json`.
 

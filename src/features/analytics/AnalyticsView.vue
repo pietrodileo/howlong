@@ -64,7 +64,7 @@ const selectedMacroName = computed(() => {
   return estimate.value.items.find((item) => item.id === selectedMacroId.value)?.name ?? '';
 });
 const hoursPerDay = computed(() => estimate.value?.meta.hoursPerDay ?? 8);
-const maxCombined = computed(() => Math.max(0, ...entries.value.map((entry) => entry.combined)));
+const maxBarValue = computed(() => Math.max(0, ...entries.value.map((entry) => graphValue(entry, mode.value))));
 const filteredModels = computed(() => {
   const query = modelSearch.value.trim().toLowerCase();
   return models.value.filter((model) => model.name.toLowerCase().includes(query));
@@ -228,9 +228,9 @@ async function onOpenEstimate(): Promise<void> {
         <button type="button" :class="{ active: unit === 'days' }" @click="unit = 'days'">{{ t('common.days') }}</button>
       </div>
       <select v-model="mode" class="metric-select" :aria-label="t('analytics.metric')">
+        <option value="combined">{{ t('analytics.combined') }}</option>
         <option value="base">{{ t('common.base') }}</option>
         <option value="contingency">{{ t('analytics.contingencyOnly') }}</option>
-        <option value="combined">{{ t('analytics.combined') }}</option>
       </select>
     </div>
 
@@ -361,7 +361,7 @@ async function onOpenEstimate(): Promise<void> {
       <article class="chart-card bars-card">
         <div class="chart-heading">
           <div>
-            <p class="eyebrow">{{ t('analytics.baseVsContingency') }}</p>
+            <p class="eyebrow">{{ t(`analytics.${mode}`) }}</p>
             <h3>{{ selectedMacroName || t('analytics.macros') }}</h3>
           </div>
         </div>
@@ -376,12 +376,21 @@ async function onOpenEstimate(): Promise<void> {
               <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(entry.base) }} | {{ formatBreakdownValue(entry.contingency) }}</span>
             </strong></span>
             <span class="bar-track">
-              <span class="bar-base" :style="{ width: `${maxCombined ? (entry.base / maxCombined) * 100 : 0}%`, background: entry.color }" />
-              <span class="bar-contingency" :style="{ width: `${maxCombined ? (entry.contingency / maxCombined) * 100 : 0}%`, background: entry.color }" />
+              <template v-if="mode === 'combined'">
+                <span class="bar-base" :style="{ width: `${maxBarValue ? (entry.base / maxBarValue) * 100 : 0}%`, background: entry.color }" />
+                <span class="bar-contingency" :style="{ width: `${maxBarValue ? (entry.contingency / maxBarValue) * 100 : 0}%`, background: entry.color }" />
+              </template>
+              <span v-else class="bar-base" :style="{ width: `${maxBarValue ? (graphValue(entry, mode) / maxBarValue) * 100 : 0}%`, background: entry.color }" />
             </span>
           </button>
         </div>
-        <div class="bar-key"><span><i class="base-key" />{{ t('common.base') }}</span><span><i class="ctg-key" />{{ t('analytics.contingencyOnly') }}</span></div>
+        <div class="bar-key">
+          <template v-if="mode === 'combined'">
+            <span><i class="base-key" />{{ t('common.base') }}</span>
+            <span><i class="ctg-key" />{{ t('analytics.contingencyOnly') }}</span>
+          </template>
+          <span v-else><i class="base-key" />{{ t(`analytics.${mode}`) }}</span>
+        </div>
       </article>
       </template>
 
