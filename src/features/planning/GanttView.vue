@@ -4,8 +4,6 @@ import { useDocumentsStore } from '../../shared/documents';
 import { useEstimateStore } from '../estimate/estimate';
 import { useUiStore } from '../../app/ui';
 import { useSettingsStore } from '../settings/settings';
-import { useLibraryStore } from '../library/library';
-import { mergeOwners, normalizeOwner } from '../../domain/owners';
 import DisclosureIcon from '../../shared/components/DisclosureIcon.vue';
 import { useModelsStore } from '../models/models';
 import { storeToRefs } from 'pinia';
@@ -32,6 +30,7 @@ import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import { useDocumentSync } from '../../shared/composables/useDocumentSync';
 import IconBtn from '../../shared/components/IconBtn.vue';
 import OwnerPicker from '../../shared/components/OwnerPicker.vue';
+import { useOwnerAssignment } from '../../shared/composables/useOwnerAssignment';
 
 type Scale = 'day' | 'month';
 type DragMode = 'move' | 'start' | 'end';
@@ -42,57 +41,14 @@ const documentSync = useDocumentSync('gantt');
 const { mutate, record } = documentSync;
 const ui = useUiStore();
 const settings = useSettingsStore();
-const libraryStore = useLibraryStore();
-const isSavingOwner = ref(false);
-const ownerOptions = computed(() => mergeOwners([
-  ...libraryStore.ownerOptions,
-  ...estimate.estimate.items.map((item) => item.owner ?? ''),
-]));
-
-watch(() => [settings.settings.workspaceDir, settings.appDataDir], () => {
-  void libraryStore.loadOwners().catch((error) => ui.notify(String(error), true));
-}, { immediate: true });
-
-/** Persist reusable names before assigning; discard late edits after changing tabs or workspaces. */
-async function onOwnerChange(item: LineItem, name: string) {
-  if (isSavingOwner.value) return;
-  const sessionId = docs.activeId;
-  const workspaceDir = settings.settings.workspaceDir;
-  isSavingOwner.value = true;
-  try {
-    if (item.owner) await libraryStore.rememberOwner(item.owner);
-    const owner = normalizeOwner(name) ? await libraryStore.rememberOwner(name) : '';
-    if (docs.activeId !== sessionId || settings.settings.workspaceDir !== workspaceDir) return;
-    if (item.owner !== owner) mutate(() => estimate.updateItem(item.id, { owner }));
-  } catch (error) {
-    ui.notify(error instanceof Error ? error.message : String(error), true);
-  } finally {
-    isSavingOwner.value = false;
-  }
-}
-
-/** Ask before deleting an owner and removing it from every activity in this estimate. */
-function onOwnerDelete(name: string) {
-  pendingOwnerDelete.value = { name, sessionId: docs.activeId };
-}
-
-/** Confirm owner deletion, clear matching assignments once, and persist the change. */
-async function confirmOwnerDelete() {
-  const request = pendingOwnerDelete.value;
-  pendingOwnerDelete.value = null;
-  if (!request || request.sessionId !== docs.activeId) return;
-  const normalizedName = request.name.trim().toLowerCase();
-  try {
-    await libraryStore.forgetOwner(request.name);
-    if (request.sessionId !== docs.activeId) return;
-    const matchingItems = estimate.estimate.items.filter((item) => item.owner?.trim().toLowerCase() === normalizedName);
-    if (matchingItems.length > 0) {
-      mutate(() => matchingItems.forEach((item) => estimate.updateItem(item.id, { owner: '' })));
-    }
-  } catch (error) {
-    ui.notify(error instanceof Error ? error.message : String(error), true);
-  }
-}
+const {
+  isSavingOwner,
+  ownerOptions,
+  pendingOwnerDelete,
+  onOwnerChange,
+  onOwnerDelete,
+  confirmOwnerDelete,
+} = useOwnerAssignment(mutate);
 
 const modelsStore = useModelsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
@@ -111,7 +67,6 @@ const exporting = ref(false);
 const ganttShell = ref<HTMLElement | null>(null);
 const ganttShellWidth = ref(0);
 const pendingDelete = ref<LineItem | null>(null);
-const pendingOwnerDelete = ref<{ name: string; sessionId: string | null } | null>(null);
 const newMenuOpen = ref(false);
 const modelSearch = ref('');
 const activityWidth = ref(340);

@@ -153,7 +153,9 @@ To remove *HowLong?* without deleting your estimates:
 
 These commands remove only the application. Your workspace, estimates, and settings stay on disk. Delete them separately if you want to reset all application data.
 
-# Export outputs
+# App showcase
+
+## Export outputs
 
 *HowLong?* lets you export the complete estimate or a focused view for internal review, client delivery, or timeline communication. Choose the source view based on who will use the file and what they need to see.
 
@@ -172,8 +174,6 @@ These commands remove only the application. Your workspace, estimates, and setti
 | ZIP            | An archive containing multiple Library exports                        |
 
 Exports are copies of the current estimate or view. They do not replace **Save**, which updates the working file in the Library. `.howlong.json` is the only format you can import back into HowLong; YAML and XLSX are for reading, sharing, or downstream workflows, while ZIP bundles multiple exports.
-
-# App showcase
 
 Start on the Home screen to create or open an estimate, browse the Library, or reopen a recent file. Once an estimate is open, the editor gives you access to Plan and Analytics.
 

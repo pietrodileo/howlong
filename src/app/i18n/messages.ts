@@ -86,6 +86,7 @@ export type MessageTree = {
   columns: {
     name: string;
     category: string;
+    owner: string;
     base: string;
     applyCtg: string;
     ctg: string;
@@ -994,6 +995,7 @@ const it: MessageTree = {
   columns: {
     name: 'Nome',
     category: 'Categoria',
+    owner: 'Assegnatario',
     base: 'Ore',
     applyCtg: 'Applica CTG',
     ctg: 'CTG',
@@ -1904,6 +1906,7 @@ const en: MessageTree = {
   columns: {
     name: 'Name',
     category: 'Category',
+    owner: 'Owner',
     base: 'Hours',
     applyCtg: 'Apply CTG',
     ctg: 'CTG',

@@ -8,6 +8,7 @@ import {
 export type ColumnKey =
   | 'name'
   | 'category'
+  | 'owner'
   | 'base'
   | 'applyCtg'
   | 'ctg'
@@ -23,6 +24,7 @@ export type ManagerColumnKey =
   | 'show'
   | 'name'
   | 'category'
+  | 'owner'
   | 'tags'
   | 'base'
   | 'ctg'
@@ -37,6 +39,7 @@ export type ClientOutputColumnKey = 'subs' | 'name' | 'tags' | 'notes' | 'hours'
 /** Colonne selezionabili (Nome resta sempre visibile). */
 export const TOGGLEABLE_COLUMNS: ColumnKey[] = [
   'category',
+  'owner',
   'base',
   'applyCtg',
   'ctg',
@@ -56,6 +59,7 @@ export const MODEL_TOGGLEABLE_COLUMNS: ModelColumnKey[] = [
 const DEFAULT_WIDTHS: Record<ColumnKey, number> = {
   name: 260,
   category: 130,
+  owner: 150,
   base: 88,
   applyCtg: 72,
   ctg: 72,
@@ -69,6 +73,7 @@ const DEFAULT_WIDTHS: Record<ColumnKey, number> = {
 const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = {
   name: true,
   category: true,
+  owner: true,
   base: true,
   applyCtg: true,
   ctg: true,
@@ -82,6 +87,7 @@ const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = {
 const DEFAULT_ORDER: ColumnKey[] = [
   'name',
   'category',
+  'owner',
   'base',
   'applyCtg',
   'ctg',
@@ -123,6 +129,7 @@ const MANAGER_DEFAULT_WIDTHS: Record<ManagerColumnKey, number> = {
   show: 52,
   name: 220,
   category: 120,
+  owner: 150,
   tags: 150,
   base: 80,
   ctg: 72,
@@ -137,6 +144,7 @@ const MANAGER_DEFAULT_VISIBLE: Record<ManagerColumnKey, boolean> = {
   show: true,
   name: true,
   category: true,
+  owner: true,
   tags: true,
   base: true,
   ctg: true,
@@ -151,6 +159,7 @@ const MANAGER_DEFAULT_ORDER: ManagerColumnKey[] = [
   'show',
   'name',
   'category',
+  'owner',
   'tags',
   'base',
   'ctg',

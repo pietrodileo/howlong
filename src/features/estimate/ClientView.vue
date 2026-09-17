@@ -8,6 +8,7 @@ import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import RefreshIcon from '../../shared/components/RefreshIcon.vue';
 import NotesEditor from './NotesEditor.vue';
 import TagPicker from '../../shared/components/TagPicker.vue';
+import OwnerPicker from '../../shared/components/OwnerPicker.vue';
 import { useModelsStore } from '../models/models';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../settings/settings';
@@ -41,6 +42,7 @@ import { formatAuditDateTime } from '../../shared/formatAuditDate';
 import { readTextFile, isTauri } from '../../platform/tauri';
 import { importEstimateText } from '../../platform/files/import';
 import { useDocumentsStore } from '../../shared/documents';
+import { useOwnerAssignment } from '../../shared/composables/useOwnerAssignment';
 
 const NOTES_PREVIEW_MAX = 72;
 
@@ -52,6 +54,14 @@ const library = useLibraryStore();
 const modelsStore = useModelsStore();
 const { models: modelList } = storeToRefs(modelsStore);
 const { t } = useI18n();
+const {
+  isSavingOwner,
+  ownerOptions,
+  pendingOwnerDelete,
+  onOwnerChange,
+  onOwnerDelete,
+  confirmOwnerDelete,
+} = useOwnerAssignment((action) => action());
 
 const lastAudit = computed(() => {
   const h = estimate.estimate.auditHistory;
@@ -513,6 +523,8 @@ function columnLabel(key: ManagerColumnKey): string {
       return t('client.activity');
     case 'category':
       return t('common.category');
+    case 'owner':
+      return t('columns.owner');
     case 'tags':
       return t('columns.tags');
     case 'base':
@@ -542,6 +554,8 @@ function columnAbbr(key: ManagerColumnKey): string {
       return 'N';
     case 'category':
       return 'C';
+    case 'owner':
+      return 'O';
     case 'tags':
       return 'T';
     case 'base':
@@ -921,6 +935,25 @@ async function onExportFromMenu(
                 :class="{ collapsed: cols.collapsed.category }"
               >
                 <template v-if="!cols.collapsed.category">{{ line.item.category }}</template>
+              </td>
+              <td
+                v-else-if="key === 'owner'"
+                class="pad"
+                :style="cols.styleFor('owner')"
+                :class="{ collapsed: cols.collapsed.owner }"
+              >
+                <OwnerPicker
+                  v-if="!cols.collapsed.owner"
+                  :model-value="line.item.owner ?? ''"
+                  :options="ownerOptions"
+                  :disabled="isSavingOwner"
+                  :aria-label="`${t('columns.owner')}: ${line.item.name}`"
+                  :placeholder="t('gantt.ownerPlaceholder')"
+                  :filter-placeholder="t('gantt.ownerFilter')"
+                  :create-label="t('gantt.createOwner')"
+                  @update:model-value="onOwnerChange(line.item, $event)"
+                  @delete-option="onOwnerDelete"
+                />
               </td>
               <td
                 v-else-if="key === 'tags'"
@@ -1349,6 +1382,16 @@ async function onExportFromMenu(
       danger
       @cancel="cancelReload"
       @confirm="confirmReload"
+    />
+
+    <ConfirmModal
+      :open="pendingOwnerDelete != null"
+      :title="t('gantt.deleteOwnerTitle')"
+      :message="t('gantt.deleteOwnerBody', { name: pendingOwnerDelete?.name ?? '' })"
+      :confirm-label="t('gantt.deleteOwnerConfirm')"
+      danger
+      @cancel="pendingOwnerDelete = null"
+      @confirm="confirmOwnerDelete"
     />
 
     <AuditHistoryModal
