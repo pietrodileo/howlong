@@ -22,6 +22,7 @@ function macroFrom(
     parentId: null,
     contingencyPercentOverride: null,
     notes: '',
+    owners: [],
     status: 'to-plan',
     tags: [],
     clientVisible: true,
@@ -51,7 +52,7 @@ export function createEstimateFromModel(model: Model, settings?: Settings): Esti
   }
 
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     meta: {
       id: newId('est'),
       title: `Nuova stima — ${model.name}`,
@@ -92,7 +93,7 @@ export function createEstimateFromModel(model: Model, settings?: Settings): Esti
 export function createEmptyEstimate(settings: Settings): Estimate {
   const now = nowIso();
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     meta: {
       id: newId('est'),
       title: 'Nuova stima',

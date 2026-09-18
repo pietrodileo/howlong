@@ -1,8 +1,23 @@
 # What's new
 
-This page lists the user-facing features introduced in each stable release published on GitHub. It follows the release tags, so pre-releases and internal-only changes are not listed. The work that was prepared between `v0.7.0` and `v0.7.2` is grouped under `v0.7.2`, the next published stable release.
+This page lists the user-facing features introduced in each stable release published on GitHub. It follows the release tags, so pre-releases and internal-only changes are not listed.
 
 For the complete generated changelog for a release, see the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases).
+
+## v0.8.0
+
+[GitHub release](https://github.com/pietrodileo/howlong/releases/tag/v0.8.0)
+
+- Activities can have multiple equal-responsibility owners when the workspace setting is enabled. Existing multiple assignments remain visible and removable when the setting is disabled.
+- Owner assignments stay synchronized across Estimate, Manager, Client, and Plan views, imports, exports, history, and saved estimates.
+- Analytics adds coordinated owner donut and bar charts, with drill-down into assigned macros, subtasks, and calculated items. Multi-owner effort is divided equally so owner totals reconcile with the estimate.
+- Analytics adds planning coverage, status distribution by category, and scheduled-activity timeline charts. Planning charts reuse Gantt statuses and support read-only drill-down without treating date ranges as capacity or progress.
+- Analytics can expand subtasks from several macros at once or focus on one macro across both charts.
+- The shared Analytics metric selector controls the activity and owner charts. Bars rescale for Base or Contingency and show solid base plus striped CTG in the combined mode.
+- **Base + contingency** is the first and default Analytics metric.
+- Analytics percentages use coordinated rounding so every displayed distribution totals 100%.
+- Analytics uses a compact hierarchy icon for subtasks and aligns subtask, macro, and calculated-item markers consistently.
+- Owner task details separate the selected metric from its Effort percentage for easier comparison.
 
 ## v0.7.2
 

@@ -117,6 +117,10 @@ async function importEstimateCsv(
           ? Number(row.contingencyPercentApplied)
           : null,
       notes: row.notes || '',
+      owners: (row.owners || row.owner || '')
+        .split(',')
+        .map((owner) => owner.trim())
+        .filter(Boolean),
       status: 'to-plan',
       tags: (row.tags || row.tag || '')
         .split('|')
@@ -139,7 +143,7 @@ async function importEstimateCsv(
 
   const now = nowIso();
   const estimate: Estimate = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     meta: {
       id: newId('est'),
       title: 'Stima importata CSV',

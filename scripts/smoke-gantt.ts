@@ -68,7 +68,7 @@ const legacy = {
 const parsed = parseEstimate({ ...legacy, schemaVersion: 2 });
 assert.equal(parsed.ok, true);
 if (parsed.ok) {
-  assert.equal(parsed.data.schemaVersion, 3);
+  assert.equal(parsed.data.schemaVersion, 4);
   assert.deepEqual(parsed.data.planning, { items: {} });
   assert.ok(parsed.data.items.every((item) => item.status === 'to-plan'));
 }
@@ -77,7 +77,7 @@ assert.equal(parseEstimate({
   planning: { items: { broken: { startDate: '2026-09-10', endDate: '2026-09-09' } } },
 }).ok, false);
 
-first.owner = 'Alice';
+first.owners = ['Alice'];
 const xlsx = await ganttToXlsx(estimate, {
   from: '2026-09-01',
   to: '2026-09-07',
@@ -94,7 +94,7 @@ assert.equal(ganttSheet.views[0].state, 'frozen');
 assert.equal(ganttSheet.views[0].xSplit, 10);
 assert.equal(ganttSheet.views[0].ySplit, 6);
 assert.equal(ganttSheet.autoFilter, 'A6:J6');
-assert.deepEqual(ganttSheet.getRow(6).values.slice(1, 11), ['Activity', 'Macro', 'Start', 'End', 'Base (days)', 'Base + CTG (days)', 'Planned (days)', 'Status', 'Notes', 'Owner']);
+assert.deepEqual(ganttSheet.getRow(6).values.slice(1, 11), ['Activity', 'Macro', 'Start', 'End', 'Base (days)', 'Base + CTG (days)', 'Planned (days)', 'Status', 'Notes', 'Owners']);
 assert.equal(ganttSheet.getCell('K5').numFmt, 'mmmm yyyy');
 assert.equal(ganttSheet.getCell('O5').master.address, 'K5');
 const monthBoundaryWorkbook = new ExcelJS.Workbook();
@@ -116,7 +116,7 @@ assert.equal(ganttSheet.getCell('F7').value, 3.6);
 assert.equal(ganttSheet.getCell('G7').value, 6);
 assert.equal(ganttSheet.getCell('H7').value, 'blocked');
 assert.equal(ganttSheet.getCell('I8').value, 'Internal note');
-assert.equal(ganttSheet.getCell('J6').value, 'Owner');
+assert.equal(ganttSheet.getCell('J6').value, 'Owners');
 assert.equal(ganttSheet.getCell('J8').value, 'Alice');
 assert.equal(ganttSheet.getCell('J7').value, '');
 assert.equal(ganttSheet.getRow(8).outlineLevel, 1);
@@ -208,4 +208,4 @@ scheduledSubtask.status = 'in-progress';
 store.setPlanningRange(subtaskId, { startDate: '2026-09-02', endDate: '2026-09-04' });
 assert.equal(scheduledSubtask.status, 'in-progress');
 store.setPlanningRange(subtaskId, null);
-assert.equal(scheduledSubtask.status, 'in-progress');
+assert.equal(scheduledSubtask.status, 'to-plan');

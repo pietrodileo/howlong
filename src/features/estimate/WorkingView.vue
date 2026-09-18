@@ -10,6 +10,7 @@ import FormulaEditor, {
 } from '../../shared/components/FormulaEditor.vue';
 import NotesEditor from './NotesEditor.vue';
 import TagPicker from '../../shared/components/TagPicker.vue';
+import OwnerPicker from '../../shared/components/OwnerPicker.vue';
 import IconBtn from '../../shared/components/IconBtn.vue';
 import RefreshIcon from '../../shared/components/RefreshIcon.vue';
 import MetaIconPicker from '../../shared/components/MetaIconPicker.vue';
@@ -49,6 +50,7 @@ import { formulaLabel, isFormulaItem } from '../../domain/formulas';
 import { newId } from '../../shared/ids';
 import type { LineItem } from '../../models/estimate';
 import { useDocumentSync } from '../../shared/composables/useDocumentSync';
+import { useOwnerAssignment } from '../../shared/composables/useOwnerAssignment';
 import { useI18n } from '../../app/i18n/useI18n';
 
 const estimate = useEstimateStore();
@@ -62,6 +64,14 @@ const cols = useResizableColumns();
 const { t } = useI18n();
 
 const documentSync = useDocumentSync('working');
+const {
+  isSavingOwner,
+  ownerOptions,
+  pendingOwnerDelete,
+  onOwnerChange,
+  onOwnerDelete,
+  confirmOwnerDelete,
+} = useOwnerAssignment((action) => action());
 
 const lastAudit = computed(() => {
   const h = estimate.estimate.auditHistory;
@@ -215,6 +225,8 @@ function columnAbbr(key: ColumnKey): string {
       return 'N';
     case 'category':
       return 'C';
+    case 'owner':
+      return 'O';
     case 'base':
       return effortUnitShort.value;
     case 'applyCtg':
@@ -947,6 +959,25 @@ function onHeaderDblClick(key: ColumnKey) {
                   </template>
                 </td>
                 <td
+                  v-else-if="key === 'owner'"
+                  :style="cols.styleFor('owner')"
+                  :class="{ collapsed: cols.collapsed.owner }"
+                >
+                  <OwnerPicker
+                    v-if="!cols.collapsed.owner"
+                    :model-value="line.item.owners"
+                    :options="ownerOptions"
+                    :multiple="settings.settings.allowMultipleOwners"
+                    :disabled="isSavingOwner"
+                    :aria-label="`${t('columns.owner')}: ${line.item.name}`"
+                    :placeholder="t('gantt.ownerPlaceholder')"
+                    :filter-placeholder="t('gantt.ownerFilter')"
+                    :create-label="t('gantt.createOwner')"
+                    @update:model-value="onOwnerChange(line.item, $event)"
+                    @delete-option="onOwnerDelete"
+                  />
+                </td>
+                <td
                   v-else-if="key === 'base'"
                   class="num-cell"
                   :style="cols.styleFor('base')"
@@ -1193,6 +1224,16 @@ function onHeaderDblClick(key: ColumnKey) {
     danger
     @cancel="cancelConfirm"
     @confirm="runConfirm"
+  />
+
+  <ConfirmModal
+    :open="pendingOwnerDelete != null"
+    :title="t('gantt.deleteOwnerTitle')"
+    :message="t('gantt.deleteOwnerBody', { name: pendingOwnerDelete?.name ?? '' })"
+    :confirm-label="t('gantt.deleteOwnerConfirm')"
+    danger
+    @cancel="pendingOwnerDelete = null"
+    @confirm="confirmOwnerDelete"
   />
 
   <AuditHistoryModal

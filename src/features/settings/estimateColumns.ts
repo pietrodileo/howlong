@@ -1,6 +1,7 @@
 /** Colonne Stima selezionabili (Nome resta sempre visibile). */
 export const ESTIMATE_TOGGLEABLE_COLUMNS = [
   'category',
+  'owner',
   'base',
   'applyCtg',
   'ctg',
@@ -15,6 +16,7 @@ export type EstimateToggleableColumn = (typeof ESTIMATE_TOGGLEABLE_COLUMNS)[numb
 
 export const DEFAULT_ESTIMATE_COLUMN_VISIBILITY: Record<EstimateToggleableColumn, boolean> = {
   category: true,
+  owner: true,
   base: true,
   applyCtg: true,
   ctg: true,

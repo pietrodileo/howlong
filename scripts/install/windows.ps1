@@ -26,7 +26,12 @@ $releaseUri = if ($requestedTag) {
 
 $release = Invoke-RestMethod `
   -Uri $releaseUri `
-  -Headers $headers
+  -Headers $headers `
+  -ErrorAction Stop
+
+if ($null -eq $release) {
+  throw 'GitHub returned an empty release response.'
+}
 
 if ($release.draft -or $release.prerelease -or $release.tag_name -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
   if ($requestedTag) {
@@ -49,7 +54,7 @@ $asset = @($release.assets | Where-Object {
   $_.name -match '^HowLong_[0-9]+\.[0-9]+\.[0-9]+_x64-setup\.exe$'
 } | Select-Object -First 1)
 
-if ($asset.Count -eq 0) {
+if ($asset.Count -eq 0 -or $null -eq $asset[0].browser_download_url) {
   throw "No Windows x64 installer was found in release $($release.tag_name)."
 }
 
@@ -57,7 +62,11 @@ $temporaryInstaller = Join-Path ([System.IO.Path]::GetTempPath()) "HowLong-$([gu
 
 try {
   Write-Host "Downloading HowLong $($release.tag_name) for Windows x64..."
-  Invoke-WebRequest -Uri $asset[0].browser_download_url -Headers $headers -OutFile $temporaryInstaller
+  Invoke-WebRequest `
+    -Uri $asset[0].browser_download_url `
+    -Headers $headers `
+    -OutFile $temporaryInstaller `
+    -ErrorAction Stop
   Write-Host 'If HowLong is already installed, the installer will update that copy. Your estimates and settings stay on disk.'
   Write-Host 'Starting the installer...'
   Start-Process -FilePath $temporaryInstaller -Wait

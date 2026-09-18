@@ -141,6 +141,7 @@ export async function estimateToAiYaml(estimate: Estimate, clientOnly = false): 
         base.of = line.item.formula.sourceIds.map((id) => byId.get(id) ?? id);
       }
     }
+    if (line.item.owners.length > 0) base.owners = [...line.item.owners];
     const notes =
       clientOnly && estimate.clientView.hideClientNotes ? '' : line.item.notes;
     if (notes) base.notes = notes;
@@ -286,7 +287,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
       start = end + 1;
     }
   }
-  const header = sheet.addRow(['Activity', 'Macro', 'Start', 'End', 'Base (days)', 'Base + CTG (days)', 'Planned (days)', 'Status', 'Notes', 'Owner', ...slots.map((slot) => slot.label)]);
+  const header = sheet.addRow(['Activity', 'Macro', 'Start', 'End', 'Base (days)', 'Base + CTG (days)', 'Planned (days)', 'Status', 'Notes', 'Owners', ...slots.map((slot) => slot.label)]);
   header.height = 32;
   header.eachCell((cell) => {
     cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } };
@@ -323,7 +324,7 @@ export async function ganttToXlsx(estimate: Estimate, options: GanttExportOption
         plannedDays,
         activityStatus.replace(/-/g, ' '),
         item.notes,
-        item.owner ?? '',
+        item.owners.join(', '),
         ...slots.map(() => ''),
       ]);
       row.height = 22;
@@ -420,6 +421,7 @@ export async function estimateToXlsx(
   const header = sheet.addRow([
     'Name',
     'Category',
+    'Owners',
     ...(includeTags ? ['Tags'] : []),
     'Hours',
     'Days',
@@ -450,6 +452,7 @@ export async function estimateToXlsx(
     const row = sheet.addRow([
       `${indent}${line.item.name}`,
       line.item.category,
+      line.item.owners.join(', '),
       ...(includeTags ? [formatTagsList(line.item.tags)] : []),
       line.hoursBase,
       hoursToDays(line.hoursBase, hpd),
@@ -495,7 +498,7 @@ export async function estimateToXlsx(
   ]);
 
   sheet.columns = [
-    { width: 34 }, { width: 18 }, ...(includeTags ? [{ width: 24 }] : []),
+    { width: 34 }, { width: 18 }, { width: 24 }, ...(includeTags ? [{ width: 24 }] : []),
     { width: 12 }, { width: 12 }, { width: 12 }, { width: 12 }, { width: 15 },
     { width: 15 }, { width: 16 }, { width: 16 }, ...(includeNotes ? [{ width: 38 }] : []),
   ];

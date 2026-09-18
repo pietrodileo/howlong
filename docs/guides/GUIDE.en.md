@@ -1,6 +1,6 @@
 # HowLong? user manual
 
-HowLong? `0.7.2` on Windows, macOS, and Linux.
+HowLong? `0.8.0` on Windows, macOS, and Linux.
 
 [Project README](../../README.md) · [What's new](../WHATS_NEW.md) · [Italian manual](GUIDE.it.md) · [Build and release guide](../BUILD.md)
 
@@ -163,6 +163,7 @@ The dark theme applies to the estimate, presentation, and planning screens as we
 
 - **Gantt** — weekend days; hiding weekends affects display only, not saved dates
 - **Estimate view** — editor defaults, including compact columns
+- **Owners** — enable multiple owners per activity. Owners share responsibility equally; turning the option off keeps existing multiple assignments visible and lets you remove them, but prevents adding more.
 - **Presentation** — whether manager/client notes and labels start hidden
 - **Export filename** — optional date/time in generated filenames
 
@@ -259,6 +260,7 @@ Changing **hours per day** changes only the display of person-days. HowLong? alw
 | CTG          | Calculated contingency amount                                  |
 | With CTG     | Total effort with contingency included (base + CTG)            |
 | Custom CTG % | Row-specific contingency percentage override                   |
+| Owners       | One owner, or multiple equal-responsibility owners when enabled in Settings |
 | Label        | Custom tags for filtering or grouping                          |
 | Notes        | Internal notes; not shown to client by default                 |
 | Actions      | Add subtask, edit formula, duplicate, or delete this row       |
@@ -452,7 +454,7 @@ You can resize the activity panel using the divider. Collapse for a larger timel
 
 Use **Save** in the Plan header to persist date, status, note, owner, and color changes. A dirty dot on the button indicates unsaved scheduling changes.
 
-When exporting to XLSX, HowLong? uses the current view's scale, visible date range, and weekend settings. The export keeps the timeline columns after these fixed activity columns: `Activity`, `Macro`, `Start`, `End`, `Base (days)`, `Base + CTG (days)`, `Planned (days)`, `Status`, `Notes`, and `Owner`. `Planned (days)` counts the scheduled range using the working-day weekend setting.
+When exporting to XLSX, HowLong? uses the current view's scale, visible date range, and weekend settings. The export keeps the timeline columns after these fixed activity columns: `Activity`, `Macro`, `Start`, `End`, `Base (days)`, `Base + CTG (days)`, `Planned (days)`, `Status`, `Notes`, and `Owners`. `Planned (days)` counts the scheduled range using the working-day weekend setting.
 
 ## 11. Analytics
 
@@ -467,9 +469,13 @@ Analytics shows how base effort and contingency (CTG) are distributed across mac
 | Summary cards | Totals: Base, Contingency, Base + contingency, and CTG rate         |
 | Hours/Days    | All values converted based on your estimate’s hours per day        |
 | Donut         | Share by activity/macro; center displays the selected metric’s sum |
-| Bars          | Shows base (solid) and CTG (striped) side by side                   |
+| Bars          | Follows the selected metric; combined mode shows base (solid) and CTG (striped) side by side |
 
-Switch donut metric anytime: Base · Contingency · Base + contingency (default). Macros with subtasks have a task icon and can be explored. Hover over segments or labels to see percentages.
+The shared selector controls the donut, bars, and owner distribution. **Base + contingency** is the default and first option, followed by Base and Contingency. In single-metric modes the bars rescale to that metric; combined mode keeps base and CTG visually distinct. Macros with subtasks have a task icon and can be explored. Hover over segments or labels to see percentages.
+
+Owner distribution includes unassigned work and divides a multi-owner activity equally among its owners. A donut shows each owner's share, while bars compare workloads on one common scale and separate base effort from contingency in combined mode. Both charts follow the shared metric selector, omit zero-value owners, and keep deterministic owner colors. Select a donut segment or bar to keep the charts visible and open the assigned macros, subtasks, and calculated items below; their type markers share one aligned column, and a separate Effort column shows each row's share of the selected metric. Lists longer than eight owners scroll within the chart.
+
+The **Planning analytics** section shows how much active operational effort has a planning range, the status mix within each category, and how many scheduled activities overlap each week or month. Status shares can be weighted by the selected effort metric or by activity count. Cancelled activities remain available in status details but do not contribute to operational percentages or the timeline; formulas and aggregate macros are excluded to avoid double counting. Select a coverage card, status segment, or timeline period to inspect the contributing activities. Planning analytics describes calendar placement and does not infer progress, capacity, lateness, or schedule health.
 
 ### Show tasks (in several macros)
 
@@ -565,7 +571,7 @@ Use **Export XLSX** from **Plan**. The workbook contains the estimate title, cli
 | `Base (days)` | Base effort converted using the estimate's hours per day |
 | `Base + CTG (days)` | Effort including contingency, converted to days |
 | `Planned (days)` | Number of days in the scheduled range; weekend days follow the working-day setting |
-| `Status` / `Notes` / `Owner` | Operational status and activity metadata |
+| `Status` / `Notes` / `Owners` | Operational status and activity metadata |
 | Timeline columns | Daily or monthly cells for the exported range |
 
 The former Planning column is not included. The export is a snapshot of the current Gantt range and does not replace the native estimate export or alter the estimate.

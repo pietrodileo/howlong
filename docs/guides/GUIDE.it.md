@@ -1,6 +1,6 @@
 # Manuale utente di HowLong?
 
-HowLong? `0.7.2` su Windows, macOS e Linux.
+HowLong? `0.8.0` su Windows, macOS e Linux.
 
 [README del progetto](../../README.md) · [Novità](../WHATS_NEW.md) · [Manuale inglese](GUIDE.en.md) · [Guida di build e rilascio](../BUILD.md)
 
@@ -163,6 +163,7 @@ Il tema scuro si applica alle schermate di stima, presentazione e pianificazione
 
 - **Gantt** — giorni del fine settimana; nascondere i fine settimana influisce solo sulla visualizzazione, non sulle date salvate
 - **Vista stima** — valori predefiniti dell'editor, incluse le colonne compatte
+- **Assegnatari** — abilita più assegnatari per attività. Gli assegnatari condividono equamente la responsabilità; disattivando l'opzione, le assegnazioni multiple esistenti restano visibili e rimovibili, ma non è possibile aggiungerne altre.
 - **Presentazione** — stabilisce se note ed etichette per manager/cliente iniziano nascoste
 - **Nome file di esportazione** — data/ora opzionali nei nomi file generati
 
@@ -259,6 +260,7 @@ La modifica delle **ore al giorno** cambia solo la visualizzazione dei giorni-pe
 | CTG                  | Importo di contingenza calcolato                                                |
 | Con CTG              | Impegno totale con contingenza inclusa (base + CTG)                             |
 | CTG personalizzato % | Override della percentuale di contingenza specifico della riga                  |
+| Assegnatari          | Uno o più assegnatari con responsabilità equivalente, se abilitati nelle Impostazioni |
 | Etichetta            | Tag personalizzati per filtrare o raggruppare                                   |
 | Note                 | Note interne; non mostrate al cliente per impostazione predefinita              |
 | Azioni               | Aggiunge sottoattività, modifica formula, duplica o elimina questa riga        |
@@ -452,7 +454,7 @@ Puoi ridimensionare il pannello attività usando il divisore. Comprimilo per ott
 
 Usa **Salva** nell'intestazione di Piano per memorizzare modifiche a date, stato, note, assegnatario e colore. Un punto accanto al pulsante indica modifiche di pianificazione non salvate.
 
-Durante l'esportazione in XLSX, HowLong? usa la scala della vista corrente, l'intervallo di date visibile e le impostazioni dei fine settimana. Dopo le colonne fisse dell'attività, il file mantiene la timeline con queste colonne: `Activity`, `Macro`, `Start`, `End`, `Base (days)`, `Base + CTG (days)`, `Planned (days)`, `Status`, `Notes` e `Owner`. `Planned (days)` conta l'intervallo pianificato secondo l'impostazione dei giorni lavorativi.
+Durante l'esportazione in XLSX, HowLong? usa la scala della vista corrente, l'intervallo di date visibile e le impostazioni dei fine settimana. Dopo le colonne fisse dell'attività, il file mantiene la timeline con queste colonne: `Activity`, `Macro`, `Start`, `End`, `Base (days)`, `Base + CTG (days)`, `Planned (days)`, `Status`, `Notes` e `Owners`. `Planned (days)` conta l'intervallo pianificato secondo l'impostazione dei giorni lavorativi.
 
 ## 11. Analisi
 
@@ -467,9 +469,13 @@ Analisi mostra come l'impegno di base e la contingenza (CTG) sono distribuiti tr
 | Schede di riepilogo | Totali: Base, Contingenza, Base + contingenza e tasso CTG                                  |
 | Ore/Giorni          | Tutti i valori convertiti in base alle ore al giorno della stima                           |
 | Grafico ad anello   | Quota per attività/macro; al centro viene visualizzata la somma della metrica selezionata |
-| Barre               | Mostra base (pieno) e CTG (rigato) affiancati                                              |
+| Barre               | Segue la metrica selezionata; in modalità combinata mostra base (pieno) e CTG (rigato) affiancati |
 
-Cambia in qualsiasi momento la metrica del grafico ad anello: Base · Contingenza · Base + contingenza (predefinita). Le macro con sottoattività hanno un'icona attività e possono essere esplorate. Passa il mouse su segmenti o etichette per visualizzare le percentuali.
+Il selettore condiviso controlla il grafico ad anello, le barre e la distribuzione per assegnatario. **Base + contingenza** è l'opzione predefinita e la prima nell'elenco, seguita da Base e Contingenza. Nelle modalità con una sola metrica le barre si ridimensionano su quella metrica; la modalità combinata mantiene base e CTG visivamente distinte. Le macro con sottoattività hanno un'icona attività e possono essere esplorate. Passa il mouse su segmenti o etichette per visualizzare le percentuali.
+
+La distribuzione per assegnatario comprende il lavoro non assegnato e divide equamente un'attività con più assegnatari. Un grafico ad anello mostra la quota di ogni assegnatario, mentre le barre confrontano i carichi su una scala comune e separano impegno base e contingenza nella modalità combinata. Entrambi i grafici seguono il selettore condiviso, omettono gli assegnatari con valore zero e mantengono colori deterministici. Seleziona un segmento o una barra per mantenere visibili i grafici e aprire sotto di essi macro, sotto-task e voci derivate assegnate; i relativi indicatori di tipo condividono una colonna allineata e una colonna Effort separata mostra la quota di ogni riga per la metrica selezionata. Oltre otto assegnatari, l'elenco scorre all'interno del grafico.
+
+La sezione **Analisi della pianificazione** mostra quanto effort operativo attivo possiede un intervallo pianificato, la distribuzione degli stati in ogni categoria e quante attività pianificate attraversano ciascuna settimana o mese. Le quote degli stati possono essere pesate con la metrica di effort selezionata oppure per numero di attività. Le attività annullate restano consultabili nei dettagli degli stati, ma non contribuiscono alle percentuali operative o alla timeline; formule e macro aggregate sono escluse per evitare doppi conteggi. Seleziona una scheda di copertura, un segmento di stato o un periodo della timeline per vedere le attività che contribuiscono. L'analisi descrive la collocazione sul calendario e non deduce avanzamento, capacità, ritardi o qualità del piano.
 
 ### Mostra attività (in più macro)
 
@@ -565,7 +571,7 @@ Usa **Esporta XLSX** dalla vista **Piano**. Il workbook contiene titolo, cliente
 | `Base (days)` | Impegno di base convertito usando le ore per giornata della stima |
 | `Base + CTG (days)` | Impegno comprensivo di contingenza, convertito in giorni |
 | `Planned (days)` | Numero di giorni nell'intervallo pianificato; i weekend seguono l'impostazione dei giorni lavorativi |
-| `Status` / `Notes` / `Owner` | Stato operativo e metadati dell'attività |
+| `Status` / `Notes` / `Owners` | Stato operativo e metadati dell'attività |
 | Colonne timeline | Celle giornaliere o mensili dell'intervallo esportato |
 
 La precedente colonna Planning non è inclusa. L'esportazione è un'istantanea dell'intervallo Gantt corrente, non sostituisce l'esportazione nativa della stima e non modifica la stima.

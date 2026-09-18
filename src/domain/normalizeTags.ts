@@ -1,3 +1,5 @@
+import { normalizeOwners } from './owners';
+
 function migrateLegacyTag(record: Record<string, unknown>): Record<string, unknown> {
   const next = { ...record };
   if (!Array.isArray(next.tags)) {
@@ -5,6 +7,17 @@ function migrateLegacyTag(record: Record<string, unknown>): Record<string, unkno
     next.tags = legacy ? [legacy] : [];
   }
   delete next.tag;
+  return next;
+}
+
+function migrateLegacyOwner(record: Record<string, unknown>): Record<string, unknown> {
+  const next = { ...record };
+  const legacy = typeof next.owner === 'string' ? [next.owner] : [];
+  next.owners = normalizeOwners([
+    ...(Array.isArray(next.owners) ? next.owners : []),
+    ...legacy,
+  ]);
+  delete next.owner;
   return next;
 }
 
@@ -32,7 +45,7 @@ export function normalizeEstimateInput(data: unknown): unknown {
   if (Array.isArray(d.items)) {
     d.items = d.items.map((a) => {
       if (!a || typeof a !== 'object') return a;
-      return migrateLegacyTag(a as Record<string, unknown>);
+      return migrateLegacyOwner(migrateLegacyTag(a as Record<string, unknown>));
     });
   }
   if (d.clientView && typeof d.clientView === 'object') {

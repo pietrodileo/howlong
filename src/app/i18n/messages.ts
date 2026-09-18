@@ -86,6 +86,7 @@ export type MessageTree = {
   columns: {
     name: string;
     category: string;
+    owner: string;
     base: string;
     applyCtg: string;
     ctg: string;
@@ -169,6 +170,7 @@ export type MessageTree = {
     summaryAppearance: string;
     summaryWorkspaceImportExport: string;
     summaryEstimateColumns: string;
+    summaryOwners: string;
     summaryPresentation: string;
     summaryExport: string;
     summaryWorkingCalendar: string;
@@ -206,6 +208,7 @@ export type MessageTree = {
     sectionLocale: string;
     sectionAppearance: string;
     sectionEstimate: string;
+    sectionOwners: string;
     sectionPresentation: string;
     sectionExport: string;
     sectionFolder: string;
@@ -243,6 +246,9 @@ export type MessageTree = {
     shortcutUndo: string;
     shortcutRedo: string;
     estimateColumnsIntro: string;
+    multiOwner: string;
+    multiOwnerHelp: string;
+    multiOwnerDisabledWarning: string;
     presentationIntro: string;
     managerViewLegend: string;
     clientOutputLegend: string;
@@ -445,6 +451,7 @@ export type MessageTree = {
     macros: string;
     subtasks: string;
     effortDistribution: string;
+    effort: string;
     allMacros: string;
     donutAria: string;
     legend: string;
@@ -457,6 +464,43 @@ export type MessageTree = {
     clearTasks: string;
     clickForSubtasks: string;
     subtaskOf: string;
+    owners: string;
+    ownerDistribution: string;
+    ownerTasks: string;
+    ownerDetailsHint: string;
+    ownerCount: string;
+    ownerAllocationShare: string;
+    ownerAllocationShareGeneric: string;
+    openNotes: string;
+    noNotes: string;
+    allOwners: string;
+    unassigned: string;
+    planning: string;
+    planningAnalytics: string;
+    planningDescription: string;
+    planningCoverage: string;
+    plannedWork: string;
+    unplannedWork: string;
+    unassignedWork: string;
+    activeOperationalEffort: string;
+    plannedVsUnplanned: string;
+    statuses: string;
+    statusByCategory: string;
+    statusWeight: string;
+    statusWeightHint: string;
+    activityCount: string;
+    cancelledActivities: string;
+    noPlanningStatusData: string;
+    timeline: string;
+    activitiesOverTime: string;
+    timelineWindow: string;
+    allPlanning: string;
+    nextMonths: string;
+    noTimelineData: string;
+    timelinePlannedOnly: string;
+    planningDetail: string;
+    category: string;
+    planningRange: string;
   };
   models: {
     lede: string;
@@ -994,6 +1038,7 @@ const it: MessageTree = {
   columns: {
     name: 'Nome',
     category: 'Categoria',
+    owner: 'Assegnatario',
     base: 'Ore',
     applyCtg: 'Applica CTG',
     ctg: 'CTG',
@@ -1024,7 +1069,7 @@ const it: MessageTree = {
     groupWorkspace: 'Workspace',
     groupWorkspaceIntro: 'Cartelle e backup del workspace.',
     groupEstimates: 'Stime',
-    groupEstimatesIntro: 'Colonne della stima, presentazione e nomi file di export.',
+    groupEstimatesIntro: 'Colonne della stima, assegnatari, presentazione e nomi file di export.',
     groupPlanning: 'Pianificazione',
     groupPlanningIntro: 'Calendario di lavoro e stati delle attività.',
     groupApplication: 'Applicazione',
@@ -1080,6 +1125,7 @@ const it: MessageTree = {
     summaryAppearance: '{theme}',
     summaryWorkspaceImportExport: 'Importa o esporta il workspace',
     summaryEstimateColumns: '{visible} di {total} colonne visibili',
+    summaryOwners: 'Più assegnatari: {state}',
     summaryPresentation: 'Impostazioni predefinite per manager e cliente',
     summaryExport: 'Data {date} · ora {time}',
     summaryWorkingCalendar: 'Weekend: {days}',
@@ -1117,6 +1163,7 @@ const it: MessageTree = {
     sectionLocale: 'Lingua',
     sectionAppearance: 'Aspetto',
     sectionEstimate: 'Colonne della stima',
+    sectionOwners: 'Assegnatari',
     sectionPresentation: 'Presentazione',
     sectionExport: 'Nomi file di export',
     sectionFolder: 'Cartella workspace',
@@ -1130,7 +1177,7 @@ const it: MessageTree = {
     ganttWeekendIntro: 'Scegli i giorni da trattare come weekend quando li nascondi nel Gantt.',
     ganttStatusIntro: 'Gli stati descrivono l’avanzamento senza cambiare date o ore.',
     ganttStatusPriority: 'La priorità delle macro segue questo ordine: Bloccata, Ferma, A rischio, In corso, In pausa, Pianificata, Da pianificare, Completata.',
-    ganttStatusCancelledRule: 'Le attività annullate non incidono sullo stato della macro. Se sono tutte annullate, la macro risulta Annullata.',
+    ganttStatusCancelledRule: 'Le attività annullate non incidono sullo stato della macro e non compaiono nei grafici Analytics. Se sono tutte annullate, la macro risulta Annullata.',
     statusToPlanMeaning: 'non ancora organizzata.',
     statusPlannedMeaning: 'pronta per essere calendarizzata.',
     statusInProgressMeaning: 'il lavoro è attivo.',
@@ -1154,6 +1201,9 @@ const it: MessageTree = {
     shortcutUndo: 'Annulla l’ultima modifica nella scheda corrente',
     shortcutRedo: 'Ripristina l’ultima modifica annullata',
     estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
+    multiOwner: 'Consenti più assegnatari per attività',
+    multiOwnerHelp: 'Se disattivata, puoi rimuovere gli assegnatari multipli già presenti, ma non aggiungerne altri.',
+    multiOwnerDisabledWarning: 'Puoi ridurre gli assegnatari multipli già presenti, ma non aggiungerne altri finché la funzione non viene riattivata.',
     presentationIntro: 'Definisce la visibilità predefinita delle colonne nella vista Presentazione.',
     managerViewLegend: 'Vista manager',
     clientOutputLegend: 'Vista cliente',
@@ -1311,13 +1361,13 @@ const it: MessageTree = {
     editNote: 'Apri e modifica la nota',
     owner: 'Assegnatario',
     unassigned: 'Non assegnato',
-    newOwner: 'Nuovo owner',
+    newOwner: 'Nuovo assegnatario',
     assignOwner: 'Assegna',
     ownerPlaceholder: 'Non assegnato',
     ownerFilter: 'Cerca o crea…',
-    allOwners: 'Tutti gli owner',
+    allOwners: 'Tutti gli assegnatari',
     createOwner: 'Crea',
-    ownerAssignedHint: 'Owner assegnato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
+    ownerAssignedHint: 'Assegnatario associato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
     deleteOwnerTitle: 'Elimina assegnatario',
     deleteOwnerBody: 'Se elimini «{name}», verrà rimosso da tutte le altre voci di questa stima.',
     deleteOwnerConfirm: 'Elimina assegnatario',
@@ -1334,7 +1384,7 @@ const it: MessageTree = {
   analytics: {
     navLabel: 'Analisi Dati',
     title: 'Analisi Dati',
-    lede: 'Esplora la distribuzione delle attività e della contingency nella stima.',
+    lede: 'Esplora la distribuzione delle attività, della contingency e degli assegnatari nella stima.',
     unit: 'Unità dei grafici',
     metric: 'Metrica del grafico',
     base: 'Base',
@@ -1345,6 +1395,7 @@ const it: MessageTree = {
     macros: 'Macro',
     subtasks: 'Sotto-task',
     effortDistribution: 'Distribuzione delle attività',
+    effort: 'Effort',
     allMacros: 'Tutte le macro',
     donutAria: 'Grafico ad anello della distribuzione delle attività',
     legend: 'Legenda del grafico',
@@ -1357,6 +1408,43 @@ const it: MessageTree = {
     clearTasks: 'Cancella selezione',
     clickForSubtasks: 'Clicca per vedere i dettagli dei sotto-task',
     subtaskOf: 'Sotto-task di {name}',
+    owners: 'Assegnatari',
+    ownerDistribution: 'Distribuzione per assegnatario',
+    ownerTasks: 'Task assegnati a {name}',
+    ownerDetailsHint: 'Clicca per vedere i dettagli di questo assegnatario',
+    ownerCount: 'N. assegnatari',
+    ownerAllocationShare: 'Quota di {name}',
+    ownerAllocationShareGeneric: 'Quota assegnatario',
+    openNotes: 'Apri le note di {name}',
+    noNotes: 'Nessuna nota',
+    allOwners: 'Tutti gli assegnatari',
+    unassigned: 'Non assegnato',
+    planning: 'Pianificazione',
+    planningAnalytics: 'Analisi della pianificazione',
+    planningDescription: 'Controlla copertura, stati e distribuzione temporale delle attività pianificate.',
+    planningCoverage: 'Copertura pianificazione',
+    plannedWork: 'Effort pianificato',
+    unplannedWork: 'Effort non pianificato',
+    unassignedWork: 'Effort non assegnato',
+    activeOperationalEffort: 'Effort operativo attivo',
+    plannedVsUnplanned: 'Pianificato e non pianificato',
+    statuses: 'Stato',
+    statusByCategory: 'Distribuzione degli stati per categoria',
+    statusWeight: 'Peso della distribuzione degli stati',
+    statusWeightHint: 'Scegli se confrontare gli stati per ore di effort o per numero di attività.',
+    activityCount: 'Numero attività',
+    cancelledActivities: '{count} annullate',
+    noPlanningStatusData: 'Nessun dato di stato disponibile.',
+    timeline: 'Timeline',
+    activitiesOverTime: 'Attività pianificate nel tempo',
+    timelineWindow: 'Intervallo temporale',
+    allPlanning: 'Tutta la pianificazione',
+    nextMonths: 'Prossimi {count} mesi',
+    noTimelineData: 'Nessuna attività pianificata nell’intervallo selezionato.',
+    timelinePlannedOnly: 'Il grafico include solo attività con date pianificate e non annullate.',
+    planningDetail: 'Dettaglio pianificazione',
+    category: 'Categoria',
+    planningRange: 'Intervallo pianificato',
   },
   models: {
     lede: 'Gestisci modelli per le tue stime',
@@ -1904,6 +1992,7 @@ const en: MessageTree = {
   columns: {
     name: 'Name',
     category: 'Category',
+    owner: 'Owner',
     base: 'Hours',
     applyCtg: 'Apply CTG',
     ctg: 'CTG',
@@ -1934,7 +2023,7 @@ const en: MessageTree = {
     groupWorkspace: 'Workspace',
     groupWorkspaceIntro: 'Folders and workspace backups.',
     groupEstimates: 'Estimates',
-    groupEstimatesIntro: 'Estimate columns, presentation, and export filenames.',
+    groupEstimatesIntro: 'Estimate columns, owners, presentation, and export filenames.',
     groupPlanning: 'Planning',
     groupPlanningIntro: 'Working calendar and activity statuses.',
     groupApplication: 'Application',
@@ -1990,6 +2079,7 @@ const en: MessageTree = {
     summaryAppearance: '{theme}',
     summaryWorkspaceImportExport: 'Import or export the workspace',
     summaryEstimateColumns: '{visible} of {total} columns visible',
+    summaryOwners: 'Multiple owners: {state}',
     summaryPresentation: 'Default settings for manager and client views',
     summaryExport: 'Date {date} · time {time}',
     summaryWorkingCalendar: 'Weekend: {days}',
@@ -2027,6 +2117,7 @@ const en: MessageTree = {
     sectionLocale: 'Language',
     sectionAppearance: 'Appearance',
     sectionEstimate: 'Estimate columns',
+    sectionOwners: 'Owners',
     sectionPresentation: 'Presentation',
     sectionExport: 'Export filenames',
     sectionFolder: 'Workspace folder',
@@ -2040,7 +2131,7 @@ const en: MessageTree = {
     ganttWeekendIntro: 'Choose which days to treat as weekends when you hide weekends in the Gantt.',
     ganttStatusIntro: 'Statuses describe progress without changing dates or effort.',
     ganttStatusPriority: 'Macro priority follows this order: Blocked, Stuck, At risk, In progress, On hold, Planned, To plan, Completed.',
-    ganttStatusCancelledRule: 'Cancelled activities do not affect the macro status. If all activities are cancelled, the macro is Cancelled.',
+    ganttStatusCancelledRule: 'Cancelled activities do not affect the macro status and do not appear in Analytics charts. If all activities are cancelled, the macro is Cancelled.',
     statusToPlanMeaning: 'not organized yet.',
     statusPlannedMeaning: 'ready to schedule.',
     statusInProgressMeaning: 'work is active.',
@@ -2064,6 +2155,9 @@ const en: MessageTree = {
     shortcutUndo: 'Undo the last change in the current tab',
     shortcutRedo: 'Redo the last undone change',
     estimateColumnsIntro: 'Columns shown when you open an estimate.',
+    multiOwner: 'Allow multiple owners per activity',
+    multiOwnerHelp: 'When off, you can remove existing multiple owners, but cannot add more.',
+    multiOwnerDisabledWarning: 'You can reduce existing multiple-owner assignments, but cannot add more until the feature is enabled again.',
     presentationIntro: 'Defines the default visibility of columns in the Presentation view.',
     managerViewLegend: 'Manager view',
     clientOutputLegend: 'Client view',
@@ -2243,7 +2337,7 @@ const en: MessageTree = {
   analytics: {
     navLabel: 'Analytics',
     title: 'Analytics',
-    lede: 'Explore effort and contingency distribution in the open estimate.',
+    lede: 'Explore effort, contingency, and owner distribution in the open estimate.',
     unit: 'Chart unit',
     metric: 'Chart metric',
     base: 'Base',
@@ -2254,6 +2348,7 @@ const en: MessageTree = {
     macros: 'Macros',
     subtasks: 'Subtasks',
     effortDistribution: 'Activity distribution',
+    effort: 'Effort',
     allMacros: 'All macros',
     donutAria: 'Donut chart of effort distribution',
     legend: 'Chart legend',
@@ -2266,6 +2361,43 @@ const en: MessageTree = {
     clearTasks: 'Clear selection',
     clickForSubtasks: 'Click to see subtask details',
     subtaskOf: 'Subtask of {name}',
+    owners: 'Owners',
+    ownerDistribution: 'Distribution by owner',
+    ownerTasks: 'Tasks owned by {name}',
+    ownerDetailsHint: "Click to view this owner's details",
+    ownerCount: 'No. of owners',
+    ownerAllocationShare: '{name} share',
+    ownerAllocationShareGeneric: 'Owner share',
+    openNotes: 'Open notes for {name}',
+    noNotes: 'No notes',
+    allOwners: 'All owners',
+    unassigned: 'Unassigned',
+    planning: 'Planning',
+    planningAnalytics: 'Planning analytics',
+    planningDescription: 'Review planning coverage, statuses, and the timing of scheduled activities.',
+    planningCoverage: 'Planning coverage',
+    plannedWork: 'Planned effort',
+    unplannedWork: 'Unplanned effort',
+    unassignedWork: 'Unassigned effort',
+    activeOperationalEffort: 'Active operational effort',
+    plannedVsUnplanned: 'Planned and unplanned',
+    statuses: 'Status',
+    statusByCategory: 'Status distribution by category',
+    statusWeight: 'Status distribution weighting',
+    statusWeightHint: 'Choose whether to compare statuses by effort hours or activity count.',
+    activityCount: 'Activity count',
+    cancelledActivities: '{count} cancelled',
+    noPlanningStatusData: 'No status data is available.',
+    timeline: 'Timeline',
+    activitiesOverTime: 'Scheduled activities over time',
+    timelineWindow: 'Timeline window',
+    allPlanning: 'All planning',
+    nextMonths: 'Next {count} months',
+    noTimelineData: 'No scheduled activities fall in the selected range.',
+    timelinePlannedOnly: 'The chart includes only scheduled, non-cancelled activities.',
+    planningDetail: 'Planning detail',
+    category: 'Category',
+    planningRange: 'Planning range',
   },
   models: {
     lede: 'Manage your models for estimates',

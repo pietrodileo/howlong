@@ -87,7 +87,7 @@ The bootstrapper installs the matching macOS `.dmg` for the current user. Check 
 To install a specific stable version, pass its version to the script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.7.2
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.8.0
 ```
 
 ### Windows
@@ -104,7 +104,7 @@ To install a specific stable version:
 
 ```powershell
 $script = irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1
-& ([scriptblock]::Create($script)) -Version '0.7.2'
+& ([scriptblock]::Create($script)) -Version '0.8.0'
 ```
 
 ### Linux
@@ -120,7 +120,7 @@ Check the remote script before piping it to a shell. To make the install reprodu
 To install a specific stable version, pass its version to the script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.7.2
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.8.0
 ```
 
 The bootstrapper installs stable releases only. For an existing installation, use **Settings → Updates**.
@@ -153,26 +153,6 @@ To remove *HowLong?* without deleting your estimates:
 
 These commands remove only the application. Your workspace, estimates, and settings stay on disk. Delete them separately if you want to reset all application data.
 
-# Export outputs
-
-*HowLong?* lets you export the complete estimate or a focused view for internal review, client delivery, or timeline communication. Choose the source view based on who will use the file and what they need to see.
-
-| Source   | What it contains                                                   | Best for               |
-| -------- | ------------------------------------------------------------------ | ---------------------- |
-| Estimate | Full estimate with hierarchy, formulas, contingency, and notes    | Technical handover     |
-| Manager  | Rounded or redistributed values                                   | Internal approval      |
-| Client   | Included activities with visible notes and labels                 | Client delivery        |
-| Plan     | Gantt timeline with dates, status, owners, effort, and planned work | Timeline communication |
-
-| Format         | Use it for                                                             |
-| -------------- | ---------------------------------------------------------------------- |
-| `.howlong.json` | Native editable estimate, and the only format you can re-import       |
-| YAML           | Structured data for reviewed AI workflows, such as drafting Jira tickets |
-| XLSX           | Readable snapshot of any source view                                  |
-| ZIP            | An archive containing multiple Library exports                        |
-
-Exports are copies of the current estimate or view. They do not replace **Save**, which updates the working file in the Library. `.howlong.json` is the only format you can import back into HowLong; YAML and XLSX are for reading, sharing, or downstream workflows, while ZIP bundles multiple exports.
-
 # App showcase
 
 Start on the Home screen to create or open an estimate, browse the Library, or reopen a recent file. Once an estimate is open, the editor gives you access to Plan and Analytics.
@@ -200,6 +180,26 @@ Settings are grouped into searchable panels. Choose a light or dark theme, confi
 | ![Day-based Gantt planning board](docs/images/gantt_1.png) | ![Analytics overview with donut and stacked bars](docs/images/analytics.png) |
 
 For a walkthrough of settings, shortcuts, formats, and troubleshooting, see the [English manual](docs/guides/GUIDE.en.md) or [manuale italiano](docs/guides/GUIDE.it.md).
+
+## Export outputs
+
+*HowLong?* lets you export the complete estimate or a focused view for internal review, client delivery, or timeline communication. Choose the source view based on who will use the file and what they need to see.
+
+| Source   | What it contains                                                   | Best for               |
+| -------- | ------------------------------------------------------------------ | ---------------------- |
+| Estimate | Full estimate with hierarchy, formulas, contingency, and notes    | Technical handover     |
+| Manager  | Rounded or redistributed values                                   | Internal approval      |
+| Client   | Included activities with visible notes and labels                 | Client delivery        |
+| Plan     | Gantt timeline with dates, status, owners, effort, and planned work | Timeline communication |
+
+| Format         | Use it for                                                               |
+| -------------- | ------------------------------------------------------------------------ |
+| `.howlong.json` | Native editable estimate, and the only format you can re-import         |
+| YAML            | Structured data for reviewed AI workflows, such as drafting Jira tickets |
+| XLSX            | Readable snapshot of any source view                                    |
+| ZIP             | An archive containing multiple Library exports                          |
+
+Exports are copies of the current estimate or view. They do not replace **Save**, which updates the working file in the Library. `.howlong.json` is the only format you can import back into HowLong; YAML and XLSX are for reading, sharing, or downstream workflows, while ZIP bundles multiple exports.
 
 # Technology Stack
 

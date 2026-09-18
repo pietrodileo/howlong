@@ -29,6 +29,8 @@ export const SettingsSchema = z.object({
   defaultManagerHideTags: z.boolean().default(false),
   defaultClientHideNotes: z.boolean().default(true),
   defaultClientHideTags: z.boolean().default(false),
+  /** Allow assigning more than one owner to a line item. */
+  allowMultipleOwners: z.boolean().default(false),
   /** Colonne visibili di default nella vista Stima (prima scelta / reset). */
   estimateColumnVisibility: EstimateColumnVisibilitySchema.default({
     ...DEFAULT_ESTIMATE_COLUMN_VISIBILITY,
@@ -86,6 +88,7 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultManagerHideTags: false,
   defaultClientHideNotes: true,
   defaultClientHideTags: false,
+  allowMultipleOwners: false,
   estimateColumnVisibility: { ...DEFAULT_ESTIMATE_COLUMN_VISIBILITY },
   exportIncludeDate: true,
   exportIncludeTime: true,
