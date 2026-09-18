@@ -577,7 +577,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     return collapsedMacros.value.has(id);
   }
 
-  /** Saves dates and promotes an unscheduled status in the same undoable mutation. */
+  /** Save or clear dates and keep the leaf status aligned in the same undoable mutation. */
   function setPlanningRange(id: string, range: PlanningRange | null) {
     const item = estimate.value.items.find((row) => row.id === id);
     if (!item || item.kind === 'formula' || item.kind === 'summary') return;
@@ -589,6 +589,7 @@ export const useEstimateStore = defineStore('estimate', () => {
       if (item.status === 'to-plan') item.status = 'planned';
     } else {
       delete items[id];
+      item.status = 'to-plan';
     }
     estimate.value.planning = { items };
     touch();

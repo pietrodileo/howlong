@@ -7,6 +7,7 @@ import {
   monthStart,
 } from '../../domain/gantt';
 import type { ActivityStatus, Estimate, PlanningRange } from '../../models/estimate';
+import { normalizeOwners } from '../../domain/owners';
 import type { GraphMode, MetricEntry } from './graphData';
 
 export type PlanningWeightMode = 'effort' | 'count';
@@ -15,6 +16,7 @@ export type PlanningWindow = 'all' | '3' | '6' | '12';
 export interface PlanningEntry extends MetricEntry {
   id: string;
   name: string;
+  notes: string;
   category: string;
   status: ActivityStatus;
   owners: string[];
@@ -26,8 +28,11 @@ export interface PlanningEntry extends MetricEntry {
 export interface PlanningCoverage {
   planned: number;
   unplanned: number;
+  unassigned: number;
   total: number;
   percentage: number;
+  unplannedPercentage: number;
+  unassignedPercentage: number;
 }
 
 export interface StatusCategoryEntry {
@@ -64,9 +69,10 @@ export function buildPlanningEntries(estimate: Estimate): PlanningEntry[] {
     .map((line) => ({
       id: line.item.id,
       name: line.item.name,
+      notes: line.item.notes,
       category: line.item.category,
       status: line.item.status ?? 'to-plan',
-      owners: line.item.owners ?? [],
+      owners: normalizeOwners(line.item.owners),
       range: estimate.planning.items[line.item.id] ?? null,
       type: line.item.parentId ? 'subtask' : 'macro',
       parentName: line.item.parentId ? itemById.get(line.item.parentId)?.name : undefined,
@@ -85,12 +91,18 @@ export function buildPlanningCoverage(entries: PlanningEntry[], mode: GraphMode)
   const unplanned = activeEntries
     .filter((entry) => !entry.range)
     .reduce((sum, entry) => sum + entry[mode], 0);
+  const unassigned = activeEntries
+    .filter((entry) => entry.owners.length === 0)
+    .reduce((sum, entry) => sum + entry[mode], 0);
   const total = planned + unplanned;
   return {
     planned,
     unplanned,
+    unassigned,
     total,
     percentage: total > 0 ? (planned / total) * 100 : 0,
+    unplannedPercentage: total > 0 ? (unplanned / total) * 100 : 0,
+    unassignedPercentage: total > 0 ? (unassigned / total) * 100 : 0,
   };
 }
 
@@ -126,8 +138,7 @@ export function buildStatusCategoryGroups(
         statuses,
       };
     })
-    .filter((group) => group.total > 0 || group.cancelledCount > 0)
-    .sort((a, b) => b.total - a.total || a.category.localeCompare(b.category));
+    .filter((group) => group.total > 0 || group.cancelledCount > 0);
 }
 
 /** Build weekly or monthly activity-count buckets across the selected planning window. */

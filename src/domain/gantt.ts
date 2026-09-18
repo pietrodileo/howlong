@@ -14,9 +14,9 @@ export const ACTIVITY_STATUS_COLORS: Record<ActivityStatus, string> = {
   'at-risk': '#d97706',
   stuck: '#ea580c',
   blocked: '#dc2626',
-  'on-hold': '#7c3aed',
+  'on-hold': '#8b5cf6',
   completed: '#16a34a',
-  cancelled: '#475467',
+  cancelled: '#343b47',
 };
 
 const STATUS_PRIORITY: ActivityStatus[] = [

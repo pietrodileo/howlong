@@ -1,4 +1,5 @@
 import type { Estimate } from '../src/models/estimate';
+import { getLineItemColor } from '../src/domain/itemColors';
 import { buildGraphEntries, buildOwnerEntries, buildPercentageShares, graphValue } from '../src/features/analytics/graphData';
 import { buildPlanningCoverage, buildPlanningEntries, buildStatusCategoryGroups, buildTimelineBuckets } from '../src/features/analytics/planningData';
 
@@ -62,6 +63,19 @@ if (expanded[0].canDrillDown || expanded[0].color === macros[0].color) {
   throw new Error('expanded subtasks must be terminal and use a shaded macro color');
 }
 
+const siblingEstimate = {
+  ...estimate,
+  items: [
+    estimate.items[0],
+    estimate.items[1],
+    { ...estimate.items[1], id: 'visible-2', name: 'Visible task 2' },
+  ],
+} as Estimate;
+const siblingColors = buildGraphEntries(siblingEstimate, null, new Set(['macro'])).map((entry) => entry.color);
+if (siblingColors.length !== 2 || new Set(siblingColors).size !== 2 || siblingColors.some((color) => color === getLineItemColor(siblingEstimate, siblingEstimate.items[0]))) {
+  throw new Error(`sibling subtasks must have distinct macro-related colors: ${JSON.stringify(siblingColors)}`);
+}
+
 const ownerEstimate = {
   ...estimate,
   items: [
@@ -89,6 +103,10 @@ if (unassigned.base !== 4) {
 }
 if (bob.base !== 5 || bob.combined !== 6) {
   throw new Error(`multi-owner effort was not split equally: ${JSON.stringify(bob)}`);
+}
+const aliceVisibleTask = alice.tasks.find((task) => task.id === 'visible');
+if (!aliceVisibleTask || aliceVisibleTask.ownerCount !== 2 || aliceVisibleTask.ownerAllocationShare !== 0.5) {
+  throw new Error(`owner allocation metadata is wrong: ${JSON.stringify(aliceVisibleTask)}`);
 }
 const ownerBase = owners.reduce((sum, entry) => sum + entry.base, 0);
 const visibleBase = buildGraphEntries(ownerEstimate).reduce((sum, entry) => sum + entry.base, 0);
@@ -128,6 +146,9 @@ if (planningEntries.some((entry) => entry.id === 'macro' || entry.id === 'formul
 const planningCoverage = buildPlanningCoverage(planningEntries, 'base');
 if (planningCoverage.planned !== 15 || planningCoverage.unplanned !== 0 || planningCoverage.percentage !== 100) {
   throw new Error(`planning coverage is wrong: ${JSON.stringify(planningCoverage)}`);
+}
+if (planningCoverage.unassigned !== 5 || planningCoverage.unplannedPercentage !== 0 || planningCoverage.unassignedPercentage !== (5 / 15) * 100) {
+  throw new Error(`unassigned effort coverage is wrong: ${JSON.stringify(planningCoverage)}`);
 }
 const statusGroups = buildStatusCategoryGroups(planningEntries, 'base', 'effort');
 const buildGroup = statusGroups.find((group) => group.category === 'Build');

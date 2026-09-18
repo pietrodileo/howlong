@@ -4,7 +4,7 @@ import { useDocumentsStore } from '../documents';
 import { useEstimateStore } from '../../features/estimate/estimate';
 
 /** Coordinate the editor and active tab; retain each view's existing recording cadence. */
-export function useDocumentSync(view: 'working' | 'gantt') {
+export function useDocumentSync(view: 'working' | 'gantt' | 'analytics') {
   const docs = useDocumentsStore();
   const estimate = useEstimateStore();
 

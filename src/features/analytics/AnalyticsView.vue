@@ -5,6 +5,8 @@ import { useDocumentsStore } from '../../shared/documents';
 import { useUiStore } from '../../app/ui';
 import { useI18n } from '../../app/i18n/useI18n';
 import { useModelsStore } from '../models/models';
+import { useEstimateStore } from '../estimate/estimate';
+import { useDocumentSync } from '../../shared/composables/useDocumentSync';
 import { computeTotals } from '../../domain/contingency';
 import { formatEffort, type EffortUnit } from '../../domain/rounding';
 import {
@@ -16,6 +18,7 @@ import {
   type GraphMode,
   type MetricEntry,
   type OwnerGraphEntry,
+  type OwnerTaskEntry,
 } from './graphData';
 import { openEstimateFile } from '../../platform/files/io';
 import { isDialogCancelled, isDialogDesktopOnly } from '../../platform/files/dialogResult';
@@ -27,6 +30,8 @@ const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
 
 const documentsStore = useDocumentsStore();
+const estimateEditor = useEstimateStore();
+const { mutate } = useDocumentSync('analytics');
 const ui = useUiStore();
 const modelsStore = useModelsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
@@ -37,6 +42,8 @@ const selectedMacroId = ref<string | null>(null);
 const selectedOwnerId = ref<string | null>(null);
 const hoveredEntryId = ref<string | null>(null);
 const hoveredOwnerId = ref<string | null>(null);
+const ownerNoteId = ref<string | null>(null);
+const ownerNoteDraft = ref('');
 const expandedMacroIds = ref<Set<string>>(new Set());
 const newMenuOpen = ref(false);
 const modelSearch = ref('');
@@ -110,6 +117,10 @@ watch(() => documentsStore.activeId, () => {
 watch(selectedMacroId, () => {
   selectedOwnerId.value = null;
 });
+watch(selectedOwnerId, () => {
+  ownerNoteId.value = null;
+  ownerNoteDraft.value = '';
+});
 watch(entries, (next) => {
   if (selectedMacroId.value && next.length === 0) selectedMacroId.value = null;
 });
@@ -141,6 +152,34 @@ function formatMetricValue(entry: MetricEntry): string {
 function formatPercentage(entry: MetricEntry, total: number): string {
   if (!total) return '0%';
   return `${Math.round((graphValue(entry, mode.value) / total) * 1000) / 10}%`;
+}
+
+/** Format a percentage value without changing the active effort unit. */
+function formatPercentageValue(value: number): string {
+  return `${Math.round(value * 10) / 10}%`;
+}
+
+/** Format the selected owner's share of one line item's effort. */
+function formatOwnerAllocationShare(value: number | null): string {
+  return value === null ? '—' : formatPercentageValue(value * 100);
+}
+
+/** Open one owner task note in the shared Analytics editor. */
+function openOwnerNote(task: OwnerTaskEntry): void {
+  ownerNoteId.value = task.id;
+  ownerNoteDraft.value = task.notes;
+}
+
+/** Save an Analytics note through the active session history. */
+function saveAnalyticsNote(id: string, notes: string): void {
+  mutate(() => estimateEditor.updateItem(id, { notes }));
+}
+
+/** Save the selected owner task note and close its editor. */
+function saveOwnerNote(id: string): void {
+  saveAnalyticsNote(id, ownerNoteDraft.value);
+  ownerNoteId.value = null;
+  ownerNoteDraft.value = '';
 }
 
 /** Format one owner entry's label for the current locale. */
@@ -428,6 +467,7 @@ async function onOpenEstimate(): Promise<void> {
             </span><strong class="metric-value">
               <span>{{ formatValue(graphValue(entry, mode)) }}</span>
               <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(entry.base) }} | {{ formatBreakdownValue(entry.contingency) }}</span>
+              <small>{{ formatPercentage(entry, donutTotal) }}</small>
             </strong></span>
             <span class="bar-track">
               <template v-if="mode === 'combined'">
@@ -526,6 +566,7 @@ async function onOpenEstimate(): Promise<void> {
               type="button"
               class="owner-bar-row owner-chart-entry"
               :class="{ dimmed: (hoveredOwnerId || selectedOwnerId) && (hoveredOwnerId || selectedOwnerId) !== entry.id }"
+              v-tip="t('analytics.ownerDetailsHint')"
               @click="selectedOwnerId = entry.id"
               @mouseenter="hoveredOwnerId = entry.id"
               @mouseleave="hoveredOwnerId = null"
@@ -580,6 +621,9 @@ async function onOpenEstimate(): Promise<void> {
           <div class="owner-task-list">
             <div class="owner-task-heading">
               <span>{{ t('common.name') }}</span>
+              <span>{{ t('common.notes') }}</span>
+              <span>{{ t('analytics.ownerCount') }}</span>
+              <span>{{ selectedOwnerEntry.owner ? t('analytics.ownerAllocationShare', { name: ownerLabel(selectedOwnerEntry) }) : t('analytics.ownerAllocationShareGeneric') }}</span>
               <span>{{ t(`analytics.${mode}`) }}</span>
               <span>{{ t('analytics.effort') }}</span>
             </div>
@@ -594,18 +638,43 @@ async function onOpenEstimate(): Promise<void> {
                   <small v-if="task.parentName" class="owner-task-context">{{ t('analytics.subtaskOf', { name: task.parentName }) }}</small>
                 </span>
               </span>
+              <span class="owner-task-notes">
+                <button
+                  type="button"
+                  class="notes-button"
+                  :class="{ filled: task.notes.trim() }"
+                  :aria-label="t('analytics.openNotes', { name: task.name })"
+                  :aria-expanded="ownerNoteId === task.id"
+                  v-tip="t('analytics.openNotes', { name: task.name })"
+                  @click.stop="openOwnerNote(task)"
+                >
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path d="M3 2.5h10v8l-3 3H3z" /><path d="M10 13.5v-3h3M5 5.5h6M5 8h4" />
+                  </svg>
+                </button>
+              </span>
+              <span>{{ task.ownerCount }}</span>
+              <span>{{ formatOwnerAllocationShare(task.ownerAllocationShare) }}</span>
               <strong class="metric-value">
                 <span>{{ formatValue(graphValue(task, mode)) }}</span>
                 <span v-if="mode === 'combined'" class="metric-breakdown">· {{ formatBreakdownValue(task.base) }} | {{ formatBreakdownValue(task.contingency) }}</span>
               </strong>
               <small class="owner-task-effort">{{ ownerTaskPercentages[taskIndex] }}%</small>
+              <div v-if="ownerNoteId === task.id" class="owner-task-note">
+                <strong>{{ t('common.notes') }}</strong>
+                <textarea v-model="ownerNoteDraft" rows="3" :aria-label="t('common.notes')" :placeholder="t('working.notesPh')" />
+                <div class="owner-task-note-actions">
+                  <button type="button" class="ghost" @click="ownerNoteId = null">{{ t('common.cancel') }}</button>
+                  <button type="button" class="primary" @click="saveOwnerNote(task.id)">{{ t('common.save') }}</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </article>
     </div>
     <p v-else class="empty-chart standalone">{{ t('analytics.noData') }}</p>
-    <PlanningAnalytics :estimate="estimate" :mode="mode" :unit="unit" />
+    <PlanningAnalytics :estimate="estimate" :mode="mode" :unit="unit" :on-save-note="saveAnalyticsNote" />
   </section>
 
   <section v-else class="analytics-empty">
@@ -688,7 +757,7 @@ async function onOpenEstimate(): Promise<void> {
 .donut-wrap { position: relative; width: min(100%, 250px); aspect-ratio: 1; margin: auto; }
 .donut { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
 .donut-track, .donut-segment { fill: none; stroke-width: 28; }
-.donut-track { stroke: var(--page-soft); }
+.donut-track { stroke: color-mix(in srgb, var(--line-strong) 35%, var(--surface)); }
 .donut-segment { transition: opacity .15s, stroke-width .15s; }
 .donut-segment.clickable { cursor: pointer; }
 .donut-segment:hover, .donut-segment:focus { opacity: .82; stroke-width: 33; outline: none; }
@@ -714,6 +783,7 @@ async function onOpenEstimate(): Promise<void> {
 .type-icon.formula::before { content: 'Σ'; position: absolute; inset: -.12rem 0 0; font-size: .75rem; font-weight: 700; line-height: 1; }
 .metric-value { display: inline-flex; align-items: baseline; gap: .22rem; min-width: 0; white-space: nowrap; }
 .metric-breakdown { color: var(--muted); font-size: .68rem; font-weight: 500; }
+.bar-row .metric-value small { margin-left: .25rem; color: var(--muted); font-size: .68rem; font-weight: 500; }
 .legend strong { font-size: .75rem; }
 .legend small { margin-left: .25rem; color: var(--muted); font-size: .68rem; font-weight: 500; }
 .bar-list { display: grid; gap: .8rem; margin-top: 1rem; }
@@ -722,7 +792,7 @@ async function onOpenEstimate(): Promise<void> {
 .bar-label { display: flex; justify-content: space-between; gap: .75rem; font-size: .78rem; }
 .bar-label > span { min-width: 0; }
 .bar-name { display: flex; align-items: center; min-width: 0; gap: .35rem; overflow: hidden; }
-.bar-track { display: flex; width: 100%; height: .8rem; border-radius: 999px; overflow: hidden; background: var(--page-soft); }
+.bar-track { display: flex; width: 100%; height: .8rem; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--line-strong) 35%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line-strong) 45%, transparent); }
 .bar-base, .bar-contingency { height: 100%; min-width: 0; }
 .bar-contingency { opacity: .42; background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgb(255 255 255 / .35) 3px 5px) !important; }
 .bar-key { display: flex; gap: 1rem; margin-top: 1rem; color: var(--muted); font-size: .72rem; }
@@ -755,20 +825,33 @@ async function onOpenEstimate(): Promise<void> {
 .owner-detail-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .owner-detail-total { margin-left: auto; white-space: nowrap; }
 .owner-task-list { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-sm); }
-.owner-task-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(9rem, auto) 4rem; gap: .75rem; padding: .45rem .8rem; color: var(--muted); background: var(--page-soft); font-size: .68rem; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; }
+.owner-task-heading { display: grid; grid-template-columns: minmax(0, 1fr) 3rem 7rem 7rem 9rem 4.5rem; gap: .75rem; align-items: start; padding: .45rem .8rem; color: var(--muted); background: var(--page-soft); font-family: var(--font-ui); font-size: .74rem; font-weight: 650; letter-spacing: .05em; line-height: 1.3; text-transform: uppercase; }
 .owner-task-heading span:not(:first-child) { text-align: right; }
-.owner-task-row { grid-template-columns: minmax(0, 1fr) minmax(9rem, auto) 4rem; padding: .7rem .8rem; }
+.owner-task-heading span:nth-child(3) { white-space: nowrap; }
+.owner-task-row { grid-template-columns: minmax(0, 1fr) 3rem 7rem 7rem 9rem 4.5rem; align-items: start; padding: .7rem .8rem; font-family: var(--font-ui); font-size: .84rem; line-height: 1.35; }
 .owner-task-row + .owner-task-row { border-top: 1px solid var(--line); }
 .owner-task-row:hover { background: var(--page-soft); }
-.owner-task-main { display: grid; grid-template-columns: 1rem minmax(0, 1fr); align-items: center; min-width: 0; gap: .55rem; }
+.owner-task-row > :not(:first-child) { justify-self: end; min-width: 0; text-align: right; overflow-wrap: anywhere; }
+.owner-task-main { display: grid; grid-template-columns: 1rem minmax(0, 1fr); align-items: start; min-width: 0; gap: .55rem; }
 .owner-task-type { min-height: 1rem; display: flex; align-items: center; }
+.owner-task-main > .owner-task-type { margin-top: .15rem; }
 .owner-task-type .type-icon { margin: 0; }
 .owner-task-row > .metric-value { justify-self: end; }
+.owner-task-notes { display: flex; justify-content: flex-end; }
+.notes-button, .planning-note-button { display: inline-grid; width: 1.85rem; height: 1.85rem; place-items: center; padding: 0; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--muted); cursor: pointer; }
+.notes-button:hover, .notes-button:focus-visible, .planning-note-button:hover, .planning-note-button:focus-visible { border-color: var(--line); background: var(--page-soft); color: var(--ink); }
+.notes-button.filled, .planning-note-button.filled { color: var(--accent); background: var(--accent-subtle); }
+.owner-task-note, .planning-note-popover { grid-column: 1 / -1; justify-self: stretch !important; min-width: 0; padding: .7rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); text-align: left !important; }
+.owner-task-note strong, .planning-note-popover strong { display: block; margin-bottom: .35rem; font-size: .78rem; }
+.owner-task-note textarea, .planning-note-popover textarea { display: block; box-sizing: border-box; width: 100%; min-height: 5rem; padding: .5rem .6rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font: inherit; line-height: 1.45; resize: vertical; }
+.owner-task-note textarea:focus, .planning-note-popover textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.owner-task-note-actions, .planning-note-actions { display: flex; justify-content: flex-end; gap: .4rem; margin-top: .5rem; }
+.owner-task-note-actions button, .planning-note-actions button { padding: .35rem .65rem; font: inherit; font-size: .75rem; }
 .owner-task-label { display: grid; gap: .15rem; }
-.owner-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.owner-task-context { color: var(--muted); font-size: .68rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.owner-task-effort { margin: 0; color: var(--muted); font-size: .68rem; font-weight: 500; text-align: right; white-space: nowrap; }
-.owner-row strong, .owner-task-row strong { font-size: .75rem; }
+.owner-task-name, .owner-task-context { overflow-wrap: anywhere; white-space: normal; }
+.owner-task-context { color: var(--muted); font-size: .72rem; font-weight: 500; }
+.owner-task-effort { margin: 0; color: var(--muted); font-size: .74rem; font-weight: 500; text-align: right; white-space: nowrap; }
+.owner-row strong, .owner-task-row strong { font-size: .84rem; }
 .owner-row small { margin-left: .25rem; color: var(--muted); font-size: .68rem; font-weight: 500; }
 .empty-chart { margin: 2rem 0; color: var(--muted); text-align: center; }
 .empty-chart.standalone { padding: 4rem 1rem; border: 1px dashed var(--line-strong); border-radius: var(--radius); }

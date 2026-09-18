@@ -23,6 +23,7 @@ import {
   parseDate,
   workingDaysBetween,
 } from '../../domain/gantt';
+import { getLineItemColor } from '../../domain/itemColors';
 import { daysToHours, hoursToDays, HOURS_PER_DAY } from '../../domain/rounding';
 import { exportGanttXlsx, openEstimateFile } from '../../platform/files/io';
 import { isDialogCancelled, isDialogDesktopOnly } from '../../platform/files/dialogResult';
@@ -372,13 +373,9 @@ function updateItemName(item: LineItem, name: string) {
   mutate(() => estimate.updateItem(item.id, { name }));
 }
 
-const ganttColors = ['#2b3d55', '#5b4b73', '#35605a', '#8a5a44', '#546a3a', '#7a4a5a'];
-
+/** Return the shared estimate color for a Gantt line item. */
 function itemColor(item: LineItem) {
-  if (item.color) return item.color;
-  const macroId = item.parentId ?? item.id;
-  const index = plannableItems.value.filter((row) => row.parentId == null).findIndex((row) => row.id === macroId);
-  return ganttColors[Math.max(0, index) % ganttColors.length];
+  return getLineItemColor(estimate.estimate, item);
 }
 
 function itemTextColor(item: LineItem) {

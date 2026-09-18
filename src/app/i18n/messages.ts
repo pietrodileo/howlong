@@ -467,6 +467,12 @@ export type MessageTree = {
     owners: string;
     ownerDistribution: string;
     ownerTasks: string;
+    ownerDetailsHint: string;
+    ownerCount: string;
+    ownerAllocationShare: string;
+    ownerAllocationShareGeneric: string;
+    openNotes: string;
+    noNotes: string;
     allOwners: string;
     unassigned: string;
     planning: string;
@@ -475,11 +481,13 @@ export type MessageTree = {
     planningCoverage: string;
     plannedWork: string;
     unplannedWork: string;
+    unassignedWork: string;
     activeOperationalEffort: string;
     plannedVsUnplanned: string;
     statuses: string;
     statusByCategory: string;
     statusWeight: string;
+    statusWeightHint: string;
     activityCount: string;
     cancelledActivities: string;
     noPlanningStatusData: string;
@@ -1169,7 +1177,7 @@ const it: MessageTree = {
     ganttWeekendIntro: 'Scegli i giorni da trattare come weekend quando li nascondi nel Gantt.',
     ganttStatusIntro: 'Gli stati descrivono l’avanzamento senza cambiare date o ore.',
     ganttStatusPriority: 'La priorità delle macro segue questo ordine: Bloccata, Ferma, A rischio, In corso, In pausa, Pianificata, Da pianificare, Completata.',
-    ganttStatusCancelledRule: 'Le attività annullate non incidono sullo stato della macro. Se sono tutte annullate, la macro risulta Annullata.',
+    ganttStatusCancelledRule: 'Le attività annullate non incidono sullo stato della macro e non compaiono nei grafici Analytics. Se sono tutte annullate, la macro risulta Annullata.',
     statusToPlanMeaning: 'non ancora organizzata.',
     statusPlannedMeaning: 'pronta per essere calendarizzata.',
     statusInProgressMeaning: 'il lavoro è attivo.',
@@ -1403,6 +1411,12 @@ const it: MessageTree = {
     owners: 'Assegnatari',
     ownerDistribution: 'Distribuzione per assegnatario',
     ownerTasks: 'Task assegnati a {name}',
+    ownerDetailsHint: 'Clicca per vedere i dettagli di questo assegnatario',
+    ownerCount: 'N. assegnatari',
+    ownerAllocationShare: 'Quota di {name}',
+    ownerAllocationShareGeneric: 'Quota assegnatario',
+    openNotes: 'Apri le note di {name}',
+    noNotes: 'Nessuna nota',
     allOwners: 'Tutti gli assegnatari',
     unassigned: 'Non assegnato',
     planning: 'Pianificazione',
@@ -1411,11 +1425,13 @@ const it: MessageTree = {
     planningCoverage: 'Copertura pianificazione',
     plannedWork: 'Effort pianificato',
     unplannedWork: 'Effort non pianificato',
+    unassignedWork: 'Effort non assegnato',
     activeOperationalEffort: 'Effort operativo attivo',
     plannedVsUnplanned: 'Pianificato e non pianificato',
     statuses: 'Stato',
     statusByCategory: 'Distribuzione degli stati per categoria',
     statusWeight: 'Peso della distribuzione degli stati',
+    statusWeightHint: 'Scegli se confrontare gli stati per ore di effort o per numero di attività.',
     activityCount: 'Numero attività',
     cancelledActivities: '{count} annullate',
     noPlanningStatusData: 'Nessun dato di stato disponibile.',
@@ -2115,7 +2131,7 @@ const en: MessageTree = {
     ganttWeekendIntro: 'Choose which days to treat as weekends when you hide weekends in the Gantt.',
     ganttStatusIntro: 'Statuses describe progress without changing dates or effort.',
     ganttStatusPriority: 'Macro priority follows this order: Blocked, Stuck, At risk, In progress, On hold, Planned, To plan, Completed.',
-    ganttStatusCancelledRule: 'Cancelled activities do not affect the macro status. If all activities are cancelled, the macro is Cancelled.',
+    ganttStatusCancelledRule: 'Cancelled activities do not affect the macro status and do not appear in Analytics charts. If all activities are cancelled, the macro is Cancelled.',
     statusToPlanMeaning: 'not organized yet.',
     statusPlannedMeaning: 'ready to schedule.',
     statusInProgressMeaning: 'work is active.',
@@ -2348,6 +2364,12 @@ const en: MessageTree = {
     owners: 'Owners',
     ownerDistribution: 'Distribution by owner',
     ownerTasks: 'Tasks owned by {name}',
+    ownerDetailsHint: "Click to view this owner's details",
+    ownerCount: 'No. of owners',
+    ownerAllocationShare: '{name} share',
+    ownerAllocationShareGeneric: 'Owner share',
+    openNotes: 'Open notes for {name}',
+    noNotes: 'No notes',
     allOwners: 'All owners',
     unassigned: 'Unassigned',
     planning: 'Planning',
@@ -2356,11 +2378,13 @@ const en: MessageTree = {
     planningCoverage: 'Planning coverage',
     plannedWork: 'Planned effort',
     unplannedWork: 'Unplanned effort',
+    unassignedWork: 'Unassigned effort',
     activeOperationalEffort: 'Active operational effort',
     plannedVsUnplanned: 'Planned and unplanned',
     statuses: 'Status',
     statusByCategory: 'Status distribution by category',
     statusWeight: 'Status distribution weighting',
+    statusWeightHint: 'Choose whether to compare statuses by effort hours or activity count.',
     activityCount: 'Activity count',
     cancelledActivities: '{count} cancelled',
     noPlanningStatusData: 'No status data is available.',

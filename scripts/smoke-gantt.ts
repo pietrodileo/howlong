@@ -208,4 +208,4 @@ scheduledSubtask.status = 'in-progress';
 store.setPlanningRange(subtaskId, { startDate: '2026-09-02', endDate: '2026-09-04' });
 assert.equal(scheduledSubtask.status, 'in-progress');
 store.setPlanningRange(subtaskId, null);
-assert.equal(scheduledSubtask.status, 'in-progress');
+assert.equal(scheduledSubtask.status, 'to-plan');

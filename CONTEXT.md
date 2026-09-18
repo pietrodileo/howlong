@@ -40,6 +40,14 @@ _Avoid_: Assignee when referring to the estimate domain
 A line item with multiple owners who share equal responsibility. For owner distribution, the line item's effort is divided equally among its owners so owner totals remain consistent with the estimate total.
 _Avoid_: Primary owner, secondary owner, weighted owner
 
+**Owner allocation share**:
+The percentage of one line item's effort attributed to a selected owner. It is 100% for a sole owner and is divided equally for a multi-owner line item.
+_Avoid_: Owner total incidence, task share
+
+**Owner total incidence**:
+The percentage of a selected owner's distributed effort represented by one contributing line item. In the Analytics owner detail, this is the existing `Effort` percentage.
+_Avoid_: Owner allocation share, task allocation
+
 **Owner distribution**:
 A read-only projection of effort grouped by owner. It uses the most specific contributing work level when a macro contains subtasks, so parent and child effort is not counted twice. An unassigned line item remains part of the unassigned distribution.
 _Avoid_: Owner workload duplication
@@ -67,6 +75,14 @@ _Avoid_: Effort range, estimate duration
 **Planning coverage**:
 The share of contributing operational effort whose line items have a planning range. It describes whether estimated work has been placed on the calendar; it does not measure progress, capacity, or schedule quality.
 _Avoid_: Completion, utilization, schedule health
+
+**Unassigned effort**:
+Contributing operational effort belonging to active line items with no owners. It is independent of planning coverage: an unassigned line item may be planned or unplanned.
+_Avoid_: Unplanned effort, uncovered effort
+
+**Estimate order**:
+The hierarchy order of macros and their descendants in the estimate. Analytics line-item lists and category groups preserve this order unless the surface is explicitly an owner comparison ranked by effort.
+_Avoid_: Effort order, alphabetical order
 
 ## Views and presentations
 
