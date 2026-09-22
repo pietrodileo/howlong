@@ -15,6 +15,7 @@ import IconBtn from '../../shared/components/IconBtn.vue';
 import RefreshIcon from '../../shared/components/RefreshIcon.vue';
 import MetaIconPicker from '../../shared/components/MetaIconPicker.vue';
 import ClientView from './ClientView.vue';
+import PresentationStatusControl from './PresentationStatusControl.vue';
 import type { FormulaAggregate, ModelIcon } from '../../models/model';
 import { useEstimateStore } from './estimate';
 import { useDocumentsStore } from '../../shared/documents';
@@ -756,6 +757,12 @@ function onHeaderDblClick(key: ColumnKey) {
         </div>
 
         <span class="settings-sep" aria-hidden="true" />
+
+        <PresentationStatusControl
+          scope="estimate"
+          :status="estimate.estimate.presentationStatuses?.estimate ?? 'draft'"
+          @update="estimate.setPresentationStatus('estimate', $event)"
+        />
 
         <button
           type="button"

@@ -9,6 +9,7 @@ import RefreshIcon from '../../shared/components/RefreshIcon.vue';
 import NotesEditor from './NotesEditor.vue';
 import TagPicker from '../../shared/components/TagPicker.vue';
 import OwnerPicker from '../../shared/components/OwnerPicker.vue';
+import PresentationStatusControl from './PresentationStatusControl.vue';
 import { useModelsStore } from '../models/models';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../settings/settings';
@@ -705,10 +706,18 @@ async function onExportFromMenu(
 
     <details class="presentation-section manager-block" open>
       <summary class="presentation-section-head">
-        <span class="presentation-section-copy">
-          <span class="section-title">{{ t('client.managerSectionTitle') }}</span>
+        <div class="presentation-section-copy">
+          <div class="presentation-section-title-row">
+            <span class="section-title">{{ t('client.managerSectionTitle') }}</span>
+            <PresentationStatusControl
+              class="presentation-section-status"
+              scope="manager"
+              :status="estimate.estimate.presentationStatuses?.manager ?? 'draft'"
+              @update="estimate.setPresentationStatus('manager', $event)"
+            />
+          </div>
           <span class="section-lede">{{ t('client.managerSectionLede') }}</span>
-        </span>
+        </div>
         <span class="presentation-section-chevron"><DisclosureIcon :expanded="true" /></span>
       </summary>
       <div class="presentation-section-body">
@@ -1073,10 +1082,18 @@ async function onExportFromMenu(
 
     <details class="presentation-section client-output" open>
       <summary class="presentation-section-head">
-        <span class="presentation-section-copy">
-          <span class="section-title">{{ t('working.clientView') }}</span>
+        <div class="presentation-section-copy">
+          <div class="presentation-section-title-row">
+            <span class="section-title">{{ t('working.clientView') }}</span>
+            <PresentationStatusControl
+              class="presentation-section-status"
+              scope="client"
+              :status="estimate.estimate.presentationStatuses?.client ?? 'draft'"
+              @update="estimate.setPresentationStatus('client', $event)"
+            />
+          </div>
           <span class="section-lede">{{ t('client.clientSectionLede') }}</span>
-        </span>
+        </div>
         <span class="presentation-section-chevron"><DisclosureIcon :expanded="true" /></span>
       </summary>
       <div class="presentation-section-body">
@@ -1542,6 +1559,7 @@ async function onExportFromMenu(
 }
 
 .section-title {
+  display: inline-block;
   margin: 0 0 0.35rem;
   font-family: var(--font-ui);
   font-size: 0.8rem;
@@ -1601,6 +1619,19 @@ async function onExportFromMenu(
   display: grid;
   min-width: 0;
   gap: 0.18rem;
+}
+
+.presentation-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.presentation-section-status :deep(.presentation-status-trigger) {
+  width: .9rem;
+  height: .9rem;
+  border-width: 1.5px;
+  font-size: .55rem;
 }
 
 .presentation-section-copy .section-title {

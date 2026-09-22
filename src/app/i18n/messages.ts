@@ -83,6 +83,15 @@ export type MessageTree = {
     confirm: string;
     start: string;
   };
+  presentation: {
+    estimate: string;
+    manager: string;
+    client: string;
+    status_draft: string;
+    status_in_progress: string;
+    status_ready_for_revision: string;
+    status_verified: string;
+  };
   columns: {
     name: string;
     category: string;
@@ -1034,6 +1043,15 @@ const it: MessageTree = {
     confirm: 'Conferma',
     duplicate: 'Duplica',
     start: 'Inizia',
+  },
+  presentation: {
+    estimate: 'Stima',
+    manager: 'Manager',
+    client: 'Cliente',
+    status_draft: 'Bozza',
+    status_in_progress: 'In corso',
+    status_ready_for_revision: 'Pronto per la revisione',
+    status_verified: 'Verifica eseguita',
   },
   columns: {
     name: 'Nome',
@@ -1988,6 +2006,15 @@ const en: MessageTree = {
     confirm: 'Confirm',
     duplicate: 'Duplicate',
     start: 'Get started',
+  },
+  presentation: {
+    estimate: 'Estimate',
+    manager: 'Manager',
+    client: 'Client',
+    status_draft: 'Draft',
+    status_in_progress: 'In progress',
+    status_ready_for_revision: 'Ready for revision',
+    status_verified: 'Verified',
   },
   columns: {
     name: 'Name',

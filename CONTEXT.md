@@ -102,6 +102,10 @@ _Avoid_: Client estimate, customer estimate
 The entry point that shows the Manager and Client presentation modes.
 _Avoid_: Client view when referring to the preview surface
 
+**Presentation status**:
+An independent progress marker for the Estimate, Manager, or Client presentation of an estimate. Its values are Draft, In progress, Ready for revision, and Verified; it describes readiness, not line-item scheduling progress.
+_Avoid_: Line-item status, Gantt status, approval state
+
 **Plan/Gantt view**:
 The scheduling surface for dates, statuses, owners, colors, notes, and planning ranges. It may edit planning data but does not recalculate effort or contingency.
 _Avoid_: Timeline view when referring to the product surface

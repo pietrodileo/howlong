@@ -4,6 +4,12 @@ This page lists the user-facing features introduced in each stable release publi
 
 For the complete generated changelog for a release, see the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases).
 
+## v0.8.1
+
+- Estimates now have independent Estimate, Manager, and Client presentation statuses: Draft, In progress, Ready for revision, and Verified.
+- Each status is shown as a compact colored indicator in its related surface, with an accessible status picker and tooltip.
+- Plan now includes the same reload action as Estimate, including protection against discarding unsaved changes.
+
 ## v0.8.0
 
 [GitHub release](https://github.com/pietrodileo/howlong/releases/tag/v0.8.0)

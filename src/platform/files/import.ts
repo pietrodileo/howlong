@@ -172,6 +172,7 @@ async function importEstimateCsv(
       lineOverrides: {},
       macroPresentation: {},
     },
+    presentationStatuses: { estimate: 'draft', manager: 'draft', client: 'draft' },
     auditHistory: [],
     planning: { items: {} },
   };
