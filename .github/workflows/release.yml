@@ -71,10 +71,20 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: HowLong ${{ github.ref_name }}
           generateReleaseNotes: true
-          releaseDraft: false
+          releaseDraft: true
           prerelease: false
           retryAttempts: 3
           uploadUpdaterJson: true
           updaterJsonPreferNsis: true
           uploadUpdaterSignatures: true
           args: ${{ matrix.args }}
+
+  publish:
+    name: Publish release
+    needs: release
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Publish completed release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ github.ref_name }}" --repo "${{ github.repository }}" --draft=false
