@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { onMounted, computed, defineAsyncComponent, watch } from 'vue';
+import { onMounted, computed, defineAsyncComponent, ref, watch } from 'vue';
 import AboutModal from './components/AboutModal.vue';
 import AppSidebar from './components/AppSidebar.vue';
 import TitleBar from './components/TitleBar.vue';
+import ConfirmModal from '../shared/components/ConfirmModal.vue';
+import RefreshIcon from '../shared/components/RefreshIcon.vue';
 import WorkingView from '../features/estimate/WorkingView.vue';
 import { useSettingsStore } from '../features/settings/settings';
 import { useModelsStore } from '../features/models/models';
@@ -12,9 +14,10 @@ import { useDocumentsStore } from '../shared/documents';
 import { useUiStore, type AppView } from './ui';
 import { useI18n } from './i18n/useI18n';
 import { applyTheme } from '../features/settings/appearance';
-import { isTauri, openContainingFolder, openFilePath } from '../platform/tauri';
+import { isTauri, openContainingFolder, openFilePath, readTextFile } from '../platform/tauri';
 import { toErrorMessage } from '../shared/errors';
 import { APP_VERSION } from '../shared/version';
+import { importEstimateText } from '../platform/files/import';
 
 const LibraryView = defineAsyncComponent(() => import('../features/library/LibraryView.vue'));
 const ModelsView = defineAsyncComponent(() => import('../features/models/ModelsView.vue'));
@@ -32,6 +35,9 @@ const estimate = useEstimateStore();
 const docs = useDocumentsStore();
 const ui = useUiStore();
 const { t } = useI18n();
+const reloadConfirmOpen = ref(false);
+const reloading = ref(false);
+const reloadAnimating = ref(false);
 
 async function openToastFile() {
   const path = ui.toastFilePath;
@@ -82,6 +88,53 @@ async function onSaveGantt() {
   } catch (error) {
     ui.notify(toErrorMessage(error), true);
   }
+}
+
+/** Request confirmation before replacing the active Plan estimate from disk. */
+function onReloadGantt() {
+  reloadAnimating.value = true;
+  window.setTimeout(() => { reloadAnimating.value = false; }, 700);
+  if (!estimate.filePath) {
+    ui.notify(t('common.noFileOpen'), true);
+    return;
+  }
+  if (estimate.dirty || docs.activeSession?.dirty) {
+    reloadConfirmOpen.value = true;
+    return;
+  }
+  void doReloadGantt();
+}
+
+/** Reload the active estimate and reset its session history. */
+async function doReloadGantt() {
+  const path = estimate.filePath;
+  if (!path) return;
+  if (!isTauri()) {
+    ui.notify(t('library.desktopOnly'), true);
+    return;
+  }
+  reloading.value = true;
+  try {
+    const result = await importEstimateText(await readTextFile(path), 'json');
+    if (!result.ok) {
+      ui.notify(result.error, true);
+      return;
+    }
+    estimate.setEstimate(result.data, path);
+    const session = docs.activeSession;
+    if (session) docs.replaceSessionEstimate(session.sessionId, result.data, path);
+    ui.notify(t('working.reloaded'));
+  } catch (error) {
+    ui.notify(toErrorMessage(error), true);
+  } finally {
+    reloading.value = false;
+  }
+}
+
+/** Confirm discarding Plan changes before reloading its source file. */
+function confirmReloadGantt() {
+  reloadConfirmOpen.value = false;
+  void doReloadGantt();
 }
 
 
@@ -150,21 +203,28 @@ watch(() => docs.hasSessions, (hasSessions) => {
             {{ t('analytics.lede') }}
           </p>
         </div>
-        <button
-          v-if="ui.currentView === 'gantt' && docs.hasSessions"
-          type="button"
-          class="primary save-action"
-          @click="onSaveGantt"
-        >
-          {{ t('common.save') }}
-          <span
-            v-if="estimate.dirty || docs.activeSession?.dirty === true"
-            class="save-dirty-dot"
-            role="status"
-            :aria-label="t('common.unsavedF')"
-            v-tip="t('common.unsavedF')"
-          />
-        </button>
+        <div v-if="ui.currentView === 'gantt' && docs.hasSessions" class="topbar-actions">
+          <button
+            type="button"
+            class="ghost refresh-action"
+            :disabled="reloading"
+            :aria-label="t('common.reload')"
+            v-tip="estimate.filePath ? t('common.reload') : t('common.noFileOpen')"
+            @click="onReloadGantt"
+          >
+            <RefreshIcon :spinning="reloadAnimating || reloading" />
+          </button>
+          <button type="button" class="primary save-action" @click="onSaveGantt">
+            {{ t('common.save') }}
+            <span
+              v-if="estimate.dirty || docs.activeSession?.dirty === true"
+              class="save-dirty-dot"
+              role="status"
+              :aria-label="t('common.unsavedF')"
+              v-tip="t('common.unsavedF')"
+            />
+          </button>
+        </div>
       </header>
 
       <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome', 'centered-empty-view': (ui.currentView === 'gantt' || ui.currentView === 'analytics') && !docs.hasSessions }">
@@ -211,6 +271,15 @@ watch(() => docs.hasSessions, (hasSessions) => {
     </div>
 
     <AboutModal :open="ui.aboutOpen" :version="APP_VERSION" @close="ui.hideAbout" />
+    <ConfirmModal
+      :open="reloadConfirmOpen"
+      :title="t('working.unsavedTitle')"
+      :message="t('working.unsavedBody')"
+      :confirm-label="t('working.unsavedDiscard')"
+      danger
+      @cancel="reloadConfirmOpen = false"
+      @confirm="confirmReloadGantt"
+    />
   </div>
 </template>
 
@@ -243,6 +312,12 @@ watch(() => docs.hasSessions, (hasSessions) => {
 
 .topbar-copy {
   min-width: 0;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .save-action {

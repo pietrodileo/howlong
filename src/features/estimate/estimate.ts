@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Estimate, LineItem, PlanningRange } from '../../models/estimate';
+import type { Estimate, LineItem, PlanningRange, PresentationStatus, PresentationStatusScope } from '../../models/estimate';
 import { parseEstimate } from '../../models/estimate';
 import type { FormulaAggregate } from '../../models/model';
 import { createEmptyEstimate } from '../../domain/factory';
@@ -126,6 +126,15 @@ export const useEstimateStore = defineStore('estimate', () => {
 
   function updateClientView(patch: Partial<Estimate['clientView']>) {
     estimate.value.clientView = { ...estimate.value.clientView, ...patch };
+    touch();
+  }
+
+  /** Update one independent presentation status for the active estimate. */
+  function setPresentationStatus(scope: PresentationStatusScope, status: PresentationStatus) {
+    estimate.value.presentationStatuses = {
+      ...estimate.value.presentationStatuses,
+      [scope]: status,
+    };
     touch();
   }
 
@@ -631,6 +640,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     updateMeta,
     updateContingency,
     updateClientView,
+    setPresentationStatus,
     setMacroPresentation,
     setClientVisible,
     setClientPresentedEffort,

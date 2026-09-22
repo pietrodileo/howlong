@@ -85,6 +85,7 @@ export function createEstimateFromModel(model: Model, settings?: Settings): Esti
       lineOverrides: {},
       macroPresentation: {},
     },
+    presentationStatuses: { estimate: 'draft', manager: 'draft', client: 'draft' },
     auditHistory: [],
     planning: { items: {} },
   };
@@ -122,6 +123,7 @@ export function createEmptyEstimate(settings: Settings): Estimate {
       lineOverrides: {},
       macroPresentation: {},
     },
+    presentationStatuses: { estimate: 'draft', manager: 'draft', client: 'draft' },
     auditHistory: [],
     planning: { items: {} },
   };

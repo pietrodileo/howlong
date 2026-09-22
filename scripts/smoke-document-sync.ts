@@ -93,6 +93,25 @@ async function checkView(view: 'working' | 'gantt') {
 
 await checkView('working');
 await checkView('gantt');
+
+/** Verify presentation status changes are persisted in Working history. */
+async function checkPresentationStatusHistory() {
+  setActivePinia(createPinia());
+  const docs = useDocumentsStore();
+  const estimate = useEstimateStore();
+  docs.createEmpty();
+  const scope = effectScope();
+  const sync = scope.run(() => useDocumentSync('working'))!;
+  estimate.setPresentationStatus('estimate', 'verified');
+  await nextTick();
+  assert.equal(docs.activeSession!.estimate.presentationStatuses.estimate, 'verified');
+  sync.restoreHistory('undo');
+  await nextTick();
+  assert.equal(estimate.estimate.presentationStatuses.estimate, 'draft');
+  scope.stop();
+}
+
+await checkPresentationStatusHistory();
 console.log('document synchronization smoke checks passed');
 const shortcut = (key: string, options: Partial<KeyboardEvent> = {}) => resolveDocumentShortcut({
   key,

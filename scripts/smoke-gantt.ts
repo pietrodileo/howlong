@@ -70,6 +70,9 @@ assert.equal(parsed.ok, true);
 if (parsed.ok) {
   assert.equal(parsed.data.schemaVersion, 4);
   assert.deepEqual(parsed.data.planning, { items: {} });
+  assert.deepEqual(parsed.data.presentationStatuses, {
+    estimate: 'draft', manager: 'draft', client: 'draft',
+  });
   assert.ok(parsed.data.items.every((item) => item.status === 'to-plan'));
 }
 assert.equal(parseEstimate({

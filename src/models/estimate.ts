@@ -19,6 +19,19 @@ export const ActivityStatusSchema = z.enum([
   'cancelled',
 ]);
 
+export const PresentationStatusSchema = z.enum([
+  'draft',
+  'in-progress',
+  'ready-for-revision',
+  'verified',
+]);
+
+export const PresentationStatusesSchema = z.object({
+  estimate: PresentationStatusSchema.default('draft'),
+  manager: PresentationStatusSchema.default('draft'),
+  client: PresentationStatusSchema.default('draft'),
+});
+
 export const LineItemSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -120,6 +133,11 @@ export const EstimateSchema = z.object({
     lineOverrides: {},
     macroPresentation: {},
   }),
+  presentationStatuses: PresentationStatusesSchema.default({
+    estimate: 'draft',
+    manager: 'draft',
+    client: 'draft',
+  }),
   /** Cronologia salvataggi: chi e quando. */
   auditHistory: z.array(AuditEntrySchema).default([]),
   planning: EstimatePlanningSchema.default({ items: {} }),
@@ -127,6 +145,9 @@ export const EstimateSchema = z.object({
 
 export type LineItem = z.infer<typeof LineItemSchema>;
 export type ActivityStatus = z.infer<typeof ActivityStatusSchema>;
+export type PresentationStatus = z.infer<typeof PresentationStatusSchema>;
+export type PresentationStatusScope = keyof z.infer<typeof PresentationStatusesSchema>;
+export type PresentationStatuses = z.infer<typeof PresentationStatusesSchema>;
 export type AuditEntry = z.infer<typeof AuditEntrySchema>;
 export type Estimate = Omit<z.infer<typeof EstimateSchema>, 'schemaVersion'> & {
   schemaVersion: 4;
