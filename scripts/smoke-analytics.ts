@@ -1,7 +1,7 @@
 import type { Estimate } from '../src/models/estimate';
 import { getLineItemColor } from '../src/domain/itemColors';
 import { buildGraphEntries, buildOwnerEntries, buildPercentageShares, graphValue } from '../src/features/analytics/graphData';
-import { buildPlanningCoverage, buildPlanningEntries, buildStatusCategoryGroups, buildTimelineBuckets } from '../src/features/analytics/planningData';
+import { buildPlanningCoverage, buildPlanningEntries, buildStatusCategoryGroups, buildTimelineBuckets, buildUnestimatedEntries } from '../src/features/analytics/planningData';
 
 const estimate = {
   schemaVersion: 4,
@@ -126,8 +126,11 @@ const planningEstimate = {
     { ...estimate.items[1], status: 'in-progress', owners: ['Alice'] },
     { ...estimate.items[2], status: 'cancelled', owners: [] },
     { ...estimate.items[3], status: 'to-plan', owners: [] },
+    { id: 'zero-macro', name: 'Zero macro', hours: 0, category: 'Other', kind: 'operational', parentId: null, contingencyPercentOverride: null, notes: '', owners: [], status: 'to-plan', tags: [], clientVisible: true, applyContingency: true },
+    { id: 'zero-subtask', name: 'Zero subtask', hours: 0, category: 'Other', kind: 'operational', parentId: 'zero-macro', contingencyPercentOverride: null, notes: '', owners: [], status: 'to-plan', tags: [], clientVisible: true, applyContingency: true },
     { id: 'standalone', name: 'Test', hours: 5, category: 'Test', kind: 'operational', parentId: null, contingencyPercentOverride: null, notes: '', owners: [], status: 'blocked', tags: [], clientVisible: true, applyContingency: true },
     { id: 'formula-plan', name: 'Formula', hours: 0, category: 'Other', kind: 'formula', parentId: null, contingencyPercentOverride: null, notes: '', owners: [], status: 'planned', tags: [], clientVisible: true, applyContingency: true, formula: { percent: 10, sourceIds: ['visible'], aggregate: 'sum', includeFormulaSources: true, applyGlobalContingency: true } },
+    { id: 'formula-zero', name: 'Zero formula', hours: 0, category: 'Other', kind: 'formula', parentId: null, contingencyPercentOverride: null, notes: '', owners: [], status: 'to-plan', tags: [], clientVisible: true, applyContingency: true, formula: { percent: 10, sourceIds: ['zero'], aggregate: 'sum', includeFormulaSources: true, applyGlobalContingency: true } },
   ],
   planning: {
     items: {
@@ -146,6 +149,10 @@ if (planningEntries.some((entry) => entry.id === 'macro' || entry.id === 'formul
 const planningCoverage = buildPlanningCoverage(planningEntries, 'base');
 if (planningCoverage.planned !== 15 || planningCoverage.unplanned !== 0 || planningCoverage.percentage !== 100) {
   throw new Error(`planning coverage is wrong: ${JSON.stringify(planningCoverage)}`);
+}
+const unestimatedEntries = buildUnestimatedEntries(planningEstimate);
+if (unestimatedEntries.map((entry) => entry.id).join(',') !== 'zero,zero-macro,zero-subtask,formula-zero') {
+  throw new Error(`unestimated entries must include macros and formulas but exclude cancelled work: ${JSON.stringify(unestimatedEntries)}`);
 }
 if (planningCoverage.unassigned !== 5 || planningCoverage.unplannedPercentage !== 0 || planningCoverage.unassignedPercentage !== (5 / 15) * 100) {
   throw new Error(`unassigned effort coverage is wrong: ${JSON.stringify(planningCoverage)}`);

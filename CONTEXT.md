@@ -20,6 +20,10 @@ _Avoid_: Estimate
 One row of work in an estimate. It is the generic term for a macro, subtask, or formula.
 _Avoid_: Activity when referring to the estimate hierarchy
 
+**Unestimated line item**:
+A non-cancelled line item whose calculated effort is zero. Analytics counts every type of line item—macro, subtask, and formula—when reporting unestimated work.
+_Avoid_: Unplanned line item, unassigned line item
+
 **Macro**:
 A top-level work item in an estimate. A macro may contain subtasks or represent a standalone item.
 _Avoid_: Parent task when referring to the top-level item
