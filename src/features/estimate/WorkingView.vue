@@ -1361,6 +1361,11 @@ function onHeaderDblClick(key: ColumnKey) {
   font-size: 0.8rem;
   letter-spacing: 0.015em;
   text-transform: none;
+  box-shadow: inset 0 -1px 0 var(--line-strong);
+}
+
+.working .data-table th:hover {
+  box-shadow: inset 0 -1px 0 var(--accent);
 }
 
 .working .data-table td {
