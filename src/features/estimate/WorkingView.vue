@@ -509,6 +509,11 @@ function hoursEditable(line: ComputedLineHours) {
   return !line.hasChildren && !line.isFormula && line.item.kind !== 'formula';
 }
 
+/** Count the direct subtasks shown as children of a macro. */
+function subtaskCount(macroId: string): number {
+  return estimate.estimate.items.filter((item) => item.parentId === macroId).length;
+}
+
 /** CTG custom % editabile se la voce contribuisce e ha CTG attiva (anche derivate). */
 function overrideEditable(line: ComputedLineHours) {
   if (line.hasChildren || line.item.kind === 'summary') return false;
@@ -990,6 +995,11 @@ function onHeaderDblClick(key: ColumnKey) {
                       :class="{ 'macro-name': line.isMacro || line.isFormula }"
                       @input="estimate.updateItem(line.item.id, { name: ($event.target as HTMLTextAreaElement).value })"
                     />
+                    <span
+                      v-if="line.isMacro && line.hasChildren"
+                      class="subtask-count"
+                      :aria-label="`${subtaskCount(line.item.id)} ${t('analytics.subtasks')}`"
+                    >({{ subtaskCount(line.item.id) }})</span>
                     <button
                       v-if="line.isFormula || isFormulaItem(line.item)"
                       type="button"
@@ -2070,6 +2080,14 @@ th.collapsed {
 
 .name-cell .macro-name {
   font-weight: 600;
+}
+
+.subtask-count {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .collapse {
