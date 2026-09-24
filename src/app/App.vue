@@ -159,6 +159,12 @@ watch(
   { immediate: true },
 );
 
+watch(
+  () => settings.settings.locale,
+  (locale) => { document.documentElement.lang = locale; },
+  { immediate: true },
+);
+
 onMounted(async () => {
   await settings.load();
   applyTheme(settings.settings.theme === 'dark' ? 'dark' : 'light');
@@ -179,6 +185,7 @@ watch(() => docs.hasSessions, (hasSessions) => {
 
 <template>
   <div class="app-shell">
+    <a class="skip-link" href="#main-content">{{ t('common.skipToContent') }}</a>
     <AppSidebar />
 
     <div class="workspace">
@@ -227,7 +234,7 @@ watch(() => docs.hasSessions, (hasSessions) => {
         </div>
       </header>
 
-      <main :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome', 'centered-empty-view': (ui.currentView === 'gantt' || ui.currentView === 'analytics') && !docs.hasSessions }">
+      <main id="main-content" :class="{ flush: ui.currentView === 'working' || ui.currentView === 'settings' || ui.currentView === 'welcome', 'centered-empty-view': (ui.currentView === 'gantt' || ui.currentView === 'analytics') && !docs.hasSessions }">
         <WelcomeView v-if="ui.currentView === 'welcome' || (ui.currentView === 'working' && !docs.hasSessions)" />
         <WorkingView v-else-if="ui.currentView === 'working' && docs.hasSessions" />
         <GanttView v-else-if="ui.currentView === 'gantt'" />

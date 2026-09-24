@@ -297,32 +297,39 @@ function onNewEstimate() {
 
     <!-- Document tabs and new button in same container -->
     <div class="tabs-scroll">
-      <button
+      <div
         v-for="session in tabs" 
         :key="session.sessionId"
-        type="button"
-        class="tab document-tab"
+        class="tab-shell"
         :class="{ active: activeId === session.sessionId, dirty: session.dirty, dragging: draggingId === session.sessionId, 'drop-target': dropTargetId === session.sessionId }"
-        @click="activateTab(session.sessionId)"
         @pointerdown="onTabPointerDown(session.sessionId, $event)"
         :data-session-id="session.sessionId"
-        :aria-label="`${session.displayTitle}${session.dirty ? ' (' + t('common.unsaved') + ')' : ''}`"
       >
-        <span
-          v-if="dropTargetId === session.sessionId && dropBefore"
-          class="drop-indicator"
-          aria-hidden="true"
-        ></span>
-        <span class="tab-title">{{ session.displayTitle }}</span>
-        <span 
-          class="tab-close" 
-          @click.stop="closeTab(session.sessionId, $event)"
+        <button
+          type="button"
+          class="tab document-tab"
+          @click="activateTab(session.sessionId)"
+          :aria-label="`${session.displayTitle}${session.dirty ? ' (' + t('common.unsaved') + ')' : ''}`"
+          :aria-pressed="activeId === session.sessionId"
+        >
+          <span
+            v-if="dropTargetId === session.sessionId && dropBefore"
+            class="drop-indicator"
+            aria-hidden="true"
+          ></span>
+          <span class="tab-title">{{ session.displayTitle }}</span>
+          <span
+            v-if="dropTargetId === session.sessionId && !dropBefore"
+            class="drop-indicator drop-indicator-after"
+            aria-hidden="true"
+          ></span>
+        </button>
+        <button
+          type="button"
+          class="tab-close"
+          @click="closeTab(session.sessionId, $event)"
           v-tip.top="t('common.close')"
-          :aria-label="t('common.close')"
-          role="button"
-          tabindex="0"
-          @keydown.enter.stop="closeTab(session.sessionId, $event)"
-          @keydown.space.prevent.stop="closeTab(session.sessionId, $event)"
+          :aria-label="`${t('common.close')}: ${session.displayTitle}`"
         >
           <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
             <path
@@ -330,13 +337,8 @@ function onNewEstimate() {
               d="M3.2 3.2a.75.75 0 0 1 1.06 0L8 6.94l3.74-3.74a.75.75 0 1 1 1.06 1.06L9.06 8l3.74 3.74a.75.75 0 1 1-1.06 1.06L8 9.06l-3.74 3.74a.75.75 0 1 1-1.06-1.06L6.94 8 3.2 4.26a.75.75 0 0 1 0-1.06Z"
             />
           </svg>
-        </span>
-        <span
-          v-if="dropTargetId === session.sessionId && !dropBefore"
-          class="drop-indicator drop-indicator-after"
-          aria-hidden="true"
-        ></span>
-      </button>
+        </button>
+      </div>
 
       <!-- New estimate buttons stay after last tab in scroll order -->
       <div class="new-estimate-group">
@@ -434,33 +436,54 @@ function onNewEstimate() {
   display: none;
 }
 
-.tab {
+.tab-shell {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0 12px;
+  flex: 0 0 auto;
   height: 32px;
   margin: 2px 0;
-  border: none;
   border-radius: 8px 8px 0 0;
   background: var(--surface);
   color: var(--muted);
-  cursor: pointer;
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-  position: relative;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   cursor: grab;
 }
 
-.tab.dragging {
+.tab-shell.active {
+  height: 36px;
+  margin-top: 0;
+  border-bottom: 4px solid var(--accent);
+  background: var(--page);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.tab {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0 34px 0 12px;
+  height: 100%;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  cursor: grab;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+  position: relative;
+}
+
+.tab-shell.dragging {
   opacity: 0.45;
   cursor: grabbing;
 }
 
-.tab.drop-target {
+.tab-shell.drop-target .tab {
   background: var(--accent-subtle);
 }
 
@@ -482,34 +505,30 @@ function onNewEstimate() {
   right: -3px;
 }
 
-.tab:first-child .drop-indicator {
+.tab-shell:first-child .drop-indicator {
   left: 0;
 }
 
-.tab:focus {
+.tab:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
-.tab:hover {
+.tab-shell:hover .tab {
   background: var(--accent-subtle);
   color: var(--accent);
 }
 
-.tab.active {
+.tab-shell.active .tab {
   background: var(--page);
   color: var(--ink);
-  font-weight: 500;
-  margin-top: 0;
-  height: 36px;
-  border-bottom: 4px solid var(--accent);
 }
 
-.tab.active:hover {
+.tab-shell.active:hover .tab {
   background: var(--page);
 }
 
-.tab.dirty::after {
+.tab-shell.dirty .tab::after {
   content: '';
   position: absolute;
   top: 8px;
@@ -534,6 +553,9 @@ function onNewEstimate() {
 }
 
 .tab-close {
+  position: absolute;
+  top: 50%;
+  right: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -547,19 +569,20 @@ function onNewEstimate() {
   color: var(--muted);
   cursor: pointer;
   opacity: 0.7;
-  transition: all 0.15s ease;
+  transform: translateY(-50%);
+  transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
-.tab:hover .tab-close {
+.tab-shell:hover .tab-close {
   opacity: 1;
   color: var(--ink);
 }
 
-.tab.active .tab-close {
+.tab-shell.active .tab-close {
   color: var(--muted);
 }
 
-.tab.active:hover .tab-close {
+.tab-shell.active:hover .tab-close {
   opacity: 1;
   color: var(--ink);
 }
@@ -570,11 +593,15 @@ function onNewEstimate() {
   opacity: 1;
 }
 
-.tab-close:active,
-.tab-close:focus {
+.tab-close:active {
   opacity: 0.8;
-  transform: scale(0.95);
-  outline: none;
+  transform: translateY(-50%) scale(0.95);
+}
+
+.tab-close:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .tab-close svg {
@@ -595,7 +622,7 @@ function onNewEstimate() {
   background: var(--surface);
   color: var(--muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
   white-space: nowrap;
@@ -640,7 +667,7 @@ function onNewEstimate() {
   background: var(--surface);
   color: var(--muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
   font-size: 0.875rem;

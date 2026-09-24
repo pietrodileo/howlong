@@ -85,14 +85,6 @@ function choose(name: string) {
   emit('update:modelValue', normalized);
   close();
 }
-function clear(name: string, event: Event) {
-  event.stopPropagation();
-  if (Array.isArray(props.modelValue)) {
-    emit('update:modelValue', selectedOwners.value.filter((owner) => owner.toLowerCase() !== name.toLowerCase()));
-  } else {
-    emit('update:modelValue', '');
-  }
-}
 function deleteOption(event: MouseEvent, name: string) { event.stopPropagation(); close(); emit('delete-option', name); }
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') { event.preventDefault(); close(); }
@@ -120,16 +112,18 @@ onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointe
 
 <template>
   <div ref="rootEl" class="owner-picker-control" :class="{ open, disabled, compact, plain }">
-    <button type="button" class="owner-trigger" :disabled="disabled" :aria-label="ariaLabel" :aria-expanded="open" @click="toggle">
-      <span v-if="plain && selectedOwners.length" class="owner-value">{{ selectedOwners[0] }}</span>
-      <span v-else-if="plain" class="owner-placeholder">{{ placeholder }}</span>
-      <span v-else-if="selectedOwners.length" class="owner-pills">
-        <span v-for="owner in visibleOwners" :key="owner" class="owner-pill" :style="ownerStyle(owner)" :role="disabled ? undefined : 'button'" :tabindex="disabled ? -1 : 0" :aria-label="`${removeLabel}: ${owner}`" @click="clear(owner, $event)" @keydown.enter.prevent="clear(owner, $event)">{{ owner }} <span class="owner-remove" aria-hidden="true">×</span></span>
-        <span v-if="hiddenOwnerCount" class="owner-overflow" :aria-label="`+${hiddenOwnerCount}`">+{{ hiddenOwnerCount }}</span>
-      </span>
-      <span v-else class="owner-placeholder">{{ placeholder }}</span>
-      <span class="owner-chevron" aria-hidden="true">▾</span>
-    </button>
+    <div class="owner-trigger">
+      <button type="button" class="owner-open" :disabled="disabled" :aria-label="ariaLabel" :aria-expanded="open" @click="toggle">
+        <span v-if="plain && selectedOwners.length" class="owner-value">{{ selectedOwners[0] }}</span>
+        <span v-else-if="plain" class="owner-placeholder">{{ placeholder }}</span>
+        <span v-else-if="selectedOwners.length" class="owner-pills">
+          <span v-for="owner in visibleOwners" :key="owner" class="owner-pill" :style="ownerStyle(owner)">{{ owner }}</span>
+          <span v-if="hiddenOwnerCount" class="owner-overflow" :aria-label="`+${hiddenOwnerCount}`">+{{ hiddenOwnerCount }}</span>
+        </span>
+        <span v-else class="owner-placeholder">{{ placeholder }}</span>
+        <span class="owner-chevron" aria-hidden="true">▾</span>
+      </button>
+    </div>
     <Teleport to="body" :disabled="isFullscreen">
       <div v-if="open" ref="menuEl" class="owner-menu" :style="menuStyle" role="listbox" :aria-label="ariaLabel" :aria-multiselectable="multiple || undefined" @pointerdown.stop>
         <input ref="filterEl" v-model="query" class="owner-filter" type="text" :placeholder="filterPlaceholder" @keydown="onKeydown" />
@@ -145,18 +139,19 @@ onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointe
 
 <style scoped>
 .owner-picker-control { width: 100%; min-width: 0; }
-.owner-picker-control.compact .owner-trigger { min-height: 1.65rem; padding: .18rem .38rem; }
+.owner-picker-control.compact .owner-trigger { min-height: 1.65rem; }
+.owner-picker-control.compact .owner-open { padding: .18rem .38rem; }
 .owner-picker-control.compact .owner-pills { flex-wrap: nowrap; overflow: hidden; }
 .owner-picker-control.compact .owner-pill { max-width: 7rem; overflow: hidden; text-overflow: ellipsis; }
 .owner-overflow { flex: 0 0 auto; color: var(--muted); font-size: .68rem; font-weight: 600; white-space: nowrap; }
-.owner-trigger { display: flex; align-items: center; gap: .25rem; width: 100%; min-height: 1.8rem; padding: .25rem .55rem; font: inherit; text-align: left; color: var(--ink); background: var(--page-soft); border: 1px solid var(--line); border-radius: var(--radius-sm); cursor: pointer; }
+.owner-trigger { display: flex; align-items: stretch; width: 100%; min-height: 1.8rem; color: var(--ink); background: var(--page-soft); border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
 .owner-picker-control.open .owner-trigger { border-color: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
+.owner-open { display: flex; flex: 1; align-items: center; gap: .25rem; min-width: 0; padding: .25rem .55rem; border: 0; border-radius: inherit; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.owner-open:disabled { cursor: default; opacity: .75; }
 .owner-placeholder { color: var(--muted); font-size: .78rem; }
 .owner-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .owner-pills { display: flex; flex-wrap: wrap; min-width: 0; gap: .2rem; }
-.owner-pill { display: inline-flex; align-items: center; gap: .15rem; max-width: 100%; padding: .08rem .4rem; color: var(--ink); font: inherit; font-size: .72rem; line-height: 1.35; white-space: nowrap; background: var(--surface); border: 1px solid; border-radius: 999px; cursor: pointer; }
-.owner-pill[tabindex="-1"] { cursor: default; opacity: .88; }
-.owner-remove { font-size: .85rem; opacity: .65; cursor: pointer; }
+.owner-pill { display: inline-flex; align-items: center; max-width: 100%; padding: .08rem .4rem; color: var(--ink); font: inherit; font-size: .72rem; line-height: 1.35; white-space: nowrap; background: var(--surface); border: 1px solid; border-radius: 999px; }
 .owner-chevron { margin-left: auto; color: var(--muted); font-size: .65rem; }
 .owner-menu { position: fixed; z-index: 1000; max-height: 14rem; overflow: auto; padding: .35rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); box-shadow: var(--shadow-md, 0 8px 24px rgb(0 0 0 / 12%)); }
 .owner-filter { width: 100%; box-sizing: border-box; margin: 0 0 .35rem; padding: .4rem .5rem; font: inherit; font-size: .74rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); }

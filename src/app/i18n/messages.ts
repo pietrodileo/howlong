@@ -82,6 +82,7 @@ export type MessageTree = {
     cancel: string;
     confirm: string;
     start: string;
+    skipToContent: string;
   };
   presentation: {
     estimate: string;
@@ -1052,6 +1053,7 @@ const it: MessageTree = {
     confirm: 'Conferma',
     duplicate: 'Duplica',
     start: 'Inizia',
+    skipToContent: 'Vai al contenuto principale',
   },
   presentation: {
     estimate: 'Stima',
@@ -2024,6 +2026,7 @@ const en: MessageTree = {
     confirm: 'Confirm',
     duplicate: 'Duplicate',
     start: 'Get started',
+    skipToContent: 'Skip to main content',
   },
   presentation: {
     estimate: 'Estimate',

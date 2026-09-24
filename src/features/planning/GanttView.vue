@@ -482,6 +482,12 @@ function scheduleFromCell(event: MouseEvent, item: LineItem) {
   setRange(item, { startDate: date, endDate: date });
 }
 
+/** Open the date editor when an unscheduled timeline row receives keyboard input. */
+function scheduleFromKeyboard(event: KeyboardEvent, item: LineItem) {
+  if (rangeFor(item) || hasChildren(item)) return;
+  openGanttOverlay(event, item, 'dates');
+}
+
 async function exportXlsx() {
   if (exporting.value) return;
   exporting.value = true;
@@ -730,6 +736,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               <span v-if="item.parentId" class="macro-name">{{ plannableItems.find((row) => row.id === item.parentId)?.name }}</span>
               <div class="row-actions cell-rail">
 
+                <button v-if="!rangeFor(item) && !hasChildren(item)" type="button" class="schedule-button" @click="openGanttOverlay($event, item, 'dates')">{{ t('gantt.scheduleActivity') }}</button>
                 <button type="button" class="status-pill" data-gantt-overlay-trigger :style="{ '--status-color': ACTIVITY_STATUS_COLORS[statusFor(item)] }" :aria-label="t('gantt.changeStatus', { status: statusLabel(statusFor(item)) })" :aria-expanded="statusMenuId === item.id" v-tip="statusLabel(statusFor(item))" @click="openGanttOverlay($event, item, 'status')">{{ statusLabel(statusFor(item)) }}</button>
                 <IconBtn v-if="!item.parentId" kind="add" class="rail-add" :label="t('gantt.addSubtask')" @click="addSubtask(item.id)" />
                 <button v-else type="button" class="note-button" data-gantt-overlay-trigger :class="{ filled: item.notes.trim() }" :aria-label="t('gantt.editNote')" v-tip="t('gantt.editNote')" @click="openGanttOverlay($event, item, 'notes')"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 2.5h10v8l-3 3H3z"/><path d="M10 13.5v-3h3M5 5.5h6M5 8h4"/></svg></button>
@@ -744,7 +751,12 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
             :class="{ compact: !item.parentId && collapsed.has(item.id), planned: !!rangeFor(item), alternate: rowIndex % 2 === 1, schedulable: !rangeFor(item) && !hasChildren(item) }"
             :style="{ width: `${timelineWidth}px`, backgroundSize: `${cellWidth}px 100%` }"
             :title="!rangeFor(item) && !hasChildren(item) ? t('gantt.doubleClickHint') : undefined"
+            :tabindex="!rangeFor(item) && !hasChildren(item) ? 0 : undefined"
+            :role="!rangeFor(item) && !hasChildren(item) ? 'button' : undefined"
+            :aria-label="!rangeFor(item) && !hasChildren(item) ? t('gantt.scheduleActivity') : undefined"
             @dblclick="scheduleFromCell($event, item)"
+            @keydown.enter.prevent="scheduleFromKeyboard($event, item)"
+            @keydown.space.prevent="scheduleFromKeyboard($event, item)"
           >
             <template v-if="scale === 'day'">
               <div v-for="column in weekendColumns" :key="column" class="weekend-column" :style="{ left: column * cellWidth + 'px', width: cellWidth + 'px' }" />
@@ -970,6 +982,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .activity-row .cell-rail .note-button,
 .activity-row .cell-rail .rail-button,
 .activity-row .cell-rail .rail-add { width: 1.15rem; min-width: 1.15rem; min-height: 1.15rem; height: 1.15rem; padding: 0; }
+.activity-row .cell-rail .schedule-button { min-height: 1.15rem; padding: .08rem .28rem; }
 .activity-row .cell-rail .status-pill { font-size: 0; }
 .activity-row .cell-rail .status-pill > span { width: .55rem; height: .55rem; }
 .activity-row .cell-rail .status-pill small { position: absolute; right: -.15rem; bottom: -.2rem; font-size: .5rem; }
@@ -1032,6 +1045,8 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .color-picker input::-webkit-color-swatch { border: 2px solid var(--surface); border-radius: 50%; box-shadow: 0 0 0 2px var(--status-color); }
 .schedule { border: 0; background: transparent; color: var(--accent); padding: .2rem; font-size: .68rem; }
 .schedule:disabled { color: var(--muted); cursor: not-allowed; opacity: .55; }
+.schedule-button { border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line)); border-radius: var(--radius-sm); background: var(--accent-subtle); color: var(--accent); font-size: .64rem; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.schedule-button:hover { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
 .timeline-row { position: relative; height: 64px; border-bottom: 1px solid var(--line); background-color: color-mix(in srgb, var(--page-soft) 84%, var(--surface)); background-image: linear-gradient(to right, color-mix(in srgb, var(--line) 72%, transparent) 1px, transparent 1px); background-position-x: -1px; }
 .timeline-row.compact { height: 46px; }
 .timeline-row.planned:not(.compact) .gantt-bar { top: 18px; }
@@ -1041,6 +1056,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .gantt-grid.activity-collapsed .timeline-row .gantt-bar { top: 9px; }
 .timeline-row.alternate { background-color: var(--surface); }
 .timeline-row.schedulable { cursor: cell; }
+.timeline-row.schedulable:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .today-line { position: absolute; inset-block: 0; width: 2px; background: var(--accent); opacity: .45; pointer-events: none; }
 .selected-day { position: absolute; inset-block: 0; background: color-mix(in srgb, var(--accent) 20%, transparent); pointer-events: none; }
 .gantt-bar { position: absolute; top: 24px; height: 28px; display: flex; align-items: center; border-radius: 6px; color: var(--bar-text); background: var(--bar-color); cursor: grab; touch-action: none; user-select: none; overflow: hidden; box-shadow: 0 2px 7px color-mix(in srgb, var(--bar-color) 28%, transparent); }
@@ -1056,7 +1072,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .handle.end::after { right: 3px; }
 .gantt-empty { display: grid; align-content: start; justify-items: center; min-height: 100%; padding: clamp(7rem, 24vh, 12rem) 2rem 2rem; text-align: center; }
 .empty-actions { display: flex; align-items: stretch; justify-content: center; flex-wrap: wrap; gap: .75rem; }
-.action-btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.25rem; font-size: .95rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); cursor: pointer; transition: all .15s ease; }
+.action-btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.25rem; font-size: .95rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); cursor: pointer; transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
 .action-btn:hover { border-color: var(--accent); background: var(--accent-subtle); }
 .action-btn.primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
 .action-btn.primary:hover { border-color: var(--accent-hover); background: var(--accent-hover); }

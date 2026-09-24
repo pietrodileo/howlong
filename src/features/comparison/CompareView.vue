@@ -475,7 +475,7 @@ aside {
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 
 .sort-btn:hover {
