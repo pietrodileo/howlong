@@ -1356,6 +1356,7 @@ function onHeaderDblClick(key: ColumnKey) {
   top: 0;
   z-index: 2;
   padding: 0.55rem 0.45rem;
+  font-size: 0.8rem;
   letter-spacing: 0.015em;
   text-transform: none;
 }
