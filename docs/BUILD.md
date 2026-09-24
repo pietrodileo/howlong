@@ -142,7 +142,7 @@ Examples:
 
 - `0.5.1` → `0.5.2` for a bug fix
 - `0.5.1` → `0.6.0` for a new feature
-- `0.8.0` → `0.8.1` for a patch release
+- `0.8.1` → `0.8.2` for a patch release
 - `0.5.1` → `1.0.0` for the first stable major release
 
 Stable release tags use a `v` prefix, for example `v0.8.0`. Pre-release versions may use a suffix such as `0.8.0-beta.1`.

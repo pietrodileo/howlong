@@ -87,6 +87,8 @@ const lastAuditWhen = computed(() => {
 const isUnsaved = computed(() => estimate.dirty || docs.activeSession?.dirty === true);
 
 const auditHistoryOpen = ref(false);
+const workingElement = ref<HTMLElement | null>(null);
+const isFullscreen = ref(false);
 
 const rowDrag = useRowDragReorder({
   getItems: () => estimate.estimate.items,
@@ -361,12 +363,28 @@ onMounted(() => {
   }
   document.addEventListener('pointerdown', onDocPointerDown);
   window.addEventListener('keydown', onEstimateKeydown);
+  document.addEventListener('fullscreenchange', onFullscreenChange);
 });
 
 onUnmounted(() => {
   document.removeEventListener('pointerdown', onDocPointerDown);
   window.removeEventListener('keydown', onEstimateKeydown);
+  document.removeEventListener('fullscreenchange', onFullscreenChange);
 });
+
+/** Keep the full-screen control aligned when the browser exits with Escape. */
+function onFullscreenChange(): void {
+  isFullscreen.value = document.fullscreenElement === workingElement.value;
+}
+
+/** Toggle full screen for the Estimate view without changing its session state. */
+async function toggleFullscreen(): Promise<void> {
+  if (isFullscreen.value) {
+    await document.exitFullscreen();
+    return;
+  }
+  await workingElement.value?.requestFullscreen();
+}
 
 const allMacrosExpanded = computed(() => {
   const macros = estimate.totals.lines.filter((l) => l.isMacro && l.hasChildren);
@@ -600,7 +618,7 @@ function onHeaderDblClick(key: ColumnKey) {
 
 <template>
   <ClientView v-if="clientPreview" @back="clientPreview = false" />
-  <div v-else class="working">
+  <div v-else ref="workingElement" class="working">
     <header class="hero">
       <div class="title-head">
         <div class="title-main">
@@ -700,6 +718,7 @@ function onHeaderDblClick(key: ColumnKey) {
     </header>
 
     <div class="summary-row" aria-live="polite">
+      <span class="fullscreen-title">{{ estimate.estimate.meta.title }}</span>
       <div class="stat">
         <span>{{ t('working.base') }}</span>
         <strong>
@@ -781,6 +800,17 @@ function onHeaderDblClick(key: ColumnKey) {
               stroke-linejoin="round"
               d="M2.5 5h8m0 0L8.5 3M10.5 5 8.5 7M13.5 11h-8m0 0 2 2m-2-2 2-2"
             />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="ghost ctg-compare-trigger fullscreen-toggle"
+          :aria-label="isFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+          v-tip="isFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+          @click="toggleFullscreen"
+        >
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
           </svg>
         </button>
         <div class="col-picker">
@@ -1205,49 +1235,48 @@ function onHeaderDblClick(key: ColumnKey) {
       </button>
       <span v-else class="audit-meta muted">{{ t('working.auditHistoryUnavailable') }}</span>
     </footer>
+    <FormulaEditor
+      v-if="editingFormulaItem"
+      :item="editingFormulaItem"
+      :candidates="estimate.estimate.items"
+      @close="closeFormulaEditor"
+      @save="onSaveFormula"
+    />
+
+    <NotesEditor
+      :open="notesEditItem != null"
+      :item-name="notesEditItem?.name ?? ''"
+      :notes="notesEditItem?.notes ?? ''"
+      @close="closeNotesEditor"
+      @save="onSaveNotes"
+    />
+
+    <ConfirmModal
+      :open="confirmOpen"
+      :title="pendingConfirm?.title ?? ''"
+      :message="pendingConfirm?.message ?? ''"
+      :confirm-label="pendingConfirm?.confirmLabel"
+      danger
+      @cancel="cancelConfirm"
+      @confirm="runConfirm"
+    />
+
+    <ConfirmModal
+      :open="pendingOwnerDelete != null"
+      :title="t('gantt.deleteOwnerTitle')"
+      :message="t('gantt.deleteOwnerBody', { name: pendingOwnerDelete?.name ?? '' })"
+      :confirm-label="t('gantt.deleteOwnerConfirm')"
+      danger
+      @cancel="pendingOwnerDelete = null"
+      @confirm="confirmOwnerDelete"
+    />
+
+    <AuditHistoryModal
+      :open="auditHistoryOpen"
+      :entries="estimate.estimate.auditHistory ?? []"
+      @close="auditHistoryOpen = false"
+    />
   </div>
-
-  <FormulaEditor
-    v-if="editingFormulaItem"
-    :item="editingFormulaItem"
-    :candidates="estimate.estimate.items"
-    @close="closeFormulaEditor"
-    @save="onSaveFormula"
-  />
-
-  <NotesEditor
-    :open="notesEditItem != null"
-    :item-name="notesEditItem?.name ?? ''"
-    :notes="notesEditItem?.notes ?? ''"
-    @close="closeNotesEditor"
-    @save="onSaveNotes"
-  />
-
-  <ConfirmModal
-    :open="confirmOpen"
-    :title="pendingConfirm?.title ?? ''"
-    :message="pendingConfirm?.message ?? ''"
-    :confirm-label="pendingConfirm?.confirmLabel"
-    danger
-    @cancel="cancelConfirm"
-    @confirm="runConfirm"
-  />
-
-  <ConfirmModal
-    :open="pendingOwnerDelete != null"
-    :title="t('gantt.deleteOwnerTitle')"
-    :message="t('gantt.deleteOwnerBody', { name: pendingOwnerDelete?.name ?? '' })"
-    :confirm-label="t('gantt.deleteOwnerConfirm')"
-    danger
-    @cancel="pendingOwnerDelete = null"
-    @confirm="confirmOwnerDelete"
-  />
-
-  <AuditHistoryModal
-    :open="auditHistoryOpen"
-    :entries="estimate.estimate.auditHistory ?? []"
-    @close="auditHistoryOpen = false"
-  />
 </template>
 
 <style scoped>
@@ -1262,6 +1291,72 @@ function onHeaderDblClick(key: ColumnKey) {
 .working .table-shell {
   max-height: min(70vh, 640px);
 }
+
+.working .data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Full screen is an editing-focused layout, not a copy of the application chrome. */
+.working:fullscreen {
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+  padding: clamp(0.75rem, 1.5vw, 1.5rem);
+  gap: 0.65rem;
+  overflow: hidden;
+  background: var(--page);
+}
+
+.working:fullscreen .hero,
+.working:fullscreen .audit-footer,
+.working:fullscreen > :deep(.ctg-compare) {
+  display: none;
+}
+
+.working:fullscreen .summary-row {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0.6rem;
+}
+
+.working:fullscreen .summary-actions > :not(.estimate-settings):not(.fullscreen-toggle):not(.col-picker),
+.working:fullscreen .settings-sep {
+  display: none;
+}
+
+.working:fullscreen .table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+.working:fullscreen .add-row {
+  display: none;
+}
+
+.fullscreen-title {
+  display: none;
+}
+
+.working:fullscreen .fullscreen-title {
+  display: block;
+  align-self: flex-start;
+  min-width: 0;
+  max-width: min(18rem, 20vw);
+  overflow: hidden;
+  padding: 0.15rem 0.85rem 0 0;
+  border-right: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 
 .hero {
   display: flex;

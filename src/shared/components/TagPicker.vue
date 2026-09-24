@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { tagBorderColor } from '../tagColors';
 import { useI18n } from '../../app/i18n/useI18n';
 
@@ -34,6 +34,7 @@ const rootEl = ref<HTMLElement | null>(null);
 const filterEl = ref<HTMLInputElement | null>(null);
 const menuEl = ref<HTMLElement | null>(null);
 const menuStyle = ref<Record<string, string>>({});
+const isFullscreen = ref(false);
 
 const selected = computed(() => props.modelValue ?? []);
 
@@ -149,6 +150,11 @@ function onDocPointerDown(e: PointerEvent) {
   close();
 }
 
+/** Keep the menu inside a native full-screen view, where body teleports are hidden. */
+function onFullscreenChange() {
+  isFullscreen.value = document.fullscreenElement !== null;
+}
+
 watch(open, (v) => {
   if (v) {
     document.addEventListener('pointerdown', onDocPointerDown);
@@ -161,8 +167,14 @@ watch(open, (v) => {
   }
 });
 
+onMounted(() => {
+  onFullscreenChange();
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+});
+
 onUnmounted(() => {
   document.removeEventListener('pointerdown', onDocPointerDown);
+  document.removeEventListener('fullscreenchange', onFullscreenChange);
   window.removeEventListener('resize', updateMenuPosition);
   window.removeEventListener('scroll', updateMenuPosition, true);
 });
@@ -218,7 +230,7 @@ onUnmounted(() => {
       <span class="chev" aria-hidden="true">▾</span>
     </button>
 
-    <Teleport to="body">
+    <Teleport to="body" :disabled="isFullscreen">
     <div v-if="open" ref="menuEl" class="tag-menu" :style="menuStyle" role="listbox" @pointerdown.stop>
       <input
         ref="filterEl"

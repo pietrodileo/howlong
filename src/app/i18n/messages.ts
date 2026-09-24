@@ -341,6 +341,8 @@ export type MessageTree = {
     clientView: string;
     clientViewTitle: string;
     presentationView: string;
+    fullscreen: string;
+    exitFullscreen: string;
     unit: string;
     hoursPerDayTitle: string;
     base: string;
@@ -491,6 +493,8 @@ export type MessageTree = {
     plannedWork: string;
     unplannedWork: string;
     unassignedWork: string;
+    unestimatedWork: string;
+    unestimatedWorkHint: string;
     activeOperationalEffort: string;
     plannedVsUnplanned: string;
     statuses: string;
@@ -1292,6 +1296,8 @@ const it: MessageTree = {
     clientView: 'Vista cliente',
     clientViewTitle: 'Anteprima presentabile della stima corrente',
     presentationView: 'Anteprima cliente',
+    fullscreen: 'Schermo intero',
+    exitFullscreen: 'Esci da schermo intero',
     unit: 'Unità',
     hoursPerDayTitle: 'Ore in un giorno lavorativo',
     base: 'Base',
@@ -1444,6 +1450,8 @@ const it: MessageTree = {
     plannedWork: 'Effort pianificato',
     unplannedWork: 'Effort non pianificato',
     unassignedWork: 'Effort non assegnato',
+    unestimatedWork: 'Attività non stimate',
+    unestimatedWorkHint: 'Macro, sotto-task e formule a 0 ore',
     activeOperationalEffort: 'Effort operativo attivo',
     plannedVsUnplanned: 'Pianificato e non pianificato',
     statuses: 'Stato',
@@ -2255,6 +2263,8 @@ const en: MessageTree = {
     clientView: 'Client view',
     clientViewTitle: 'Presentable preview of the current estimate',
     presentationView: 'Client preview',
+    fullscreen: 'Full screen',
+    exitFullscreen: 'Exit full screen',
     unit: 'Unit',
     hoursPerDayTitle: 'Hours in a working day',
     base: 'Base',
@@ -2406,6 +2416,8 @@ const en: MessageTree = {
     plannedWork: 'Planned effort',
     unplannedWork: 'Unplanned effort',
     unassignedWork: 'Unassigned effort',
+    unestimatedWork: 'Unestimated activities',
+    unestimatedWorkHint: 'Macros, sub-tasks, and formulas at 0 hours',
     activeOperationalEffort: 'Active operational effort',
     plannedVsUnplanned: 'Planned and unplanned',
     statuses: 'Status',

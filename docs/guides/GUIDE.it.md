@@ -245,9 +245,13 @@ Ogni scheda ha il proprio annulla/ripristina: `Ctrl/Cmd+Z`; ripristina è `Ctrl+
 
 In alto puoi modificare **titolo**, **cliente** e **icona** della stima. I valori di impegno **Base**, **CTG** (contingenza) e **Totale** vengono visualizzati sia in ore sia in giorni.
 
-La barra degli strumenti offre accesso rapido a unità, ore al giorno, contingenza globale (CTG), confronto contingenza, visibilità colonne, esportazione, ricaricamento, salvataggio e anteprima cliente.
+La barra degli strumenti offre accesso rapido a unità, ore al giorno, contingenza globale (CTG), confronto contingenza, visibilità colonne, schermo intero, esportazione, ricaricamento, salvataggio e anteprima cliente.
 
 La modifica delle **ore al giorno** cambia solo la visualizzazione dei giorni-persona. HowLong? memorizza sempre l'impegno in ore.
+
+### Schermo intero
+
+Usa **Schermo intero** nella barra degli strumenti quando alla tabella serve più spazio. Il layout focalizzato mantiene titolo della stima, Base, CTG e Totale, controlli di unità e CTG, menu **Colonne visibili** e tabella modificabile. Le intestazioni restano visibili durante lo scorrimento. Menu, selettori di assegnatari ed etichette, finestre di conferma e aiuti al passaggio del mouse restano disponibili. Premi `Esc` o scegli **Esci da schermo intero** per tornare all'area di lavoro.
 
 ### Tabella delle attività
 
@@ -439,6 +443,8 @@ Le barre Gantt rappresentano **intervalli di date** per ciascuna attività; la l
 4. Passa tra **Giorni** e **Mesi**; **Mostra fine settimana** segue le Impostazioni dell'app.
 5. Usa gli strumenti rapidi: **Espandi tutto**, **Comprimi tutto** ed **Esporta XLSX**. **Aggiungi macro** è disponibile sotto la timeline.
 
+Usa **Schermo intero** per concentrarti sulla pianificazione: intervallo date, Oggi e controllo dei fine settimana restano a sinistra; scala, gerarchia, esportazione e controllo fullscreen restano a destra. Premi `Esc` o scegli **Esci da schermo intero** per tornare indietro. Selettori, finestre di dialogo e aiuti al passaggio del mouse continuano a funzionare in questa modalità.
+
 **Suggerimenti:**
 
 - Il colore della categoria riempie il punto; l'anello esterno mostra lo stato dell'attività.
@@ -475,7 +481,7 @@ Il selettore condiviso controlla il grafico ad anello, le barre e la distribuzio
 
 La distribuzione per assegnatario comprende il lavoro non assegnato e divide equamente un'attività con più assegnatari. Un grafico ad anello mostra la quota di ogni assegnatario, mentre le barre confrontano i carichi su una scala comune e separano impegno base e contingenza nella modalità combinata. Entrambi i grafici seguono il selettore condiviso, omettono gli assegnatari con valore zero e mantengono colori deterministici. Seleziona un segmento o una barra per mantenere visibili i grafici e aprire sotto di essi macro, sotto-task e voci derivate assegnate; i relativi indicatori di tipo condividono una colonna allineata e una colonna Effort separata mostra la quota di ogni riga per la metrica selezionata. Oltre otto assegnatari, l'elenco scorre all'interno del grafico.
 
-La sezione **Analisi della pianificazione** mostra quanto effort operativo attivo possiede un intervallo pianificato, la distribuzione degli stati in ogni categoria e quante attività pianificate attraversano ciascuna settimana o mese. Le quote degli stati possono essere pesate con la metrica di effort selezionata oppure per numero di attività. Le attività annullate restano consultabili nei dettagli degli stati, ma non contribuiscono alle percentuali operative o alla timeline; formule e macro aggregate sono escluse per evitare doppi conteggi. Seleziona una scheda di copertura, un segmento di stato o un periodo della timeline per vedere le attività che contribuiscono. L'analisi descrive la collocazione sul calendario e non deduce avanzamento, capacità, ritardi o qualità del piano.
+La sezione **Analisi della pianificazione** mostra quanto effort operativo attivo possiede un intervallo pianificato, la distribuzione degli stati in ogni categoria, quante attività pianificate attraversano ciascuna settimana o mese e il numero di attività non stimate. La relativa scheda include macro, sotto-task e formule non annullate con effort base calcolato pari a zero. Le quote degli stati possono essere pesate con la metrica di effort selezionata oppure per numero di attività. Le attività annullate restano consultabili nei dettagli degli stati, ma non contribuiscono alle percentuali operative o alla timeline; formule e macro aggregate sono escluse in questi calcoli per evitare doppi conteggi. Seleziona una scheda di copertura, un segmento di stato o un periodo della timeline per vedere le attività che contribuiscono. L'analisi descrive la collocazione sul calendario e non deduce avanzamento, capacità, ritardi o qualità del piano.
 
 ### Mostra attività (in più macro)
 

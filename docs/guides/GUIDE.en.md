@@ -245,9 +245,13 @@ Each tab has its own undo/redo: `Ctrl/Cmd+Z`; redo is `Ctrl+Y` (Windows/Linux) o
 
 At the top, you can edit the **title**, **client**, and **icon** for your estimate. The **Base**, **CTG** (contingency), and **Total** effort values are displayed in both hours and days.
 
-The toolbar gives you quick access to units, hours per day, global contingency (CTG), contingency comparison, column visibility, export, reload, save, and client preview.
+The toolbar gives you quick access to units, hours per day, global contingency (CTG), contingency comparison, column visibility, full screen, export, reload, save, and client preview.
 
 Changing **hours per day** changes only the display of person-days. HowLong? always stores effort in hours.
+
+### Full screen
+
+Use **Full screen** in the toolbar when the table needs more room. The focused layout keeps the estimate title, Base, CTG, and Total, unit and CTG controls, the **Visible columns** menu, and the editable table. Its headers remain visible while you scroll. Menus, owner and label pickers, confirmation dialogs, and hover help remain available. Press `Esc` or select **Exit full screen** to return to the workspace.
 
 ### Activity table
 
@@ -439,6 +443,8 @@ Gantt bars represent **date ranges** for each activity; length shows duration, n
 4. Toggle between **Days** or **Months**; **Show weekends** follows your app Settings.
 5. Use quick tools: **Expand all**, **Collapse all**, and **Export XLSX**. **Add Macro** is available below the timeline.
 
+Use **Full screen** for a focused schedule: date range, Today, and weekend controls stay on the left; scale, hierarchy, export, and the full-screen control stay on the right. Press `Esc` or choose **Exit full screen** to return. Pickers, dialogs, and hover help continue to work in this mode.
+
 **Tips:**
 
 - The category color fills the dot; the outer ring shows activity status.
@@ -475,7 +481,7 @@ The shared selector controls the donut, bars, and owner distribution. **Base + c
 
 Owner distribution includes unassigned work and divides a multi-owner activity equally among its owners. A donut shows each owner's share, while bars compare workloads on one common scale and separate base effort from contingency in combined mode. Both charts follow the shared metric selector, omit zero-value owners, and keep deterministic owner colors. Select a donut segment or bar to keep the charts visible and open the assigned macros, subtasks, and calculated items below; their type markers share one aligned column, and a separate Effort column shows each row's share of the selected metric. Lists longer than eight owners scroll within the chart.
 
-The **Planning analytics** section shows how much active operational effort has a planning range, the status mix within each category, and how many scheduled activities overlap each week or month. Status shares can be weighted by the selected effort metric or by activity count. Cancelled activities remain available in status details but do not contribute to operational percentages or the timeline; formulas and aggregate macros are excluded to avoid double counting. Select a coverage card, status segment, or timeline period to inspect the contributing activities. Planning analytics describes calendar placement and does not infer progress, capacity, lateness, or schedule health.
+The **Planning analytics** section shows how much active operational effort has a planning range, the status mix within each category, how many scheduled activities overlap each week or month, and the number of unestimated activities. The unestimated card includes non-cancelled macros, subtasks, and formulas with calculated base effort of zero. Status shares can be weighted by the selected effort metric or by activity count. Cancelled activities remain available in status details but do not contribute to operational percentages or the timeline; formulas and aggregate macros are excluded there to avoid double counting. Select a coverage card, status segment, or timeline period to inspect the contributing activities. Planning analytics describes calendar placement and does not infer progress, capacity, lateness, or schedule health.
 
 ### Show tasks (in several macros)
 

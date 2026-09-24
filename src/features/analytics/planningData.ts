@@ -21,7 +21,7 @@ export interface PlanningEntry extends MetricEntry {
   status: ActivityStatus;
   owners: string[];
   range: PlanningRange | null;
-  type: 'macro' | 'subtask';
+  type: 'macro' | 'subtask' | 'formula';
   parentName?: string;
 }
 
@@ -75,6 +75,27 @@ export function buildPlanningEntries(estimate: Estimate): PlanningEntry[] {
       owners: normalizeOwners(line.item.owners),
       range: estimate.planning.items[line.item.id] ?? null,
       type: line.item.parentId ? 'subtask' : 'macro',
+      parentName: line.item.parentId ? itemById.get(line.item.parentId)?.name : undefined,
+      base: line.hoursBase,
+      contingency: line.hoursContingency,
+      combined: line.hoursWithContingency,
+    }));
+}
+
+/** List every non-cancelled macro, subtask, and formula whose calculated base effort is zero. */
+export function buildUnestimatedEntries(estimate: Estimate): PlanningEntry[] {
+  const itemById = new Map(estimate.items.map((item) => [item.id, item]));
+  return computeTotals(estimate).lines
+    .filter((line) => line.item.kind !== 'summary' && line.hoursBase === 0 && (line.item.status ?? 'to-plan') !== 'cancelled')
+    .map((line) => ({
+      id: line.item.id,
+      name: line.item.name,
+      notes: line.item.notes,
+      category: line.item.category,
+      status: line.item.status ?? 'to-plan',
+      owners: normalizeOwners(line.item.owners),
+      range: estimate.planning.items[line.item.id] ?? null,
+      type: line.isFormula ? 'formula' : line.item.parentId ? 'subtask' : 'macro',
       parentName: line.item.parentId ? itemById.get(line.item.parentId)?.name : undefined,
       base: line.hoursBase,
       contingency: line.hoursContingency,

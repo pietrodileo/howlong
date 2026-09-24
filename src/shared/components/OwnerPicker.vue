@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { tagBorderColor } from '../tagColors';
 
 const props = withDefaults(defineProps<{
@@ -22,6 +22,7 @@ const rootEl = ref<HTMLElement | null>(null);
 const menuEl = ref<HTMLElement | null>(null);
 const filterEl = ref<HTMLInputElement | null>(null);
 const menuStyle = ref<Record<string, string>>({});
+const isFullscreen = ref(false);
 const options = computed(() => [...new Set(props.options.map((name) => name.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })));
 const filtered = computed(() => {
   const needle = query.value.trim().toLowerCase();
@@ -95,6 +96,8 @@ function onKeydown(event: KeyboardEvent) {
 function onDocumentPointerDown(event: PointerEvent) {
   if (open.value && !rootEl.value?.contains(event.target as Node)) close();
 }
+/** Keep the menu inside a native full-screen view, where body teleports are hidden. */
+function onFullscreenChange() { isFullscreen.value = document.fullscreenElement !== null; }
 watch(open, (isOpen) => {
   if (isOpen) {
     document.addEventListener('pointerdown', onDocumentPointerDown);
@@ -106,7 +109,8 @@ watch(open, (isOpen) => {
     window.removeEventListener('scroll', updatePosition, true);
   }
 });
-onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointerDown); window.removeEventListener('resize', updatePosition); window.removeEventListener('scroll', updatePosition, true); });
+onMounted(() => { onFullscreenChange(); document.addEventListener('fullscreenchange', onFullscreenChange); });
+onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointerDown); document.removeEventListener('fullscreenchange', onFullscreenChange); window.removeEventListener('resize', updatePosition); window.removeEventListener('scroll', updatePosition, true); });
 </script>
 
 <template>
@@ -118,7 +122,7 @@ onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointe
       <span v-else class="owner-placeholder">{{ placeholder }}</span>
       <span class="owner-chevron" aria-hidden="true">▾</span>
     </button>
-    <Teleport to="body">
+    <Teleport to="body" :disabled="isFullscreen">
       <div v-if="open" ref="menuEl" class="owner-menu" :style="menuStyle" role="listbox" :aria-label="ariaLabel" :aria-multiselectable="multiple || undefined" @pointerdown.stop>
         <input ref="filterEl" v-model="query" class="owner-filter" type="text" :placeholder="filterPlaceholder" @keydown="onKeydown" />
         <ul>

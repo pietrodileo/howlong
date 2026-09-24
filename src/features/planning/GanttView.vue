@@ -65,6 +65,8 @@ const selectedDate = ref(today);
 const fromDate = ref(monthStart(today));
 const toDate = ref(monthEnd(addMonths(today, 2)));
 const exporting = ref(false);
+const ganttView = ref<HTMLElement | null>(null);
+const isFullscreen = ref(false);
 const ganttShell = ref<HTMLElement | null>(null);
 const ganttShellWidth = ref(0);
 const pendingDelete = ref<LineItem | null>(null);
@@ -192,6 +194,7 @@ function toggleActivityPanel() {
 
 onMounted(() => {
   document.addEventListener('pointerdown', onDocumentPointerDown);
+  document.addEventListener('fullscreenchange', onFullscreenChange);
   window.addEventListener('resize', updateOverlayPosition);
   window.addEventListener('scroll', updateOverlayPosition, true);
   window.addEventListener('keydown', onWindowKeydown);
@@ -242,10 +245,25 @@ function onBarClick(event: MouseEvent, item: LineItem) {
 const activeOverlayItem = computed(() => plannableItems.value.find((item) => item.id === overlayItemId.value) ?? null);
 onUnmounted(() => {
   document.removeEventListener('pointerdown', onDocumentPointerDown);
+  document.removeEventListener('fullscreenchange', onFullscreenChange);
   window.removeEventListener('resize', updateOverlayPosition);
   window.removeEventListener('scroll', updateOverlayPosition, true);
   window.removeEventListener('keydown', onWindowKeydown);
 });
+
+/** Keep the full-screen control aligned when the browser exits with Escape. */
+function onFullscreenChange(): void {
+  isFullscreen.value = document.fullscreenElement === ganttView.value;
+}
+
+/** Toggle full screen for the Plan/Gantt view without changing planning data. */
+async function toggleFullscreen(): Promise<void> {
+  if (isFullscreen.value) {
+    await document.exitFullscreen();
+    return;
+  }
+  await ganttView.value?.requestFullscreen();
+}
 
 watch(
   () => docs.activeSession?.sessionId,
@@ -573,9 +591,10 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 </script>
 
 <template>
-  <section v-if="docs.activeSession" class="gantt-view">
-    <header class="gantt-head">
-      <div class="gantt-controls">
+  <section v-if="docs.activeSession" ref="ganttView" class="gantt-view">
+    <div class="gantt-toolbar">
+      <header class="gantt-head">
+        <div class="gantt-controls">
         <label class="field range-field">
           <span>{{ t('gantt.fromMonth') }}</span>
           <input :value="fromDate" type="date" @change="updateRangeDate('from', $event)" />
@@ -586,10 +605,10 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
         </label>
         <button type="button" class="ghost" @click="goToday">{{ t('gantt.today') }}</button>
         <label v-if="scale === 'day'" class="weekend-toggle"><input v-model="showWeekends" type="checkbox" /> {{ t('gantt.showWeekends') }}</label>
-      </div>
-    </header>
+        </div>
+      </header>
 
-    <div class="gantt-actions">
+      <div class="gantt-actions">
       <span class="gantt-help">{{ t('gantt.instructions') }}</span>
       <div class="segmented" role="group">
         <button type="button" :class="{ active: scale === 'day' }" @click="scale = 'day'">{{ t('gantt.dayScale') }}</button>
@@ -598,6 +617,18 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
       <button type="button" class="ghost" @click="setAllCollapsed(false)">{{ t('gantt.expandAll') }}</button>
       <button type="button" class="ghost" @click="setAllCollapsed(true)">{{ t('gantt.collapseAll') }}</button>
       <button type="button" class="primary" :disabled="exporting" @click="exportXlsx">{{ t('gantt.exportXlsx') }}</button>
+      <button
+        type="button"
+        class="ghost fullscreen-toggle"
+        :aria-label="isFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+        v-tip="isFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+        @click="toggleFullscreen"
+      >
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
+        </svg>
+      </button>
+      </div>
     </div>
 
     <div ref="ganttShell" class="gantt-shell">
@@ -740,8 +771,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
       <button type="button" class="ghost" @click="addMacro">{{ t('gantt.addMacro') }}</button>
     </div>
 
-    <Teleport to="body">
-      <div v-if="activeOverlayItem && (statusMenuId || notesEditId || dateEditorId || actionsMenuId)" class="gantt-overlay" data-gantt-overlay :class="[overlayPosition.placement, { 'status-overlay': statusMenuId, 'actions-overlay': actionsMenuId, 'dates-overlay': dateEditorId, 'notes-overlay': notesEditId }]" :style="{ top: `${overlayPosition.top}px`, left: `${overlayPosition.left}px` }">
+    <div v-if="activeOverlayItem && (statusMenuId || notesEditId || dateEditorId || actionsMenuId)" class="gantt-overlay" data-gantt-overlay :class="[overlayPosition.placement, { 'status-overlay': statusMenuId, 'actions-overlay': actionsMenuId, 'dates-overlay': dateEditorId, 'notes-overlay': notesEditId }]" :style="{ top: `${overlayPosition.top}px`, left: `${overlayPosition.left}px` }">
         <div v-if="statusMenuId" class="status-menu" role="menu">
           <p v-if="hasChildren(activeOverlayItem)" class="status-aggregate">{{ t('gantt.calculatedStatus') }}</p>
           <button v-for="status in ACTIVITY_STATUSES.filter(value => !settings.settings.ganttDisabledStatuses.some(disabled => disabled === value))" :key="status" type="button" role="menuitemradio" :aria-checked="statusFor(activeOverlayItem) === status" :disabled="hasChildren(activeOverlayItem)" @click="setStatus(activeOverlayItem, status)"><span :style="{ background: ACTIVITY_STATUS_COLORS[status] }" />{{ statusLabel(status) }}</button>
@@ -796,7 +826,6 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
           <button type="button" class="delete-action" @click="pendingDelete = activeOverlayItem; closeGanttOverlay()">{{ t('working.deleteItem') }}</button>
         </div>
       </div>
-    </Teleport>
 
     <ConfirmModal
       :open="pendingDelete != null"
@@ -862,6 +891,14 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 
 <style scoped>
 .gantt-view { min-height: 100%; padding-bottom: 2rem; }
+.gantt-view:fullscreen { display: flex; flex-direction: column; box-sizing: border-box; width: 100vw; height: 100vh; min-height: 0; padding: clamp(.75rem, 1.5vw, 1.5rem); overflow: hidden; background: var(--page); }
+.gantt-view:fullscreen .gantt-toolbar { display: flex; align-items: flex-end; justify-content: space-between; gap: .55rem; flex: 0 0 auto; min-width: 0; overflow-x: auto; }
+.gantt-view:fullscreen .gantt-head { display: contents; }
+.gantt-view:fullscreen .gantt-controls,
+.gantt-view:fullscreen .gantt-actions { flex: 0 0 auto; flex-wrap: nowrap; margin-bottom: .45rem; }
+.gantt-view:fullscreen .gantt-help,
+.gantt-view:fullscreen .gantt-add-row { display: none; }
+.gantt-view:fullscreen .gantt-shell { flex: 1 1 auto; min-height: 0; max-height: none; }
 .gantt-head { display: flex; justify-content: flex-end; margin-bottom: .8rem; }
 .gantt-empty p { margin: 0 0 1.25rem; color: var(--ink); font-family: var(--font-brand); font-size: clamp(1.35rem, 2vw, 1.75rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.25; }
 .gantt-controls, .gantt-actions { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
@@ -879,7 +916,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .gantt-add-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .15rem; }
 .gantt-grid { display: grid; grid-template-columns: var(--activity-w) var(--timeline-w); width: max-content; min-width: 100%; }
 .activity-head, .timeline-head { position: sticky; top: 0; z-index: 4; height: 48px; background: var(--table-head); border-bottom: 1px solid var(--line-strong); }
-.activity-head { left: 0; z-index: 6; padding: .55rem .7rem; font-weight: 650; border-right: 1px solid var(--line); }
+.activity-head { left: 0; z-index: 7; padding: .55rem .7rem; font-weight: 650; border-right: 1px solid var(--line); }
 .activity-toggle { position: absolute; top: 50%; right: .45rem; z-index: 2; display: grid; place-items: center; width: 1.75rem; height: 1.75rem; padding: 0; transform: translateY(-50%); border-color: transparent; background: color-mix(in srgb, var(--surface) 85%, transparent); color: var(--muted); }
 .activity-toggle:hover { border-color: var(--line); background: var(--surface); color: var(--ink); }
 .activity-head .estimate-title-input { padding-right: 2.5rem; }

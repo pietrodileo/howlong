@@ -11,6 +11,7 @@ import {
   buildPlanningEntries,
   buildStatusCategoryGroups,
   buildTimelineBuckets,
+  buildUnestimatedEntries,
   type PlanningEntry,
   type PlanningWeightMode,
   type PlanningWindow,
@@ -34,6 +35,7 @@ const planningNoteId = ref<string | null>(null);
 const planningNoteDraft = ref('');
 
 const entries = computed(() => buildPlanningEntries(props.estimate));
+const unestimatedEntries = computed(() => buildUnestimatedEntries(props.estimate));
 const coverage = computed(() => buildPlanningCoverage(entries.value, props.mode));
 const categoryGroups = computed(() =>
   buildStatusCategoryGroups(entries.value, props.mode, weightMode.value),
@@ -138,6 +140,12 @@ function onSelectUnassigned(): void {
   selectedTitle.value = t('analytics.unassignedWork');
 }
 
+/** Open all active line items whose calculated base effort is zero. */
+function onSelectUnestimated(): void {
+  selectedEntries.value = unestimatedEntries.value;
+  selectedTitle.value = t('analytics.unestimatedWork');
+}
+
 /** Open every activity whose planning range crosses the selected timeline bucket. */
 function onSelectTimelineBucket(bucket: TimelineBucket): void {
   const ids = new Set(bucket.entryIds);
@@ -198,6 +206,11 @@ function clearSelection(): void {
         <span>{{ t('analytics.unassignedWork') }}</span>
         <strong>{{ formatValue(coverage.unassigned) }}</strong>
         <small>{{ formatPercentage(coverage.unassignedPercentage) }} · {{ t('analytics.activeOperationalEffort') }}</small>
+      </button>
+      <button type="button" class="coverage-card" @click="onSelectUnestimated">
+        <span>{{ t('analytics.unestimatedWork') }}</span>
+        <strong>{{ unestimatedEntries.length }}</strong>
+        <small>{{ t('analytics.unestimatedWorkHint') }}</small>
       </button>
     </div>
 
@@ -320,6 +333,7 @@ function clearSelection(): void {
           <span class="planning-name">
             <span class="planning-type">
               <SubtaskIcon v-if="entry.type === 'subtask'" />
+              <span v-else-if="entry.type === 'formula'" class="planning-formula-icon" aria-hidden="true">ƒ</span>
               <span v-else class="planning-macro-icon" aria-hidden="true" />
             </span>
             <span>
@@ -371,7 +385,7 @@ function clearSelection(): void {
 .planning-section-heading h2 { margin-top: .2rem; font-family: var(--font-ui); font-size: 1.15rem; }
 .planning-section-heading > div > p:last-child { margin-top: .35rem; color: var(--muted); font-size: .8rem; }
 .eyebrow { color: var(--muted); font-size: .7rem; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
-.coverage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
+.coverage-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
 .coverage-card, .planning-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-soft); }
 .coverage-card { display: grid; gap: .35rem; min-width: 0; padding: 1rem; color: var(--ink); text-align: left; }
 button.coverage-card { cursor: pointer; }
@@ -379,7 +393,7 @@ button.coverage-card:hover, button.coverage-card:focus-visible { border-color: v
 .coverage-card > span { color: var(--muted); font-size: .7rem; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
 .coverage-card strong { font-size: 1.25rem; }
 .coverage-card small { color: var(--muted); font-size: .72rem; }
-.coverage-summary-card { grid-column: span 2; align-content: center; }
+.coverage-summary-card { grid-column: 1 / -1; align-content: center; }
 .coverage-track { height: .85rem; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--line-strong) 35%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line-strong) 45%, transparent); }
 .coverage-planned { display: block; height: 100%; background: var(--accent); }
 .planning-chart-grid { display: grid; grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr); gap: .75rem; }
@@ -444,10 +458,11 @@ button.coverage-card:hover, button.coverage-card:focus-visible { border-color: v
 .planning-type { display: flex; align-items: center; min-height: 1rem; }
 .planning-macro-icon { position: relative; display: inline-block; width: .8rem; height: .8rem; color: var(--muted); }
 .planning-macro-icon::before { content: ''; position: absolute; inset: 1px 2px 2px 1px; border: 1.5px solid currentColor; border-radius: 2px; box-shadow: 2px -2px 0 -1px var(--surface), 2px -2px 0 0 currentColor; }
+.planning-formula-icon { color: var(--accent); font-family: var(--font-brand); font-size: 1rem; line-height: 1; }
 
 @media (max-width: 900px) {
   .coverage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .coverage-summary-card { grid-column: span 2; }
+  .coverage-summary-card { grid-column: 1 / -1; }
   .planning-chart-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {

@@ -12,12 +12,19 @@ type TipState = {
 let bubble: HTMLDivElement | null = null;
 let activeEl: HTMLElement | null = null;
 
-function ensureBubble(): HTMLDivElement {
+/** Returns the visible document root for a tip, including native full-screen views. */
+function bubbleHost(el?: HTMLElement): HTMLElement | Element {
+  const fullscreenElement = document.fullscreenElement;
+  return fullscreenElement?.contains(el ?? null) ? fullscreenElement : document.body;
+}
+
+/** Reparents the shared tip so native full-screen views can render it. */
+function ensureBubble(el?: HTMLElement): HTMLDivElement {
   if (bubble) return bubble;
   bubble = document.createElement('div');
   bubble.className = 'app-tip-bubble';
   bubble.setAttribute('role', 'tooltip');
-  document.body.appendChild(bubble);
+  bubbleHost(el).appendChild(bubble);
   return bubble;
 }
 
@@ -38,7 +45,9 @@ function clampCenterX(centerX: number, bubbleWidth: number): number {
 }
 
 function applyPlace(el: HTMLElement, place: Place) {
-  const b = ensureBubble();
+  const b = ensureBubble(el);
+  const host = bubbleHost(el);
+  if (b.parentElement !== host) host.appendChild(b);
   const r = el.getBoundingClientRect();
   const gap = 8;
   switch (place) {
@@ -71,7 +80,7 @@ function applyPlace(el: HTMLElement, place: Place) {
 }
 
 function flipIfNeeded(preferred: Place): Place {
-  const b = ensureBubble();
+  const b = bubble ?? ensureBubble();
   const br = b.getBoundingClientRect();
   const pad = 8;
   if (preferred === 'bottom' && br.bottom > window.innerHeight - pad) return 'top';
@@ -90,7 +99,7 @@ function position(el: HTMLElement, preferred: Place) {
 function show(el: HTMLElement, binding: DirectiveBinding<string | null | undefined>) {
   const text = binding.value;
   if (text == null || text === '') return;
-  const b = ensureBubble();
+  const b = ensureBubble(el);
   b.textContent = String(text);
   activeEl = el;
   position(el, placeOf(binding));
@@ -102,6 +111,14 @@ function hide(el: HTMLElement) {
   activeEl = null;
   bubble?.classList.remove('is-on');
 }
+
+/** Keeps an already-visible tip in the document that is currently visible. */
+function onFullscreenChange() {
+  const state = activeEl && (activeEl as HTMLElement & { __tip?: TipState }).__tip;
+  if (activeEl && state) position(activeEl, placeOf(state.binding));
+}
+
+document.addEventListener('fullscreenchange', onFullscreenChange);
 
 export const vTip: Directive<HTMLElement, string | null | undefined> = {
   mounted(el, binding) {
