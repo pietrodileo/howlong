@@ -222,6 +222,36 @@ function columnLabel(key: ColumnKey): string {
   return t(`columns.${key}`);
 }
 
+/** Keep the estimate table headers short while preserving the full column names in menus and tips. */
+function columnHeaderLabel(key: ColumnKey): string {
+  switch (key) {
+    case 'base':
+      return `${t('common.base')} · ${effortUnitShort.value}`;
+    case 'applyCtg':
+      return `± ${t('common.ctg')}`;
+    case 'withCtg':
+      return t('working.total');
+    case 'override':
+      return `${t('common.ctg')} %`;
+    default:
+      return columnLabel(key);
+  }
+}
+
+/** Mark the effort columns so their shared calculation role remains visible in a dense table. */
+function effortColumnClasses(key: ColumnKey): Record<string, boolean> {
+  const isEffort = key === 'base'
+    || key === 'applyCtg'
+    || key === 'ctg'
+    || key === 'withCtg'
+    || key === 'override';
+  return {
+    'effort-column': isEffort,
+    'effort-start': key === 'base',
+    'effort-end': key === 'override',
+  };
+}
+
 function columnAbbr(key: ColumnKey): string {
   switch (key) {
     case 'name':
@@ -861,7 +891,7 @@ function onHeaderDblClick(key: ColumnKey) {
               v-for="key in tableColumnKeys"
               :key="key"
               class="resizable"
-              :class="{ collapsed: cols.collapsed[key] && key !== 'actions', ...cols.colDragClass(key) }"
+              :class="{ collapsed: cols.collapsed[key] && key !== 'actions', ...effortColumnClasses(key), ...cols.colDragClass(key) }"
               :style="cols.styleFor(key)"
               v-tip="headerTitle(key)"
               :data-column-key="key"
@@ -883,7 +913,7 @@ function onHeaderDblClick(key: ColumnKey) {
                 >
                   <DisclosureIcon :expanded="allMacrosExpanded" />
                 </button>
-                <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
+                <span v-if="!cols.collapsed[key]">{{ columnHeaderLabel(key) }}</span>
                 <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
               </div>
               <span
@@ -1005,6 +1035,7 @@ function onHeaderDblClick(key: ColumnKey) {
                     :model-value="line.item.owners"
                     :options="ownerOptions"
                     :multiple="settings.settings.allowMultipleOwners"
+                    compact
                     :disabled="isSavingOwner"
                     :aria-label="`${t('columns.owner')}: ${line.item.name}`"
                     :placeholder="t('gantt.ownerPlaceholder')"
@@ -1018,7 +1049,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'base'"
                   class="num-cell"
                   :style="cols.styleFor('base')"
-                  :class="{ collapsed: cols.collapsed.base }"
+                  :class="{ collapsed: cols.collapsed.base, ...effortColumnClasses('base') }"
                 >
                   <template v-if="!cols.collapsed.base">
                     <input
@@ -1041,7 +1072,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'applyCtg'"
                   class="center"
                   :style="cols.styleFor('applyCtg')"
-                  :class="{ collapsed: cols.collapsed.applyCtg }"
+                  :class="{ collapsed: cols.collapsed.applyCtg, ...effortColumnClasses('applyCtg') }"
                 >
                   <input
                     v-if="!cols.collapsed.applyCtg && line.item.kind !== 'summary'"
@@ -1056,7 +1087,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'ctg'"
                   class="readonly num-cell"
                   :style="cols.styleFor('ctg')"
-                  :class="{ collapsed: cols.collapsed.ctg }"
+                  :class="{ collapsed: cols.collapsed.ctg, ...effortColumnClasses('ctg') }"
                 >
                   <template v-if="!cols.collapsed.ctg">{{ displayEffort(line.hoursContingency) }}</template>
                 </td>
@@ -1064,7 +1095,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'withCtg'"
                   class="readonly emph num-cell"
                   :style="cols.styleFor('withCtg')"
-                  :class="{ collapsed: cols.collapsed.withCtg }"
+                  :class="{ collapsed: cols.collapsed.withCtg, ...effortColumnClasses('withCtg') }"
                 >
                   <template v-if="!cols.collapsed.withCtg">{{ displayEffort(line.hoursWithContingency) }}</template>
                 </td>
@@ -1072,7 +1103,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'override'"
                   class="num-cell"
                   :style="cols.styleFor('override')"
-                  :class="{ collapsed: cols.collapsed.override }"
+                  :class="{ collapsed: cols.collapsed.override, ...effortColumnClasses('override') }"
                 >
                   <template v-if="!cols.collapsed.override">
                     <input
@@ -1098,6 +1129,7 @@ function onHeaderDblClick(key: ColumnKey) {
                     v-if="!cols.collapsed.tags"
                     :model-value="line.item.tags ?? []"
                     :options="tagOptions"
+                    compact
                     :aria-label="`${t('columns.tags')}: ${line.item.name}`"
                     @update:model-value="onItemTagsChange(line.item.id, $event)"
                     @create-option="onCreateTagOption"
@@ -1177,7 +1209,7 @@ function onHeaderDblClick(key: ColumnKey) {
                 v-else-if="key === 'base'"
                 class="readonly num-cell"
                 :style="cols.styleFor('base')"
-                :class="{ collapsed: cols.collapsed.base }"
+                :class="{ collapsed: cols.collapsed.base, ...effortColumnClasses('base') }"
               >
                 <template v-if="!cols.collapsed.base">
                   <span v-if="!estimate.showInlineCtg" class="emph">{{ displayEffort(row.hours) }}</span>
@@ -1188,7 +1220,7 @@ function onHeaderDblClick(key: ColumnKey) {
                 v-else-if="key === 'ctg'"
                 class="readonly emph num-cell"
                 :style="cols.styleFor('ctg')"
-                :class="{ collapsed: cols.collapsed.ctg }"
+                :class="{ collapsed: cols.collapsed.ctg, ...effortColumnClasses('ctg') }"
               >
                 <template v-if="!cols.collapsed.ctg">{{ displayEffort(row.hours) }}</template>
               </td>
@@ -1196,7 +1228,7 @@ function onHeaderDblClick(key: ColumnKey) {
                 v-else-if="key === 'withCtg'"
                 class="readonly num-cell"
                 :style="cols.styleFor('withCtg')"
-                :class="{ collapsed: cols.collapsed.withCtg }"
+                :class="{ collapsed: cols.collapsed.withCtg, ...effortColumnClasses('withCtg') }"
               >
                 <template v-if="!cols.collapsed.withCtg">—</template>
               </td>
@@ -1292,10 +1324,62 @@ function onHeaderDblClick(key: ColumnKey) {
   max-height: min(70vh, 640px);
 }
 
+.working .data-table {
+  font-size: 0.86rem;
+}
+
 .working .data-table th {
   position: sticky;
   top: 0;
   z-index: 2;
+  padding: 0.55rem 0.45rem;
+}
+
+.working .data-table td {
+  padding: 0.18rem 0.3rem;
+}
+
+.working .data-table td input,
+.working .data-table td select,
+.working .data-table td textarea {
+  padding: 0.28rem 0.3rem;
+}
+
+.working .data-table td textarea.name-input {
+  min-height: 1.8rem;
+  line-height: 1.2;
+}
+
+.working .data-table th.effort-column,
+.working .data-table td.effort-column {
+  background: color-mix(in srgb, var(--accent) 3%, var(--surface));
+}
+
+.working .data-table th.effort-column {
+  color: var(--accent);
+}
+
+.working .data-table th.effort-start,
+.working .data-table td.effort-start {
+  border-left: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+}
+
+.working .data-table th.effort-end,
+.working .data-table td.effort-end {
+  border-right: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+}
+
+.working .data-table :deep(.owner-trigger),
+.working .data-table :deep(.tag-trigger) {
+  font-size: 0.78rem;
+}
+
+.working .data-table :deep(.owner-trigger) {
+  min-height: 1.65rem;
+}
+
+.working .data-table :deep(.tag-trigger) {
+  min-height: 1.65rem;
 }
 
 /* Full screen is an editing-focused layout, not a copy of the application chrome. */
@@ -2077,13 +2161,14 @@ th.collapsed {
 .notes-input {
   flex: 1;
   min-width: 0;
-  min-height: 2.6rem;
-  max-height: 5.5rem;
-  resize: vertical;
+  height: 2.65rem;
+  min-height: 2.65rem;
+  max-height: 2.65rem;
+  resize: none;
   border: 1px solid var(--line) !important;
   background: var(--page-soft) !important;
   color: var(--ink);
-  line-height: 1.35;
+  line-height: 1.2;
   white-space: pre-wrap;
   field-sizing: content;
 }

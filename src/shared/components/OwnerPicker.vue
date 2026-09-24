@@ -6,6 +6,7 @@ const props = withDefaults(defineProps<{
   modelValue: string | string[];
   options: string[];
   multiple?: boolean;
+  compact?: boolean;
   disabled?: boolean;
   ariaLabel?: string;
   placeholder?: string;
@@ -14,7 +15,7 @@ const props = withDefaults(defineProps<{
   removeLabel?: string;
   lockedOptions?: string[];
   lockedLabel?: string;
-}>(), { multiple: false, disabled: false, ariaLabel: 'Owner', placeholder: 'Unassigned', filterPlaceholder: 'Search or create…', createLabel: 'Create', removeLabel: 'Delete owner', lockedOptions: () => [], lockedLabel: 'Owner assigned to a task; remove assignments before deleting.' });
+}>(), { multiple: false, compact: false, disabled: false, ariaLabel: 'Owner', placeholder: 'Unassigned', filterPlaceholder: 'Search or create…', createLabel: 'Create', removeLabel: 'Delete owner', lockedOptions: () => [], lockedLabel: 'Owner assigned to a task; remove assignments before deleting.' });
 const emit = defineEmits<{ 'update:modelValue': [value: string | string[]]; 'delete-option': [value: string] }>();
 const open = ref(false);
 const query = ref('');
@@ -36,6 +37,8 @@ const selectedOwners = computed(() => {
     .filter(Boolean);
 });
 const selectedOwnerIds = computed(() => new Set(selectedOwners.value.map((name) => name.toLowerCase())));
+const visibleOwners = computed(() => (props.compact ? selectedOwners.value.slice(0, 1) : selectedOwners.value));
+const hiddenOwnerCount = computed(() => Math.max(0, selectedOwners.value.length - visibleOwners.value.length));
 const isReducingMultiple = computed(() => !props.multiple && selectedOwners.value.length > 1);
 const canCreate = computed(() => {
   if (isReducingMultiple.value) return false;
@@ -114,10 +117,11 @@ onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointe
 </script>
 
 <template>
-  <div ref="rootEl" class="owner-picker-control" :class="{ open, disabled }">
+  <div ref="rootEl" class="owner-picker-control" :class="{ open, disabled, compact }">
     <button type="button" class="owner-trigger" :disabled="disabled" :aria-label="ariaLabel" :aria-expanded="open" @click="toggle">
       <span v-if="selectedOwners.length" class="owner-pills">
-        <span v-for="owner in selectedOwners" :key="owner" class="owner-pill" :style="ownerStyle(owner)" :role="disabled ? undefined : 'button'" :tabindex="disabled ? -1 : 0" :aria-label="`${removeLabel}: ${owner}`" @click="clear(owner, $event)" @keydown.enter.prevent="clear(owner, $event)">{{ owner }} <span class="owner-remove" aria-hidden="true">×</span></span>
+        <span v-for="owner in visibleOwners" :key="owner" class="owner-pill" :style="ownerStyle(owner)" :role="disabled ? undefined : 'button'" :tabindex="disabled ? -1 : 0" :aria-label="`${removeLabel}: ${owner}`" @click="clear(owner, $event)" @keydown.enter.prevent="clear(owner, $event)">{{ owner }} <span class="owner-remove" aria-hidden="true">×</span></span>
+        <span v-if="hiddenOwnerCount" class="owner-overflow" :aria-label="`+${hiddenOwnerCount}`">+{{ hiddenOwnerCount }}</span>
       </span>
       <span v-else class="owner-placeholder">{{ placeholder }}</span>
       <span class="owner-chevron" aria-hidden="true">▾</span>
@@ -137,6 +141,10 @@ onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointe
 
 <style scoped>
 .owner-picker-control { width: 100%; min-width: 0; }
+.owner-picker-control.compact .owner-trigger { min-height: 1.65rem; padding: .18rem .38rem; }
+.owner-picker-control.compact .owner-pills { flex-wrap: nowrap; overflow: hidden; }
+.owner-picker-control.compact .owner-pill { max-width: 7rem; overflow: hidden; text-overflow: ellipsis; }
+.owner-overflow { flex: 0 0 auto; color: var(--muted); font-size: .68rem; font-weight: 600; white-space: nowrap; }
 .owner-trigger { display: flex; align-items: center; gap: .25rem; width: 100%; min-height: 1.8rem; padding: .25rem .55rem; font: inherit; text-align: left; color: var(--ink); background: var(--page-soft); border: 1px solid var(--line); border-radius: var(--radius-sm); cursor: pointer; }
 .owner-picker-control.open .owner-trigger { border-color: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
 .owner-placeholder { color: var(--muted); font-size: .78rem; }

@@ -9,12 +9,14 @@ const props = withDefaults(
     options: string[];
     disabled?: boolean;
     readonly?: boolean;
+    compact?: boolean;
     allowCreate?: boolean;
     ariaLabel?: string;
   }>(),
   {
     disabled: false,
     readonly: false,
+    compact: false,
     allowCreate: true,
   },
 );
@@ -37,6 +39,8 @@ const menuStyle = ref<Record<string, string>>({});
 const isFullscreen = ref(false);
 
 const selected = computed(() => props.modelValue ?? []);
+const visibleSelected = computed(() => (props.compact ? selected.value.slice(0, 2) : selected.value));
+const hiddenSelectedCount = computed(() => Math.max(0, selected.value.length - visibleSelected.value.length));
 
 const mergedOptions = computed(() => {
   const set = new Set<string>();
@@ -199,7 +203,7 @@ onUnmounted(() => {
     v-else
     ref="rootEl"
     class="tag-picker"
-    :class="{ open, disabled }"
+    :class="{ open, disabled, compact }"
   >
     <button
       type="button"
@@ -211,7 +215,7 @@ onUnmounted(() => {
     >
       <span class="tag-trigger-inner">
         <span
-          v-for="label in selected"
+          v-for="label in visibleSelected"
           :key="label"
           class="pill"
           :style="pillStyle(label)"
@@ -225,6 +229,7 @@ onUnmounted(() => {
             @click.stop="removeTag(label)"
           >×</span>
         </span>
+        <span v-if="hiddenSelectedCount" class="tag-overflow" :aria-label="`+${hiddenSelectedCount}`">+{{ hiddenSelectedCount }}</span>
         <span v-if="!selected.length" class="placeholder">{{ t('tagPicker.placeholder') }}</span>
       </span>
       <span class="chev" aria-hidden="true">▾</span>
@@ -310,6 +315,31 @@ onUnmounted(() => {
   gap: 0.25rem;
   min-width: 0;
   align-items: center;
+}
+
+.tag-picker.compact .tag-trigger {
+  min-height: 1.65rem;
+  padding: 0.22rem 0.38rem;
+}
+
+.tag-picker.compact .tag-trigger-inner {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.tag-picker.compact .pill {
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-overflow {
+  flex: 0 0 auto;
+  padding: 0.08rem 0.3rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .chev {

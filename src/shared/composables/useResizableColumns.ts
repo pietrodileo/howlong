@@ -57,17 +57,17 @@ export const MODEL_TOGGLEABLE_COLUMNS: ModelColumnKey[] = [
 ];
 
 const DEFAULT_WIDTHS: Record<ColumnKey, number> = {
-  name: 260,
-  category: 130,
-  owner: 150,
-  base: 88,
-  applyCtg: 72,
-  ctg: 72,
-  withCtg: 88,
-  override: 96,
-  tags: 160,
-  notes: 160,
-  actions: 132,
+  name: 235,
+  category: 105,
+  owner: 118,
+  base: 70,
+  applyCtg: 54,
+  ctg: 60,
+  withCtg: 72,
+  override: 72,
+  tags: 130,
+  notes: 165,
+  actions: 108,
 };
 
 const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = {
