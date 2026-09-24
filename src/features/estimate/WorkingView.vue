@@ -955,7 +955,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   <div
                     v-if="!cols.collapsed.name"
                     class="name-cell"
-                    :style="{ paddingLeft: line.depth ? '1.35rem' : '0' }"
+                    :style="{ paddingLeft: line.depth ? '0.75rem' : '0' }"
                   >
                     <span
                       class="drag-handle"
@@ -2059,7 +2059,7 @@ th.collapsed {
 .name-cell {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.1rem;
   min-width: 0;
 }
 
@@ -2076,7 +2076,7 @@ th.collapsed {
   border: none;
   background: transparent;
   color: var(--muted);
-  width: 1.4rem;
+  width: 1.25rem;
   padding: 0;
   font-size: 0.85rem;
   line-height: 1;
@@ -2108,7 +2108,7 @@ th.collapsed {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.4rem;
+  width: 0.75rem;
   flex-shrink: 0;
 }
 
