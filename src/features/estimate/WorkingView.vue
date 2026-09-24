@@ -1339,6 +1339,14 @@ function onHeaderDblClick(key: ColumnKey) {
   max-height: min(70vh, 640px);
 }
 
+.working > .summary-row {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--page);
+  box-shadow: 0 6px 14px -12px color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
 .working .data-table {
   font-size: 0.86rem;
 }
@@ -1396,13 +1404,13 @@ function onHeaderDblClick(key: ColumnKey) {
   border-radius: var(--radius-sm);
 }
 
-.working .data-table th.effort-column,
-.working .data-table td.effort-column {
-  background: color-mix(in srgb, var(--accent) 3%, var(--surface));
+.working .data-table th.effort-column {
+  background: var(--table-head);
+  color: var(--accent);
 }
 
-.working .data-table th.effort-column {
-  color: var(--accent);
+.working .data-table td.effort-column {
+  background: var(--surface);
 }
 
 .working .data-table th.effort-start,
