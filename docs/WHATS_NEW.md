@@ -6,7 +6,9 @@ For the complete generated changelog for a release, see the [GitHub Releases pag
 
 ## v0.8.2
 
-- Estimate view can now enter full screen from its toolbar; press `Esc` or use the same control to restore the workspace.
+- Estimate view can now enter full screen from its toolbar. It keeps totals, unit and CTG controls, column visibility, and the full editable table; table headers stay visible while you scroll. Press `Esc` or use the same control to restore the workspace.
+- Plan/Gantt view can now enter full screen. Date controls stay on the left and timeline scale, hierarchy, export, and the full-screen control stay on the right, leaving more room for the schedule.
+- Full-screen Estimate and Plan views keep menus, pickers, confirmation dialogs, and hover help visible and usable.
 - Planning analytics now flags non-cancelled macros, subtasks, and calculated items whose effort is zero, with a drill-down list.
 
 ## v0.8.1

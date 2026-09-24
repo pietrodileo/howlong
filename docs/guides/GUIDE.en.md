@@ -245,9 +245,13 @@ Each tab has its own undo/redo: `Ctrl/Cmd+Z`; redo is `Ctrl+Y` (Windows/Linux) o
 
 At the top, you can edit the **title**, **client**, and **icon** for your estimate. The **Base**, **CTG** (contingency), and **Total** effort values are displayed in both hours and days.
 
-The toolbar gives you quick access to units, hours per day, global contingency (CTG), contingency comparison, column visibility, export, reload, save, and client preview.
+The toolbar gives you quick access to units, hours per day, global contingency (CTG), contingency comparison, column visibility, full screen, export, reload, save, and client preview.
 
 Changing **hours per day** changes only the display of person-days. HowLong? always stores effort in hours.
+
+### Full screen
+
+Use **Full screen** in the toolbar when the table needs more room. The focused layout keeps the estimate title, Base, CTG, and Total, unit and CTG controls, the **Visible columns** menu, and the editable table. Its headers remain visible while you scroll. Menus, owner and label pickers, confirmation dialogs, and hover help remain available. Press `Esc` or select **Exit full screen** to return to the workspace.
 
 ### Activity table
 
@@ -438,6 +442,8 @@ Gantt bars represent **date ranges** for each activity; length shows duration, n
 3. Use **From/To** to limit visible dates; **Today** jumps to today’s column.
 4. Toggle between **Days** or **Months**; **Show weekends** follows your app Settings.
 5. Use quick tools: **Expand all**, **Collapse all**, and **Export XLSX**. **Add Macro** is available below the timeline.
+
+Use **Full screen** for a focused schedule: date range, Today, and weekend controls stay on the left; scale, hierarchy, export, and the full-screen control stay on the right. Press `Esc` or choose **Exit full screen** to return. Pickers, dialogs, and hover help continue to work in this mode.
 
 **Tips:**
 

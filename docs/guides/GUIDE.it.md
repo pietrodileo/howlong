@@ -245,9 +245,13 @@ Ogni scheda ha il proprio annulla/ripristina: `Ctrl/Cmd+Z`; ripristina è `Ctrl+
 
 In alto puoi modificare **titolo**, **cliente** e **icona** della stima. I valori di impegno **Base**, **CTG** (contingenza) e **Totale** vengono visualizzati sia in ore sia in giorni.
 
-La barra degli strumenti offre accesso rapido a unità, ore al giorno, contingenza globale (CTG), confronto contingenza, visibilità colonne, esportazione, ricaricamento, salvataggio e anteprima cliente.
+La barra degli strumenti offre accesso rapido a unità, ore al giorno, contingenza globale (CTG), confronto contingenza, visibilità colonne, schermo intero, esportazione, ricaricamento, salvataggio e anteprima cliente.
 
 La modifica delle **ore al giorno** cambia solo la visualizzazione dei giorni-persona. HowLong? memorizza sempre l'impegno in ore.
+
+### Schermo intero
+
+Usa **Schermo intero** nella barra degli strumenti quando alla tabella serve più spazio. Il layout focalizzato mantiene titolo della stima, Base, CTG e Totale, controlli di unità e CTG, menu **Colonne visibili** e tabella modificabile. Le intestazioni restano visibili durante lo scorrimento. Menu, selettori di assegnatari ed etichette, finestre di conferma e aiuti al passaggio del mouse restano disponibili. Premi `Esc` o scegli **Esci da schermo intero** per tornare all'area di lavoro.
 
 ### Tabella delle attività
 
@@ -438,6 +442,8 @@ Le barre Gantt rappresentano **intervalli di date** per ciascuna attività; la l
 3. Usa **Da/A** per limitare le date visibili; **Oggi** passa alla colonna di oggi.
 4. Passa tra **Giorni** e **Mesi**; **Mostra fine settimana** segue le Impostazioni dell'app.
 5. Usa gli strumenti rapidi: **Espandi tutto**, **Comprimi tutto** ed **Esporta XLSX**. **Aggiungi macro** è disponibile sotto la timeline.
+
+Usa **Schermo intero** per concentrarti sulla pianificazione: intervallo date, Oggi e controllo dei fine settimana restano a sinistra; scala, gerarchia, esportazione e controllo fullscreen restano a destra. Premi `Esc` o scegli **Esci da schermo intero** per tornare indietro. Selettori, finestre di dialogo e aiuti al passaggio del mouse continuano a funzionare in questa modalità.
 
 **Suggerimenti:**
 

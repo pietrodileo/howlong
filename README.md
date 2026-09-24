@@ -47,12 +47,13 @@ Settings, models, and estimates stay on disk as readable JSON files. They remain
 - Break work into macros, subtasks, categories, labels, and notes.
 - Add formula rows for sums, averages, minimums, maximums, and percentage-based overhead or management effort.
 - Set contingency globally, by category, or for individual rows. Compare scenarios A/B/C before you commit.
+- Use full screen in Estimate view to focus on totals, controls, and the editable table; choose the visible columns without leaving the view.
 - Keep project metadata and an audit history of saves.
 
 ## Planning and analysis
 
-- **Plan:** Build a day- or month-based Gantt, choose whether weekends count, save scheduling edits directly from Plan, and export a complete view of each activity with its effort, contingency, and planned timeline.
-- **Analytics:** Get an overview of the estimate with summary cards, a donut chart, and stacked bars. Drill into one macro or expand several.
+- **Plan:** Build a day- or month-based Gantt, choose whether weekends count, use a focused full-screen schedule, save planning edits directly from Plan, and export a complete view of each activity with its effort, contingency, and planned timeline.
+- **Analytics:** Get an overview of the estimate with summary cards, a donut chart, and stacked bars. Drill into one macro or expand several, and identify non-cancelled items with zero effort.
 - **Compare:** Review saved estimates side by side, including each estimate's formula details, applied CTG, and total with contingency.
 - **Manager view:** Adjust the presentation by rounding or redistributing values, including or excluding rows, and overriding totals.
 - **Client view:** Show a filtered version of the estimate with only what you plan to deliver.
