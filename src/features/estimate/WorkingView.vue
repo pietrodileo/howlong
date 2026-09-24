@@ -1321,7 +1321,7 @@ function onHeaderDblClick(key: ColumnKey) {
   gap: 0.6rem;
 }
 
-.working:fullscreen .summary-actions > :not(.estimate-settings):not(.fullscreen-toggle),
+.working:fullscreen .summary-actions > :not(.estimate-settings):not(.fullscreen-toggle):not(.col-picker),
 .working:fullscreen .settings-sep {
   display: none;
 }

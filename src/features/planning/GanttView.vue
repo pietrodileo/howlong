@@ -892,7 +892,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 <style scoped>
 .gantt-view { min-height: 100%; padding-bottom: 2rem; }
 .gantt-view:fullscreen { display: flex; flex-direction: column; box-sizing: border-box; width: 100vw; height: 100vh; min-height: 0; padding: clamp(.75rem, 1.5vw, 1.5rem); overflow: hidden; background: var(--page); }
-.gantt-view:fullscreen .gantt-toolbar { display: flex; align-items: flex-end; gap: .55rem; flex: 0 0 auto; min-width: 0; overflow-x: auto; }
+.gantt-view:fullscreen .gantt-toolbar { display: flex; align-items: flex-end; justify-content: space-between; gap: .55rem; flex: 0 0 auto; min-width: 0; overflow-x: auto; }
 .gantt-view:fullscreen .gantt-head { display: contents; }
 .gantt-view:fullscreen .gantt-controls,
 .gantt-view:fullscreen .gantt-actions { flex: 0 0 auto; flex-wrap: nowrap; margin-bottom: .45rem; }
