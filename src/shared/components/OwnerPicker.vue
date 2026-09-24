@@ -7,6 +7,8 @@ const props = withDefaults(defineProps<{
   options: string[];
   multiple?: boolean;
   compact?: boolean;
+  plain?: boolean;
+  allowDelete?: boolean;
   disabled?: boolean;
   ariaLabel?: string;
   placeholder?: string;
@@ -15,7 +17,7 @@ const props = withDefaults(defineProps<{
   removeLabel?: string;
   lockedOptions?: string[];
   lockedLabel?: string;
-}>(), { multiple: false, compact: false, disabled: false, ariaLabel: 'Owner', placeholder: 'Unassigned', filterPlaceholder: 'Search or create…', createLabel: 'Create', removeLabel: 'Delete owner', lockedOptions: () => [], lockedLabel: 'Owner assigned to a task; remove assignments before deleting.' });
+}>(), { multiple: false, compact: false, plain: false, allowDelete: true, disabled: false, ariaLabel: 'Owner', placeholder: 'Unassigned', filterPlaceholder: 'Search or create…', createLabel: 'Create', removeLabel: 'Delete owner', lockedOptions: () => [], lockedLabel: 'Owner assigned to a task; remove assignments before deleting.' });
 const emit = defineEmits<{ 'update:modelValue': [value: string | string[]]; 'delete-option': [value: string] }>();
 const open = ref(false);
 const query = ref('');
@@ -117,9 +119,11 @@ onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointe
 </script>
 
 <template>
-  <div ref="rootEl" class="owner-picker-control" :class="{ open, disabled, compact }">
+  <div ref="rootEl" class="owner-picker-control" :class="{ open, disabled, compact, plain }">
     <button type="button" class="owner-trigger" :disabled="disabled" :aria-label="ariaLabel" :aria-expanded="open" @click="toggle">
-      <span v-if="selectedOwners.length" class="owner-pills">
+      <span v-if="plain && selectedOwners.length" class="owner-value">{{ selectedOwners[0] }}</span>
+      <span v-else-if="plain" class="owner-placeholder">{{ placeholder }}</span>
+      <span v-else-if="selectedOwners.length" class="owner-pills">
         <span v-for="owner in visibleOwners" :key="owner" class="owner-pill" :style="ownerStyle(owner)" :role="disabled ? undefined : 'button'" :tabindex="disabled ? -1 : 0" :aria-label="`${removeLabel}: ${owner}`" @click="clear(owner, $event)" @keydown.enter.prevent="clear(owner, $event)">{{ owner }} <span class="owner-remove" aria-hidden="true">×</span></span>
         <span v-if="hiddenOwnerCount" class="owner-overflow" :aria-label="`+${hiddenOwnerCount}`">+{{ hiddenOwnerCount }}</span>
       </span>
@@ -131,7 +135,7 @@ onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointe
         <input ref="filterEl" v-model="query" class="owner-filter" type="text" :placeholder="filterPlaceholder" @keydown="onKeydown" />
         <ul>
           <li v-if="canCreate"><button type="button" class="owner-option create" @click="choose(query)">{{ createLabel }} “{{ query.trim() }}”</button></li>
-          <li v-for="option in filtered" :key="option" class="owner-option-row" :class="{ selected: isSelected(option), unavailable: isReducingMultiple && !isSelected(option) }"><button type="button" class="owner-option" :disabled="isReducingMultiple && !isSelected(option)" :aria-selected="isSelected(option)" @click="choose(option)"><span class="owner-option-pill" :style="ownerStyle(option)">{{ option }}</span></button><button type="button" class="owner-delete" :disabled="isLocked(option)" :title="isLocked(option) ? lockedLabel : undefined" :aria-label="`${removeLabel}: ${option}`" @click="deleteOption($event, option)">×</button></li>
+          <li v-for="option in filtered" :key="option" class="owner-option-row" :class="{ selected: isSelected(option), unavailable: isReducingMultiple && !isSelected(option) }"><button type="button" class="owner-option" :disabled="isReducingMultiple && !isSelected(option)" :aria-selected="isSelected(option)" @click="choose(option)"><span v-if="plain">{{ option }}</span><span v-else class="owner-option-pill" :style="ownerStyle(option)">{{ option }}</span></button><button v-if="allowDelete" type="button" class="owner-delete" :disabled="isLocked(option)" :title="isLocked(option) ? lockedLabel : undefined" :aria-label="`${removeLabel}: ${option}`" @click="deleteOption($event, option)">×</button></li>
           <li v-if="!filtered.length && !canCreate" class="owner-empty">—</li>
         </ul>
       </div>
@@ -148,6 +152,7 @@ onUnmounted(() => { document.removeEventListener('pointerdown', onDocumentPointe
 .owner-trigger { display: flex; align-items: center; gap: .25rem; width: 100%; min-height: 1.8rem; padding: .25rem .55rem; font: inherit; text-align: left; color: var(--ink); background: var(--page-soft); border: 1px solid var(--line); border-radius: var(--radius-sm); cursor: pointer; }
 .owner-picker-control.open .owner-trigger { border-color: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
 .owner-placeholder { color: var(--muted); font-size: .78rem; }
+.owner-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .owner-pills { display: flex; flex-wrap: wrap; min-width: 0; gap: .2rem; }
 .owner-pill { display: inline-flex; align-items: center; gap: .15rem; max-width: 100%; padding: .08rem .4rem; color: var(--ink); font: inherit; font-size: .72rem; line-height: 1.35; white-space: nowrap; background: var(--surface); border: 1px solid; border-radius: 999px; cursor: pointer; }
 .owner-pill[tabindex="-1"] { cursor: default; opacity: .88; }

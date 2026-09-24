@@ -213,6 +213,12 @@ function onItemTagsChange(id: string, tags: string[]) {
   estimate.updateItem(id, { tags });
 }
 
+/** Update one macro/formula category while preserving the single-value picker contract. */
+function onCategoryChange(id: string, value: string | string[]) {
+  const category = Array.isArray(value) ? value[0] : value;
+  if (category?.trim()) estimate.updateItem(id, { category: category.trim() });
+}
+
 function onCreateTagOption(label: string) {
   estimate.ensureTagOption(label);
 }
@@ -1022,19 +1028,19 @@ function onHeaderDblClick(key: ColumnKey) {
                   :class="{ collapsed: cols.collapsed.category }"
                 >
                   <template v-if="!cols.collapsed.category">
-                    <select
+                    <OwnerPicker
                       v-if="line.isMacro || line.isFormula || isFormulaItem(line.item)"
-                      :value="line.item.category"
-                      @change="estimate.updateItem(line.item.id, { category: ($event.target as HTMLSelectElement).value })"
-                    >
-                      <option
-                        v-for="c in categoryOptions"
-                        :key="c"
-                        :value="c"
-                      >
-                        {{ c }}
-                      </option>
-                    </select>
+                      :model-value="line.item.category"
+                      :options="categoryOptions"
+                      plain
+                      :allow-delete="false"
+                      compact
+                      :aria-label="`${t('columns.category')}: ${line.item.name}`"
+                      :placeholder="t('columns.category')"
+                      :filter-placeholder="t('gantt.categoryFilter')"
+                      :create-label="t('gantt.createCategory')"
+                      @update:model-value="onCategoryChange(line.item.id, $event)"
+                    />
                     <span v-else class="muted cat">{{ line.item.category }}</span>
                   </template>
                 </td>

@@ -432,8 +432,10 @@ export type MessageTree = {
     assignOwner: string;
     ownerPlaceholder: string;
     ownerFilter: string;
+    categoryFilter: string;
     allOwners: string;
     createOwner: string;
+    createCategory: string;
     ownerAssignedHint: string;
     deleteOwnerTitle: string;
     deleteOwnerBody: string;
@@ -1389,8 +1391,10 @@ const it: MessageTree = {
     assignOwner: 'Assegna',
     ownerPlaceholder: 'Non assegnato',
     ownerFilter: 'Cerca o crea…',
+    categoryFilter: 'Cerca o crea…',
     allOwners: 'Tutti gli assegnatari',
     createOwner: 'Crea',
+    createCategory: 'Crea',
     ownerAssignedHint: 'Assegnatario associato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
     deleteOwnerTitle: 'Elimina assegnatario',
     deleteOwnerBody: 'Se elimini «{name}», verrà rimosso da tutte le altre voci di questa stima.',
@@ -2355,8 +2359,10 @@ const en: MessageTree = {
     assignOwner: 'Assign',
     ownerPlaceholder: 'Select owner…',
     ownerFilter: 'Search or create…',
+    categoryFilter: 'Search or create…',
     allOwners: 'All owners',
     createOwner: 'Create',
+    createCategory: 'Create',
     ownerAssignedHint: 'Owner assigned to a task; remove assignments before deleting.',
     deleteOwnerTitle: 'Delete owner',
     deleteOwnerBody: 'If you delete “{name}”, it will be removed from all other entries in this estimate.',
