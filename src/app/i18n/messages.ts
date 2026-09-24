@@ -579,6 +579,9 @@ export type MessageTree = {
     addCat: string;
     needOneCat: string;
     removeCat: string;
+    deleteCategoryTitle: string;
+    deleteCategoryBody: string;
+    deleteCategoryConfirm: string;
     tagsLabel: string;
     tagsAria: string;
     newTagPh: string;
@@ -1538,6 +1541,9 @@ const it: MessageTree = {
     addCat: 'Aggiungi',
     needOneCat: 'Serve almeno una categoria',
     removeCat: 'Rimuovi {name}',
+    deleteCategoryTitle: 'Elimina categoria',
+    deleteCategoryBody: 'Se elimini «{name}», le attività che la usano passeranno alla prima categoria disponibile.',
+    deleteCategoryConfirm: 'Elimina categoria',
     tagsLabel: 'Etichette disponibili',
     tagsAria: 'Etichette del modello',
     newTagPh: 'Nuova etichetta (es. Site, Edition)',
@@ -2506,6 +2512,9 @@ const en: MessageTree = {
     addCat: 'Add',
     needOneCat: 'At least one category is required',
     removeCat: 'Remove {name}',
+    deleteCategoryTitle: 'Delete category',
+    deleteCategoryBody: 'If you delete “{name}”, activities using it will move to the first available category.',
+    deleteCategoryConfirm: 'Delete category',
     tagsLabel: 'Available labels',
     tagsAria: 'Model labels',
     newTagPh: 'New label (e.g. Site, Edition)',

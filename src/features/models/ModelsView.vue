@@ -20,6 +20,7 @@ import IconBtn from '../../shared/components/IconBtn.vue';
 import ModelIcon from '../../shared/components/ModelIcon.vue';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import TagPicker from '../../shared/components/TagPicker.vue';
+import OwnerPicker from '../../shared/components/OwnerPicker.vue';
 import { formulaLabel } from '../../domain/formulas';
 import { useI18n } from '../../app/i18n/useI18n';
 import { isDialogCancelled, isDialogDesktopOnly } from '../../platform/files/dialogResult';
@@ -70,7 +71,6 @@ function headerTitle(key: ModelColumnKey): string {
   return t('common.expandCol');
 }
 
-const newCategory = ref('');
 const searchQuery = ref('');
 /** Id di una voce già in lista in modifica. */
 const formulaEditId = ref<string | null>(null);
@@ -81,6 +81,7 @@ const iconMenuOpen = ref(false);
 /** Macro con figli compresse (come in Stima). */
 const collapsedMacros = ref<Set<string>>(new Set());
 const pendingDelete = ref(false);
+const pendingCategoryDelete = ref<string | null>(null);
 
 const LIST_KEY = 'howlong.modelsListCollapsed';
 const LIST_WIDTH_KEY = 'howlong.modelsListWidth';
@@ -517,23 +518,32 @@ const formulaCandidates = computed(() =>
   })),
 );
 
-function onAddCategory() {
-  const name = newCategory.value.trim();
-  if (!name) return;
-  if (current.value?.categories.includes(name)) {
-    ui.notify(t('models.catExists'), true);
-    return;
+/** Create a model category from the same picker used by the Estimate view. */
+function onCategoryChange(id: string, value: string | string[]) {
+  const category = (Array.isArray(value) ? value[0] : value)?.trim();
+  if (!category) return;
+  const model = current.value;
+  if (!model) return;
+  if (!model.categories.some((name) => name.toLowerCase() === category.toLowerCase())) {
+    models.addCategory(category);
   }
-  models.addCategory(name);
-  newCategory.value = '';
+  updateMacro(id, { category });
 }
 
-function onRemoveCategory(name: string) {
+/** Ask before removing a category from the model and its activities. */
+function onCategoryDelete(name: string) {
   if ((current.value?.categories.length ?? 0) <= 1) {
     ui.notify(t('models.needOneCat'), true);
     return;
   }
-  models.removeCategory(name);
+  pendingCategoryDelete.value = name;
+}
+
+/** Remove the confirmed category; affected activities use the first remaining category. */
+function confirmDeleteCategory() {
+  const name = pendingCategoryDelete.value;
+  pendingCategoryDelete.value = null;
+  if (name) models.removeCategory(name);
 }
 
 function onMacroTagsChange(id: string, tags: string[]) {
@@ -857,35 +867,6 @@ function setMacroApplyContingency(id: string, value: boolean) {
         </div>
       </header>
 
-      <section class="cats" :aria-label="t('models.catsAria')">
-        <div class="cats-head">
-          <span class="cats-label">{{ t('models.catsLabel') }}</span>
-          <form class="cat-add" @submit.prevent="onAddCategory">
-            <input
-              v-model="newCategory"
-              type="text"
-              :placeholder="t('models.newCatPh')"
-              :aria-label="t('models.newCatPh')"
-            />
-            <button type="submit" class="ghost">{{ t('models.addCat') }}</button>
-          </form>
-        </div>
-        <div class="chips">
-          <span v-for="cat in current.categories" :key="cat" class="chip">
-            {{ cat }}
-            <button
-              type="button"
-              class="chip-x"
-              v-tip="current.categories.length <= 1 ? t('models.needOneCat') : t('models.removeCat', { name: cat })"
-              :disabled="current.categories.length <= 1"
-              @click="onRemoveCategory(cat)"
-            >
-              ×
-            </button>
-          </span>
-        </div>
-      </section>
-
       <section class="ctg-block" :aria-label="t('models.ctgAria')">
         <div class="ctg-head">
           <div class="ctg-copy">
@@ -1038,19 +1019,20 @@ function setMacroApplyContingency(id: string, value: boolean) {
                   :class="{ collapsed: cols.collapsed.category }"
                 >
                   <template v-if="!cols.collapsed.category">
-                    <select
+                    <OwnerPicker
                       v-if="isTopLevel(a)"
-                      :value="a.category"
-                      @change="updateMacro(a.id, { category: ($event.target as HTMLSelectElement).value })"
-                    >
-                      <option
-                        v-for="c in current.categories"
-                        :key="c"
-                        :value="c"
-                      >
-                        {{ c }}
-                      </option>
-                    </select>
+                      :model-value="a.category"
+                      :options="current.categories"
+                      plain
+                      compact
+                      :aria-label="`${t('columns.category')}: ${a.name}`"
+                      :placeholder="t('columns.category')"
+                      :filter-placeholder="t('gantt.categoryFilter')"
+                      :create-label="t('gantt.createCategory')"
+                      :remove-label="t('models.deleteCategoryConfirm')"
+                      @update:model-value="onCategoryChange(a.id, $event)"
+                      @delete-option="onCategoryDelete"
+                    />
                     <span v-else class="muted cat">{{ a.category }}</span>
                   </template>
                 </td>
@@ -1184,6 +1166,16 @@ function setMacroApplyContingency(id: string, value: boolean) {
       danger
       @cancel="pendingDelete = false"
       @confirm="confirmDeleteModel"
+    />
+
+    <ConfirmModal
+      :open="pendingCategoryDelete != null"
+      :title="t('models.deleteCategoryTitle')"
+      :message="t('models.deleteCategoryBody', { name: pendingCategoryDelete ?? '' })"
+      :confirm-label="t('models.deleteCategoryConfirm')"
+      danger
+      @cancel="pendingCategoryDelete = null"
+      @confirm="confirmDeleteCategory"
     />
   </div>
 </template>
@@ -1536,94 +1528,6 @@ li.active .mark {
   color: var(--on-accent);
   background: var(--accent);
   border-color: var(--accent);
-}
-
-.cats {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  padding: 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--page-soft);
-}
-
-.cats-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
-}
-
-.cats-label {
-  font-family: var(--font-ui);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-
-.cat-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.cat-add input {
-  width: 10rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  padding: 0.35rem 0.5rem;
-  font-size: 0.88rem;
-}
-
-.cat-add input:focus {
-  outline: none;
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-  box-shadow: 0 0 0 3px var(--accent-glow);
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 0.25rem 0;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.28rem 0.35rem 0.28rem 0.55rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font-size: 0.85rem;
-  color: var(--ink-soft);
-}
-
-.chip-x {
-  border: none !important;
-  background: transparent !important;
-  color: var(--muted) !important;
-  width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 !important;
-  line-height: 1;
-  font-size: 1rem;
-}
-
-.chip-x:hover:not(:disabled) {
-  color: var(--danger) !important;
-  background: var(--danger-soft) !important;
-}
-
-.chip-x:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
 }
 
 .ctg-block {
