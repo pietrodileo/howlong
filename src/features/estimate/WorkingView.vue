@@ -2147,10 +2147,14 @@ th.collapsed {
 }
 
 .row-actions .add-task {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.85rem;
   min-width: 1.85rem;
+  height: 1.85rem;
   padding: 0;
-  text-align: center;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
 .row-actions .add-task:hover {
