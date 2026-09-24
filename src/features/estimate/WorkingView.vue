@@ -2153,6 +2153,12 @@ th.collapsed {
   text-align: center;
 }
 
+.row-actions .add-task:hover {
+  color: var(--ink);
+  background: var(--page-soft);
+  border-color: var(--line);
+}
+
 .row-actions :deep(.icon-btn) {
   margin-right: 0.1rem;
   vertical-align: middle;
