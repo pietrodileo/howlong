@@ -1344,9 +1344,7 @@ function onHeaderDblClick(key: ColumnKey) {
   top: 0;
   z-index: 5;
   background: var(--page);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, var(--line-strong) 82%, transparent),
-    0 4px 8px -6px color-mix(in srgb, var(--ink) 28%, transparent);
+  box-shadow: none;
 }
 
 .working .data-table {
