@@ -1366,8 +1366,24 @@ function onHeaderDblClick(key: ColumnKey) {
 }
 
 .working .data-table td textarea.name-input {
+  background: transparent;
+  border-color: transparent;
+  border-radius: 0;
   min-height: 1.8rem;
+  padding-left: 0;
+  padding-right: 0;
   line-height: 1.2;
+}
+
+.working .data-table td textarea.name-input:hover {
+  background: transparent;
+  border-color: transparent;
+}
+
+.working .data-table td textarea.name-input:focus {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  border-radius: var(--radius-sm);
 }
 
 .working .data-table th.effort-column,
