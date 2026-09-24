@@ -52,11 +52,6 @@
   font-weight: 400;
   color: var(--ink);
   background-color: var(--page);
-  background-image:
-    radial-gradient(ellipse 90% 55% at 8% -10%, #e4e9f2 0%, transparent 58%),
-    radial-gradient(ellipse 70% 45% at 100% 0%, #ebe6e0 0%, transparent 50%),
-    linear-gradient(165deg, #f4f5f8 0%, #e9ecf2 100%);
-  background-attachment: fixed;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -91,11 +86,6 @@ html.theme-dark {
   --shadow-menu: 0 4px 6px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.35);
   color-scheme: dark;
   background-color: var(--page);
-  background-image:
-    radial-gradient(ellipse 90% 55% at 8% -10%, #1a2030 0%, transparent 58%),
-    radial-gradient(ellipse 70% 45% at 100% 0%, #1c1a18 0%, transparent 50%),
-    linear-gradient(165deg, #14161c 0%, #101218 100%);
-  background-attachment: fixed;
 }
 
 * {

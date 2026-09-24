@@ -1366,6 +1366,11 @@ function onHeaderDblClick(key: ColumnKey) {
   box-shadow: inset 0 -1px 0 var(--accent);
 }
 
+.working .data-table th.col-drag-over {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent), inset 0 -1px 0 var(--line-strong);
+}
+
 .working .data-table td {
   padding: 0.18rem 0.3rem;
 }
