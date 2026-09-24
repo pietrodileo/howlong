@@ -57,7 +57,7 @@ export const MODEL_TOGGLEABLE_COLUMNS: ModelColumnKey[] = [
 ];
 
 const DEFAULT_WIDTHS: Record<ColumnKey, number> = {
-  name: 235,
+  name: 210,
   category: 105,
   owner: 118,
   base: 70,

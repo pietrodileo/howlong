@@ -913,8 +913,7 @@ function onHeaderDblClick(key: ColumnKey) {
                 </button>
                 <template v-if="!cols.collapsed[key]">
                   <span v-if="key === 'base'" class="base-header-label">
-                    <span>{{ t('common.base') }}</span>
-                    <span class="base-header-unit">{{ effortUnitLabel }}</span>
+                    {{ effortUnitLabel }}
                   </span>
                   <span v-else>{{ columnHeaderLabel(key) }}</span>
                 </template>
@@ -1339,6 +1338,8 @@ function onHeaderDblClick(key: ColumnKey) {
   top: 0;
   z-index: 2;
   padding: 0.55rem 0.45rem;
+  letter-spacing: 0.015em;
+  text-transform: none;
 }
 
 .working .data-table td {
@@ -1353,6 +1354,15 @@ function onHeaderDblClick(key: ColumnKey) {
 .working .data-table td select,
 .working .data-table td textarea {
   padding: 0.28rem 0.3rem;
+}
+
+.working .data-table td input:not([type='checkbox']),
+.working .data-table td select,
+.working .data-table td textarea,
+.working .data-table :deep(.owner-trigger),
+.working .data-table :deep(.tag-trigger) {
+  background: var(--surface);
+  border-color: var(--line);
 }
 
 .working .data-table td textarea.name-input {
@@ -1393,19 +1403,9 @@ function onHeaderDblClick(key: ColumnKey) {
 }
 
 .working .base-header-label {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 0.05rem;
-  line-height: 1.05;
+  display: inline-block;
   letter-spacing: 0.01em;
   text-transform: none;
-}
-
-.working .base-header-unit {
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 500;
-  letter-spacing: 0;
 }
 
 .working .drag-grip {
@@ -2147,8 +2147,8 @@ th.collapsed {
 }
 
 .row-actions .add-task {
-  width: 1.5rem;
-  min-width: 1.5rem;
+  width: 1.85rem;
+  min-width: 1.85rem;
   padding: 0;
   text-align: center;
 }
