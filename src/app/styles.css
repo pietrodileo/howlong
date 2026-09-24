@@ -359,6 +359,91 @@ label.field textarea:focus,
   box-shadow: inset 0 2px 0 0 var(--accent);
 }
 
+/* Shared editor sheet styling used by Estimate, Manager, Client, and Model tables. */
+.data-table.sheet {
+  font-size: 0.86rem;
+}
+
+.data-table.sheet thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.55rem 0.45rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.015em;
+  text-transform: none;
+  box-shadow: inset 0 -1px 0 var(--line-strong);
+}
+
+.data-table.sheet thead th:hover {
+  box-shadow: inset 0 -1px 0 var(--accent);
+}
+
+.data-table.sheet thead th.col-drag-over {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent), inset 0 -1px 0 var(--line-strong);
+}
+
+.data-table.sheet td {
+  padding: 0.18rem 0.3rem;
+}
+
+.data-table.sheet .num-cell {
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table.sheet td input,
+.data-table.sheet td select,
+.data-table.sheet td textarea {
+  padding: 0.28rem 0.3rem;
+}
+
+.data-table.sheet td input:not([type='checkbox']),
+.data-table.sheet td select,
+.data-table.sheet td textarea,
+.data-table.sheet .owner-trigger,
+.data-table.sheet .tag-trigger {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.data-table.sheet td textarea.name-input {
+  min-height: 1.8rem;
+  padding-left: 0;
+  padding-right: 0;
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+  line-height: 1.2;
+}
+
+.data-table.sheet td textarea.name-input:hover {
+  border-color: transparent;
+  background: transparent;
+}
+
+.data-table.sheet td textarea.name-input:focus {
+  border-color: var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.data-table.sheet .owner-trigger,
+.data-table.sheet .tag-trigger {
+  font-size: 0.78rem;
+  min-height: 1.65rem;
+}
+
+.data-table.sheet th.effort-start,
+.data-table.sheet td.effort-start {
+  border-left: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+}
+
+.data-table.sheet th.effort-end,
+.data-table.sheet td.effort-end {
+  border-right: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+}
+
 .drag-handle {
   display: inline-flex;
   align-items: center;

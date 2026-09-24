@@ -828,6 +828,8 @@ async function onExportFromMenu(
                 'show-th': key === 'show',
                 'delta-col-head': key === 'delta',
                 'manager-total-column': key === 'presented',
+                'effort-start': key === 'base',
+                'effort-end': key === 'presented',
                 'actions-th': key === 'actions',
                 ...cols.colDragClass(key),
               }"
@@ -983,7 +985,7 @@ async function onExportFromMenu(
               </td>
               <td
                 v-else-if="key === 'base'"
-                class="pad num-cell"
+                class="pad num-cell effort-start"
                 :style="cols.styleFor('base')"
                 :class="{ collapsed: cols.collapsed.base }"
               >
@@ -1007,7 +1009,7 @@ async function onExportFromMenu(
               </td>
               <td
                 v-else-if="key === 'presented'"
-                class="pad num-cell emph manager-total-column"
+                class="pad num-cell emph manager-total-column effort-end"
                 :style="cols.styleFor('presented')"
                 :class="{
                   collapsed: cols.collapsed.presented,
@@ -1189,6 +1191,8 @@ async function onExportFromMenu(
                 :class="{
                   collapsed: clientCols.collapsed[key],
                   'show-th': key === 'subs',
+                  'effort-start': key === 'hours',
+                  'effort-end': key === 'days',
                   ...clientCols.colDragClass(key),
                 }"
                 :style="clientCols.styleFor(key)"
@@ -1327,7 +1331,7 @@ async function onExportFromMenu(
                 </td>
                 <td
                   v-else-if="key === 'hours'"
-                  class="pad num-cell emph"
+                  class="pad num-cell emph effort-start"
                   :style="clientCols.styleFor('hours')"
                   :class="{ collapsed: clientCols.collapsed.hours }"
                 >
@@ -1337,7 +1341,7 @@ async function onExportFromMenu(
                 </td>
                 <td
                   v-else-if="key === 'days'"
-                  class="pad num-cell emph"
+                  class="pad num-cell emph effort-end"
                   :style="clientCols.styleFor('days')"
                   :class="{ collapsed: clientCols.collapsed.days }"
                 >
@@ -1357,7 +1361,11 @@ async function onExportFromMenu(
                 v-for="key in clientOutputColumnKeys.slice(clientOutputFootLabelColspan)"
                 :key="'foot-' + key"
                 class="pad num-cell emph"
-                :class="{ collapsed: clientCols.collapsed[key] }"
+                :class="{
+                  collapsed: clientCols.collapsed[key],
+                  'effort-start': key === 'hours',
+                  'effort-end': key === 'days',
+                }"
                 :style="clientCols.styleFor(key)"
               >
                 <template v-if="key === 'hours' && !clientCols.collapsed.hours">

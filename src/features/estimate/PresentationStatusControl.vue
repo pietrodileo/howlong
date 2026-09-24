@@ -14,10 +14,12 @@ const root = ref<HTMLElement | null>(null);
 const menu = ref<HTMLElement | null>(null);
 const open = ref(false);
 const menuStyle = ref<Record<string, string>>({});
-const statuses: PresentationStatus[] = ['draft', 'in-progress', 'ready-for-revision', 'verified'];
+const statuses: PresentationStatus[] = ['in-progress', 'ready-for-revision', 'verified'];
 
 const scopeLabel = computed(() => t(`presentation.${props.scope}`));
-const statusLabel = computed(() => t(`presentation.status_${props.status.replace(/-/g, '_')}`));
+/** Treat legacy saved drafts as the first visible workflow state. */
+const visibleStatus = computed(() => props.status === 'draft' ? 'in-progress' : props.status);
+const statusLabel = computed(() => t(`presentation.status_${visibleStatus.value.replace(/-/g, '_')}`));
 const tooltip = computed(() => `${scopeLabel.value}: ${statusLabel.value}`);
 
 /** Keep the status menu inside the visible viewport. */
@@ -79,14 +81,14 @@ onUnmounted(() => {
     <button
       type="button"
       class="presentation-status-trigger"
-      :class="`is-${status}`"
+      :class="`is-${visibleStatus}`"
       :aria-label="tooltip"
       :aria-expanded="open"
       aria-haspopup="menu"
       v-tip="open ? undefined : tooltip"
       @click="toggleMenu"
     >
-      <span aria-hidden="true">{{ status === 'verified' ? '✓' : '' }}</span>
+      <span aria-hidden="true">{{ visibleStatus === 'verified' ? '✓' : '' }}</span>
     </button>
     <Teleport to="body">
     <div v-if="open" ref="menu" class="presentation-status-menu" :style="menuStyle" role="menu" :aria-label="scopeLabel" @pointerdown.stop>
@@ -95,11 +97,11 @@ onUnmounted(() => {
         :key="option"
         type="button"
         role="menuitemradio"
-        :aria-checked="status === option"
+        :aria-checked="visibleStatus === option"
         :class="['presentation-status-option', `is-${option}`]"
         @click="choose(option)"
       >
-        <span class="presentation-status-check" aria-hidden="true">{{ status === option ? '✓' : '' }}</span>
+        <span class="presentation-status-check" aria-hidden="true">{{ visibleStatus === option ? '✓' : '' }}</span>
         <span class="presentation-status-dot" :class="`is-${option}`" aria-hidden="true">{{ option === 'verified' ? '✓' : '' }}</span>
         {{ t(`presentation.status_${option.replace(/-/g, '_')}`) }}
       </button>

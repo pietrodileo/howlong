@@ -938,7 +938,13 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 v-for="key in tableColumnKeys"
                 :key="key"
                 class="resizable"
-                :class="{ collapsed: cols.collapsed[key] && key !== 'actions', 'center-th': key === 'ctg', ...cols.colDragClass(key) }"
+                :class="{
+                  collapsed: cols.collapsed[key] && key !== 'actions',
+                  'center-th': key === 'ctg',
+                  'effort-start': key === 'hours',
+                  'effort-end': key === 'ctg',
+                  ...cols.colDragClass(key),
+                }"
                 :style="cols.styleFor(key)"
                 v-tip="key !== 'actions' ? headerTitle(key) : null"
                 :data-column-key="key"
@@ -1050,7 +1056,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 </td>
                 <td
                   v-else-if="key === 'hours'"
-                  class="num-cell"
+                  class="num-cell effort-start"
                   :style="cols.styleFor('hours')"
                   :class="{ collapsed: cols.collapsed.hours }"
                 >
@@ -1081,7 +1087,7 @@ function setMacroApplyContingency(id: string, value: boolean) {
                 </td>
                 <td
                   v-else-if="key === 'ctg'"
-                  class="center"
+                  class="center effort-end"
                   :style="cols.styleFor('ctg')"
                   :class="{ collapsed: cols.collapsed.ctg }"
                 >

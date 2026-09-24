@@ -1353,74 +1353,6 @@ function onHeaderDblClick(key: ColumnKey) {
   box-shadow: none;
 }
 
-.working .data-table {
-  font-size: 0.86rem;
-}
-
-.working .data-table th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  padding: 0.55rem 0.45rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.015em;
-  text-transform: none;
-  box-shadow: inset 0 -1px 0 var(--line-strong);
-}
-
-.working .data-table th:hover {
-  box-shadow: inset 0 -1px 0 var(--accent);
-}
-
-.working .data-table th.col-drag-over {
-  background: var(--accent-soft);
-  box-shadow: inset 3px 0 0 var(--accent), inset 0 -1px 0 var(--line-strong);
-}
-
-.working .data-table td {
-  padding: 0.18rem 0.3rem;
-}
-
-.working .data-table .num-cell {
-  font-variant-numeric: tabular-nums;
-}
-
-.working .data-table td input,
-.working .data-table td select,
-.working .data-table td textarea {
-  padding: 0.28rem 0.3rem;
-}
-
-.working .data-table td input:not([type='checkbox']),
-.working .data-table td select,
-.working .data-table td textarea,
-.working .data-table :deep(.owner-trigger),
-.working .data-table :deep(.tag-trigger) {
-  background: var(--surface);
-  border-color: var(--line);
-}
-
-.working .data-table td textarea.name-input {
-  background: transparent;
-  border-color: transparent;
-  border-radius: 0;
-  min-height: 1.8rem;
-  padding-left: 0;
-  padding-right: 0;
-  line-height: 1.2;
-}
-
-.working .data-table td textarea.name-input:hover {
-  background: transparent;
-  border-color: transparent;
-}
-
-.working .data-table td textarea.name-input:focus {
-  background: var(--surface);
-  border-color: var(--line-strong);
-  border-radius: var(--radius-sm);
-}
-
 .working .data-table th.effort-column {
   background: var(--table-head);
   color: var(--accent);
@@ -1428,29 +1360,6 @@ function onHeaderDblClick(key: ColumnKey) {
 
 .working .data-table td.effort-column {
   background: var(--surface);
-}
-
-.working .data-table th.effort-start,
-.working .data-table td.effort-start {
-  border-left: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
-}
-
-.working .data-table th.effort-end,
-.working .data-table td.effort-end {
-  border-right: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
-}
-
-.working .data-table :deep(.owner-trigger),
-.working .data-table :deep(.tag-trigger) {
-  font-size: 0.78rem;
-}
-
-.working .data-table :deep(.owner-trigger) {
-  min-height: 1.65rem;
-}
-
-.working .data-table :deep(.tag-trigger) {
-  min-height: 1.65rem;
 }
 
 .working .base-header-label {
