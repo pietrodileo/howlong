@@ -67,7 +67,7 @@ const DEFAULT_WIDTHS: Record<ColumnKey, number> = {
   override: 72,
   tags: 130,
   notes: 165,
-  actions: 108,
+  actions: 88,
 };
 
 const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = {

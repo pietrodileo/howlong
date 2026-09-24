@@ -225,8 +225,6 @@ function columnLabel(key: ColumnKey): string {
 /** Keep the estimate table headers short while preserving the full column names in menus and tips. */
 function columnHeaderLabel(key: ColumnKey): string {
   switch (key) {
-    case 'base':
-      return `${t('common.base')} · ${effortUnitShort.value}`;
     case 'applyCtg':
       return `± ${t('common.ctg')}`;
     case 'withCtg':
@@ -913,7 +911,13 @@ function onHeaderDblClick(key: ColumnKey) {
                 >
                   <DisclosureIcon :expanded="allMacrosExpanded" />
                 </button>
-                <span v-if="!cols.collapsed[key]">{{ columnHeaderLabel(key) }}</span>
+                <template v-if="!cols.collapsed[key]">
+                  <span v-if="key === 'base'" class="base-header-label">
+                    <span>{{ t('common.base') }}</span>
+                    <span class="base-header-unit">{{ effortUnitLabel }}</span>
+                  </span>
+                  <span v-else>{{ columnHeaderLabel(key) }}</span>
+                </template>
                 <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
               </div>
               <span
@@ -962,7 +966,7 @@ function onHeaderDblClick(key: ColumnKey) {
                       @pointerdown="rowDrag.onPointerDown(line.item.id, $event)"
                       @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                       @dragend="rowDrag.onDragEnd"
-                    >⋮⋮</span>
+                    ><span class="drag-grip" aria-hidden="true" /></span>
                     <button
                       v-if="line.isMacro && line.hasChildren"
                       type="button"
@@ -1162,10 +1166,12 @@ function onHeaderDblClick(key: ColumnKey) {
                     <button
                       v-if="line.isMacro && !line.isFormula && line.item.kind !== 'formula'"
                       type="button"
-                      class="ghost"
+                      class="ghost add-task"
+                      :aria-label="t('working.addTask')"
+                      v-tip="t('working.addTask')"
                       @click="estimate.addSubtask(line.item.id)"
                     >
-                      {{ t('working.addTask') }}
+                      +
                     </button>
                     <IconBtn
                       v-if="line.isFormula || isFormulaItem(line.item)"
@@ -1339,6 +1345,10 @@ function onHeaderDblClick(key: ColumnKey) {
   padding: 0.18rem 0.3rem;
 }
 
+.working .data-table .num-cell {
+  font-variant-numeric: tabular-nums;
+}
+
 .working .data-table td input,
 .working .data-table td select,
 .working .data-table td textarea {
@@ -1380,6 +1390,29 @@ function onHeaderDblClick(key: ColumnKey) {
 
 .working .data-table :deep(.tag-trigger) {
   min-height: 1.65rem;
+}
+
+.working .base-header-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.working .base-header-unit {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.working .drag-grip {
+  width: 0.5rem;
+  height: 0.75rem;
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1.2px);
+  background-size: 0.25rem 0.25rem;
 }
 
 /* Full screen is an editing-focused layout, not a copy of the application chrome. */
@@ -2111,6 +2144,13 @@ th.collapsed {
 
 .row-actions .ghost {
   margin-right: 0.15rem;
+}
+
+.row-actions .add-task {
+  width: 1.5rem;
+  min-width: 1.5rem;
+  padding: 0;
+  text-align: center;
 }
 
 .row-actions :deep(.icon-btn) {
