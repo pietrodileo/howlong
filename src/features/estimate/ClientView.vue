@@ -541,7 +541,7 @@ function columnLabel(key: ManagerColumnKey): string {
     case 'notes':
       return t('common.notes');
     case 'actions':
-      return '';
+      return t('common.actions');
     default:
       return '';
   }
@@ -572,7 +572,7 @@ function columnAbbr(key: ManagerColumnKey): string {
     case 'notes':
       return '…';
     case 'actions':
-      return '';
+      return 'A';
     default:
       return '';
   }
@@ -854,7 +854,7 @@ async function onExportFromMenu(
                 >
                   <DisclosureIcon :expanded="allMacrosExpanded" />
                 </button>
-                <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
+                <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
                 <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
               </div>
               <span
@@ -1068,10 +1068,16 @@ async function onExportFromMenu(
                   v-if="!cols.collapsed.actions && line.item.clientVisible"
                   type="button"
                   class="ghost redistribute"
+                  :aria-label="t('client.redistributeHint')"
                   v-tip="t('client.redistributeHint')"
                   @click="onRedistribute(line.item.id)"
                 >
-                  {{ t('client.redistribute') }}
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7L16.3 5.7c.8-1.1 2-1.7 3.3-1.7H22" />
+                    <path d="m18 2 4 2-4 2" />
+                    <path d="M2 6h1.9c1.3 0 2.5.6 3.3 1.7l8.6 11.6c.8 1.1 2 1.7 3.3 1.7H22" />
+                    <path d="m18 22 4-2-4-2" />
+                  </svg>
                 </button>
               </td>
             </template>
@@ -2143,8 +2149,12 @@ tr.overridden td {
 }
 
 .redistribute {
-  font-size: 0.78rem;
-  padding: 0.25rem 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
 }
 
 .notes-preview {
