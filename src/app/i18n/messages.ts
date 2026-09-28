@@ -408,6 +408,7 @@ export type MessageTree = {
     unscheduled: string;
     editDates: string;
     scheduleActivity: string;
+    deleteActivity: string;
     startDate: string;
     endDate: string;
     clearDates: string;
@@ -1371,6 +1372,7 @@ const it: MessageTree = {
     unscheduled: 'Da pianificare',
     editDates: 'Modifica date',
     scheduleActivity: 'Pianifica attività',
+    deleteActivity: 'Elimina attività',
     startDate: 'Inizio',
     endDate: 'Fine',
     clearDates: 'Rimuovi date',
@@ -2343,6 +2345,7 @@ const en: MessageTree = {
     unscheduled: 'To schedule',
     editDates: 'Edit dates',
     scheduleActivity: 'Schedule activity',
+    deleteActivity: 'Delete activity',
     startDate: 'Start',
     endDate: 'End',
     clearDates: 'Clear dates',

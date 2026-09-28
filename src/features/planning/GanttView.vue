@@ -835,7 +835,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
           <label class="color-picker" :style="{ '--status-color': ACTIVITY_STATUS_COLORS[statusFor(activeOverlayItem)] }"><span>{{ t('gantt.color') }}</span><input type="color" :value="itemColor(activeOverlayItem)" :aria-label="t('gantt.color')" @input="setItemColor(activeOverlayItem, ($event.target as HTMLInputElement).value)" /></label>
           <button type="button" @click="openGanttOverlay($event, activeOverlayItem, 'dates')">{{ t(rangeFor(activeOverlayItem) ? 'gantt.editDates' : 'gantt.scheduleActivity') }}</button>
           <button type="button" @click="openGanttOverlay($event, activeOverlayItem, 'notes')">{{ t('gantt.editNote') }}</button>
-          <button type="button" class="delete-action" @click="pendingDelete = activeOverlayItem; closeGanttOverlay()">{{ t('working.deleteItem') }}</button>
+          <button type="button" class="delete-action" @click="pendingDelete = activeOverlayItem; closeGanttOverlay()">{{ t('gantt.deleteActivity') }}</button>
         </div>
       </div>
 
@@ -903,7 +903,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 
 <style scoped>
 .gantt-view { min-height: 100%; padding-bottom: 2rem; }
-.gantt-view:fullscreen { display: flex; flex-direction: column; box-sizing: border-box; width: 100vw; height: 100vh; min-height: 0; padding: clamp(.75rem, 1.5vw, 1.5rem); overflow: hidden; background: var(--page); }
+.gantt-view:fullscreen { display: flex; flex-direction: column; box-sizing: border-box; width: 100vw; height: 100vh; min-height: 0; padding: 0 clamp(.75rem, 1.5vw, 1.5rem) clamp(.75rem, 1.5vw, 1.5rem); overflow: hidden; background: var(--page); }
 .gantt-view::backdrop { background: var(--page); }
 .gantt-view:fullscreen .gantt-toolbar { display: flex; align-items: flex-end; justify-content: space-between; gap: .55rem; flex: 0 0 auto; min-width: 0; overflow-x: auto; }
 .gantt-view:fullscreen .gantt-head { display: contents; }
@@ -1019,7 +1019,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
 .date-editor label { display: grid; gap: .2rem; color: var(--muted); font-size: .72rem; }
 .date-editor input { width: 100%; min-width: 0; font-size: .72rem; padding: .25rem .35rem; }
 .date-editor button { padding: .3rem .45rem; font-size: .72rem; }
-.date-editor-actions { display: flex; justify-content: flex-end; gap: .35rem; }
+.date-editor-actions { display: flex; justify-content: space-between; gap: .35rem; width: 100%; }
 .macro-dates-hint { margin: 0; color: var(--muted); font-size: .72rem; }
 .actions-menu { display: grid; gap: .2rem; }
 .actions-menu .color-picker { display: flex; width: auto; height: auto; justify-content: flex-start; gap: .55rem; padding: .35rem .45rem; }

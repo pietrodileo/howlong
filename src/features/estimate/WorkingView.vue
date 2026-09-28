@@ -1380,9 +1380,13 @@ function onHeaderDblClick(key: ColumnKey) {
   box-sizing: border-box;
   width: 100vw;
   height: 100vh;
-  padding: clamp(0.75rem, 1.5vw, 1.5rem);
+  padding: 0 clamp(0.75rem, 1.5vw, 1.5rem) clamp(0.75rem, 1.5vw, 1.5rem);
   gap: 0.65rem;
   overflow: hidden;
+  background: var(--page);
+}
+
+.working::backdrop {
   background: var(--page);
 }
 
