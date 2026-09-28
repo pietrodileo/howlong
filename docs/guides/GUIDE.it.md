@@ -1,6 +1,6 @@
 # Manuale utente di HowLong?
 
-HowLong? `0.8.0` su Windows, macOS e Linux.
+HowLong? `0.9.0` su Windows, macOS e Linux.
 
 [README del progetto](../../README.md) · [Novità](../WHATS_NEW.md) · [Manuale inglese](GUIDE.en.md) · [Guida di build e rilascio](../BUILD.md)
 
@@ -124,7 +124,7 @@ Usa **Impostazioni** per scegliere lingua e tema, definire i valori predefiniti,
 
 ![Schermata Impostazioni con sezioni di configurazione comprimibili](../images/settings.png)
 
-Apri un gruppo per visualizzare i relativi pannelli. Usa il campo di ricerca per aprire automaticamente il gruppo e il pannello corrispondenti.
+Apri un gruppo per visualizzare i relativi pannelli. Ogni pannello conserva il proprio stato, quindi puoi lasciare aperti più pannelli insieme. Usa il campo di ricerca per aprire automaticamente il gruppo e il pannello corrispondenti.
 
 ![Pannelli Impostazioni espansi con aspetto, aggiornamenti e scorciatoie da tastiera](../images/settings_expanded.png)
 
@@ -162,7 +162,7 @@ Il tema scuro si applica alle schermate di stima, presentazione e pianificazione
 **Valori predefiniti della stima**
 
 - **Gantt** — giorni del fine settimana; nascondere i fine settimana influisce solo sulla visualizzazione, non sulle date salvate
-- **Vista stima** — valori predefiniti dell'editor, incluse le colonne compatte
+- **Colonne** — scegli separatamente le colonne visibili predefinite per le viste Stima, Manager e Cliente. Usa il selettore **Colonne visibili** di ogni vista per personalizzare quella tabella senza modificare i valori predefiniti.
 - **Assegnatari** — abilita più assegnatari per attività. Gli assegnatari condividono equamente la responsabilità; disattivando l'opzione, le assegnazioni multiple esistenti restano visibili e rimovibili, ma non è possibile aggiungerne altre.
 - **Presentazione** — stabilisce se note ed etichette per manager/cliente iniziano nascoste
 - **Nome file di esportazione** — data/ora opzionali nei nomi file generati
@@ -274,6 +274,7 @@ Usa **Schermo intero** nella barra degli strumenti quando alla tabella serve pi�
 - Fai clic su una cella per modificarla
 - Aggiungi macro o formule con i pulsanti sotto la tabella
 - Le sottoattività vengono sommate nella macro; il CTG su una macro si applica ai suoi figli
+- Usa il selettore Categoria su macro e formule per cercare, creare o rimuovere categorie. La rimozione chiede conferma e sposta gli elementi in un'altra categoria disponibile.
 - Trascina la maniglia per riordinare le righe
 
 **Note e colonne**
@@ -335,6 +336,8 @@ Usa la vista Manager per preparare ciò che verrà mostrato al cliente. Serve a 
 ![Vista Manager con visibilità, totali presentati, differenze, note e ridistribuzione](../images/manager_view.png)
 
 Puoi modificare i totali mostrati, scegliere quali righe includere e gestire note ed etichette. La vista mostra anche la differenza tra i totali calcolati e quelli presentati.
+
+Usa **Schermo intero** quando serve più spazio per la tabella di presentazione. I controlli e i totali del Manager restano disponibili, mentre il resto dell'area di lavoro viene ridotto; premi `Esc` o scegli **Esci da schermo intero** per tornare indietro.
 
 | Controllo                              | Cosa fa                                                                                     |
 | -------------------------------------- | ------------------------------------------------------------------------------------------- |

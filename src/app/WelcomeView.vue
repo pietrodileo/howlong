@@ -17,7 +17,7 @@ const modelsStore = useModelsStore();
 const library = useLibraryStore();
 const docs = useDocumentsStore();
 const { defaultModel, models } = storeToRefs(modelsStore);
-const { t, tList } = useI18n();
+const { locale, t, tList } = useI18n();
 
 const recentEstimates = computed(() => {
   const recentPaths = getRecentOpenPaths();
@@ -39,6 +39,12 @@ const filteredModels = computed(() => {
   const query = searchQuery.value.toLowerCase();
   return models.value.filter(m => m.name.toLowerCase().includes(query));
 });
+
+/** Format a recent estimate timestamp using the selected application locale. */
+function formatRecentDate(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? iso : new Intl.DateTimeFormat(locale.value, { dateStyle: 'short' }).format(date);
+}
 
 function closeNewMenu() {
   newMenuOpen.value = false;
@@ -210,7 +216,7 @@ async function onOpenRecent(entry: LibraryEntry) {
               <ModelIcon :icon="est.icon" :name="est.title" :size="15" />
               <span class="recent-name">{{ est.title || t('working.untitled') }}</span>
               <span class="recent-date">
-                {{ t('welcome.recentUpdated', { date: new Date(est.updatedAt).toLocaleDateString() }) }}
+                {{ t('welcome.recentUpdated', { date: formatRecentDate(est.updatedAt) }) }}
               </span>
             </button>
           </li>
@@ -436,7 +442,7 @@ async function onOpenRecent(entry: LibraryEntry) {
   background: var(--surface);
   color: var(--ink);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .action-btn:hover {

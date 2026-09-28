@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import ContingencyControls from './ContingencyControls.vue';
 import ContingencyCompare from './ContingencyCompare.vue';
@@ -11,6 +11,9 @@ import FormulaEditor, {
 import NotesEditor from './NotesEditor.vue';
 import TagPicker from '../../shared/components/TagPicker.vue';
 import OwnerPicker from '../../shared/components/OwnerPicker.vue';
+import ColumnVisibilityPicker, {
+  type ColumnVisibilityOption,
+} from '../../shared/components/ColumnVisibilityPicker.vue';
 import IconBtn from '../../shared/components/IconBtn.vue';
 import RefreshIcon from '../../shared/components/RefreshIcon.vue';
 import MetaIconPicker from '../../shared/components/MetaIconPicker.vue';
@@ -102,7 +105,6 @@ const tableColumnKeys = computed(() =>
     return true;
   }),
 );
-const columnsMenuOpen = ref(false);
 const ctgCompareOpen = ref(false);
 const exportMenuOpen = ref(false);
 const reloading = ref(false);
@@ -111,6 +113,8 @@ const reloadAnimating = ref(false);
 const formulaEditId = ref<string | null>(null);
 /** Voce in editor note (modal). */
 const notesEditId = ref<string | null>(null);
+/** Categories hidden from this Estimate view after the user removes them. */
+const removedCategoryNames = ref<string[]>([]);
 /** Bozza nuova voce: non è in lista finché non si conferma con Applica. */
 const formulaDraft = ref<FormulaEditableItem | null>(null);
 /** Anteprima vista cliente della stima corrente. */
@@ -197,7 +201,7 @@ const categoryOptions = computed(() => {
     settings.settings.defaultCategories,
     estimate.estimate.items.map((item) => item.category),
     fromModel,
-  );
+  ).filter((category) => !removedCategoryNames.value.includes(category));
 });
 
 const tagOptions = computed(() => {
@@ -213,6 +217,33 @@ function onItemTagsChange(id: string, tags: string[]) {
   estimate.updateItem(id, { tags });
 }
 
+/** Update one macro/formula category while preserving the single-value picker contract. */
+function onCategoryChange(id: string, value: string | string[]) {
+  const category = Array.isArray(value) ? value[0] : value;
+  const normalized = category?.trim();
+  if (!normalized) return;
+  removedCategoryNames.value = removedCategoryNames.value.filter((name) => name !== normalized);
+  estimate.updateItem(id, { category: normalized });
+}
+
+/** Ask before removing a category and reassign its line items to the first remaining category. */
+function onCategoryDelete(name: string) {
+  const fallback = categoryOptions.value.find((category) => category !== name);
+  if (!fallback) {
+    ui.notify(t('working.needOneCategory'), true);
+    return;
+  }
+  askConfirm({
+    title: t('working.deleteCategoryTitle'),
+    message: t('working.deleteCategoryBody', { name }),
+    confirmLabel: t('working.deleteCategoryConfirm'),
+    action: () => {
+      removedCategoryNames.value = [...removedCategoryNames.value, name];
+      estimate.removeCategory(name, fallback);
+    },
+  });
+}
+
 function onCreateTagOption(label: string) {
   estimate.ensureTagOption(label);
 }
@@ -220,6 +251,34 @@ function onCreateTagOption(label: string) {
 function columnLabel(key: ColumnKey): string {
   if (key === 'base') return effortUnitLabel.value;
   return t(`columns.${key}`);
+}
+
+/** Keep the estimate table headers short while preserving the full column names in menus and tips. */
+function columnHeaderLabel(key: ColumnKey): string {
+  switch (key) {
+    case 'applyCtg':
+      return `± ${t('common.ctg')}`;
+    case 'withCtg':
+      return t('working.total');
+    case 'override':
+      return `${t('common.ctg')} %`;
+    default:
+      return columnLabel(key);
+  }
+}
+
+/** Mark the effort columns so their shared calculation role remains visible in a dense table. */
+function effortColumnClasses(key: ColumnKey): Record<string, boolean> {
+  const isEffort = key === 'base'
+    || key === 'applyCtg'
+    || key === 'ctg'
+    || key === 'withCtg'
+    || key === 'override';
+  return {
+    'effort-column': isEffort,
+    'effort-start': key === 'base',
+    'effort-end': key === 'override',
+  };
 }
 
 function columnAbbr(key: ColumnKey): string {
@@ -300,15 +359,28 @@ const pickerColumns = computed(() =>
   }),
 );
 
-function closeFloatingMenus(except?: 'export' | 'columns') {
-  if (except !== 'export') exportMenuOpen.value = false;
-  if (except !== 'columns') columnsMenuOpen.value = false;
+const columnPickerOptions = computed<ColumnVisibilityOption[]>(() => [
+  { key: 'name', label: columnLabel('name'), visible: true, locked: true },
+  ...pickerColumns.value.map((key) => ({
+    key,
+    label: columnLabel(key),
+    visible: cols.isVisible(key),
+  })),
+]);
+
+/** Apply a visibility choice from the shared Estimate column picker. */
+function onColumnVisibilityChange(key: string, visible: boolean): void {
+  if (key === 'name' || !TOGGLEABLE_COLUMNS.includes(key as ColumnKey)) return;
+  cols.setVisible(key as ColumnKey, visible);
+}
+
+function closeFloatingMenus() {
+  exportMenuOpen.value = false;
 }
 
 function onDocPointerDown(e: PointerEvent) {
   const t = e.target as HTMLElement | null;
   if (!t?.closest?.('.export-menu')) exportMenuOpen.value = false;
-  if (!t?.closest?.('.col-picker')) columnsMenuOpen.value = false;
 }
 
 /** Handle Working shortcuts for history, saving, tabs, and preview. */
@@ -363,6 +435,7 @@ onMounted(() => {
   }
   document.addEventListener('pointerdown', onDocPointerDown);
   window.addEventListener('keydown', onEstimateKeydown);
+  onFullscreenChange();
   document.addEventListener('fullscreenchange', onFullscreenChange);
 });
 
@@ -374,16 +447,19 @@ onUnmounted(() => {
 
 /** Keep the full-screen control aligned when the browser exits with Escape. */
 function onFullscreenChange(): void {
-  isFullscreen.value = document.fullscreenElement === workingElement.value;
+  isFullscreen.value = workingElement.value !== null
+    && document.fullscreenElement === workingElement.value;
 }
 
 /** Toggle full screen for the Estimate view without changing its session state. */
 async function toggleFullscreen(): Promise<void> {
-  if (isFullscreen.value) {
-    await document.exitFullscreen();
+  const element = workingElement.value;
+  if (document.fullscreenElement === element) {
+    if (typeof document.exitFullscreen === 'function') await document.exitFullscreen();
     return;
   }
-  await workingElement.value?.requestFullscreen();
+  isFullscreen.value = false;
+  if (typeof element?.requestFullscreen === 'function') await element.requestFullscreen();
 }
 
 const allMacrosExpanded = computed(() => {
@@ -404,7 +480,7 @@ function toggleAllMacros() {
 
 function toggleExportMenu() {
   const next = !exportMenuOpen.value;
-  closeFloatingMenus('export');
+  closeFloatingMenus();
   exportMenuOpen.value = next;
 }
 
@@ -479,6 +555,11 @@ function onOverride(id: string, raw: string) {
 
 function hoursEditable(line: ComputedLineHours) {
   return !line.hasChildren && !line.isFormula && line.item.kind !== 'formula';
+}
+
+/** Count the direct subtasks shown as children of a macro. */
+function subtaskCount(macroId: string): number {
+  return estimate.estimate.items.filter((item) => item.parentId === macroId).length;
 }
 
 /** CTG custom % editabile se la voce contribuisce e ha CTG attiva (anche derivate). */
@@ -614,6 +695,13 @@ function openFormulaEditor(id: string) {
 function onHeaderDblClick(key: ColumnKey) {
   cols.toggleCollapse(key);
 }
+
+watch(
+  () => estimate.estimate.meta.id,
+  () => {
+    removedCategoryNames.value = [];
+  },
+);
 </script>
 
 <template>
@@ -813,41 +901,11 @@ function onHeaderDblClick(key: ColumnKey) {
             <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
           </svg>
         </button>
-        <div class="col-picker">
-          <button
-            type="button"
-            class="ghost columns-trigger"
-            :aria-expanded="columnsMenuOpen"
-            :aria-label="t('common.columnsVisible')"
-            v-tip="t('common.columnsVisible')"
-            @click.stop="columnsMenuOpen = !columnsMenuOpen"
-          >
-            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-              <path
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                d="M3 2.5v11M8 2.5v11M13 2.5v11"
-              />
-            </svg>
-          </button>
-          <div v-if="columnsMenuOpen" class="col-menu" role="menu" @pointerdown.stop>
-            <p class="col-menu-title">{{ t('common.columnsVisible') }}</p>
-            <label class="col-opt locked">
-              <input type="checkbox" checked disabled />
-              {{ t('columns.name') }}
-            </label>
-            <label v-for="key in pickerColumns" :key="key" class="col-opt">
-              <input
-                type="checkbox"
-                :checked="cols.isVisible(key)"
-                @change="cols.toggleVisible(key)"
-              />
-              {{ columnLabel(key) }}
-            </label>
-          </div>
-        </div>
+        <ColumnVisibilityPicker
+          :label="t('common.columnsVisible')"
+          :options="columnPickerOptions"
+          @toggle="onColumnVisibilityChange"
+        />
       </div>
     </div>
 
@@ -861,7 +919,7 @@ function onHeaderDblClick(key: ColumnKey) {
               v-for="key in tableColumnKeys"
               :key="key"
               class="resizable"
-              :class="{ collapsed: cols.collapsed[key] && key !== 'actions', ...cols.colDragClass(key) }"
+              :class="{ collapsed: cols.collapsed[key] && key !== 'actions', ...effortColumnClasses(key), ...cols.colDragClass(key) }"
               :style="cols.styleFor(key)"
               v-tip="headerTitle(key)"
               :data-column-key="key"
@@ -883,7 +941,12 @@ function onHeaderDblClick(key: ColumnKey) {
                 >
                   <DisclosureIcon :expanded="allMacrosExpanded" />
                 </button>
-                <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
+                <template v-if="!cols.collapsed[key]">
+                  <span v-if="key === 'base'" class="base-header-label">
+                    {{ effortUnitLabel }}
+                  </span>
+                  <span v-else>{{ columnHeaderLabel(key) }}</span>
+                </template>
                 <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
               </div>
               <span
@@ -922,7 +985,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   <div
                     v-if="!cols.collapsed.name"
                     class="name-cell"
-                    :style="{ paddingLeft: line.depth ? '1.35rem' : '0' }"
+                    :style="{ paddingLeft: line.depth ? '0.75rem' : '0' }"
                   >
                     <span
                       class="drag-handle"
@@ -932,7 +995,7 @@ function onHeaderDblClick(key: ColumnKey) {
                       @pointerdown="rowDrag.onPointerDown(line.item.id, $event)"
                       @dragstart="rowDrag.onDragStart(line.item.id, $event)"
                       @dragend="rowDrag.onDragEnd"
-                    >⋮⋮</span>
+                    ><span class="drag-grip" aria-hidden="true" /></span>
                     <button
                       v-if="line.isMacro && line.hasChildren"
                       type="button"
@@ -957,6 +1020,11 @@ function onHeaderDblClick(key: ColumnKey) {
                       :class="{ 'macro-name': line.isMacro || line.isFormula }"
                       @input="estimate.updateItem(line.item.id, { name: ($event.target as HTMLTextAreaElement).value })"
                     />
+                    <span
+                      v-if="line.isMacro && line.hasChildren"
+                      class="subtask-count"
+                      :aria-label="`${subtaskCount(line.item.id)} ${t('analytics.subtasks')}`"
+                    >({{ subtaskCount(line.item.id) }})</span>
                     <button
                       v-if="line.isFormula || isFormulaItem(line.item)"
                       type="button"
@@ -979,19 +1047,20 @@ function onHeaderDblClick(key: ColumnKey) {
                   :class="{ collapsed: cols.collapsed.category }"
                 >
                   <template v-if="!cols.collapsed.category">
-                    <select
+                    <OwnerPicker
                       v-if="line.isMacro || line.isFormula || isFormulaItem(line.item)"
-                      :value="line.item.category"
-                      @change="estimate.updateItem(line.item.id, { category: ($event.target as HTMLSelectElement).value })"
-                    >
-                      <option
-                        v-for="c in categoryOptions"
-                        :key="c"
-                        :value="c"
-                      >
-                        {{ c }}
-                      </option>
-                    </select>
+                      :model-value="line.item.category"
+                      :options="categoryOptions"
+                      plain
+                      :remove-label="t('working.removeCategory')"
+                      compact
+                      :aria-label="`${t('columns.category')}: ${line.item.name}`"
+                      :placeholder="t('columns.category')"
+                      :filter-placeholder="t('gantt.categoryFilter')"
+                      :create-label="t('gantt.createCategory')"
+                      @update:model-value="onCategoryChange(line.item.id, $event)"
+                      @delete-option="onCategoryDelete"
+                    />
                     <span v-else class="muted cat">{{ line.item.category }}</span>
                   </template>
                 </td>
@@ -1005,6 +1074,7 @@ function onHeaderDblClick(key: ColumnKey) {
                     :model-value="line.item.owners"
                     :options="ownerOptions"
                     :multiple="settings.settings.allowMultipleOwners"
+                    compact
                     :disabled="isSavingOwner"
                     :aria-label="`${t('columns.owner')}: ${line.item.name}`"
                     :placeholder="t('gantt.ownerPlaceholder')"
@@ -1018,7 +1088,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'base'"
                   class="num-cell"
                   :style="cols.styleFor('base')"
-                  :class="{ collapsed: cols.collapsed.base }"
+                  :class="{ collapsed: cols.collapsed.base, ...effortColumnClasses('base') }"
                 >
                   <template v-if="!cols.collapsed.base">
                     <input
@@ -1041,7 +1111,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'applyCtg'"
                   class="center"
                   :style="cols.styleFor('applyCtg')"
-                  :class="{ collapsed: cols.collapsed.applyCtg }"
+                  :class="{ collapsed: cols.collapsed.applyCtg, ...effortColumnClasses('applyCtg') }"
                 >
                   <input
                     v-if="!cols.collapsed.applyCtg && line.item.kind !== 'summary'"
@@ -1056,7 +1126,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'ctg'"
                   class="readonly num-cell"
                   :style="cols.styleFor('ctg')"
-                  :class="{ collapsed: cols.collapsed.ctg }"
+                  :class="{ collapsed: cols.collapsed.ctg, ...effortColumnClasses('ctg') }"
                 >
                   <template v-if="!cols.collapsed.ctg">{{ displayEffort(line.hoursContingency) }}</template>
                 </td>
@@ -1064,7 +1134,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'withCtg'"
                   class="readonly emph num-cell"
                   :style="cols.styleFor('withCtg')"
-                  :class="{ collapsed: cols.collapsed.withCtg }"
+                  :class="{ collapsed: cols.collapsed.withCtg, ...effortColumnClasses('withCtg') }"
                 >
                   <template v-if="!cols.collapsed.withCtg">{{ displayEffort(line.hoursWithContingency) }}</template>
                 </td>
@@ -1072,7 +1142,7 @@ function onHeaderDblClick(key: ColumnKey) {
                   v-else-if="key === 'override'"
                   class="num-cell"
                   :style="cols.styleFor('override')"
-                  :class="{ collapsed: cols.collapsed.override }"
+                  :class="{ collapsed: cols.collapsed.override, ...effortColumnClasses('override') }"
                 >
                   <template v-if="!cols.collapsed.override">
                     <input
@@ -1098,6 +1168,7 @@ function onHeaderDblClick(key: ColumnKey) {
                     v-if="!cols.collapsed.tags"
                     :model-value="line.item.tags ?? []"
                     :options="tagOptions"
+                    compact
                     :aria-label="`${t('columns.tags')}: ${line.item.name}`"
                     @update:model-value="onItemTagsChange(line.item.id, $event)"
                     @create-option="onCreateTagOption"
@@ -1130,10 +1201,12 @@ function onHeaderDblClick(key: ColumnKey) {
                     <button
                       v-if="line.isMacro && !line.isFormula && line.item.kind !== 'formula'"
                       type="button"
-                      class="ghost"
+                      class="ghost add-task"
+                      :aria-label="t('working.addTask')"
+                      v-tip="t('working.addTask')"
                       @click="estimate.addSubtask(line.item.id)"
                     >
-                      {{ t('working.addTask') }}
+                      +
                     </button>
                     <IconBtn
                       v-if="line.isFormula || isFormulaItem(line.item)"
@@ -1177,7 +1250,7 @@ function onHeaderDblClick(key: ColumnKey) {
                 v-else-if="key === 'base'"
                 class="readonly num-cell"
                 :style="cols.styleFor('base')"
-                :class="{ collapsed: cols.collapsed.base }"
+                :class="{ collapsed: cols.collapsed.base, ...effortColumnClasses('base') }"
               >
                 <template v-if="!cols.collapsed.base">
                   <span v-if="!estimate.showInlineCtg" class="emph">{{ displayEffort(row.hours) }}</span>
@@ -1188,7 +1261,7 @@ function onHeaderDblClick(key: ColumnKey) {
                 v-else-if="key === 'ctg'"
                 class="readonly emph num-cell"
                 :style="cols.styleFor('ctg')"
-                :class="{ collapsed: cols.collapsed.ctg }"
+                :class="{ collapsed: cols.collapsed.ctg, ...effortColumnClasses('ctg') }"
               >
                 <template v-if="!cols.collapsed.ctg">{{ displayEffort(row.hours) }}</template>
               </td>
@@ -1196,7 +1269,7 @@ function onHeaderDblClick(key: ColumnKey) {
                 v-else-if="key === 'withCtg'"
                 class="readonly num-cell"
                 :style="cols.styleFor('withCtg')"
-                :class="{ collapsed: cols.collapsed.withCtg }"
+                :class="{ collapsed: cols.collapsed.withCtg, ...effortColumnClasses('withCtg') }"
               >
                 <template v-if="!cols.collapsed.withCtg">—</template>
               </td>
@@ -1292,10 +1365,34 @@ function onHeaderDblClick(key: ColumnKey) {
   max-height: min(70vh, 640px);
 }
 
-.working .data-table th {
+.working > .summary-row {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 5;
+  background: var(--page);
+  box-shadow: none;
+}
+
+.working .data-table th.effort-column {
+  background: var(--table-head);
+  color: var(--accent);
+}
+
+.working .data-table td.effort-column {
+  background: var(--surface);
+}
+
+.working .base-header-label {
+  display: inline-block;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.working .drag-grip {
+  width: 0.5rem;
+  height: 0.75rem;
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1.2px);
+  background-size: 0.25rem 0.25rem;
 }
 
 /* Full screen is an editing-focused layout, not a copy of the application chrome. */
@@ -1303,9 +1400,13 @@ function onHeaderDblClick(key: ColumnKey) {
   box-sizing: border-box;
   width: 100vw;
   height: 100vh;
-  padding: clamp(0.75rem, 1.5vw, 1.5rem);
+  padding: 0 clamp(0.75rem, 1.5vw, 1.5rem) clamp(0.75rem, 1.5vw, 1.5rem);
   gap: 0.65rem;
   overflow: hidden;
+  background: var(--page);
+}
+
+.working::backdrop {
   background: var(--page);
 }
 
@@ -1824,7 +1925,6 @@ function onHeaderDblClick(key: ColumnKey) {
   position: relative;
 }
 
-.columns-trigger,
 .ctg-compare-trigger {
   display: inline-grid;
   place-items: center;
@@ -1839,42 +1939,6 @@ function onHeaderDblClick(key: ColumnKey) {
   align-items: center;
   gap: 0.45rem 0.55rem;
   margin-left: auto;
-}
-
-.col-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 0.35rem);
-  min-width: 180px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 0.65rem 0.75rem;
-  z-index: 20;
-  box-shadow: var(--shadow-menu);
-  display: grid;
-  gap: 0.35rem;
-}
-
-.col-menu-title {
-  margin: 0 0 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.col-opt {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.9rem;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.col-opt.locked {
-  color: var(--muted);
-  cursor: default;
 }
 
 .sheet {
@@ -1926,7 +1990,7 @@ th.collapsed {
 .name-cell {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.1rem;
   min-width: 0;
 }
 
@@ -1939,11 +2003,19 @@ th.collapsed {
   font-weight: 600;
 }
 
+.subtask-count {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .collapse {
   border: none;
   background: transparent;
   color: var(--muted);
-  width: 1.4rem;
+  width: 1.25rem;
   padding: 0;
   font-size: 0.85rem;
   line-height: 1;
@@ -1975,7 +2047,7 @@ th.collapsed {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.4rem;
+  width: 0.75rem;
   flex-shrink: 0;
 }
 
@@ -2029,6 +2101,23 @@ th.collapsed {
   margin-right: 0.15rem;
 }
 
+.row-actions .add-task {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  min-width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.row-actions .add-task:hover {
+  color: var(--ink);
+  background: var(--page-soft);
+  border-color: var(--line);
+}
+
 .row-actions :deep(.icon-btn) {
   margin-right: 0.1rem;
   vertical-align: middle;
@@ -2077,13 +2166,14 @@ th.collapsed {
 .notes-input {
   flex: 1;
   min-width: 0;
-  min-height: 2.6rem;
-  max-height: 5.5rem;
-  resize: vertical;
+  height: 2.65rem;
+  min-height: 2.65rem;
+  max-height: 2.65rem;
+  resize: none;
   border: 1px solid var(--line) !important;
   background: var(--page-soft) !important;
   color: var(--ink);
-  line-height: 1.35;
+  line-height: 1.2;
   white-space: pre-wrap;
   field-sizing: content;
 }

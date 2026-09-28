@@ -6,6 +6,9 @@ import { useLibraryStore } from '../library/library';
 import AuditHistoryModal from './AuditHistoryModal.vue';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import RefreshIcon from '../../shared/components/RefreshIcon.vue';
+import ColumnVisibilityPicker, {
+  type ColumnVisibilityOption,
+} from '../../shared/components/ColumnVisibilityPicker.vue';
 import NotesEditor from './NotesEditor.vue';
 import TagPicker from '../../shared/components/TagPicker.vue';
 import OwnerPicker from '../../shared/components/OwnerPicker.vue';
@@ -44,8 +47,6 @@ import { readTextFile, isTauri } from '../../platform/tauri';
 import { importEstimateText } from '../../platform/files/import';
 import { useDocumentsStore } from '../../shared/documents';
 import { useOwnerAssignment } from '../../shared/composables/useOwnerAssignment';
-
-const NOTES_PREVIEW_MAX = 72;
 
 const estimate = useEstimateStore();
 const docs = useDocumentsStore();
@@ -92,6 +93,8 @@ const reloadConfirmOpen = ref(false);
 const reloading = ref(false);
 const reloadAnimating = ref(false);
 const auditHistoryOpen = ref(false);
+const managerSection = ref<HTMLElement | null>(null);
+const isManagerFullscreen = ref(false);
 /** Solo UI: piega sotto-task in vista cliente (non tocca export). */
 const clientPreviewCollapsed = ref<Set<string>>(new Set());
 
@@ -121,8 +124,31 @@ function onDocPointerDown(e: PointerEvent) {
   if (!target?.closest?.('.export-menu')) closeExportMenus();
 }
 
-onMounted(() => document.addEventListener('pointerdown', onDocPointerDown));
-onUnmounted(() => document.removeEventListener('pointerdown', onDocPointerDown));
+onMounted(() => {
+  document.addEventListener('pointerdown', onDocPointerDown);
+  onFullscreenChange();
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+});
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocPointerDown);
+  document.removeEventListener('fullscreenchange', onFullscreenChange);
+});
+
+/** Keep the Manager fullscreen control aligned when Escape exits fullscreen. */
+function onFullscreenChange(): void {
+  isManagerFullscreen.value = document.fullscreenElement === managerSection.value;
+}
+
+/** Toggle fullscreen for the Manager view without changing estimate data. */
+async function toggleManagerFullscreen(): Promise<void> {
+  const element = managerSection.value;
+  if (document.fullscreenElement === element) {
+    if (typeof document.exitFullscreen === 'function') await document.exitFullscreen();
+    return;
+  }
+  isManagerFullscreen.value = false;
+  if (typeof element?.requestFullscreen === 'function') await element.requestFullscreen();
+}
 
 const effortUnit = computed(
   () => estimate.estimate.meta.unit as EffortUnit,
@@ -219,13 +245,6 @@ function onPresentedEffort(id: string, raw: string) {
   } else {
     estimate.setClientPresentedEffort(id, hours);
   }
-}
-
-function previewNotes(notes: string): string {
-  const flat = notes.replace(/\s+/g, ' ').trim();
-  if (!flat) return '';
-  if (flat.length <= NOTES_PREVIEW_MAX) return flat;
-  return `${flat.slice(0, NOTES_PREVIEW_MAX).trimEnd()}…`;
 }
 
 function openNotesEditor(id: string) {
@@ -375,6 +394,46 @@ const tableColumnKeys = computed(() =>
     return cols.isVisible(key);
   }),
 );
+
+const managerColumnPickerOptions = computed<ColumnVisibilityOption[]>(() =>
+  cols.orderedKeys.value.map((key) => ({
+    key,
+    label: columnLabel(key),
+    visible: cols.isVisible(key)
+      && (key !== 'tags' || !estimate.estimate.clientView.hideManagerTags)
+      && (key !== 'notes' || !estimate.estimate.clientView.hideManagerNotes),
+    locked: key === 'name',
+  })),
+);
+
+const clientColumnPickerOptions = computed<ColumnVisibilityOption[]>(() =>
+  clientCols.orderedKeys.value.map((key) => ({
+    key,
+    label: clientOutputColumnLabel(key),
+    visible: clientCols.isVisible(key)
+      && (key !== 'tags' || !estimate.estimate.clientView.hideClientTags)
+      && (key !== 'notes' || !estimate.estimate.clientView.hideClientNotes),
+    locked: key === 'name',
+  })),
+);
+
+/** Apply a visibility choice to the Manager table and its persisted presentation export. */
+function onManagerColumnVisibilityChange(key: string, visible: boolean): void {
+  const columnKey = key as ManagerColumnKey;
+  if (!cols.orderedKeys.value.includes(columnKey) || columnKey === 'name') return;
+  cols.setVisible(columnKey, visible);
+  if (columnKey === 'notes') estimate.updateClientView({ hideManagerNotes: !visible });
+  if (columnKey === 'tags') estimate.updateClientView({ hideManagerTags: !visible });
+}
+
+/** Apply a visibility choice to the Client output table and its persisted export. */
+function onClientColumnVisibilityChange(key: string, visible: boolean): void {
+  const columnKey = key as ClientOutputColumnKey;
+  if (!clientCols.orderedKeys.value.includes(columnKey) || columnKey === 'name') return;
+  clientCols.setVisible(columnKey, visible);
+  if (columnKey === 'notes') estimate.updateClientView({ hideClientNotes: !visible });
+  if (columnKey === 'tags') estimate.updateClientView({ hideClientTags: !visible });
+}
 
 const allMacrosExpanded = computed(() => {
   const macros = estimate.clientLines.filter((l) => l.isMacro && l.hasChildren);
@@ -541,7 +600,7 @@ function columnLabel(key: ManagerColumnKey): string {
     case 'notes':
       return t('common.notes');
     case 'actions':
-      return '';
+      return t('common.actions');
     default:
       return '';
   }
@@ -572,7 +631,7 @@ function columnAbbr(key: ManagerColumnKey): string {
     case 'notes':
       return '…';
     case 'actions':
-      return '';
+      return 'A';
     default:
       return '';
   }
@@ -704,7 +763,7 @@ async function onExportFromMenu(
 
     <p class="hint">{{ t('client.editHint') }}</p>
 
-    <details class="presentation-section manager-block" open>
+    <details ref="managerSection" class="presentation-section manager-block" open>
       <summary class="presentation-section-head">
         <div class="presentation-section-copy">
           <div class="presentation-section-title-row">
@@ -766,24 +825,6 @@ async function onExportFromMenu(
           </div>
         </div>
         <div class="summary-actions">
-          <div class="visibility-toggles" role="group" :aria-label="t('client.managerViewLegend')">
-            <label class="check compact">
-              <input
-                type="checkbox"
-                :checked="estimate.estimate.clientView.hideManagerNotes"
-                @change="estimate.updateClientView({ hideManagerNotes: ($event.target as HTMLInputElement).checked })"
-              />
-              {{ t('client.hideNotesManager') }}
-            </label>
-            <label class="check compact">
-              <input
-                type="checkbox"
-                :checked="estimate.estimate.clientView.hideManagerTags"
-                @change="estimate.updateClientView({ hideManagerTags: ($event.target as HTMLInputElement).checked })"
-              />
-              {{ t('client.hideTagsManager') }}
-            </label>
-          </div>
           <div class="export-menu">
             <button
               type="button"
@@ -812,6 +853,22 @@ async function onExportFromMenu(
               </button>
             </div>
           </div>
+          <ColumnVisibilityPicker
+            :label="t('common.columnsVisible')"
+            :options="managerColumnPickerOptions"
+            @toggle="onManagerColumnVisibilityChange"
+          />
+          <button
+            type="button"
+            class="ghost fullscreen-toggle"
+            :aria-label="isManagerFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+            v-tip="isManagerFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+            @click.stop="toggleManagerFullscreen"
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -828,6 +885,8 @@ async function onExportFromMenu(
                 'show-th': key === 'show',
                 'delta-col-head': key === 'delta',
                 'manager-total-column': key === 'presented',
+                'effort-start': key === 'base',
+                'effort-end': key === 'presented',
                 'actions-th': key === 'actions',
                 ...cols.colDragClass(key),
               }"
@@ -852,7 +911,7 @@ async function onExportFromMenu(
                 >
                   <DisclosureIcon :expanded="allMacrosExpanded" />
                 </button>
-                <span v-if="!cols.collapsed[key] && key !== 'actions'">{{ columnLabel(key) }}</span>
+                <span v-if="!cols.collapsed[key]">{{ columnLabel(key) }}</span>
                 <span v-else-if="cols.collapsed[key]" class="abbr">{{ columnAbbr(key) }}</span>
               </div>
               <span
@@ -983,7 +1042,7 @@ async function onExportFromMenu(
               </td>
               <td
                 v-else-if="key === 'base'"
-                class="pad num-cell"
+                class="pad num-cell effort-start"
                 :style="cols.styleFor('base')"
                 :class="{ collapsed: cols.collapsed.base }"
               >
@@ -1007,7 +1066,7 @@ async function onExportFromMenu(
               </td>
               <td
                 v-else-if="key === 'presented'"
-                class="pad num-cell emph manager-total-column"
+                class="pad num-cell emph manager-total-column effort-end"
                 :style="cols.styleFor('presented')"
                 :class="{
                   collapsed: cols.collapsed.presented,
@@ -1045,16 +1104,16 @@ async function onExportFromMenu(
                 :style="cols.styleFor('notes')"
                 :class="{ collapsed: cols.collapsed.notes }"
               >
-                <button
+                <textarea
                   v-if="!cols.collapsed.notes"
-                  type="button"
-                  class="notes-preview"
-                  :class="{ empty: !line.item.notes.trim() }"
+                  class="notes-input"
+                  rows="2"
+                  :value="line.item.notes"
+                  :placeholder="t('working.notesPh')"
                   v-tip="t('client.notesOpen')"
-                  @click="openNotesEditor(line.item.id)"
-                >
-                  {{ previewNotes(line.item.notes) || t('client.notesEmpty') }}
-                </button>
+                  @input="estimate.updateItem(line.item.id, { notes: ($event.target as HTMLTextAreaElement).value })"
+                  @dblclick="openNotesEditor(line.item.id)"
+                />
               </td>
               <td
                 v-else-if="key === 'actions'"
@@ -1066,10 +1125,16 @@ async function onExportFromMenu(
                   v-if="!cols.collapsed.actions && line.item.clientVisible"
                   type="button"
                   class="ghost redistribute"
+                  :aria-label="t('client.redistributeHint')"
                   v-tip="t('client.redistributeHint')"
                   @click="onRedistribute(line.item.id)"
                 >
-                  {{ t('client.redistribute') }}
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7L16.3 5.7c.8-1.1 2-1.7 3.3-1.7H22" />
+                    <path d="m18 2 4 2-4 2" />
+                    <path d="M2 6h1.9c1.3 0 2.5.6 3.3 1.7l8.6 11.6c.8 1.1 2 1.7 3.3 1.7H22" />
+                    <path d="m18 22 4-2-4-2" />
+                  </svg>
                 </button>
               </td>
             </template>
@@ -1097,56 +1162,6 @@ async function onExportFromMenu(
         <span class="presentation-section-chevron"><DisclosureIcon :expanded="true" /></span>
       </summary>
       <div class="presentation-section-body">
-      <header class="client-output-head">
-        <div class="client-output-actions">
-          <div class="visibility-toggles" role="group" :aria-label="t('client.clientOutputLegend')">
-            <label class="check compact">
-              <input
-                type="checkbox"
-                :checked="estimate.estimate.clientView.hideClientNotes"
-                @change="estimate.updateClientView({ hideClientNotes: ($event.target as HTMLInputElement).checked })"
-              />
-              {{ t('client.hideNotesClient') }}
-            </label>
-            <label class="check compact">
-              <input
-                type="checkbox"
-                :checked="estimate.estimate.clientView.hideClientTags"
-                @change="estimate.updateClientView({ hideClientTags: ($event.target as HTMLInputElement).checked })"
-              />
-              {{ t('client.hideTagsClient') }}
-            </label>
-          </div>
-          <div class="export-menu">
-            <button
-              type="button"
-              class="ghost"
-              :aria-expanded="clientExportMenuOpen"
-              @click.stop="toggleClientExportMenu"
-            >
-              {{ t('common.export') }} ▾
-            </button>
-            <div v-if="clientExportMenuOpen" class="menu" role="menu" @pointerdown.stop>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.aiHint')"
-                @click="onExportFromMenu('yaml', 'client')"
-              >
-                {{ t('export.ai') }}
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.excelHint')"
-                @click="onExportFromMenu('xlsx', 'client')"
-              >
-                {{ t('export.excel') }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
       <div class="summary-row client-summary" aria-live="polite">
         <div class="summary-stats">
           <div class="stat">
@@ -1177,6 +1192,41 @@ async function onExportFromMenu(
             </strong>
           </div>
         </div>
+        <div class="summary-actions">
+          <div class="export-menu">
+            <button
+              type="button"
+              class="ghost"
+              :aria-expanded="clientExportMenuOpen"
+              @click.stop="toggleClientExportMenu"
+            >
+              {{ t('common.export') }} ▾
+            </button>
+            <div v-if="clientExportMenuOpen" class="menu" role="menu" @pointerdown.stop>
+              <button
+                type="button"
+                role="menuitem"
+                v-tip="t('export.aiHint')"
+                @click="onExportFromMenu('yaml', 'client')"
+              >
+                {{ t('export.ai') }}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                v-tip="t('export.excelHint')"
+                @click="onExportFromMenu('xlsx', 'client')"
+              >
+                {{ t('export.excel') }}
+              </button>
+            </div>
+          </div>
+          <ColumnVisibilityPicker
+            :label="t('common.columnsVisible')"
+            :options="clientColumnPickerOptions"
+            @toggle="onClientColumnVisibilityChange"
+          />
+        </div>
       </div>
       <div class="table-shell">
         <table class="data-table sheet">
@@ -1189,6 +1239,8 @@ async function onExportFromMenu(
                 :class="{
                   collapsed: clientCols.collapsed[key],
                   'show-th': key === 'subs',
+                  'effort-start': key === 'hours',
+                  'effort-end': key === 'days',
                   ...clientCols.colDragClass(key),
                 }"
                 :style="clientCols.styleFor(key)"
@@ -1327,7 +1379,7 @@ async function onExportFromMenu(
                 </td>
                 <td
                   v-else-if="key === 'hours'"
-                  class="pad num-cell emph"
+                  class="pad num-cell emph effort-start"
                   :style="clientCols.styleFor('hours')"
                   :class="{ collapsed: clientCols.collapsed.hours }"
                 >
@@ -1337,7 +1389,7 @@ async function onExportFromMenu(
                 </td>
                 <td
                   v-else-if="key === 'days'"
-                  class="pad num-cell emph"
+                  class="pad num-cell emph effort-end"
                   :style="clientCols.styleFor('days')"
                   :class="{ collapsed: clientCols.collapsed.days }"
                 >
@@ -1357,7 +1409,11 @@ async function onExportFromMenu(
                 v-for="key in clientOutputColumnKeys.slice(clientOutputFootLabelColspan)"
                 :key="'foot-' + key"
                 class="pad num-cell emph"
-                :class="{ collapsed: clientCols.collapsed[key] }"
+                :class="{
+                  collapsed: clientCols.collapsed[key],
+                  'effort-start': key === 'hours',
+                  'effort-end': key === 'days',
+                }"
                 :style="clientCols.styleFor(key)"
               >
                 <template v-if="key === 'hours' && !clientCols.collapsed.hours">
@@ -1374,13 +1430,15 @@ async function onExportFromMenu(
       </div>
     </details>
 
-    <NotesEditor
-      :open="notesEditItem != null"
-      :item-name="notesEditItem?.name ?? ''"
-      :notes="notesEditItem?.notes ?? ''"
-      @close="closeNotesEditor"
-      @save="onSaveNotes"
-    />
+    <Teleport :to="managerSection" :disabled="!isManagerFullscreen">
+      <NotesEditor
+        :open="notesEditItem != null"
+        :item-name="notesEditItem?.name ?? ''"
+        :notes="notesEditItem?.notes ?? ''"
+        @close="closeNotesEditor"
+        @save="onSaveNotes"
+      />
+    </Teleport>
 
     <ConfirmModal
       :open="resetConfirmOpen"
@@ -1674,6 +1732,40 @@ async function onExportFromMenu(
   border-top: none;
 }
 
+.manager-block:fullscreen {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+  min-height: 0;
+  margin: 0;
+  padding: 0 clamp(0.75rem, 1.5vw, 1.5rem) clamp(0.75rem, 1.5vw, 1.5rem);
+  overflow: hidden;
+  background: var(--page);
+}
+
+.manager-block::backdrop {
+  background: var(--page);
+}
+
+.manager-block:fullscreen .presentation-section-head {
+  display: none;
+}
+
+.manager-block:fullscreen .presentation-section-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.manager-block:fullscreen .table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
 .field-group {
   margin: 0;
   padding: 0.65rem 0.75rem;
@@ -1723,35 +1815,7 @@ async function onExportFromMenu(
   background: var(--surface);
 }
 
-.check {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-  padding-bottom: 0.35rem;
-}
-
-.check.compact {
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding-bottom: 0;
-  white-space: nowrap;
-}
-
-.visibility-toggles {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.65rem 1rem;
-}
-
-.summary-actions,
-.client-output-actions {
+.summary-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1891,14 +1955,6 @@ async function onExportFromMenu(
 
 .delta-cell.negative {
   color: var(--danger);
-}
-
-.client-output-head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.75rem 1rem;
-  align-items: center;
 }
 
 .client-output {
@@ -2135,38 +2191,42 @@ tr.overridden td {
 }
 
 .redistribute {
-  font-size: 0.78rem;
-  padding: 0.25rem 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
 }
 
-.notes-preview {
-  display: block;
-  width: 100%;
-  margin: 0;
-  padding: 0.2rem 0.15rem;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 400;
-  text-align: left;
-  line-height: 1.35;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  cursor: pointer;
+.notes-input {
+  flex: 1;
+  min-width: 0;
+  height: 2.65rem;
+  min-height: 2.65rem;
+  max-height: 2.65rem;
+  resize: none;
+  border: 1px solid var(--line) !important;
+  background: var(--page-soft) !important;
+  color: var(--ink);
+  line-height: 1.2;
+  white-space: pre-wrap;
+  field-sizing: content;
 }
 
-.notes-preview.empty {
+.notes-input::placeholder {
   color: var(--muted-soft);
+  font-weight: 400;
 }
 
-.notes-preview:hover {
-  border-color: var(--line);
-  background: var(--page-soft);
-  color: var(--ink-soft);
+.notes-input:hover {
+  border-color: var(--line-strong) !important;
+  background: var(--surface) !important;
+}
+
+.notes-input:focus {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line)) !important;
+  background: var(--surface) !important;
 }
 
 .macro td {
@@ -2186,7 +2246,7 @@ tr.overridden td {
   background: color-mix(in srgb, var(--ink) 3%, var(--page-soft));
 }
 
-.macro .notes-preview,
+.macro .notes-input,
 .macro .num {
   font-weight: 400;
 }

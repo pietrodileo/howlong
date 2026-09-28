@@ -109,6 +109,11 @@ watch(
   transition: background 0.12s ease, color 0.12s ease;
 }
 
+.settings-panel-head:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 72%, var(--line));
+  outline-offset: -2px;
+}
+
 .settings-panel:not([open]) .settings-panel-head:hover {
   background: color-mix(in srgb, var(--accent-soft) 34%, var(--surface));
 }
@@ -170,8 +175,11 @@ watch(
 }
 
 .settings-panel[open] > .settings-panel-head {
-  border-left: 3px solid color-mix(in srgb, var(--accent) 58%, var(--line));
-  background: color-mix(in srgb, var(--accent-soft) 24%, var(--surface));
+  background: transparent;
+}
+
+.settings-panel[open] {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 58%, var(--line));
 }
 
 .settings-panel[open] .settings-panel-title {

@@ -25,6 +25,9 @@ function cloneDefaults(): Settings {
     recentWorkspaceDirs: [...DEFAULT_SETTINGS.recentWorkspaceDirs],
     defaultCategories: [...DEFAULT_SETTINGS.defaultCategories],
     contingencyTargetCategories: [...DEFAULT_SETTINGS.contingencyTargetCategories],
+    estimateColumnVisibility: { ...DEFAULT_SETTINGS.estimateColumnVisibility },
+    defaultManagerColumnVisibility: { ...DEFAULT_SETTINGS.defaultManagerColumnVisibility },
+    defaultClientColumnVisibility: { ...DEFAULT_SETTINGS.defaultClientColumnVisibility },
   };
 }
 
@@ -54,6 +57,18 @@ function mergeSettings(partial: Partial<Settings>): Settings {
       ...(partial.contingencyTargetCategories ??
         DEFAULT_SETTINGS.contingencyTargetCategories),
     ],
+    estimateColumnVisibility: {
+      ...DEFAULT_SETTINGS.estimateColumnVisibility,
+      ...(partial.estimateColumnVisibility ?? {}),
+    },
+    defaultManagerColumnVisibility: {
+      ...DEFAULT_SETTINGS.defaultManagerColumnVisibility,
+      ...(partial.defaultManagerColumnVisibility ?? {}),
+    },
+    defaultClientColumnVisibility: {
+      ...DEFAULT_SETTINGS.defaultClientColumnVisibility,
+      ...(partial.defaultClientColumnVisibility ?? {}),
+    },
   };
 }
 

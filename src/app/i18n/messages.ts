@@ -82,6 +82,7 @@ export type MessageTree = {
     cancel: string;
     confirm: string;
     start: string;
+    skipToContent: string;
   };
   presentation: {
     estimate: string;
@@ -179,8 +180,10 @@ export type MessageTree = {
     summaryAppearance: string;
     summaryWorkspaceImportExport: string;
     summaryEstimateColumns: string;
+    summaryColumns: string;
     summaryOwners: string;
     summaryPresentation: string;
+    summaryPresentationColumns: string;
     summaryExport: string;
     summaryWorkingCalendar: string;
     summaryWorkingDays: string;
@@ -216,6 +219,7 @@ export type MessageTree = {
     sectionProfile: string;
     sectionLocale: string;
     sectionAppearance: string;
+    sectionColumns: string;
     sectionEstimate: string;
     sectionOwners: string;
     sectionPresentation: string;
@@ -255,6 +259,11 @@ export type MessageTree = {
     shortcutUndo: string;
     shortcutRedo: string;
     estimateColumnsIntro: string;
+    columnsIntro: string;
+    columnsDefaultsHint: string;
+    columnsActivityRequired: string;
+    estimateViewLegend: string;
+    resetColumnDefaults: string;
     multiOwner: string;
     multiOwnerHelp: string;
     multiOwnerDisabledWarning: string;
@@ -332,6 +341,11 @@ export type MessageTree = {
     notesExpand: string;
     notesModalTitle: string;
     notesModalHint: string;
+    removeCategory: string;
+    needOneCategory: string;
+    deleteCategoryTitle: string;
+    deleteCategoryBody: string;
+    deleteCategoryConfirm: string;
     newFrom: string;
     pickModel: string;
     searchModel: string;
@@ -407,6 +421,7 @@ export type MessageTree = {
     unscheduled: string;
     editDates: string;
     scheduleActivity: string;
+    deleteActivity: string;
     startDate: string;
     endDate: string;
     clearDates: string;
@@ -432,8 +447,10 @@ export type MessageTree = {
     assignOwner: string;
     ownerPlaceholder: string;
     ownerFilter: string;
+    categoryFilter: string;
     allOwners: string;
     createOwner: string;
+    createCategory: string;
     ownerAssignedHint: string;
     deleteOwnerTitle: string;
     deleteOwnerBody: string;
@@ -577,6 +594,9 @@ export type MessageTree = {
     addCat: string;
     needOneCat: string;
     removeCat: string;
+    deleteCategoryTitle: string;
+    deleteCategoryBody: string;
+    deleteCategoryConfirm: string;
     tagsLabel: string;
     tagsAria: string;
     newTagPh: string;
@@ -1047,6 +1067,7 @@ const it: MessageTree = {
     confirm: 'Conferma',
     duplicate: 'Duplica',
     start: 'Inizia',
+    skipToContent: 'Vai al contenuto principale',
   },
   presentation: {
     estimate: 'Stima',
@@ -1091,7 +1112,7 @@ const it: MessageTree = {
     groupWorkspace: 'Workspace',
     groupWorkspaceIntro: 'Cartelle e backup del workspace.',
     groupEstimates: 'Stime',
-    groupEstimatesIntro: 'Colonne della stima, assegnatari, presentazione e nomi file di export.',
+    groupEstimatesIntro: 'Visibilità colonne, assegnatari e nomi file di export.',
     groupPlanning: 'Pianificazione',
     groupPlanningIntro: 'Calendario di lavoro e stati delle attività.',
     groupApplication: 'Applicazione',
@@ -1147,8 +1168,10 @@ const it: MessageTree = {
     summaryAppearance: '{theme}',
     summaryWorkspaceImportExport: 'Importa o esporta il workspace',
     summaryEstimateColumns: '{visible} di {total} colonne visibili',
+    summaryColumns: 'Stima {visible} · Manager {manager} · Cliente {client}',
     summaryOwners: 'Più assegnatari: {state}',
     summaryPresentation: 'Impostazioni predefinite per manager e cliente',
+    summaryPresentationColumns: 'Manager {manager} · Cliente {client} colonne visibili',
     summaryExport: 'Data {date} · ora {time}',
     summaryWorkingCalendar: 'Weekend: {days}',
     summaryWorkingDays: 'Esclusione dei giorni selezionati: {excluded}',
@@ -1184,6 +1207,7 @@ const it: MessageTree = {
     sectionProfile: 'Profilo',
     sectionLocale: 'Lingua',
     sectionAppearance: 'Aspetto',
+    sectionColumns: 'Visibilità colonne',
     sectionEstimate: 'Colonne della stima',
     sectionOwners: 'Assegnatari',
     sectionPresentation: 'Presentazione',
@@ -1223,6 +1247,11 @@ const it: MessageTree = {
     shortcutUndo: 'Annulla l’ultima modifica nella scheda corrente',
     shortcutRedo: 'Ripristina l’ultima modifica annullata',
     estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
+    columnsIntro: 'Scegli le colonne predefinite per la vista Stima, la Vista manager e la Vista cliente.',
+    columnsDefaultsHint: 'Questi sono i valori predefiniti. Usa il selettore colonne dentro una vista per personalizzare solo quella tabella.',
+    columnsActivityRequired: 'Sempre visibile',
+    estimateViewLegend: 'Vista stima',
+    resetColumnDefaults: 'Ripristina predefiniti',
     multiOwner: 'Consenti più assegnatari per attività',
     multiOwnerHelp: 'Se disattivata, puoi rimuovere gli assegnatari multipli già presenti, ma non aggiungerne altri.',
     multiOwnerDisabledWarning: 'Puoi ridurre gli assegnatari multipli già presenti, ma non aggiungerne altri finché la funzione non viene riattivata.',
@@ -1287,6 +1316,11 @@ const it: MessageTree = {
     notesExpand: 'Doppio click: apri editor nota',
     notesModalTitle: 'Note',
     notesModalHint: 'Puoi andare a capo. Ctrl+Invio per salvare.',
+    removeCategory: 'Rimuovi categoria',
+    needOneCategory: 'Serve almeno una categoria',
+    deleteCategoryTitle: 'Elimina categoria',
+    deleteCategoryBody: 'Se elimini «{name}», le attività che la usano passeranno alla prima categoria disponibile.',
+    deleteCategoryConfirm: 'Elimina categoria',
     newFrom: 'Nuova stima da «{name}»',
     pickModel: 'Scegli modello',
     searchModel: 'Cerca modello...',
@@ -1364,6 +1398,7 @@ const it: MessageTree = {
     unscheduled: 'Da pianificare',
     editDates: 'Modifica date',
     scheduleActivity: 'Pianifica attività',
+    deleteActivity: 'Elimina attività',
     startDate: 'Inizio',
     endDate: 'Fine',
     clearDates: 'Rimuovi date',
@@ -1389,8 +1424,10 @@ const it: MessageTree = {
     assignOwner: 'Assegna',
     ownerPlaceholder: 'Non assegnato',
     ownerFilter: 'Cerca o crea…',
+    categoryFilter: 'Cerca o crea…',
     allOwners: 'Tutti gli assegnatari',
     createOwner: 'Crea',
+    createCategory: 'Crea',
     ownerAssignedHint: 'Assegnatario associato a un’attività; rimuovi le assegnazioni prima di eliminarlo.',
     deleteOwnerTitle: 'Elimina assegnatario',
     deleteOwnerBody: 'Se elimini «{name}», verrà rimosso da tutte le altre voci di questa stima.',
@@ -1534,6 +1571,9 @@ const it: MessageTree = {
     addCat: 'Aggiungi',
     needOneCat: 'Serve almeno una categoria',
     removeCat: 'Rimuovi {name}',
+    deleteCategoryTitle: 'Elimina categoria',
+    deleteCategoryBody: 'Se elimini «{name}», le attività che la usano passeranno alla prima categoria disponibile.',
+    deleteCategoryConfirm: 'Elimina categoria',
     tagsLabel: 'Etichette disponibili',
     tagsAria: 'Etichette del modello',
     newTagPh: 'Nuova etichetta (es. Site, Edition)',
@@ -1549,7 +1589,7 @@ const it: MessageTree = {
     howP2: 'Esempio: 10 h al 20% → +2 h → totale 12 h. Se il flag CTG è spento, quella voce resta senza contingency.',
     hoursDefault: 'Ore default',
     ctgColTitle: 'Applica contingency a questa voce',
-    addMacro: 'Aggiungi macro-attività',
+    addMacro: 'Aggiungi Macro',
     addFormula: '+ Voce derivata',
     addFormulaTitle: 'Ore = aggregazione delle voci scelte × %',
     empty: 'Nessun modello. Creane uno nuovo.',
@@ -2014,6 +2054,7 @@ const en: MessageTree = {
     confirm: 'Confirm',
     duplicate: 'Duplicate',
     start: 'Get started',
+    skipToContent: 'Skip to main content',
   },
   presentation: {
     estimate: 'Estimate',
@@ -2058,7 +2099,7 @@ const en: MessageTree = {
     groupWorkspace: 'Workspace',
     groupWorkspaceIntro: 'Folders and workspace backups.',
     groupEstimates: 'Estimates',
-    groupEstimatesIntro: 'Estimate columns, owners, presentation, and export filenames.',
+    groupEstimatesIntro: 'Column visibility, owners, and export filenames.',
     groupPlanning: 'Planning',
     groupPlanningIntro: 'Working calendar and activity statuses.',
     groupApplication: 'Application',
@@ -2114,8 +2155,10 @@ const en: MessageTree = {
     summaryAppearance: '{theme}',
     summaryWorkspaceImportExport: 'Import or export the workspace',
     summaryEstimateColumns: '{visible} of {total} columns visible',
+    summaryColumns: 'Estimate {visible} · Manager {manager} · Client {client}',
     summaryOwners: 'Multiple owners: {state}',
     summaryPresentation: 'Default settings for manager and client views',
+    summaryPresentationColumns: 'Manager {manager} · Client {client} columns visible',
     summaryExport: 'Date {date} · time {time}',
     summaryWorkingCalendar: 'Weekend: {days}',
     summaryWorkingDays: 'Exclusion of selected days: {excluded}',
@@ -2151,6 +2194,7 @@ const en: MessageTree = {
     sectionProfile: 'Profile',
     sectionLocale: 'Language',
     sectionAppearance: 'Appearance',
+    sectionColumns: 'Column visibility',
     sectionEstimate: 'Estimate columns',
     sectionOwners: 'Owners',
     sectionPresentation: 'Presentation',
@@ -2190,6 +2234,11 @@ const en: MessageTree = {
     shortcutUndo: 'Undo the last change in the current tab',
     shortcutRedo: 'Redo the last undone change',
     estimateColumnsIntro: 'Columns shown when you open an estimate.',
+    columnsIntro: 'Choose the default columns for the Estimate, Manager, and Client views.',
+    columnsDefaultsHint: 'These are defaults. Use the column picker inside a view to customize only that table.',
+    columnsActivityRequired: 'Always visible',
+    estimateViewLegend: 'Estimate view',
+    resetColumnDefaults: 'Restore defaults',
     multiOwner: 'Allow multiple owners per activity',
     multiOwnerHelp: 'When off, you can remove existing multiple owners, but cannot add more.',
     multiOwnerDisabledWarning: 'You can reduce existing multiple-owner assignments, but cannot add more until the feature is enabled again.',
@@ -2254,6 +2303,11 @@ const en: MessageTree = {
     notesExpand: 'Double-click: open note editor',
     notesModalTitle: 'Notes',
     notesModalHint: 'Line breaks are kept. Ctrl+Enter to save.',
+    removeCategory: 'Remove category',
+    needOneCategory: 'At least one category is required',
+    deleteCategoryTitle: 'Delete category',
+    deleteCategoryBody: 'If you delete “{name}”, activities using it will move to the first available category.',
+    deleteCategoryConfirm: 'Delete category',
     newFrom: 'New estimate from «{name}»',
     pickModel: 'Choose model',
     searchModel: 'Search model...',
@@ -2330,6 +2384,7 @@ const en: MessageTree = {
     unscheduled: 'To schedule',
     editDates: 'Edit dates',
     scheduleActivity: 'Schedule activity',
+    deleteActivity: 'Delete activity',
     startDate: 'Start',
     endDate: 'End',
     clearDates: 'Clear dates',
@@ -2355,8 +2410,10 @@ const en: MessageTree = {
     assignOwner: 'Assign',
     ownerPlaceholder: 'Select owner…',
     ownerFilter: 'Search or create…',
+    categoryFilter: 'Search or create…',
     allOwners: 'All owners',
     createOwner: 'Create',
+    createCategory: 'Create',
     ownerAssignedHint: 'Owner assigned to a task; remove assignments before deleting.',
     deleteOwnerTitle: 'Delete owner',
     deleteOwnerBody: 'If you delete “{name}”, it will be removed from all other entries in this estimate.',
@@ -2500,6 +2557,9 @@ const en: MessageTree = {
     addCat: 'Add',
     needOneCat: 'At least one category is required',
     removeCat: 'Remove {name}',
+    deleteCategoryTitle: 'Delete category',
+    deleteCategoryBody: 'If you delete “{name}”, activities using it will move to the first available category.',
+    deleteCategoryConfirm: 'Delete category',
     tagsLabel: 'Available labels',
     tagsAria: 'Model labels',
     newTagPh: 'New label (e.g. Site, Edition)',
@@ -2515,7 +2575,7 @@ const en: MessageTree = {
     howP2: 'Example: 10 h at 20% → +2 h → total 12 h. If CTG is off, that line has no contingency.',
     hoursDefault: 'Default hours',
     ctgColTitle: 'Apply contingency to this line',
-    addMacro: 'Add macro activity',
+    addMacro: 'Add Macro',
     addFormula: '+ Calculated item',
     addFormulaTitle: 'Hours = aggregation of selected lines × %',
     empty: 'No model. Create a new one.',

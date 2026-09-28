@@ -4,6 +4,14 @@ import {
   ESTIMATE_COLUMNS_STORAGE_KEY,
   type EstimateToggleableColumn,
 } from '../../features/settings/estimateColumns';
+import {
+  CLIENT_PRESENTATION_COLUMNS,
+  DEFAULT_CLIENT_PRESENTATION_VISIBILITY,
+  DEFAULT_MANAGER_PRESENTATION_VISIBILITY,
+  MANAGER_PRESENTATION_COLUMNS,
+  type ClientPresentationColumn,
+  type ManagerPresentationColumn,
+} from '../../features/settings/presentationColumns';
 
 export type ColumnKey =
   | 'name'
@@ -20,21 +28,9 @@ export type ColumnKey =
 
 export type ModelColumnKey = 'name' | 'category' | 'hours' | 'ctg' | 'tags' | 'actions';
 
-export type ManagerColumnKey =
-  | 'show'
-  | 'name'
-  | 'category'
-  | 'owner'
-  | 'tags'
-  | 'base'
-  | 'ctg'
-  | 'withCtg'
-  | 'presented'
-  | 'delta'
-  | 'notes'
-  | 'actions';
+export type ManagerColumnKey = ManagerPresentationColumn;
 
-export type ClientOutputColumnKey = 'subs' | 'name' | 'tags' | 'notes' | 'hours' | 'days';
+export type ClientOutputColumnKey = ClientPresentationColumn;
 
 /** Colonne selezionabili (Nome resta sempre visibile). */
 export const TOGGLEABLE_COLUMNS: ColumnKey[] = [
@@ -57,17 +53,17 @@ export const MODEL_TOGGLEABLE_COLUMNS: ModelColumnKey[] = [
 ];
 
 const DEFAULT_WIDTHS: Record<ColumnKey, number> = {
-  name: 260,
-  category: 130,
-  owner: 150,
-  base: 88,
-  applyCtg: 72,
-  ctg: 72,
-  withCtg: 88,
-  override: 96,
-  tags: 160,
-  notes: 160,
-  actions: 132,
+  name: 210,
+  category: 105,
+  owner: 118,
+  base: 60,
+  applyCtg: 50,
+  ctg: 54,
+  withCtg: 62,
+  override: 62,
+  tags: 130,
+  notes: 165,
+  actions: 88,
 };
 
 const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = {
@@ -141,34 +137,10 @@ const MANAGER_DEFAULT_WIDTHS: Record<ManagerColumnKey, number> = {
 };
 
 const MANAGER_DEFAULT_VISIBLE: Record<ManagerColumnKey, boolean> = {
-  show: true,
-  name: true,
-  category: true,
-  owner: true,
-  tags: true,
-  base: true,
-  ctg: true,
-  withCtg: true,
-  presented: true,
-  delta: true,
-  notes: true,
-  actions: true,
+  ...DEFAULT_MANAGER_PRESENTATION_VISIBILITY,
 };
 
-const MANAGER_DEFAULT_ORDER: ManagerColumnKey[] = [
-  'show',
-  'name',
-  'category',
-  'owner',
-  'tags',
-  'base',
-  'ctg',
-  'withCtg',
-  'presented',
-  'delta',
-  'notes',
-  'actions',
-];
+const MANAGER_DEFAULT_ORDER: ManagerColumnKey[] = [...MANAGER_PRESENTATION_COLUMNS];
 
 const CLIENT_OUTPUT_DEFAULT_WIDTHS: Record<ClientOutputColumnKey, number> = {
   subs: 52,
@@ -180,22 +152,10 @@ const CLIENT_OUTPUT_DEFAULT_WIDTHS: Record<ClientOutputColumnKey, number> = {
 };
 
 const CLIENT_OUTPUT_DEFAULT_VISIBLE: Record<ClientOutputColumnKey, boolean> = {
-  subs: true,
-  name: true,
-  tags: true,
-  notes: true,
-  hours: true,
-  days: true,
+  ...DEFAULT_CLIENT_PRESENTATION_VISIBILITY,
 };
 
-const CLIENT_OUTPUT_DEFAULT_ORDER: ClientOutputColumnKey[] = [
-  'subs',
-  'name',
-  'tags',
-  'notes',
-  'hours',
-  'days',
-];
+const CLIENT_OUTPUT_DEFAULT_ORDER: ClientOutputColumnKey[] = [...CLIENT_PRESENTATION_COLUMNS];
 
 const STORAGE_KEY = ESTIMATE_COLUMNS_STORAGE_KEY;
 const MODEL_STORAGE_KEY = 'howlong.modelVisibleColumns';
@@ -226,13 +186,26 @@ function settingsColumnBaseline(): Record<ColumnKey, boolean> {
   return base;
 }
 
+/** Read presentation column defaults without making the composable depend on settings readiness. */
+function presentationColumnBaseline<K extends string>(scope: 'manager' | 'client'): Partial<Record<K, boolean>> {
+  try {
+    const settings = useSettingsStore();
+    const source = scope === 'manager'
+      ? settings.settings.defaultManagerColumnVisibility
+      : settings.settings.defaultClientColumnVisibility;
+    return { ...source } as Partial<Record<K, boolean>>;
+  } catch {
+    return {};
+  }
+}
+
 function loadVisibleMap<K extends string>(
   storageKey: string,
   defaults: Record<K, boolean>,
   locked: K,
-  baseline?: Record<K, boolean>,
+  baseline?: Partial<Record<K, boolean>>,
 ): Record<K, boolean> {
-  const seed = baseline ? { ...baseline, ...defaults, [locked]: true } : { ...defaults };
+  const seed = baseline ? { ...defaults, ...baseline, [locked]: true } : { ...defaults };
   try {
     const raw = localStorage.getItem(storageKey);
     if (!raw) return { ...seed, [locked]: true };
@@ -265,16 +238,6 @@ function loadOrder<K extends string>(storageKey: string, defaults: K[]): K[] {
   }
 }
 
-/** Scrive in localStorage le colonne Stima dai settings (effetto al prossimo caricamento vista). */
-export function syncEstimateColumnsFromSettings(): void {
-  const vis = settingsColumnBaseline();
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(vis));
-  } catch {
-    /* ignore */
-  }
-}
-
 function useColumnLayout<K extends string>(options: {
   defaultWidths: Record<K, number>;
   defaultVisible: Record<K, boolean>;
@@ -282,6 +245,7 @@ function useColumnLayout<K extends string>(options: {
   storageKey: string;
   orderStorageKey: string;
   lockedKey: K;
+  settingsVisibility?: () => Partial<Record<K, boolean>>;
 }) {
   const {
     defaultWidths,
@@ -303,9 +267,10 @@ function useColumnLayout<K extends string>(options: {
       storageKey,
       defaultVisible,
       lockedKey,
-      storageKey === STORAGE_KEY
-        ? (settingsColumnBaseline() as Record<K, boolean>)
-        : undefined,
+      options.settingsVisibility?.()
+        ?? (storageKey === STORAGE_KEY
+          ? (settingsColumnBaseline() as Record<K, boolean>)
+          : undefined),
     ),
   ) as Record<K, boolean>;
   const order = ref<K[]>(loadOrder(orderStorageKey, defaultOrder));
@@ -676,6 +641,7 @@ export function useManagerResizableColumns() {
     storageKey: MANAGER_STORAGE_KEY,
     orderStorageKey: MANAGER_ORDER_STORAGE_KEY,
     lockedKey: 'name',
+    settingsVisibility: () => presentationColumnBaseline<ManagerColumnKey>('manager'),
   });
 }
 
@@ -687,5 +653,6 @@ export function useClientOutputResizableColumns() {
     storageKey: CLIENT_OUTPUT_STORAGE_KEY,
     orderStorageKey: CLIENT_OUTPUT_ORDER_STORAGE_KEY,
     lockedKey: 'name',
+    settingsVisibility: () => presentationColumnBaseline<ClientOutputColumnKey>('client'),
   });
 }

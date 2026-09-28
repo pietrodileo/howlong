@@ -143,6 +143,14 @@ function toggleSelect(path: string, on: boolean) {
   selected.value = next;
 }
 
+/** Toggle a Library selection from keyboard focus on a row. */
+function onEntryKeydown(event: KeyboardEvent, path: string) {
+  if (event.target !== event.currentTarget) return;
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault();
+  toggleSelect(path, !isSelected(path));
+}
+
 function selectAllFiltered() {
   const next = new Set(selected.value);
   for (const e of filtered.value) next.add(e.path);
@@ -516,7 +524,7 @@ onUnmounted(() => {
     </p>
 
     <ul v-else class="list">
-      <li v-for="entry in filtered" :key="entry.path" :class="{ selected: isSelected(entry.path) }" @click="toggleSelect(entry.path, !isSelected(entry.path))">
+      <li v-for="entry in filtered" :key="entry.path" :class="{ selected: isSelected(entry.path) }" tabindex="0" @click="toggleSelect(entry.path, !isSelected(entry.path))" @keydown="onEntryKeydown($event, entry.path)">
         <input
           type="checkbox"
           class="row-check"
@@ -740,7 +748,12 @@ onUnmounted(() => {
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.list > li:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .sort-btn:hover {

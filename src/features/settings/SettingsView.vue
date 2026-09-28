@@ -16,8 +16,19 @@ import { isDialogCancelled } from '../../platform/files/dialogResult';
 import { toErrorMessage } from '../../shared/errors';
 import type { Locale, Theme } from '../../models/settings';
 import SettingsPanel from './SettingsPanel.vue';
-import { ESTIMATE_TOGGLEABLE_COLUMNS, type EstimateToggleableColumn } from './estimateColumns';
-import { syncEstimateColumnsFromSettings } from '../../shared/composables/useResizableColumns';
+import {
+  DEFAULT_ESTIMATE_COLUMN_VISIBILITY,
+  ESTIMATE_TOGGLEABLE_COLUMNS,
+  type EstimateToggleableColumn,
+} from './estimateColumns';
+import {
+  CLIENT_TOGGLEABLE_COLUMNS,
+  DEFAULT_CLIENT_PRESENTATION_VISIBILITY,
+  DEFAULT_MANAGER_PRESENTATION_VISIBILITY,
+  MANAGER_TOGGLEABLE_COLUMNS,
+  type ClientPresentationColumn,
+  type ManagerPresentationColumn,
+} from './presentationColumns';
 import { ACTIVITY_STATUSES, ACTIVITY_STATUS_COLORS } from '../../domain/gantt';
 import UpdatesPanel from './UpdatesPanel.vue';
 import { APP_VERSION } from '../../shared/version';
@@ -40,7 +51,7 @@ const settingsFilter = ref('');
 const settingsGroupRows = {
   preferences: ['profile', 'locale', 'appearance'],
   workspace: ['folder', 'workspace'],
-  estimates: ['estimate', 'owners', 'presentation', 'export'],
+  estimates: ['columns', 'owners', 'export'],
   planning: ['workingCalendar', 'workingDays', 'activityStatuses'],
   application: ['updates', 'shortcuts'],
 } as const;
@@ -59,9 +70,8 @@ const settingsPanelOpen = ref<Record<string, boolean>>({
   appearance: false,
   folder: openFolderSection.value,
   workspace: false,
-  estimate: false,
+  columns: false,
   owners: false,
-  presentation: false,
   export: false,
   workingCalendar: false,
   workingDays: false,
@@ -101,7 +111,6 @@ watch(
       try {
         isSaving.value = true;
         await settings.save();
-        syncEstimateColumnsFromSettings();
         await library.loadAll();
         await models.loadAll();
         await refreshWorkspacePaths();
@@ -257,6 +266,36 @@ function estimateColumnLabel(key: EstimateToggleableColumn): string {
   return t(`columns.${key}`);
 }
 
+/** Return the localized label for a Manager presentation column. */
+function managerPresentationColumnLabel(key: ManagerPresentationColumn): string {
+  switch (key) {
+    case 'show': return t('client.showCol');
+    case 'name': return t('client.activity');
+    case 'category': return t('common.category');
+    case 'owner': return t('columns.owner');
+    case 'tags': return t('columns.tags');
+    case 'base': return t('common.base');
+    case 'ctg': return t('common.ctg');
+    case 'withCtg': return t('common.withCtg');
+    case 'presented': return t('client.presented');
+    case 'delta': return t('client.statDelta');
+    case 'notes': return t('common.notes');
+    case 'actions': return t('columns.actions');
+  }
+}
+
+/** Return the localized label for a Client presentation column. */
+function clientPresentationColumnLabel(key: ClientPresentationColumn): string {
+  switch (key) {
+    case 'subs': return t('client.macroSubsCol');
+    case 'name': return t('client.activity');
+    case 'tags': return t('columns.tags');
+    case 'notes': return t('common.notes');
+    case 'hours': return t('client.presentedHours');
+    case 'days': return t('client.presentedDays');
+  }
+}
+
 const settingsGroupSearchText = computed<Record<SettingsGroupId, string>>(() => ({
   preferences: [t('settings.groupPreferences'), t('settings.groupPreferencesIntro')].join(' '),
   workspace: [t('settings.groupWorkspace'), t('settings.groupWorkspaceIntro')].join(' '),
@@ -305,25 +344,21 @@ const settingsRowSearchText = computed<Record<string, string>>(() => ({
     t('settings.import'),
     t('settings.export'),
   ].join(' '),
-  estimate: [
-    t('settings.sectionEstimate'),
-    t('settings.estimateColumnsIntro'),
+  columns: [
+    t('settings.sectionColumns'),
+    t('settings.columnsIntro'),
+    t('settings.columnsDefaultsHint'),
+    t('settings.estimateViewLegend'),
+    t('settings.managerViewLegend'),
+    t('settings.clientOutputLegend'),
     ...estimateColumnKeys.map(estimateColumnLabel),
+    ...MANAGER_TOGGLEABLE_COLUMNS.map(managerPresentationColumnLabel),
+    ...CLIENT_TOGGLEABLE_COLUMNS.map(clientPresentationColumnLabel),
   ].join(' '),
   owners: [
     t('settings.sectionOwners'),
     t('settings.multiOwner'),
     t('settings.multiOwnerHelp'),
-  ].join(' '),
-  presentation: [
-    t('settings.sectionPresentation'),
-    t('settings.presentationIntro'),
-    t('settings.managerViewLegend'),
-    t('settings.clientOutputLegend'),
-    t('settings.defaultManagerHideNotes'),
-    t('settings.defaultManagerHideTags'),
-    t('settings.defaultClientHideNotes'),
-    t('settings.defaultClientHideTags'),
   ].join(' '),
   export: [
     t('settings.sectionExport'),
@@ -407,6 +442,7 @@ function isSettingsGroupOpen(groupId: SettingsGroupId): boolean {
 
 /** Remember a user's settings group disclosure choice, not a filter's temporary state. */
 function onSettingsGroupToggle(groupId: SettingsGroupId, event: Event) {
+  if (event.target !== event.currentTarget) return;
   if (shouldForceOpenSettingsGroup(groupId)) return;
   settingsGroupOpen.value[groupId] = (event.currentTarget as HTMLDetailsElement).open;
 }
@@ -421,17 +457,10 @@ function isSettingsPanelOpen(rowId: string): boolean {
   return settingsPanelOpen.value[rowId] ?? false;
 }
 
-/** Keep only one nested settings row open within each group. */
+/** Persist the disclosure state of the settings row that the user toggled. */
 function onSettingsPanelToggle(rowId: string, isOpen: boolean) {
   if (shouldForceOpenSettingsRow(rowId)) return;
   settingsPanelOpen.value[rowId] = isOpen;
-  if (!isOpen) return;
-
-  const groupId = settingsGroupForRow(rowId);
-  if (!groupId) return;
-  for (const siblingId of settingsGroupRows[groupId]) {
-    if (siblingId !== rowId) settingsPanelOpen.value[siblingId] = false;
-  }
 }
 
 function shouldForceOpenSettingsRow(rowId: string): boolean {
@@ -445,6 +474,49 @@ const hasSettingsFilterMatch = computed(() => settingsGroupIds.some(shouldShowSe
 
 function onEstimateColumnChange(key: EstimateToggleableColumn, checked: boolean) {
   settings.settings.estimateColumnVisibility[key] = checked;
+}
+
+/** Update an estimate default without changing an already customized table. */
+function onEstimateColumnReset() {
+  for (const key of ESTIMATE_TOGGLEABLE_COLUMNS) {
+    settings.settings.estimateColumnVisibility[key] = DEFAULT_ESTIMATE_COLUMN_VISIBILITY[key];
+  }
+}
+
+/** Update a presentation default and keep legacy note/tag flags in sync for old exports. */
+function onPresentationColumnChange(
+  scope: 'manager' | 'client',
+  key: ManagerPresentationColumn | ClientPresentationColumn,
+  checked: boolean,
+) {
+  if (scope === 'manager') {
+    settings.settings.defaultManagerColumnVisibility[key as ManagerPresentationColumn] = checked;
+    if (key === 'notes') settings.settings.defaultManagerHideNotes = !checked;
+    if (key === 'tags') settings.settings.defaultManagerHideTags = !checked;
+    return;
+  }
+
+  settings.settings.defaultClientColumnVisibility[key as ClientPresentationColumn] = checked;
+  if (key === 'notes') settings.settings.defaultClientHideNotes = !checked;
+  if (key === 'tags') settings.settings.defaultClientHideTags = !checked;
+}
+
+/** Restore one presentation default set without changing an already customized table. */
+function onPresentationColumnReset(scope: 'manager' | 'client') {
+  if (scope === 'manager') {
+    for (const key of Object.keys(DEFAULT_MANAGER_PRESENTATION_VISIBILITY) as ManagerPresentationColumn[]) {
+      settings.settings.defaultManagerColumnVisibility[key] = DEFAULT_MANAGER_PRESENTATION_VISIBILITY[key];
+    }
+    settings.settings.defaultManagerHideNotes = !DEFAULT_MANAGER_PRESENTATION_VISIBILITY.notes;
+    settings.settings.defaultManagerHideTags = !DEFAULT_MANAGER_PRESENTATION_VISIBILITY.tags;
+    return;
+  }
+
+  for (const key of Object.keys(DEFAULT_CLIENT_PRESENTATION_VISIBILITY) as ClientPresentationColumn[]) {
+    settings.settings.defaultClientColumnVisibility[key] = DEFAULT_CLIENT_PRESENTATION_VISIBILITY[key];
+  }
+  settings.settings.defaultClientHideNotes = !DEFAULT_CLIENT_PRESENTATION_VISIBILITY.notes;
+  settings.settings.defaultClientHideTags = !DEFAULT_CLIENT_PRESENTATION_VISIBILITY.tags;
 }
 
 function onExportDateChange(checked: boolean) {
@@ -471,6 +543,8 @@ function onMultipleOwnersChange(enabled: boolean) {
 const settingsPanelSummaries = computed<Record<string, string>>(() => {
   const workspacePath = settings.settings.workspaceDir.trim() || t('settings.workspaceFolderDefault');
   const visibleEstimateColumns = estimateColumnKeys.filter((key) => settings.settings.estimateColumnVisibility[key]).length;
+  const visibleManagerColumns = MANAGER_TOGGLEABLE_COLUMNS.filter((key) => settings.settings.defaultManagerColumnVisibility[key]).length;
+  const visibleClientColumns = CLIENT_TOGGLEABLE_COLUMNS.filter((key) => settings.settings.defaultClientColumnVisibility[key]).length;
   const enabledStatuses = ACTIVITY_STATUSES.filter((status) => !settings.settings.ganttDisabledStatuses.some((disabled) => disabled === status)).length;
   const weekendDays = [
     settings.settings.ganttWeekendSaturday ? t('settings.saturday') : '',
@@ -487,14 +561,14 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
     }),
     folder: workspacePath,
     workspace: t('settings.summaryWorkspaceImportExport'),
-    estimate: t('settings.summaryEstimateColumns', {
-      visible: String(visibleEstimateColumns),
-      total: String(estimateColumnKeys.length),
+    columns: t('settings.summaryColumns', {
+      visible: `${visibleEstimateColumns}/${estimateColumnKeys.length}`,
+      manager: `${visibleManagerColumns}/${MANAGER_TOGGLEABLE_COLUMNS.length}`,
+      client: `${visibleClientColumns}/${CLIENT_TOGGLEABLE_COLUMNS.length}`,
     }),
     owners: t('settings.summaryOwners', {
       state: settings.settings.allowMultipleOwners ? t('settings.enabled') : t('settings.disabled'),
     }),
-    presentation: t('settings.summaryPresentation'),
     export: t('settings.summaryExport', {
       date: settings.settings.exportIncludeDate ? t('settings.enabled') : t('settings.disabled'),
       time: settings.settings.exportIncludeTime ? t('settings.enabled') : t('settings.disabled'),
@@ -764,23 +838,75 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
       </summary>
       <div class="settings-group-rows">
         <SettingsPanel
-          v-show="shouldShowSettingsRow('estimates', 'estimate')"
-          :title="t('settings.sectionEstimate')"
-          :summary="settingsPanelSummaries.estimate"
-          :open="isSettingsPanelOpen('estimate')"
-          :force-open="shouldForceOpenSettingsRow('estimate')"
-          @toggle="onSettingsPanelToggle('estimate', $event)"
+          v-show="shouldShowSettingsRow('estimates', 'columns')"
+          :title="t('settings.sectionColumns')"
+          :summary="settingsPanelSummaries.columns"
+          :open="isSettingsPanelOpen('columns')"
+          :force-open="shouldForceOpenSettingsRow('columns')"
+          @toggle="onSettingsPanelToggle('columns', $event)"
         >
-          <p class="field-hint">{{ t('settings.estimateColumnsIntro') }}</p>
-          <div class="option-grid columns-grid">
-            <label v-for="key in estimateColumnKeys" :key="key" class="lang-opt compact">
-              <input
-                type="checkbox"
-                :checked="settings.settings.estimateColumnVisibility[key]"
-                @change="onEstimateColumnChange(key, ($event.target as HTMLInputElement).checked)"
-              />
-              <span>{{ estimateColumnLabel(key) }}</span>
-            </label>
+          <p class="field-hint">{{ t('settings.columnsIntro') }}</p>
+          <p class="field-hint columns-defaults-hint">{{ t('settings.columnsDefaultsHint') }}</p>
+          <div class="pref-grid columns-settings-grid">
+            <fieldset class="pref-group">
+              <legend>{{ t('settings.estimateViewLegend') }}</legend>
+              <label class="lang-opt compact locked-column">
+                <input type="checkbox" checked disabled />
+                <span>{{ t('client.activity') }}</span>
+                <small>{{ t('settings.columnsActivityRequired') }}</small>
+              </label>
+              <label v-for="key in estimateColumnKeys" :key="key" class="lang-opt compact">
+                <input
+                  type="checkbox"
+                  :checked="settings.settings.estimateColumnVisibility[key]"
+                  @change="onEstimateColumnChange(key, ($event.target as HTMLInputElement).checked)"
+                />
+                <span>{{ estimateColumnLabel(key) }}</span>
+              </label>
+              <button type="button" class="settings-action" @click="onEstimateColumnReset">
+                {{ t('settings.resetColumnDefaults') }}
+              </button>
+            </fieldset>
+
+            <fieldset class="pref-group">
+              <legend>{{ t('settings.managerViewLegend') }}</legend>
+              <label class="lang-opt compact locked-column">
+                <input type="checkbox" checked disabled />
+                <span>{{ t('client.activity') }}</span>
+                <small>{{ t('settings.columnsActivityRequired') }}</small>
+              </label>
+              <label v-for="key in MANAGER_TOGGLEABLE_COLUMNS" :key="key" class="lang-opt compact">
+                <input
+                  type="checkbox"
+                  :checked="settings.settings.defaultManagerColumnVisibility[key]"
+                  @change="onPresentationColumnChange('manager', key, ($event.target as HTMLInputElement).checked)"
+                />
+                <span>{{ managerPresentationColumnLabel(key) }}</span>
+              </label>
+              <button type="button" class="settings-action" @click="onPresentationColumnReset('manager')">
+                {{ t('settings.resetColumnDefaults') }}
+              </button>
+            </fieldset>
+
+            <fieldset class="pref-group">
+              <legend>{{ t('settings.clientOutputLegend') }}</legend>
+              <label class="lang-opt compact locked-column">
+                <input type="checkbox" checked disabled />
+                <span>{{ t('client.activity') }}</span>
+                <small>{{ t('settings.columnsActivityRequired') }}</small>
+              </label>
+              <label v-for="key in CLIENT_TOGGLEABLE_COLUMNS" :key="key" class="lang-opt compact">
+                <input
+                  type="checkbox"
+                  :checked="settings.settings.defaultClientColumnVisibility[key]"
+                  @change="onPresentationColumnChange('client', key, ($event.target as HTMLInputElement).checked)"
+                />
+                <span>{{ clientPresentationColumnLabel(key) }}</span>
+              </label>
+              <button type="button" class="settings-action" @click="onPresentationColumnReset('client')">
+                {{ t('settings.resetColumnDefaults') }}
+              </button>
+            </fieldset>
           </div>
         </SettingsPanel>
 
@@ -801,57 +927,6 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
             />
             <span>{{ t('settings.multiOwner') }}</span>
           </label>
-        </SettingsPanel>
-
-        <SettingsPanel
-          v-show="shouldShowSettingsRow('estimates', 'presentation')"
-          :title="t('settings.sectionPresentation')"
-          :summary="settingsPanelSummaries.presentation"
-          :open="isSettingsPanelOpen('presentation')"
-          :force-open="shouldForceOpenSettingsRow('presentation')"
-          @toggle="onSettingsPanelToggle('presentation', $event)"
-        >
-          <p class="field-hint">{{ t('settings.presentationIntro') }}</p>
-          <div class="pref-grid">
-            <fieldset class="pref-group">
-              <legend>{{ t('settings.managerViewLegend') }}</legend>
-              <label class="lang-opt compact">
-                <input
-                  type="checkbox"
-                  :checked="settings.settings.defaultManagerHideNotes"
-                  @change="settings.settings.defaultManagerHideNotes = ($event.target as HTMLInputElement).checked"
-                />
-                <span>{{ t('settings.defaultManagerHideNotes') }}</span>
-              </label>
-              <label class="lang-opt compact">
-                <input
-                  type="checkbox"
-                  :checked="settings.settings.defaultManagerHideTags"
-                  @change="settings.settings.defaultManagerHideTags = ($event.target as HTMLInputElement).checked"
-                />
-                <span>{{ t('settings.defaultManagerHideTags') }}</span>
-              </label>
-            </fieldset>
-            <fieldset class="pref-group">
-              <legend>{{ t('settings.clientOutputLegend') }}</legend>
-              <label class="lang-opt compact">
-                <input
-                  type="checkbox"
-                  :checked="settings.settings.defaultClientHideNotes"
-                  @change="settings.settings.defaultClientHideNotes = ($event.target as HTMLInputElement).checked"
-                />
-                <span>{{ t('settings.defaultClientHideNotes') }}</span>
-              </label>
-              <label class="lang-opt compact">
-                <input
-                  type="checkbox"
-                  :checked="settings.settings.defaultClientHideTags"
-                  @change="settings.settings.defaultClientHideTags = ($event.target as HTMLInputElement).checked"
-                />
-                <span>{{ t('settings.defaultClientHideTags') }}</span>
-              </label>
-            </fieldset>
-          </div>
         </SettingsPanel>
 
         <SettingsPanel
@@ -1226,8 +1301,13 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
   border-top: 1px solid var(--line);
 }
 
-.settings-group-rows :deep(.settings-panel:last-child) {
+.settings-group-rows :deep(.settings-panel) {
   border-bottom: none;
+}
+
+.settings-group-rows :deep(.settings-panel + .settings-panel) {
+  margin-top: 0.45rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 86%, transparent);
 }
 
 .title {
@@ -1414,6 +1494,14 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
   gap: 0.85rem;
 }
 
+.columns-defaults-hint {
+  margin-top: -0.35rem;
+}
+
+.columns-settings-grid {
+  align-items: stretch;
+}
+
 .pref-group {
   margin: 0;
   padding: 0.65rem 0.75rem;
@@ -1424,6 +1512,23 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
   flex-direction: column;
   gap: 0.45rem;
   min-width: 0;
+}
+
+.pref-group > .settings-action {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.locked-column {
+  cursor: default;
+  color: var(--muted);
+}
+
+.locked-column small {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
 }
 
 .pref-group legend {

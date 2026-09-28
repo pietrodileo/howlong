@@ -4,6 +4,9 @@ export function resolveEstimateCategories(
   itemCategories: string[],
   modelCategories?: string[],
 ): string[] {
-  const categories = modelCategories ?? [...defaultCategories, ...itemCategories];
+  // Keep item categories so a category created in the estimate remains reusable.
+  const categories = modelCategories
+    ? [...modelCategories, ...itemCategories]
+    : [...defaultCategories, ...itemCategories];
   return [...new Set(categories)].filter(Boolean);
 }

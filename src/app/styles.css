@@ -27,10 +27,12 @@
   --accent: #2b3d55;
   --accent-hover: #405a78;
   --accent-soft: #ffffff;
+  --accent-subtle: #e8eef5;
   --accent-glow: rgba(43, 61, 85, 0.08);
   --on-accent: #f8f9fb;
   --danger: #9e3b3b;
   --danger-soft: #f7ecec;
+  --danger-subtle: #f7ecec;
   --warn: #8f6a1f;
   --toast-bg: #2c3038;
   --toast-fg: #f4f5f7;
@@ -41,6 +43,7 @@
   --radius: 7px;
   --radius-sm: 5px;
   --font-ui: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+  --font-sans: var(--font-ui);
   --font-brand: "Literata", "Georgia", serif;
   --shadow-soft: 0 1px 2px rgba(23, 25, 30, 0.04), 0 8px 24px rgba(23, 25, 30, 0.04);
   --shadow-menu: 0 4px 6px rgba(23, 25, 30, 0.03), 0 12px 28px rgba(23, 25, 30, 0.08);
@@ -52,11 +55,6 @@
   font-weight: 400;
   color: var(--ink);
   background-color: var(--page);
-  background-image:
-    radial-gradient(ellipse 90% 55% at 8% -10%, #e4e9f2 0%, transparent 58%),
-    radial-gradient(ellipse 70% 45% at 100% 0%, #ebe6e0 0%, transparent 50%),
-    linear-gradient(165deg, #f4f5f8 0%, #e9ecf2 100%);
-  background-attachment: fixed;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -76,10 +74,12 @@ html.theme-dark {
   --accent: #5c7494;
   --accent-hover: #6e87a8;
   --accent-soft: #243041;
+  --accent-subtle: #2a3a50;
   --accent-glow: rgba(92, 116, 148, 0.2);
   --on-accent: #f4f6f9;
   --danger: #d98989;
   --danger-soft: #3a2428;
+  --danger-subtle: #3a2428;
   --warn: #c4a35a;
   --toast-bg: #e8eaed;
   --toast-fg: #12141a;
@@ -91,11 +91,6 @@ html.theme-dark {
   --shadow-menu: 0 4px 6px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.35);
   color-scheme: dark;
   background-color: var(--page);
-  background-image:
-    radial-gradient(ellipse 90% 55% at 8% -10%, #1a2030 0%, transparent 58%),
-    radial-gradient(ellipse 70% 45% at 100% 0%, #1c1a18 0%, transparent 50%),
-    linear-gradient(165deg, #14161c 0%, #101218 100%);
-  background-attachment: fixed;
 }
 
 * {
@@ -112,6 +107,26 @@ body {
 #app {
   height: 100vh;
   overflow: hidden;
+}
+
+.skip-link {
+  position: fixed;
+  top: .5rem;
+  left: .5rem;
+  z-index: 10000;
+  padding: .45rem .7rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  transform: translateY(-200%);
+  clip-path: inset(100%);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  clip-path: inset(0);
+  outline: 2px solid var(--on-accent);
+  outline-offset: 2px;
 }
 
 h1,
@@ -369,6 +384,91 @@ label.field textarea:focus,
   box-shadow: inset 0 2px 0 0 var(--accent);
 }
 
+/* Shared editor sheet styling used by Estimate, Manager, Client, and Model tables. */
+.data-table.sheet {
+  font-size: 0.86rem;
+}
+
+.data-table.sheet thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.55rem 0.45rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.015em;
+  text-transform: none;
+  box-shadow: inset 0 -1px 0 var(--line-strong);
+}
+
+.data-table.sheet thead th:hover {
+  box-shadow: inset 0 -1px 0 var(--accent);
+}
+
+.data-table.sheet thead th.col-drag-over {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent), inset 0 -1px 0 var(--line-strong);
+}
+
+.data-table.sheet td {
+  padding: 0.18rem 0.3rem;
+}
+
+.data-table.sheet .num-cell {
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table.sheet td input,
+.data-table.sheet td select,
+.data-table.sheet td textarea {
+  padding: 0.28rem 0.3rem;
+}
+
+.data-table.sheet td input:not([type='checkbox']),
+.data-table.sheet td select,
+.data-table.sheet td textarea,
+.data-table.sheet .owner-trigger,
+.data-table.sheet .tag-trigger {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.data-table.sheet td textarea.name-input {
+  min-height: 1.8rem;
+  padding-left: 0;
+  padding-right: 0;
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+  line-height: 1.2;
+}
+
+.data-table.sheet td textarea.name-input:hover {
+  border-color: transparent;
+  background: transparent;
+}
+
+.data-table.sheet td textarea.name-input:focus {
+  border-color: var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.data-table.sheet .owner-trigger,
+.data-table.sheet .tag-trigger {
+  font-size: 0.78rem;
+  min-height: 1.65rem;
+}
+
+.data-table.sheet th.effort-start,
+.data-table.sheet td.effort-start {
+  border-left: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+}
+
+.data-table.sheet th.effort-end,
+.data-table.sheet td.effort-end {
+  border-right: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+}
+
 .drag-handle {
   display: inline-flex;
   align-items: center;
@@ -536,4 +636,15 @@ body.col-dragging * {
 .audit-footer span.audit-meta:focus-visible {
   text-decoration: none;
   color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
 }

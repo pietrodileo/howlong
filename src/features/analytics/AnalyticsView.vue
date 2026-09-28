@@ -760,9 +760,10 @@ async function onOpenEstimate(): Promise<void> {
 .donut-track { stroke: color-mix(in srgb, var(--line-strong) 35%, var(--surface)); }
 .donut-segment { transition: opacity .15s, stroke-width .15s; }
 .donut-segment.clickable { cursor: pointer; }
-.donut-segment:hover, .donut-segment:focus { opacity: .82; stroke-width: 33; outline: none; }
+.donut-segment:hover, .donut-segment:focus { opacity: .82; stroke-width: 33; }
+.donut-segment:focus-visible,
+.donut-entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .donut-entry.clickable { cursor: pointer; }
-.donut-entry:focus { outline: none; }
 .donut-entry:hover .donut-segment, .donut-entry:focus .donut-segment { opacity: .82; stroke-width: 33; }
 .donut-contingency { opacity: .42; }
 .donut-contingency-stripes { opacity: .42; }
@@ -858,7 +859,7 @@ async function onOpenEstimate(): Promise<void> {
 .analytics-empty { min-height: 100%; display: grid; align-content: start; justify-items: center; padding-top: clamp(7rem, 24vh, 12rem); text-align: center; }
 .analytics-empty p { margin: 0 0 1.25rem; color: var(--ink); font-family: var(--font-brand); font-size: clamp(1.35rem, 2vw, 1.75rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.25; }
 .empty-actions { display: flex; align-items: stretch; justify-content: center; flex-wrap: wrap; gap: .75rem; }
-.action-btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.25rem; font-size: .95rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); cursor: pointer; transition: all .15s ease; }
+.action-btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.25rem; font-size: .95rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); cursor: pointer; transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
 .action-btn:hover { border-color: var(--accent); background: var(--accent-subtle); }
 .action-btn.primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
 .action-btn.primary:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
