@@ -1,6 +1,6 @@
 # HowLong? user manual
 
-HowLong? `0.8.0` on Windows, macOS, and Linux.
+HowLong? `0.9.0` on Windows, macOS, and Linux.
 
 [Project README](../../README.md) · [What's new](../WHATS_NEW.md) · [Italian manual](GUIDE.it.md) · [Build and release guide](../BUILD.md)
 
@@ -124,7 +124,7 @@ Use **Settings** to choose your language and theme, set defaults, select a works
 
 ![Settings screen with collapsible configuration sections](../images/settings.png)
 
-Open a group to see its panels. Use the search field to open the matching group and panel automatically.
+Open a group to see its panels. Each panel keeps its own state, so you can leave multiple panels open together. Use the search field to open the matching group and panel automatically.
 
 ![Expanded settings panels with appearance, updates, and keyboard shortcut sections](../images/settings_expanded.png)
 
@@ -162,7 +162,7 @@ The dark theme applies to the estimate, presentation, and planning screens as we
 **Estimate defaults**
 
 - **Gantt** — weekend days; hiding weekends affects display only, not saved dates
-- **Estimate view** — editor defaults, including compact columns
+- **Columns** — choose default visible columns independently for the Estimate, Manager, and Client views. Use each view's **Visible columns** picker to customize that table without changing the defaults.
 - **Owners** — enable multiple owners per activity. Owners share responsibility equally; turning the option off keeps existing multiple assignments visible and lets you remove them, but prevents adding more.
 - **Presentation** — whether manager/client notes and labels start hidden
 - **Export filename** — optional date/time in generated filenames
@@ -274,6 +274,7 @@ Use **Full screen** in the toolbar when the table needs more room. The focused l
 - Click a cell to edit it
 - Add macros or formulas with the buttons below the table
 - Subtasks sum into the macro; CTG on a macro applies to its children
+- Use the Category picker on macros and formulas to search, create, or remove categories. Removing a category asks for confirmation and moves its items to another available category.
 - Drag the handle to reorder rows
 
 **Notes and columns**
@@ -335,6 +336,8 @@ Use the Manager view to prepare what will be shown to the client. It is for pres
 ![Manager view with visibility, presented totals, deltas, notes, and redistribution](../images/manager_view.png)
 
 You can adjust displayed totals, choose which rows are included, and control notes and labels. The view also shows the difference between calculated and presented totals.
+
+Use **Full screen** when you need more room for the presentation table. It keeps the manager controls and totals available while reducing surrounding workspace chrome; press `Esc` or choose **Exit full screen** to return.
 
 | Control                      | What it does                                                         |
 | ---------------------------- | -------------------------------------------------------------------- |

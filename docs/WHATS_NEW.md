@@ -4,6 +4,17 @@ This page lists the user-facing features introduced in each stable release publi
 
 For the complete generated changelog for a release, see the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases).
 
+## v0.9.0
+
+[GitHub release](https://github.com/pietrodileo/howlong/releases/tag/v0.9.0)
+
+- The Estimate table has a denser, clearer layout with compact row controls, improved hierarchy, visible subtask counts, and refined column sizing and collapse behavior.
+- Categories can be searched, created, assigned, and removed directly from the Estimate table. Removing a category confirms the change and reassigns its items to another available category.
+- Settings can define default visible columns independently for the Estimate, Manager, and Client views. Each view also has a local column picker for one-off table adjustments.
+- Manager view now supports full screen, keeping presentation totals and controls available while giving the table more room.
+- Settings panels now open independently, so multiple panels in the same group can remain open together. The Settings layout also has clearer group and panel separation.
+- Planning, presentation, Library, and model-management controls received compact layout and interaction refinements while preserving the existing estimate, history, and export workflows.
+
 ## v0.8.2
 
 - Estimate view can now enter full screen from its toolbar. It keeps totals, unit and CTG controls, column visibility, and the full editable table; table headers stay visible while you scroll. Press `Esc` or use the same control to restore the workspace.
