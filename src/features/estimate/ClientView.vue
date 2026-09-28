@@ -93,6 +93,8 @@ const reloadConfirmOpen = ref(false);
 const reloading = ref(false);
 const reloadAnimating = ref(false);
 const auditHistoryOpen = ref(false);
+const managerSection = ref<HTMLElement | null>(null);
+const isManagerFullscreen = ref(false);
 /** Solo UI: piega sotto-task in vista cliente (non tocca export). */
 const clientPreviewCollapsed = ref<Set<string>>(new Set());
 
@@ -122,8 +124,31 @@ function onDocPointerDown(e: PointerEvent) {
   if (!target?.closest?.('.export-menu')) closeExportMenus();
 }
 
-onMounted(() => document.addEventListener('pointerdown', onDocPointerDown));
-onUnmounted(() => document.removeEventListener('pointerdown', onDocPointerDown));
+onMounted(() => {
+  document.addEventListener('pointerdown', onDocPointerDown);
+  onFullscreenChange();
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+});
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocPointerDown);
+  document.removeEventListener('fullscreenchange', onFullscreenChange);
+});
+
+/** Keep the Manager fullscreen control aligned when Escape exits fullscreen. */
+function onFullscreenChange(): void {
+  isManagerFullscreen.value = document.fullscreenElement === managerSection.value;
+}
+
+/** Toggle fullscreen for the Manager view without changing estimate data. */
+async function toggleManagerFullscreen(): Promise<void> {
+  const element = managerSection.value;
+  if (document.fullscreenElement === element) {
+    if (typeof document.exitFullscreen === 'function') await document.exitFullscreen();
+    return;
+  }
+  isManagerFullscreen.value = false;
+  if (typeof element?.requestFullscreen === 'function') await element.requestFullscreen();
+}
 
 const effortUnit = computed(
   () => estimate.estimate.meta.unit as EffortUnit,
@@ -738,7 +763,7 @@ async function onExportFromMenu(
 
     <p class="hint">{{ t('client.editHint') }}</p>
 
-    <details class="presentation-section manager-block" open>
+    <details ref="managerSection" class="presentation-section manager-block" open>
       <summary class="presentation-section-head">
         <div class="presentation-section-copy">
           <div class="presentation-section-title-row">
@@ -833,6 +858,17 @@ async function onExportFromMenu(
             :options="managerColumnPickerOptions"
             @toggle="onManagerColumnVisibilityChange"
           />
+          <button
+            type="button"
+            class="ghost fullscreen-toggle"
+            :aria-label="isManagerFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+            v-tip="isManagerFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+            @click.stop="toggleManagerFullscreen"
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -1394,13 +1430,15 @@ async function onExportFromMenu(
       </div>
     </details>
 
-    <NotesEditor
-      :open="notesEditItem != null"
-      :item-name="notesEditItem?.name ?? ''"
-      :notes="notesEditItem?.notes ?? ''"
-      @close="closeNotesEditor"
-      @save="onSaveNotes"
-    />
+    <Teleport :to="managerSection" :disabled="!isManagerFullscreen">
+      <NotesEditor
+        :open="notesEditItem != null"
+        :item-name="notesEditItem?.name ?? ''"
+        :notes="notesEditItem?.notes ?? ''"
+        @close="closeNotesEditor"
+        @save="onSaveNotes"
+      />
+    </Teleport>
 
     <ConfirmModal
       :open="resetConfirmOpen"
@@ -1692,6 +1730,40 @@ async function onExportFromMenu(
 
 .manager-block .summary-row {
   border-top: none;
+}
+
+.manager-block:fullscreen {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+  min-height: 0;
+  margin: 0;
+  padding: 0 clamp(0.75rem, 1.5vw, 1.5rem) clamp(0.75rem, 1.5vw, 1.5rem);
+  overflow: hidden;
+  background: var(--page);
+}
+
+.manager-block::backdrop {
+  background: var(--page);
+}
+
+.manager-block:fullscreen .presentation-section-head {
+  display: none;
+}
+
+.manager-block:fullscreen .presentation-section-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.manager-block:fullscreen .table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
 }
 
 .field-group {

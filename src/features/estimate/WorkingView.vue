@@ -435,6 +435,7 @@ onMounted(() => {
   }
   document.addEventListener('pointerdown', onDocPointerDown);
   window.addEventListener('keydown', onEstimateKeydown);
+  onFullscreenChange();
   document.addEventListener('fullscreenchange', onFullscreenChange);
 });
 
@@ -446,16 +447,19 @@ onUnmounted(() => {
 
 /** Keep the full-screen control aligned when the browser exits with Escape. */
 function onFullscreenChange(): void {
-  isFullscreen.value = document.fullscreenElement === workingElement.value;
+  isFullscreen.value = workingElement.value !== null
+    && document.fullscreenElement === workingElement.value;
 }
 
 /** Toggle full screen for the Estimate view without changing its session state. */
 async function toggleFullscreen(): Promise<void> {
-  if (isFullscreen.value) {
-    await document.exitFullscreen();
+  const element = workingElement.value;
+  if (document.fullscreenElement === element) {
+    if (typeof document.exitFullscreen === 'function') await document.exitFullscreen();
     return;
   }
-  await workingElement.value?.requestFullscreen();
+  isFullscreen.value = false;
+  if (typeof element?.requestFullscreen === 'function') await element.requestFullscreen();
 }
 
 const allMacrosExpanded = computed(() => {

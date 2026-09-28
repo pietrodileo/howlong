@@ -139,7 +139,15 @@ export const vTip: Directive<HTMLElement, string | null | undefined> = {
   },
   updated(el, binding) {
     const state = (el as HTMLElement & { __tip?: TipState }).__tip;
-    if (state) state.binding = binding;
+    if (!state) return;
+    state.binding = binding;
+    if (activeEl !== el || !bubble) return;
+    if (binding.value == null || binding.value === '') {
+      hide(el);
+      return;
+    }
+    bubble.textContent = String(binding.value);
+    position(el, placeOf(binding));
   },
   unmounted(el) {
     const state = (el as HTMLElement & { __tip?: TipState }).__tip;
