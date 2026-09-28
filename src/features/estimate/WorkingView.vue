@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import ContingencyControls from './ContingencyControls.vue';
 import ContingencyCompare from './ContingencyCompare.vue';
@@ -11,6 +11,9 @@ import FormulaEditor, {
 import NotesEditor from './NotesEditor.vue';
 import TagPicker from '../../shared/components/TagPicker.vue';
 import OwnerPicker from '../../shared/components/OwnerPicker.vue';
+import ColumnVisibilityPicker, {
+  type ColumnVisibilityOption,
+} from '../../shared/components/ColumnVisibilityPicker.vue';
 import IconBtn from '../../shared/components/IconBtn.vue';
 import RefreshIcon from '../../shared/components/RefreshIcon.vue';
 import MetaIconPicker from '../../shared/components/MetaIconPicker.vue';
@@ -102,7 +105,6 @@ const tableColumnKeys = computed(() =>
     return true;
   }),
 );
-const columnsMenuOpen = ref(false);
 const ctgCompareOpen = ref(false);
 const exportMenuOpen = ref(false);
 const reloading = ref(false);
@@ -111,6 +113,8 @@ const reloadAnimating = ref(false);
 const formulaEditId = ref<string | null>(null);
 /** Voce in editor note (modal). */
 const notesEditId = ref<string | null>(null);
+/** Categories hidden from this Estimate view after the user removes them. */
+const removedCategoryNames = ref<string[]>([]);
 /** Bozza nuova voce: non è in lista finché non si conferma con Applica. */
 const formulaDraft = ref<FormulaEditableItem | null>(null);
 /** Anteprima vista cliente della stima corrente. */
@@ -197,7 +201,7 @@ const categoryOptions = computed(() => {
     settings.settings.defaultCategories,
     estimate.estimate.items.map((item) => item.category),
     fromModel,
-  );
+  ).filter((category) => !removedCategoryNames.value.includes(category));
 });
 
 const tagOptions = computed(() => {
@@ -216,7 +220,28 @@ function onItemTagsChange(id: string, tags: string[]) {
 /** Update one macro/formula category while preserving the single-value picker contract. */
 function onCategoryChange(id: string, value: string | string[]) {
   const category = Array.isArray(value) ? value[0] : value;
-  if (category?.trim()) estimate.updateItem(id, { category: category.trim() });
+  const normalized = category?.trim();
+  if (!normalized) return;
+  removedCategoryNames.value = removedCategoryNames.value.filter((name) => name !== normalized);
+  estimate.updateItem(id, { category: normalized });
+}
+
+/** Ask before removing a category and reassign its line items to the first remaining category. */
+function onCategoryDelete(name: string) {
+  const fallback = categoryOptions.value.find((category) => category !== name);
+  if (!fallback) {
+    ui.notify(t('working.needOneCategory'), true);
+    return;
+  }
+  askConfirm({
+    title: t('working.deleteCategoryTitle'),
+    message: t('working.deleteCategoryBody', { name }),
+    confirmLabel: t('working.deleteCategoryConfirm'),
+    action: () => {
+      removedCategoryNames.value = [...removedCategoryNames.value, name];
+      estimate.removeCategory(name, fallback);
+    },
+  });
 }
 
 function onCreateTagOption(label: string) {
@@ -334,15 +359,28 @@ const pickerColumns = computed(() =>
   }),
 );
 
-function closeFloatingMenus(except?: 'export' | 'columns') {
-  if (except !== 'export') exportMenuOpen.value = false;
-  if (except !== 'columns') columnsMenuOpen.value = false;
+const columnPickerOptions = computed<ColumnVisibilityOption[]>(() => [
+  { key: 'name', label: columnLabel('name'), visible: true, locked: true },
+  ...pickerColumns.value.map((key) => ({
+    key,
+    label: columnLabel(key),
+    visible: cols.isVisible(key),
+  })),
+]);
+
+/** Apply a visibility choice from the shared Estimate column picker. */
+function onColumnVisibilityChange(key: string, visible: boolean): void {
+  if (key === 'name' || !TOGGLEABLE_COLUMNS.includes(key as ColumnKey)) return;
+  cols.setVisible(key as ColumnKey, visible);
+}
+
+function closeFloatingMenus() {
+  exportMenuOpen.value = false;
 }
 
 function onDocPointerDown(e: PointerEvent) {
   const t = e.target as HTMLElement | null;
   if (!t?.closest?.('.export-menu')) exportMenuOpen.value = false;
-  if (!t?.closest?.('.col-picker')) columnsMenuOpen.value = false;
 }
 
 /** Handle Working shortcuts for history, saving, tabs, and preview. */
@@ -438,7 +476,7 @@ function toggleAllMacros() {
 
 function toggleExportMenu() {
   const next = !exportMenuOpen.value;
-  closeFloatingMenus('export');
+  closeFloatingMenus();
   exportMenuOpen.value = next;
 }
 
@@ -653,6 +691,13 @@ function openFormulaEditor(id: string) {
 function onHeaderDblClick(key: ColumnKey) {
   cols.toggleCollapse(key);
 }
+
+watch(
+  () => estimate.estimate.meta.id,
+  () => {
+    removedCategoryNames.value = [];
+  },
+);
 </script>
 
 <template>
@@ -852,41 +897,11 @@ function onHeaderDblClick(key: ColumnKey) {
             <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
           </svg>
         </button>
-        <div class="col-picker">
-          <button
-            type="button"
-            class="ghost columns-trigger"
-            :aria-expanded="columnsMenuOpen"
-            :aria-label="t('common.columnsVisible')"
-            v-tip="t('common.columnsVisible')"
-            @click.stop="columnsMenuOpen = !columnsMenuOpen"
-          >
-            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-              <path
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                d="M3 2.5v11M8 2.5v11M13 2.5v11"
-              />
-            </svg>
-          </button>
-          <div v-if="columnsMenuOpen" class="col-menu" role="menu" @pointerdown.stop>
-            <p class="col-menu-title">{{ t('common.columnsVisible') }}</p>
-            <label class="col-opt locked">
-              <input type="checkbox" checked disabled />
-              {{ t('columns.name') }}
-            </label>
-            <label v-for="key in pickerColumns" :key="key" class="col-opt">
-              <input
-                type="checkbox"
-                :checked="cols.isVisible(key)"
-                @change="cols.toggleVisible(key)"
-              />
-              {{ columnLabel(key) }}
-            </label>
-          </div>
-        </div>
+        <ColumnVisibilityPicker
+          :label="t('common.columnsVisible')"
+          :options="columnPickerOptions"
+          @toggle="onColumnVisibilityChange"
+        />
       </div>
     </div>
 
@@ -1033,13 +1048,14 @@ function onHeaderDblClick(key: ColumnKey) {
                       :model-value="line.item.category"
                       :options="categoryOptions"
                       plain
-                      :allow-delete="false"
+                      :remove-label="t('working.removeCategory')"
                       compact
                       :aria-label="`${t('columns.category')}: ${line.item.name}`"
                       :placeholder="t('columns.category')"
                       :filter-placeholder="t('gantt.categoryFilter')"
                       :create-label="t('gantt.createCategory')"
                       @update:model-value="onCategoryChange(line.item.id, $event)"
+                      @delete-option="onCategoryDelete"
                     />
                     <span v-else class="muted cat">{{ line.item.category }}</span>
                   </template>
@@ -1905,7 +1921,6 @@ function onHeaderDblClick(key: ColumnKey) {
   position: relative;
 }
 
-.columns-trigger,
 .ctg-compare-trigger {
   display: inline-grid;
   place-items: center;
@@ -1920,42 +1935,6 @@ function onHeaderDblClick(key: ColumnKey) {
   align-items: center;
   gap: 0.45rem 0.55rem;
   margin-left: auto;
-}
-
-.col-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 0.35rem);
-  min-width: 180px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 0.65rem 0.75rem;
-  z-index: 20;
-  box-shadow: var(--shadow-menu);
-  display: grid;
-  gap: 0.35rem;
-}
-
-.col-menu-title {
-  margin: 0 0 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.col-opt {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.9rem;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.col-opt.locked {
-  color: var(--muted);
-  cursor: default;
 }
 
 .sheet {

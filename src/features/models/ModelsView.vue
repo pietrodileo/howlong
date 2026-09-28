@@ -1104,11 +1104,12 @@ function setMacroApplyContingency(id: string, value: boolean) {
                   <button
                     v-if="isTopLevel(a) && a.kind !== 'formula'"
                     type="button"
-                    class="ghost"
+                    class="ghost add-task"
                     v-tip="t('working.addTask')"
+                    :aria-label="t('working.addTask')"
                     @click="addSubtask(a.id)"
                   >
-                    {{ t('working.addTask') }}
+                    +
                   </button>
                   <IconBtn
                     v-if="a.kind === 'formula'"
@@ -1704,6 +1705,16 @@ th.collapsed {
 
 .row-actions .ghost {
   margin-right: 0.15rem;
+}
+
+.row-actions .add-task {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  min-width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
 }
 
 .row-actions :deep(.icon-btn) {

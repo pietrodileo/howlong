@@ -182,6 +182,7 @@ export type MessageTree = {
     summaryEstimateColumns: string;
     summaryOwners: string;
     summaryPresentation: string;
+    summaryPresentationColumns: string;
     summaryExport: string;
     summaryWorkingCalendar: string;
     summaryWorkingDays: string;
@@ -333,6 +334,11 @@ export type MessageTree = {
     notesExpand: string;
     notesModalTitle: string;
     notesModalHint: string;
+    removeCategory: string;
+    needOneCategory: string;
+    deleteCategoryTitle: string;
+    deleteCategoryBody: string;
+    deleteCategoryConfirm: string;
     newFrom: string;
     pickModel: string;
     searchModel: string;
@@ -1157,6 +1163,7 @@ const it: MessageTree = {
     summaryEstimateColumns: '{visible} di {total} colonne visibili',
     summaryOwners: 'Più assegnatari: {state}',
     summaryPresentation: 'Impostazioni predefinite per manager e cliente',
+    summaryPresentationColumns: 'Manager {manager} · Cliente {client} colonne visibili',
     summaryExport: 'Data {date} · ora {time}',
     summaryWorkingCalendar: 'Weekend: {days}',
     summaryWorkingDays: 'Esclusione dei giorni selezionati: {excluded}',
@@ -1295,6 +1302,11 @@ const it: MessageTree = {
     notesExpand: 'Doppio click: apri editor nota',
     notesModalTitle: 'Note',
     notesModalHint: 'Puoi andare a capo. Ctrl+Invio per salvare.',
+    removeCategory: 'Rimuovi categoria',
+    needOneCategory: 'Serve almeno una categoria',
+    deleteCategoryTitle: 'Elimina categoria',
+    deleteCategoryBody: 'Se elimini «{name}», le attività che la usano passeranno alla prima categoria disponibile.',
+    deleteCategoryConfirm: 'Elimina categoria',
     newFrom: 'Nuova stima da «{name}»',
     pickModel: 'Scegli modello',
     searchModel: 'Cerca modello...',
@@ -2131,6 +2143,7 @@ const en: MessageTree = {
     summaryEstimateColumns: '{visible} of {total} columns visible',
     summaryOwners: 'Multiple owners: {state}',
     summaryPresentation: 'Default settings for manager and client views',
+    summaryPresentationColumns: 'Manager {manager} · Client {client} columns visible',
     summaryExport: 'Date {date} · time {time}',
     summaryWorkingCalendar: 'Weekend: {days}',
     summaryWorkingDays: 'Exclusion of selected days: {excluded}',
@@ -2269,6 +2282,11 @@ const en: MessageTree = {
     notesExpand: 'Double-click: open note editor',
     notesModalTitle: 'Notes',
     notesModalHint: 'Line breaks are kept. Ctrl+Enter to save.',
+    removeCategory: 'Remove category',
+    needOneCategory: 'At least one category is required',
+    deleteCategoryTitle: 'Delete category',
+    deleteCategoryBody: 'If you delete “{name}”, activities using it will move to the first available category.',
+    deleteCategoryConfirm: 'Delete category',
     newFrom: 'New estimate from «{name}»',
     pickModel: 'Choose model',
     searchModel: 'Search model...',

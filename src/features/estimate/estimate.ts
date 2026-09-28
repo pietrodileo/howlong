@@ -324,6 +324,18 @@ export const useEstimateStore = defineStore('estimate', () => {
     touch();
   }
 
+  /** Replace a removed estimate category on every affected line item in one history entry. */
+  function removeCategory(name: string, fallback: string): boolean {
+    if (!name || !fallback || name === fallback) return false;
+    const hasMatches = estimate.value.items.some((item) => item.category === name);
+    if (!hasMatches) return false;
+    estimate.value.items = estimate.value.items.map((item) =>
+      item.category === name ? { ...item, category: fallback } : item,
+    );
+    touch();
+    return true;
+  }
+
   function ensureTagOption(name: string) {
     const tag = name.trim();
     if (!tag) return;
@@ -649,6 +661,7 @@ export const useEstimateStore = defineStore('estimate', () => {
     redistributeClientLine,
     ensureTagOption,
     updateItem,
+    removeCategory,
     addMacro,
     addFormula,
     updateFormula,

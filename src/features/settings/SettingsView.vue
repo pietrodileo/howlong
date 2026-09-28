@@ -17,7 +17,16 @@ import { toErrorMessage } from '../../shared/errors';
 import type { Locale, Theme } from '../../models/settings';
 import SettingsPanel from './SettingsPanel.vue';
 import { ESTIMATE_TOGGLEABLE_COLUMNS, type EstimateToggleableColumn } from './estimateColumns';
-import { syncEstimateColumnsFromSettings } from '../../shared/composables/useResizableColumns';
+import {
+  CLIENT_TOGGLEABLE_COLUMNS,
+  MANAGER_TOGGLEABLE_COLUMNS,
+  type ClientPresentationColumn,
+  type ManagerPresentationColumn,
+} from './presentationColumns';
+import {
+  syncEstimateColumnsFromSettings,
+  syncPresentationColumnsFromSettings,
+} from '../../shared/composables/useResizableColumns';
 import { ACTIVITY_STATUSES, ACTIVITY_STATUS_COLORS } from '../../domain/gantt';
 import UpdatesPanel from './UpdatesPanel.vue';
 import { APP_VERSION } from '../../shared/version';
@@ -257,6 +266,36 @@ function estimateColumnLabel(key: EstimateToggleableColumn): string {
   return t(`columns.${key}`);
 }
 
+/** Return the localized label for a Manager presentation column. */
+function managerPresentationColumnLabel(key: ManagerPresentationColumn): string {
+  switch (key) {
+    case 'show': return t('client.showCol');
+    case 'name': return t('client.activity');
+    case 'category': return t('common.category');
+    case 'owner': return t('columns.owner');
+    case 'tags': return t('columns.tags');
+    case 'base': return t('common.base');
+    case 'ctg': return t('common.ctg');
+    case 'withCtg': return t('common.withCtg');
+    case 'presented': return t('client.presented');
+    case 'delta': return t('client.statDelta');
+    case 'notes': return t('common.notes');
+    case 'actions': return t('columns.actions');
+  }
+}
+
+/** Return the localized label for a Client presentation column. */
+function clientPresentationColumnLabel(key: ClientPresentationColumn): string {
+  switch (key) {
+    case 'subs': return t('client.macroSubsCol');
+    case 'name': return t('client.activity');
+    case 'tags': return t('columns.tags');
+    case 'notes': return t('common.notes');
+    case 'hours': return t('client.presentedHours');
+    case 'days': return t('client.presentedDays');
+  }
+}
+
 const settingsGroupSearchText = computed<Record<SettingsGroupId, string>>(() => ({
   preferences: [t('settings.groupPreferences'), t('settings.groupPreferencesIntro')].join(' '),
   workspace: [t('settings.groupWorkspace'), t('settings.groupWorkspaceIntro')].join(' '),
@@ -320,10 +359,8 @@ const settingsRowSearchText = computed<Record<string, string>>(() => ({
     t('settings.presentationIntro'),
     t('settings.managerViewLegend'),
     t('settings.clientOutputLegend'),
-    t('settings.defaultManagerHideNotes'),
-    t('settings.defaultManagerHideTags'),
-    t('settings.defaultClientHideNotes'),
-    t('settings.defaultClientHideTags'),
+    ...MANAGER_TOGGLEABLE_COLUMNS.map(managerPresentationColumnLabel),
+    ...CLIENT_TOGGLEABLE_COLUMNS.map(clientPresentationColumnLabel),
   ].join(' '),
   export: [
     t('settings.sectionExport'),
@@ -447,6 +484,26 @@ function onEstimateColumnChange(key: EstimateToggleableColumn, checked: boolean)
   settings.settings.estimateColumnVisibility[key] = checked;
 }
 
+/** Update a presentation default and keep legacy note/tag flags in sync for old exports. */
+function onPresentationColumnChange(
+  scope: 'manager' | 'client',
+  key: ManagerPresentationColumn | ClientPresentationColumn,
+  checked: boolean,
+) {
+  if (scope === 'manager') {
+    settings.settings.defaultManagerColumnVisibility[key as ManagerPresentationColumn] = checked;
+    if (key === 'notes') settings.settings.defaultManagerHideNotes = !checked;
+    if (key === 'tags') settings.settings.defaultManagerHideTags = !checked;
+    syncPresentationColumnsFromSettings();
+    return;
+  }
+
+  settings.settings.defaultClientColumnVisibility[key as ClientPresentationColumn] = checked;
+  if (key === 'notes') settings.settings.defaultClientHideNotes = !checked;
+  if (key === 'tags') settings.settings.defaultClientHideTags = !checked;
+  syncPresentationColumnsFromSettings();
+}
+
 function onExportDateChange(checked: boolean) {
   settings.settings.exportIncludeDate = checked;
   if (!checked) settings.settings.exportIncludeTime = false;
@@ -471,6 +528,8 @@ function onMultipleOwnersChange(enabled: boolean) {
 const settingsPanelSummaries = computed<Record<string, string>>(() => {
   const workspacePath = settings.settings.workspaceDir.trim() || t('settings.workspaceFolderDefault');
   const visibleEstimateColumns = estimateColumnKeys.filter((key) => settings.settings.estimateColumnVisibility[key]).length;
+  const visibleManagerColumns = MANAGER_TOGGLEABLE_COLUMNS.filter((key) => settings.settings.defaultManagerColumnVisibility[key]).length;
+  const visibleClientColumns = CLIENT_TOGGLEABLE_COLUMNS.filter((key) => settings.settings.defaultClientColumnVisibility[key]).length;
   const enabledStatuses = ACTIVITY_STATUSES.filter((status) => !settings.settings.ganttDisabledStatuses.some((disabled) => disabled === status)).length;
   const weekendDays = [
     settings.settings.ganttWeekendSaturday ? t('settings.saturday') : '',
@@ -494,7 +553,10 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
     owners: t('settings.summaryOwners', {
       state: settings.settings.allowMultipleOwners ? t('settings.enabled') : t('settings.disabled'),
     }),
-    presentation: t('settings.summaryPresentation'),
+    presentation: t('settings.summaryPresentationColumns', {
+      manager: `${visibleManagerColumns}/${MANAGER_TOGGLEABLE_COLUMNS.length}`,
+      client: `${visibleClientColumns}/${CLIENT_TOGGLEABLE_COLUMNS.length}`,
+    }),
     export: t('settings.summaryExport', {
       date: settings.settings.exportIncludeDate ? t('settings.enabled') : t('settings.disabled'),
       time: settings.settings.exportIncludeTime ? t('settings.enabled') : t('settings.disabled'),
@@ -815,40 +877,24 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
           <div class="pref-grid">
             <fieldset class="pref-group">
               <legend>{{ t('settings.managerViewLegend') }}</legend>
-              <label class="lang-opt compact">
+              <label v-for="key in MANAGER_TOGGLEABLE_COLUMNS" :key="key" class="lang-opt compact">
                 <input
                   type="checkbox"
-                  :checked="settings.settings.defaultManagerHideNotes"
-                  @change="settings.settings.defaultManagerHideNotes = ($event.target as HTMLInputElement).checked"
+                  :checked="settings.settings.defaultManagerColumnVisibility[key]"
+                  @change="onPresentationColumnChange('manager', key, ($event.target as HTMLInputElement).checked)"
                 />
-                <span>{{ t('settings.defaultManagerHideNotes') }}</span>
-              </label>
-              <label class="lang-opt compact">
-                <input
-                  type="checkbox"
-                  :checked="settings.settings.defaultManagerHideTags"
-                  @change="settings.settings.defaultManagerHideTags = ($event.target as HTMLInputElement).checked"
-                />
-                <span>{{ t('settings.defaultManagerHideTags') }}</span>
+                <span>{{ managerPresentationColumnLabel(key) }}</span>
               </label>
             </fieldset>
             <fieldset class="pref-group">
               <legend>{{ t('settings.clientOutputLegend') }}</legend>
-              <label class="lang-opt compact">
+              <label v-for="key in CLIENT_TOGGLEABLE_COLUMNS" :key="key" class="lang-opt compact">
                 <input
                   type="checkbox"
-                  :checked="settings.settings.defaultClientHideNotes"
-                  @change="settings.settings.defaultClientHideNotes = ($event.target as HTMLInputElement).checked"
+                  :checked="settings.settings.defaultClientColumnVisibility[key]"
+                  @change="onPresentationColumnChange('client', key, ($event.target as HTMLInputElement).checked)"
                 />
-                <span>{{ t('settings.defaultClientHideNotes') }}</span>
-              </label>
-              <label class="lang-opt compact">
-                <input
-                  type="checkbox"
-                  :checked="settings.settings.defaultClientHideTags"
-                  @change="settings.settings.defaultClientHideTags = ($event.target as HTMLInputElement).checked"
-                />
-                <span>{{ t('settings.defaultClientHideTags') }}</span>
+                <span>{{ clientPresentationColumnLabel(key) }}</span>
               </label>
             </fieldset>
           </div>

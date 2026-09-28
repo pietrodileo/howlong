@@ -6,6 +6,9 @@ import { useLibraryStore } from '../library/library';
 import AuditHistoryModal from './AuditHistoryModal.vue';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import RefreshIcon from '../../shared/components/RefreshIcon.vue';
+import ColumnVisibilityPicker, {
+  type ColumnVisibilityOption,
+} from '../../shared/components/ColumnVisibilityPicker.vue';
 import NotesEditor from './NotesEditor.vue';
 import TagPicker from '../../shared/components/TagPicker.vue';
 import OwnerPicker from '../../shared/components/OwnerPicker.vue';
@@ -44,8 +47,6 @@ import { readTextFile, isTauri } from '../../platform/tauri';
 import { importEstimateText } from '../../platform/files/import';
 import { useDocumentsStore } from '../../shared/documents';
 import { useOwnerAssignment } from '../../shared/composables/useOwnerAssignment';
-
-const NOTES_PREVIEW_MAX = 72;
 
 const estimate = useEstimateStore();
 const docs = useDocumentsStore();
@@ -221,13 +222,6 @@ function onPresentedEffort(id: string, raw: string) {
   }
 }
 
-function previewNotes(notes: string): string {
-  const flat = notes.replace(/\s+/g, ' ').trim();
-  if (!flat) return '';
-  if (flat.length <= NOTES_PREVIEW_MAX) return flat;
-  return `${flat.slice(0, NOTES_PREVIEW_MAX).trimEnd()}…`;
-}
-
 function openNotesEditor(id: string) {
   notesEditId.value = id;
 }
@@ -375,6 +369,46 @@ const tableColumnKeys = computed(() =>
     return cols.isVisible(key);
   }),
 );
+
+const managerColumnPickerOptions = computed<ColumnVisibilityOption[]>(() =>
+  cols.orderedKeys.value.map((key) => ({
+    key,
+    label: columnLabel(key),
+    visible: cols.isVisible(key)
+      && (key !== 'tags' || !estimate.estimate.clientView.hideManagerTags)
+      && (key !== 'notes' || !estimate.estimate.clientView.hideManagerNotes),
+    locked: key === 'name',
+  })),
+);
+
+const clientColumnPickerOptions = computed<ColumnVisibilityOption[]>(() =>
+  clientCols.orderedKeys.value.map((key) => ({
+    key,
+    label: clientOutputColumnLabel(key),
+    visible: clientCols.isVisible(key)
+      && (key !== 'tags' || !estimate.estimate.clientView.hideClientTags)
+      && (key !== 'notes' || !estimate.estimate.clientView.hideClientNotes),
+    locked: key === 'name',
+  })),
+);
+
+/** Apply a visibility choice to the Manager table and its persisted presentation export. */
+function onManagerColumnVisibilityChange(key: string, visible: boolean): void {
+  const columnKey = key as ManagerColumnKey;
+  if (!cols.orderedKeys.value.includes(columnKey) || columnKey === 'name') return;
+  cols.setVisible(columnKey, visible);
+  if (columnKey === 'notes') estimate.updateClientView({ hideManagerNotes: !visible });
+  if (columnKey === 'tags') estimate.updateClientView({ hideManagerTags: !visible });
+}
+
+/** Apply a visibility choice to the Client output table and its persisted export. */
+function onClientColumnVisibilityChange(key: string, visible: boolean): void {
+  const columnKey = key as ClientOutputColumnKey;
+  if (!clientCols.orderedKeys.value.includes(columnKey) || columnKey === 'name') return;
+  clientCols.setVisible(columnKey, visible);
+  if (columnKey === 'notes') estimate.updateClientView({ hideClientNotes: !visible });
+  if (columnKey === 'tags') estimate.updateClientView({ hideClientTags: !visible });
+}
 
 const allMacrosExpanded = computed(() => {
   const macros = estimate.clientLines.filter((l) => l.isMacro && l.hasChildren);
@@ -766,24 +800,6 @@ async function onExportFromMenu(
           </div>
         </div>
         <div class="summary-actions">
-          <div class="visibility-toggles" role="group" :aria-label="t('client.managerViewLegend')">
-            <label class="check compact">
-              <input
-                type="checkbox"
-                :checked="estimate.estimate.clientView.hideManagerNotes"
-                @change="estimate.updateClientView({ hideManagerNotes: ($event.target as HTMLInputElement).checked })"
-              />
-              {{ t('client.hideNotesManager') }}
-            </label>
-            <label class="check compact">
-              <input
-                type="checkbox"
-                :checked="estimate.estimate.clientView.hideManagerTags"
-                @change="estimate.updateClientView({ hideManagerTags: ($event.target as HTMLInputElement).checked })"
-              />
-              {{ t('client.hideTagsManager') }}
-            </label>
-          </div>
           <div class="export-menu">
             <button
               type="button"
@@ -812,6 +828,11 @@ async function onExportFromMenu(
               </button>
             </div>
           </div>
+          <ColumnVisibilityPicker
+            :label="t('common.columnsVisible')"
+            :options="managerColumnPickerOptions"
+            @toggle="onManagerColumnVisibilityChange"
+          />
         </div>
       </div>
 
@@ -1047,16 +1068,16 @@ async function onExportFromMenu(
                 :style="cols.styleFor('notes')"
                 :class="{ collapsed: cols.collapsed.notes }"
               >
-                <button
+                <textarea
                   v-if="!cols.collapsed.notes"
-                  type="button"
-                  class="notes-preview"
-                  :class="{ empty: !line.item.notes.trim() }"
+                  class="notes-input"
+                  rows="2"
+                  :value="line.item.notes"
+                  :placeholder="t('working.notesPh')"
                   v-tip="t('client.notesOpen')"
-                  @click="openNotesEditor(line.item.id)"
-                >
-                  {{ previewNotes(line.item.notes) || t('client.notesEmpty') }}
-                </button>
+                  @input="estimate.updateItem(line.item.id, { notes: ($event.target as HTMLTextAreaElement).value })"
+                  @dblclick="openNotesEditor(line.item.id)"
+                />
               </td>
               <td
                 v-else-if="key === 'actions'"
@@ -1105,56 +1126,6 @@ async function onExportFromMenu(
         <span class="presentation-section-chevron"><DisclosureIcon :expanded="true" /></span>
       </summary>
       <div class="presentation-section-body">
-      <header class="client-output-head">
-        <div class="client-output-actions">
-          <div class="visibility-toggles" role="group" :aria-label="t('client.clientOutputLegend')">
-            <label class="check compact">
-              <input
-                type="checkbox"
-                :checked="estimate.estimate.clientView.hideClientNotes"
-                @change="estimate.updateClientView({ hideClientNotes: ($event.target as HTMLInputElement).checked })"
-              />
-              {{ t('client.hideNotesClient') }}
-            </label>
-            <label class="check compact">
-              <input
-                type="checkbox"
-                :checked="estimate.estimate.clientView.hideClientTags"
-                @change="estimate.updateClientView({ hideClientTags: ($event.target as HTMLInputElement).checked })"
-              />
-              {{ t('client.hideTagsClient') }}
-            </label>
-          </div>
-          <div class="export-menu">
-            <button
-              type="button"
-              class="ghost"
-              :aria-expanded="clientExportMenuOpen"
-              @click.stop="toggleClientExportMenu"
-            >
-              {{ t('common.export') }} ▾
-            </button>
-            <div v-if="clientExportMenuOpen" class="menu" role="menu" @pointerdown.stop>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.aiHint')"
-                @click="onExportFromMenu('yaml', 'client')"
-              >
-                {{ t('export.ai') }}
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.excelHint')"
-                @click="onExportFromMenu('xlsx', 'client')"
-              >
-                {{ t('export.excel') }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
       <div class="summary-row client-summary" aria-live="polite">
         <div class="summary-stats">
           <div class="stat">
@@ -1184,6 +1155,41 @@ async function onExportFromMenu(
               <span class="stat-days">{{ formatSummaryDelta(clientSummaryDeltaHours, 'days') }} D</span>
             </strong>
           </div>
+        </div>
+        <div class="summary-actions">
+          <div class="export-menu">
+            <button
+              type="button"
+              class="ghost"
+              :aria-expanded="clientExportMenuOpen"
+              @click.stop="toggleClientExportMenu"
+            >
+              {{ t('common.export') }} ▾
+            </button>
+            <div v-if="clientExportMenuOpen" class="menu" role="menu" @pointerdown.stop>
+              <button
+                type="button"
+                role="menuitem"
+                v-tip="t('export.aiHint')"
+                @click="onExportFromMenu('yaml', 'client')"
+              >
+                {{ t('export.ai') }}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                v-tip="t('export.excelHint')"
+                @click="onExportFromMenu('xlsx', 'client')"
+              >
+                {{ t('export.excel') }}
+              </button>
+            </div>
+          </div>
+          <ColumnVisibilityPicker
+            :label="t('common.columnsVisible')"
+            :options="clientColumnPickerOptions"
+            @toggle="onClientColumnVisibilityChange"
+          />
         </div>
       </div>
       <div class="table-shell">
@@ -1737,35 +1743,7 @@ async function onExportFromMenu(
   background: var(--surface);
 }
 
-.check {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-  padding-bottom: 0.35rem;
-}
-
-.check.compact {
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding-bottom: 0;
-  white-space: nowrap;
-}
-
-.visibility-toggles {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.65rem 1rem;
-}
-
-.summary-actions,
-.client-output-actions {
+.summary-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1905,14 +1883,6 @@ async function onExportFromMenu(
 
 .delta-cell.negative {
   color: var(--danger);
-}
-
-.client-output-head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.75rem 1rem;
-  align-items: center;
 }
 
 .client-output {
@@ -2157,34 +2127,34 @@ tr.overridden td {
   padding: 0;
 }
 
-.notes-preview {
-  display: block;
-  width: 100%;
-  margin: 0;
-  padding: 0.2rem 0.15rem;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 400;
-  text-align: left;
-  line-height: 1.35;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  cursor: pointer;
+.notes-input {
+  flex: 1;
+  min-width: 0;
+  height: 2.65rem;
+  min-height: 2.65rem;
+  max-height: 2.65rem;
+  resize: none;
+  border: 1px solid var(--line) !important;
+  background: var(--page-soft) !important;
+  color: var(--ink);
+  line-height: 1.2;
+  white-space: pre-wrap;
+  field-sizing: content;
 }
 
-.notes-preview.empty {
+.notes-input::placeholder {
   color: var(--muted-soft);
+  font-weight: 400;
 }
 
-.notes-preview:hover {
-  border-color: var(--line);
-  background: var(--page-soft);
-  color: var(--ink-soft);
+.notes-input:hover {
+  border-color: var(--line-strong) !important;
+  background: var(--surface) !important;
+}
+
+.notes-input:focus {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line)) !important;
+  background: var(--surface) !important;
 }
 
 .macro td {
@@ -2204,7 +2174,7 @@ tr.overridden td {
   background: color-mix(in srgb, var(--ink) 3%, var(--page-soft));
 }
 
-.macro .notes-preview,
+.macro .notes-input,
 .macro .num {
   font-weight: 400;
 }
