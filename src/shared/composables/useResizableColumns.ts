@@ -199,17 +199,6 @@ function presentationColumnBaseline<K extends string>(scope: 'manager' | 'client
   }
 }
 
-/** Sync presentation defaults into the view-level column layouts. */
-export function syncPresentationColumnsFromSettings(): void {
-  try {
-    const settings = useSettingsStore();
-    localStorage.setItem(MANAGER_STORAGE_KEY, JSON.stringify(settings.settings.defaultManagerColumnVisibility));
-    localStorage.setItem(CLIENT_OUTPUT_STORAGE_KEY, JSON.stringify(settings.settings.defaultClientColumnVisibility));
-  } catch {
-    /* ignore */
-  }
-}
-
 function loadVisibleMap<K extends string>(
   storageKey: string,
   defaults: Record<K, boolean>,
@@ -246,16 +235,6 @@ function loadOrder<K extends string>(storageKey: string, defaults: K[]): K[] {
     return next;
   } catch {
     return [...defaults];
-  }
-}
-
-/** Scrive in localStorage le colonne Stima dai settings (effetto al prossimo caricamento vista). */
-export function syncEstimateColumnsFromSettings(): void {
-  const vis = settingsColumnBaseline();
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(vis));
-  } catch {
-    /* ignore */
   }
 }
 

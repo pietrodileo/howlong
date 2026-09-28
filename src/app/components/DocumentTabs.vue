@@ -531,13 +531,16 @@ function onNewEstimate() {
 .tab-shell.dirty .tab::after {
   content: '';
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 50%;
+  right: 13px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid var(--page);
+  opacity: 1;
+  transform: translateY(-50%);
+  transition: opacity 0.15s ease;
 }
 
 .tab svg {
@@ -585,6 +588,22 @@ function onNewEstimate() {
 .tab-shell.active:hover .tab-close {
   opacity: 1;
   color: var(--ink);
+}
+
+.tab-shell.dirty .tab-close {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tab-shell.dirty:hover .tab::after,
+.tab-shell.dirty:focus-within .tab::after {
+  opacity: 0;
+}
+
+.tab-shell.dirty:hover .tab-close,
+.tab-shell.dirty:focus-within .tab-close {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .tab-close:hover {

@@ -16,17 +16,19 @@ import { isDialogCancelled } from '../../platform/files/dialogResult';
 import { toErrorMessage } from '../../shared/errors';
 import type { Locale, Theme } from '../../models/settings';
 import SettingsPanel from './SettingsPanel.vue';
-import { ESTIMATE_TOGGLEABLE_COLUMNS, type EstimateToggleableColumn } from './estimateColumns';
+import {
+  DEFAULT_ESTIMATE_COLUMN_VISIBILITY,
+  ESTIMATE_TOGGLEABLE_COLUMNS,
+  type EstimateToggleableColumn,
+} from './estimateColumns';
 import {
   CLIENT_TOGGLEABLE_COLUMNS,
+  DEFAULT_CLIENT_PRESENTATION_VISIBILITY,
+  DEFAULT_MANAGER_PRESENTATION_VISIBILITY,
   MANAGER_TOGGLEABLE_COLUMNS,
   type ClientPresentationColumn,
   type ManagerPresentationColumn,
 } from './presentationColumns';
-import {
-  syncEstimateColumnsFromSettings,
-  syncPresentationColumnsFromSettings,
-} from '../../shared/composables/useResizableColumns';
 import { ACTIVITY_STATUSES, ACTIVITY_STATUS_COLORS } from '../../domain/gantt';
 import UpdatesPanel from './UpdatesPanel.vue';
 import { APP_VERSION } from '../../shared/version';
@@ -49,7 +51,7 @@ const settingsFilter = ref('');
 const settingsGroupRows = {
   preferences: ['profile', 'locale', 'appearance'],
   workspace: ['folder', 'workspace'],
-  estimates: ['estimate', 'owners', 'presentation', 'export'],
+  estimates: ['columns', 'owners', 'export'],
   planning: ['workingCalendar', 'workingDays', 'activityStatuses'],
   application: ['updates', 'shortcuts'],
 } as const;
@@ -68,9 +70,8 @@ const settingsPanelOpen = ref<Record<string, boolean>>({
   appearance: false,
   folder: openFolderSection.value,
   workspace: false,
-  estimate: false,
+  columns: false,
   owners: false,
-  presentation: false,
   export: false,
   workingCalendar: false,
   workingDays: false,
@@ -110,7 +111,6 @@ watch(
       try {
         isSaving.value = true;
         await settings.save();
-        syncEstimateColumnsFromSettings();
         await library.loadAll();
         await models.loadAll();
         await refreshWorkspacePaths();
@@ -344,23 +344,21 @@ const settingsRowSearchText = computed<Record<string, string>>(() => ({
     t('settings.import'),
     t('settings.export'),
   ].join(' '),
-  estimate: [
-    t('settings.sectionEstimate'),
-    t('settings.estimateColumnsIntro'),
+  columns: [
+    t('settings.sectionColumns'),
+    t('settings.columnsIntro'),
+    t('settings.columnsDefaultsHint'),
+    t('settings.estimateViewLegend'),
+    t('settings.managerViewLegend'),
+    t('settings.clientOutputLegend'),
     ...estimateColumnKeys.map(estimateColumnLabel),
+    ...MANAGER_TOGGLEABLE_COLUMNS.map(managerPresentationColumnLabel),
+    ...CLIENT_TOGGLEABLE_COLUMNS.map(clientPresentationColumnLabel),
   ].join(' '),
   owners: [
     t('settings.sectionOwners'),
     t('settings.multiOwner'),
     t('settings.multiOwnerHelp'),
-  ].join(' '),
-  presentation: [
-    t('settings.sectionPresentation'),
-    t('settings.presentationIntro'),
-    t('settings.managerViewLegend'),
-    t('settings.clientOutputLegend'),
-    ...MANAGER_TOGGLEABLE_COLUMNS.map(managerPresentationColumnLabel),
-    ...CLIENT_TOGGLEABLE_COLUMNS.map(clientPresentationColumnLabel),
   ].join(' '),
   export: [
     t('settings.sectionExport'),
@@ -484,6 +482,13 @@ function onEstimateColumnChange(key: EstimateToggleableColumn, checked: boolean)
   settings.settings.estimateColumnVisibility[key] = checked;
 }
 
+/** Update an estimate default without changing an already customized table. */
+function onEstimateColumnReset() {
+  for (const key of ESTIMATE_TOGGLEABLE_COLUMNS) {
+    settings.settings.estimateColumnVisibility[key] = DEFAULT_ESTIMATE_COLUMN_VISIBILITY[key];
+  }
+}
+
 /** Update a presentation default and keep legacy note/tag flags in sync for old exports. */
 function onPresentationColumnChange(
   scope: 'manager' | 'client',
@@ -494,14 +499,30 @@ function onPresentationColumnChange(
     settings.settings.defaultManagerColumnVisibility[key as ManagerPresentationColumn] = checked;
     if (key === 'notes') settings.settings.defaultManagerHideNotes = !checked;
     if (key === 'tags') settings.settings.defaultManagerHideTags = !checked;
-    syncPresentationColumnsFromSettings();
     return;
   }
 
   settings.settings.defaultClientColumnVisibility[key as ClientPresentationColumn] = checked;
   if (key === 'notes') settings.settings.defaultClientHideNotes = !checked;
   if (key === 'tags') settings.settings.defaultClientHideTags = !checked;
-  syncPresentationColumnsFromSettings();
+}
+
+/** Restore one presentation default set without changing an already customized table. */
+function onPresentationColumnReset(scope: 'manager' | 'client') {
+  if (scope === 'manager') {
+    for (const key of Object.keys(DEFAULT_MANAGER_PRESENTATION_VISIBILITY) as ManagerPresentationColumn[]) {
+      settings.settings.defaultManagerColumnVisibility[key] = DEFAULT_MANAGER_PRESENTATION_VISIBILITY[key];
+    }
+    settings.settings.defaultManagerHideNotes = !DEFAULT_MANAGER_PRESENTATION_VISIBILITY.notes;
+    settings.settings.defaultManagerHideTags = !DEFAULT_MANAGER_PRESENTATION_VISIBILITY.tags;
+    return;
+  }
+
+  for (const key of Object.keys(DEFAULT_CLIENT_PRESENTATION_VISIBILITY) as ClientPresentationColumn[]) {
+    settings.settings.defaultClientColumnVisibility[key] = DEFAULT_CLIENT_PRESENTATION_VISIBILITY[key];
+  }
+  settings.settings.defaultClientHideNotes = !DEFAULT_CLIENT_PRESENTATION_VISIBILITY.notes;
+  settings.settings.defaultClientHideTags = !DEFAULT_CLIENT_PRESENTATION_VISIBILITY.tags;
 }
 
 function onExportDateChange(checked: boolean) {
@@ -546,16 +567,13 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
     }),
     folder: workspacePath,
     workspace: t('settings.summaryWorkspaceImportExport'),
-    estimate: t('settings.summaryEstimateColumns', {
-      visible: String(visibleEstimateColumns),
-      total: String(estimateColumnKeys.length),
+    columns: t('settings.summaryColumns', {
+      visible: `${visibleEstimateColumns}/${estimateColumnKeys.length}`,
+      manager: `${visibleManagerColumns}/${MANAGER_TOGGLEABLE_COLUMNS.length}`,
+      client: `${visibleClientColumns}/${CLIENT_TOGGLEABLE_COLUMNS.length}`,
     }),
     owners: t('settings.summaryOwners', {
       state: settings.settings.allowMultipleOwners ? t('settings.enabled') : t('settings.disabled'),
-    }),
-    presentation: t('settings.summaryPresentationColumns', {
-      manager: `${visibleManagerColumns}/${MANAGER_TOGGLEABLE_COLUMNS.length}`,
-      client: `${visibleClientColumns}/${CLIENT_TOGGLEABLE_COLUMNS.length}`,
     }),
     export: t('settings.summaryExport', {
       date: settings.settings.exportIncludeDate ? t('settings.enabled') : t('settings.disabled'),
@@ -826,23 +844,75 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
       </summary>
       <div class="settings-group-rows">
         <SettingsPanel
-          v-show="shouldShowSettingsRow('estimates', 'estimate')"
-          :title="t('settings.sectionEstimate')"
-          :summary="settingsPanelSummaries.estimate"
-          :open="isSettingsPanelOpen('estimate')"
-          :force-open="shouldForceOpenSettingsRow('estimate')"
-          @toggle="onSettingsPanelToggle('estimate', $event)"
+          v-show="shouldShowSettingsRow('estimates', 'columns')"
+          :title="t('settings.sectionColumns')"
+          :summary="settingsPanelSummaries.columns"
+          :open="isSettingsPanelOpen('columns')"
+          :force-open="shouldForceOpenSettingsRow('columns')"
+          @toggle="onSettingsPanelToggle('columns', $event)"
         >
-          <p class="field-hint">{{ t('settings.estimateColumnsIntro') }}</p>
-          <div class="option-grid columns-grid">
-            <label v-for="key in estimateColumnKeys" :key="key" class="lang-opt compact">
-              <input
-                type="checkbox"
-                :checked="settings.settings.estimateColumnVisibility[key]"
-                @change="onEstimateColumnChange(key, ($event.target as HTMLInputElement).checked)"
-              />
-              <span>{{ estimateColumnLabel(key) }}</span>
-            </label>
+          <p class="field-hint">{{ t('settings.columnsIntro') }}</p>
+          <p class="field-hint columns-defaults-hint">{{ t('settings.columnsDefaultsHint') }}</p>
+          <div class="pref-grid columns-settings-grid">
+            <fieldset class="pref-group">
+              <legend>{{ t('settings.estimateViewLegend') }}</legend>
+              <label class="lang-opt compact locked-column">
+                <input type="checkbox" checked disabled />
+                <span>{{ t('client.activity') }}</span>
+                <small>{{ t('settings.columnsActivityRequired') }}</small>
+              </label>
+              <label v-for="key in estimateColumnKeys" :key="key" class="lang-opt compact">
+                <input
+                  type="checkbox"
+                  :checked="settings.settings.estimateColumnVisibility[key]"
+                  @change="onEstimateColumnChange(key, ($event.target as HTMLInputElement).checked)"
+                />
+                <span>{{ estimateColumnLabel(key) }}</span>
+              </label>
+              <button type="button" class="settings-action" @click="onEstimateColumnReset">
+                {{ t('settings.resetColumnDefaults') }}
+              </button>
+            </fieldset>
+
+            <fieldset class="pref-group">
+              <legend>{{ t('settings.managerViewLegend') }}</legend>
+              <label class="lang-opt compact locked-column">
+                <input type="checkbox" checked disabled />
+                <span>{{ t('client.activity') }}</span>
+                <small>{{ t('settings.columnsActivityRequired') }}</small>
+              </label>
+              <label v-for="key in MANAGER_TOGGLEABLE_COLUMNS" :key="key" class="lang-opt compact">
+                <input
+                  type="checkbox"
+                  :checked="settings.settings.defaultManagerColumnVisibility[key]"
+                  @change="onPresentationColumnChange('manager', key, ($event.target as HTMLInputElement).checked)"
+                />
+                <span>{{ managerPresentationColumnLabel(key) }}</span>
+              </label>
+              <button type="button" class="settings-action" @click="onPresentationColumnReset('manager')">
+                {{ t('settings.resetColumnDefaults') }}
+              </button>
+            </fieldset>
+
+            <fieldset class="pref-group">
+              <legend>{{ t('settings.clientOutputLegend') }}</legend>
+              <label class="lang-opt compact locked-column">
+                <input type="checkbox" checked disabled />
+                <span>{{ t('client.activity') }}</span>
+                <small>{{ t('settings.columnsActivityRequired') }}</small>
+              </label>
+              <label v-for="key in CLIENT_TOGGLEABLE_COLUMNS" :key="key" class="lang-opt compact">
+                <input
+                  type="checkbox"
+                  :checked="settings.settings.defaultClientColumnVisibility[key]"
+                  @change="onPresentationColumnChange('client', key, ($event.target as HTMLInputElement).checked)"
+                />
+                <span>{{ clientPresentationColumnLabel(key) }}</span>
+              </label>
+              <button type="button" class="settings-action" @click="onPresentationColumnReset('client')">
+                {{ t('settings.resetColumnDefaults') }}
+              </button>
+            </fieldset>
           </div>
         </SettingsPanel>
 
@@ -863,41 +933,6 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
             />
             <span>{{ t('settings.multiOwner') }}</span>
           </label>
-        </SettingsPanel>
-
-        <SettingsPanel
-          v-show="shouldShowSettingsRow('estimates', 'presentation')"
-          :title="t('settings.sectionPresentation')"
-          :summary="settingsPanelSummaries.presentation"
-          :open="isSettingsPanelOpen('presentation')"
-          :force-open="shouldForceOpenSettingsRow('presentation')"
-          @toggle="onSettingsPanelToggle('presentation', $event)"
-        >
-          <p class="field-hint">{{ t('settings.presentationIntro') }}</p>
-          <div class="pref-grid">
-            <fieldset class="pref-group">
-              <legend>{{ t('settings.managerViewLegend') }}</legend>
-              <label v-for="key in MANAGER_TOGGLEABLE_COLUMNS" :key="key" class="lang-opt compact">
-                <input
-                  type="checkbox"
-                  :checked="settings.settings.defaultManagerColumnVisibility[key]"
-                  @change="onPresentationColumnChange('manager', key, ($event.target as HTMLInputElement).checked)"
-                />
-                <span>{{ managerPresentationColumnLabel(key) }}</span>
-              </label>
-            </fieldset>
-            <fieldset class="pref-group">
-              <legend>{{ t('settings.clientOutputLegend') }}</legend>
-              <label v-for="key in CLIENT_TOGGLEABLE_COLUMNS" :key="key" class="lang-opt compact">
-                <input
-                  type="checkbox"
-                  :checked="settings.settings.defaultClientColumnVisibility[key]"
-                  @change="onPresentationColumnChange('client', key, ($event.target as HTMLInputElement).checked)"
-                />
-                <span>{{ clientPresentationColumnLabel(key) }}</span>
-              </label>
-            </fieldset>
-          </div>
         </SettingsPanel>
 
         <SettingsPanel
@@ -1460,6 +1495,14 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
   gap: 0.85rem;
 }
 
+.columns-defaults-hint {
+  margin-top: -0.35rem;
+}
+
+.columns-settings-grid {
+  align-items: stretch;
+}
+
 .pref-group {
   margin: 0;
   padding: 0.65rem 0.75rem;
@@ -1470,6 +1513,23 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
   flex-direction: column;
   gap: 0.45rem;
   min-width: 0;
+}
+
+.pref-group > .settings-action {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.locked-column {
+  cursor: default;
+  color: var(--muted);
+}
+
+.locked-column small {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
 }
 
 .pref-group legend {

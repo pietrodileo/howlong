@@ -180,6 +180,7 @@ export type MessageTree = {
     summaryAppearance: string;
     summaryWorkspaceImportExport: string;
     summaryEstimateColumns: string;
+    summaryColumns: string;
     summaryOwners: string;
     summaryPresentation: string;
     summaryPresentationColumns: string;
@@ -218,6 +219,7 @@ export type MessageTree = {
     sectionProfile: string;
     sectionLocale: string;
     sectionAppearance: string;
+    sectionColumns: string;
     sectionEstimate: string;
     sectionOwners: string;
     sectionPresentation: string;
@@ -257,6 +259,11 @@ export type MessageTree = {
     shortcutUndo: string;
     shortcutRedo: string;
     estimateColumnsIntro: string;
+    columnsIntro: string;
+    columnsDefaultsHint: string;
+    columnsActivityRequired: string;
+    estimateViewLegend: string;
+    resetColumnDefaults: string;
     multiOwner: string;
     multiOwnerHelp: string;
     multiOwnerDisabledWarning: string;
@@ -1105,7 +1112,7 @@ const it: MessageTree = {
     groupWorkspace: 'Workspace',
     groupWorkspaceIntro: 'Cartelle e backup del workspace.',
     groupEstimates: 'Stime',
-    groupEstimatesIntro: 'Colonne della stima, assegnatari, presentazione e nomi file di export.',
+    groupEstimatesIntro: 'Visibilità colonne, assegnatari e nomi file di export.',
     groupPlanning: 'Pianificazione',
     groupPlanningIntro: 'Calendario di lavoro e stati delle attività.',
     groupApplication: 'Applicazione',
@@ -1161,6 +1168,7 @@ const it: MessageTree = {
     summaryAppearance: '{theme}',
     summaryWorkspaceImportExport: 'Importa o esporta il workspace',
     summaryEstimateColumns: '{visible} di {total} colonne visibili',
+    summaryColumns: 'Stima {visible} · Manager {manager} · Cliente {client}',
     summaryOwners: 'Più assegnatari: {state}',
     summaryPresentation: 'Impostazioni predefinite per manager e cliente',
     summaryPresentationColumns: 'Manager {manager} · Cliente {client} colonne visibili',
@@ -1199,6 +1207,7 @@ const it: MessageTree = {
     sectionProfile: 'Profilo',
     sectionLocale: 'Lingua',
     sectionAppearance: 'Aspetto',
+    sectionColumns: 'Visibilità colonne',
     sectionEstimate: 'Colonne della stima',
     sectionOwners: 'Assegnatari',
     sectionPresentation: 'Presentazione',
@@ -1238,6 +1247,11 @@ const it: MessageTree = {
     shortcutUndo: 'Annulla l’ultima modifica nella scheda corrente',
     shortcutRedo: 'Ripristina l’ultima modifica annullata',
     estimateColumnsIntro: 'Colonne visibili quando apri una stima.',
+    columnsIntro: 'Scegli le colonne predefinite per la vista Stima, la Vista manager e la Vista cliente.',
+    columnsDefaultsHint: 'Questi sono i valori predefiniti. Usa il selettore colonne dentro una vista per personalizzare solo quella tabella.',
+    columnsActivityRequired: 'Sempre visibile',
+    estimateViewLegend: 'Vista stima',
+    resetColumnDefaults: 'Ripristina predefiniti',
     multiOwner: 'Consenti più assegnatari per attività',
     multiOwnerHelp: 'Se disattivata, puoi rimuovere gli assegnatari multipli già presenti, ma non aggiungerne altri.',
     multiOwnerDisabledWarning: 'Puoi ridurre gli assegnatari multipli già presenti, ma non aggiungerne altri finché la funzione non viene riattivata.',
@@ -2085,7 +2099,7 @@ const en: MessageTree = {
     groupWorkspace: 'Workspace',
     groupWorkspaceIntro: 'Folders and workspace backups.',
     groupEstimates: 'Estimates',
-    groupEstimatesIntro: 'Estimate columns, owners, presentation, and export filenames.',
+    groupEstimatesIntro: 'Column visibility, owners, and export filenames.',
     groupPlanning: 'Planning',
     groupPlanningIntro: 'Working calendar and activity statuses.',
     groupApplication: 'Application',
@@ -2141,6 +2155,7 @@ const en: MessageTree = {
     summaryAppearance: '{theme}',
     summaryWorkspaceImportExport: 'Import or export the workspace',
     summaryEstimateColumns: '{visible} of {total} columns visible',
+    summaryColumns: 'Estimate {visible} · Manager {manager} · Client {client}',
     summaryOwners: 'Multiple owners: {state}',
     summaryPresentation: 'Default settings for manager and client views',
     summaryPresentationColumns: 'Manager {manager} · Client {client} columns visible',
@@ -2179,6 +2194,7 @@ const en: MessageTree = {
     sectionProfile: 'Profile',
     sectionLocale: 'Language',
     sectionAppearance: 'Appearance',
+    sectionColumns: 'Column visibility',
     sectionEstimate: 'Estimate columns',
     sectionOwners: 'Owners',
     sectionPresentation: 'Presentation',
@@ -2218,6 +2234,11 @@ const en: MessageTree = {
     shortcutUndo: 'Undo the last change in the current tab',
     shortcutRedo: 'Redo the last undone change',
     estimateColumnsIntro: 'Columns shown when you open an estimate.',
+    columnsIntro: 'Choose the default columns for the Estimate, Manager, and Client views.',
+    columnsDefaultsHint: 'These are defaults. Use the column picker inside a view to customize only that table.',
+    columnsActivityRequired: 'Always visible',
+    estimateViewLegend: 'Estimate view',
+    resetColumnDefaults: 'Restore defaults',
     multiOwner: 'Allow multiple owners per activity',
     multiOwnerHelp: 'When off, you can remove existing multiple owners, but cannot add more.',
     multiOwnerDisabledWarning: 'You can reduce existing multiple-owner assignments, but cannot add more until the feature is enabled again.',
