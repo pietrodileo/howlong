@@ -442,6 +442,7 @@ function isSettingsGroupOpen(groupId: SettingsGroupId): boolean {
 
 /** Remember a user's settings group disclosure choice, not a filter's temporary state. */
 function onSettingsGroupToggle(groupId: SettingsGroupId, event: Event) {
+  if (event.target !== event.currentTarget) return;
   if (shouldForceOpenSettingsGroup(groupId)) return;
   settingsGroupOpen.value[groupId] = (event.currentTarget as HTMLDetailsElement).open;
 }
@@ -456,17 +457,10 @@ function isSettingsPanelOpen(rowId: string): boolean {
   return settingsPanelOpen.value[rowId] ?? false;
 }
 
-/** Keep only one nested settings row open within each group. */
+/** Persist the disclosure state of the settings row that the user toggled. */
 function onSettingsPanelToggle(rowId: string, isOpen: boolean) {
   if (shouldForceOpenSettingsRow(rowId)) return;
   settingsPanelOpen.value[rowId] = isOpen;
-  if (!isOpen) return;
-
-  const groupId = settingsGroupForRow(rowId);
-  if (!groupId) return;
-  for (const siblingId of settingsGroupRows[groupId]) {
-    if (siblingId !== rowId) settingsPanelOpen.value[siblingId] = false;
-  }
 }
 
 function shouldForceOpenSettingsRow(rowId: string): boolean {
@@ -1307,8 +1301,13 @@ const settingsPanelSummaries = computed<Record<string, string>>(() => {
   border-top: 1px solid var(--line);
 }
 
-.settings-group-rows :deep(.settings-panel:last-child) {
+.settings-group-rows :deep(.settings-panel) {
   border-bottom: none;
+}
+
+.settings-group-rows :deep(.settings-panel + .settings-panel) {
+  margin-top: 0.45rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 86%, transparent);
 }
 
 .title {
