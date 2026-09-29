@@ -36,7 +36,7 @@ import {
   type EffortUnit,
 } from '../../domain/rounding';
 import { exportEstimate } from '../../platform/files/io';
-import { readTextFile, isTauri } from '../../platform/tauri';
+import { readTextFile, isTauri, setAppWindowShadow } from '../../platform/tauri';
 import { importEstimateText } from '../../platform/files/import';
 import { toErrorMessage } from '../../shared/errors';
 import { resolveAppliesContingency } from '../../domain/applyContingency';
@@ -443,12 +443,14 @@ onUnmounted(() => {
   document.removeEventListener('pointerdown', onDocPointerDown);
   window.removeEventListener('keydown', onEstimateKeydown);
   document.removeEventListener('fullscreenchange', onFullscreenChange);
+  void setAppWindowShadow(true);
 });
 
 /** Keep the full-screen control aligned when the browser exits with Escape. */
 function onFullscreenChange(): void {
   isFullscreen.value = workingElement.value !== null
     && document.fullscreenElement === workingElement.value;
+  void setAppWindowShadow(document.fullscreenElement === null);
 }
 
 /** Toggle full screen for the Estimate view without changing its session state. */

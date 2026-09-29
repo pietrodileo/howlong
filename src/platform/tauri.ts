@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { open, save } from '@tauri-apps/plugin-dialog';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 export async function getAppDataDir(): Promise<string> {
   return invoke<string>('get_app_data_dir');
@@ -99,4 +100,14 @@ export async function saveFileDialog(
 
 export function isTauri(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
+
+/** Toggle the native window shadow while a view owns the fullscreen surface. */
+export async function setAppWindowShadow(enabled: boolean): Promise<void> {
+  if (!isTauri()) return;
+  try {
+    await getCurrentWindow().setShadow(enabled);
+  } catch {
+    // Window shadows are optional on platforms that do not implement this API.
+  }
 }

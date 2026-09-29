@@ -27,6 +27,7 @@ import { getLineItemColor } from '../../domain/itemColors';
 import { daysToHours, hoursToDays, HOURS_PER_DAY } from '../../domain/rounding';
 import { exportGanttXlsx, openEstimateFile } from '../../platform/files/io';
 import { isDialogCancelled, isDialogDesktopOnly } from '../../platform/files/dialogResult';
+import { setAppWindowShadow } from '../../platform/tauri';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import { useDocumentSync } from '../../shared/composables/useDocumentSync';
 import IconBtn from '../../shared/components/IconBtn.vue';
@@ -194,6 +195,7 @@ function toggleActivityPanel() {
 
 onMounted(() => {
   document.addEventListener('pointerdown', onDocumentPointerDown);
+  onFullscreenChange();
   document.addEventListener('fullscreenchange', onFullscreenChange);
   window.addEventListener('resize', updateOverlayPosition);
   window.addEventListener('scroll', updateOverlayPosition, true);
@@ -249,11 +251,13 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateOverlayPosition);
   window.removeEventListener('scroll', updateOverlayPosition, true);
   window.removeEventListener('keydown', onWindowKeydown);
+  void setAppWindowShadow(true);
 });
 
 /** Keep the full-screen control aligned when the browser exits with Escape. */
 function onFullscreenChange(): void {
   isFullscreen.value = document.fullscreenElement === ganttView.value;
+  void setAppWindowShadow(document.fullscreenElement === null);
 }
 
 /** Toggle full screen for the Plan/Gantt view without changing planning data. */

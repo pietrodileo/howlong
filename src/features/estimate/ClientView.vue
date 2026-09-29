@@ -43,7 +43,7 @@ import {
 import { useI18n } from '../../app/i18n/useI18n';
 import { toErrorMessage } from '../../shared/errors';
 import { formatAuditDateTime } from '../../shared/formatAuditDate';
-import { readTextFile, isTauri } from '../../platform/tauri';
+import { readTextFile, isTauri, setAppWindowShadow } from '../../platform/tauri';
 import { importEstimateText } from '../../platform/files/import';
 import { useDocumentsStore } from '../../shared/documents';
 import { useOwnerAssignment } from '../../shared/composables/useOwnerAssignment';
@@ -132,11 +132,13 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('pointerdown', onDocPointerDown);
   document.removeEventListener('fullscreenchange', onFullscreenChange);
+  void setAppWindowShadow(true);
 });
 
 /** Keep the Manager fullscreen control aligned when Escape exits fullscreen. */
 function onFullscreenChange(): void {
   isManagerFullscreen.value = document.fullscreenElement === managerSection.value;
+  void setAppWindowShadow(document.fullscreenElement === null);
 }
 
 /** Toggle fullscreen for the Manager view without changing estimate data. */
