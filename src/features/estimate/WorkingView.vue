@@ -739,11 +739,16 @@ watch(
             <div class="export-menu">
               <button
                 type="button"
-                class="ghost"
+                class="ghost export-trigger"
+                :aria-label="t('common.export')"
                 :aria-expanded="exportMenuOpen"
+                v-tip="t('common.export')"
                 @click.stop="toggleExportMenu"
               >
-                {{ t('common.export') }} ▾
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.5" />
+                  <path d="M12 6.5v10m0 0 4-4m-4 4-4-4" />
+                </svg>
               </button>
               <div v-if="exportMenuOpen" class="menu" role="menu" @pointerdown.stop>
                 <button
@@ -1682,6 +1687,15 @@ watch(
 .new-menu {
   position: relative;
   overflow: visible;
+}
+
+.export-trigger {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  place-items: center;
+  flex-shrink: 0;
 }
 
 .split {
