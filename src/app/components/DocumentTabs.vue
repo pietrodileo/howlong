@@ -64,19 +64,26 @@ function onWindowChange() {
   if (newMenuOpen.value) updateMenuPosition();
 }
 
-/** Save the active document from any estimate-backed view. */
-async function saveActiveDocument(): Promise<void> {
-  const session = docs.activeSession;
-  if (!session) return;
+/** Save one document session and keep its snapshot and active editor synchronized. */
+async function saveDocument(sessionId: string): Promise<boolean> {
+  const session = docs.sessions.find((candidate) => candidate.sessionId === sessionId);
+  if (!session) return false;
   try {
     const { path, data } = await library.saveEstimate(session.estimate);
     docs.updateSessionEstimate(session.sessionId, data);
     docs.markSaved(session.sessionId, path);
-    estimateStore.restoreEstimate(data, path, false);
+    if (docs.activeId === session.sessionId) estimateStore.restoreEstimate(data, path, false);
     ui.notify(t('working.saved', { path }));
+    return true;
   } catch (error) {
     ui.notify(toErrorMessage(error), true);
+    return false;
   }
+}
+
+/** Save the active document from any estimate-backed view. */
+async function saveActiveDocument(): Promise<void> {
+  if (docs.activeId) await saveDocument(docs.activeId);
 }
 
 /** Handle document shortcuts consistently across estimate-backed views. */
@@ -191,11 +198,20 @@ function cancelClose() {
   confirmDirtyClose.value = null;
 }
 
+/** Discard the pending dirty session and close its tab. */
 function confirmClose() {
   if (confirmDirtyClose.value) {
     docs.closeSession(confirmDirtyClose.value.sessionId);
     confirmDirtyClose.value = null;
   }
+}
+
+/** Save the pending dirty session before closing its tab. */
+async function saveAndClose() {
+  const pending = confirmDirtyClose.value;
+  if (!pending || !(await saveDocument(pending.sessionId))) return;
+  docs.closeSession(pending.sessionId);
+  confirmDirtyClose.value = null;
 }
 
 function toggleNewMenu() {
@@ -289,9 +305,11 @@ function onNewEstimate() {
       :open="confirmDirtyClose !== null"
       :title="t('tabs.closeDirtyTitle')"
       :message="t('tabs.closeDirtyBody', { name: confirmDirtyClose?.sessionTitle ?? '' })"
+      :secondary-label="t('tabs.closeDirtySave')"
       :confirm-label="t('tabs.closeDirtyDiscard')"
       danger
       @cancel="cancelClose"
+      @secondary="saveAndClose"
       @confirm="confirmClose"
     />
 

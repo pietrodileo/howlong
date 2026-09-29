@@ -827,6 +827,7 @@ function startDrag(event: PointerEvent, item: LineItem, mode: DragMode) {
               :model-value="activeOverlayItem.owners"
               :options="ownerOptions"
               :multiple="settings.settings.allowMultipleOwners"
+              toggle-selected
               :disabled="isSavingOwner"
               :aria-label="t('gantt.owner')"
               :placeholder="t('gantt.ownerPlaceholder')"

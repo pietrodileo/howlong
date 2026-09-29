@@ -1081,6 +1081,7 @@ watch(
                     :model-value="line.item.owners"
                     :options="ownerOptions"
                     :multiple="settings.settings.allowMultipleOwners"
+                    toggle-selected
                     compact
                     :disabled="isSavingOwner"
                     :aria-label="`${t('columns.owner')}: ${line.item.name}`"

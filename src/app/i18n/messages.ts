@@ -404,6 +404,7 @@ export type MessageTree = {
     closeConfirm: string;
     closeDirtyTitle: string;
     closeDirtyBody: string;
+    closeDirtySave: string;
     closeDirtyDiscard: string;
   };
   gantt: {
@@ -1381,6 +1382,7 @@ const it: MessageTree = {
     closeConfirm: 'Chiudere questa scheda?',
     closeDirtyTitle: 'Modifiche non salvate',
     closeDirtyBody: 'La stima «{name}» ha modifiche non salvate. Se chiudi la scheda, le modifiche verranno perse.',
+    closeDirtySave: 'Salva e chiudi',
     closeDirtyDiscard: 'Scarta e chiudi',
   },
   gantt: {
@@ -2367,6 +2369,7 @@ const en: MessageTree = {
     closeConfirm: 'Close this tab?',
     closeDirtyTitle: 'Unsaved changes',
     closeDirtyBody: 'The estimate «{name}» has unsaved changes. If you close the tab, changes will be lost.',
+    closeDirtySave: 'Save and close',
     closeDirtyDiscard: 'Discard and close',
   },
   gantt: {

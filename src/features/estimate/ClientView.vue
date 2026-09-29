@@ -6,6 +6,7 @@ import { useLibraryStore } from '../library/library';
 import AuditHistoryModal from './AuditHistoryModal.vue';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import RefreshIcon from '../../shared/components/RefreshIcon.vue';
+import redistributeIcon from '../../shared/assets/redistribute.svg?raw';
 import ColumnVisibilityPicker, {
   type ColumnVisibilityOption,
 } from '../../shared/components/ColumnVisibilityPicker.vue';
@@ -1038,6 +1039,7 @@ async function onExportFromMenu(
                   :model-value="line.item.owners"
                   :options="ownerOptions"
                   :multiple="settings.settings.allowMultipleOwners"
+                  toggle-selected
                   :disabled="isSavingOwner"
                   :aria-label="`${t('columns.owner')}: ${line.item.name}`"
                   :placeholder="t('gantt.ownerPlaceholder')"
@@ -1152,9 +1154,7 @@ async function onExportFromMenu(
                   v-tip="t('client.redistributeHint')"
                   @click="onRedistribute(line.item.id)"
                 >
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 4v10m0 0 4-4m-4 4-4-4" />
-                  </svg>
+                  <span class="redistribute-icon" aria-hidden="true" v-html="redistributeIcon" />
                 </button>
               </td>
             </template>
@@ -2257,6 +2257,18 @@ tr.overridden td {
   width: 1.85rem;
   height: 1.85rem;
   padding: 0;
+}
+
+.redistribute-icon {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+}
+
+.redistribute-icon :deep(svg) {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .notes-input {
