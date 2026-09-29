@@ -4,6 +4,10 @@ This page lists the user-facing features introduced in each stable release publi
 
 For the complete generated changelog for a release, see the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases).
 
+## v0.9.2
+
+- Manager and Client presentation tables now scroll vertically when their rows exceed the available view height.
+
 ## v0.9.1
 
 - Selected owners now toggle off individually in multi-owner mode, preserving the other assignments.

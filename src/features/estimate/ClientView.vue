@@ -2029,6 +2029,7 @@ async function onExportFromMenu(
 
 .table-shell {
   overflow: auto;
+  max-height: min(70vh, 640px);
   max-width: 100%;
   border: 1px solid var(--line);
   border-radius: var(--radius);
