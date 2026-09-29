@@ -88,7 +88,7 @@ The bootstrapper installs the matching macOS `.dmg` for the current user. Check 
 To install a specific stable version, pass its version to the script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.9.0
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.9.1
 ```
 
 ### Windows
@@ -105,7 +105,7 @@ To install a specific stable version:
 
 ```powershell
 $script = irm https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/windows.ps1
-& ([scriptblock]::Create($script)) -Version '0.9.0'
+& ([scriptblock]::Create($script)) -Version '0.9.1'
 ```
 
 ### Linux
@@ -121,7 +121,7 @@ Check the remote script before piping it to a shell. To make the install reprodu
 To install a specific stable version, pass its version to the script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.9.0
+curl -fsSL https://raw.githubusercontent.com/pietrodileo/howlong/main/scripts/install/unix.sh | bash -s -- 0.9.1
 ```
 
 The bootstrapper installs stable releases only. For an existing installation, use **Settings → Updates**.
