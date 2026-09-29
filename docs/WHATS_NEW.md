@@ -4,6 +4,11 @@ This page lists the user-facing features introduced in each stable release publi
 
 For the complete generated changelog for a release, see the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases).
 
+## v0.9.1
+
+- Selected owners now toggle off individually in multi-owner mode, preserving the other assignments.
+- Owner selection behavior is consistent across Estimate, Client preview, and Plan/Gantt views.
+
 ## v0.9.0
 
 [GitHub release](https://github.com/pietrodileo/howlong/releases/tag/v0.9.0)

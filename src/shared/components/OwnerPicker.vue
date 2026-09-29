@@ -6,6 +6,7 @@ const props = withDefaults(defineProps<{
   modelValue: string | string[];
   options: string[];
   multiple?: boolean;
+  toggleSelected?: boolean;
   compact?: boolean;
   plain?: boolean;
   allowDelete?: boolean;
@@ -17,7 +18,7 @@ const props = withDefaults(defineProps<{
   removeLabel?: string;
   lockedOptions?: string[];
   lockedLabel?: string;
-}>(), { multiple: false, compact: false, plain: false, allowDelete: true, disabled: false, ariaLabel: 'Owner', placeholder: 'Unassigned', filterPlaceholder: 'Search or create…', createLabel: 'Create', removeLabel: 'Delete owner', lockedOptions: () => [], lockedLabel: 'Owner assigned to a task; remove assignments before deleting.' });
+}>(), { multiple: false, toggleSelected: false, compact: false, plain: false, allowDelete: true, disabled: false, ariaLabel: 'Owner', placeholder: 'Unassigned', filterPlaceholder: 'Search or create…', createLabel: 'Create', removeLabel: 'Delete owner', lockedOptions: () => [], lockedLabel: 'Owner assigned to a task; remove assignments before deleting.' });
 const emit = defineEmits<{ 'update:modelValue': [value: string | string[]]; 'delete-option': [value: string] }>();
 const open = ref(false);
 const query = ref('');
@@ -72,12 +73,20 @@ function isSelected(name: string) { return selectedOwnerIds.value.has(name.trim(
 function choose(name: string) {
   const normalized = name.trim();
   if (!normalized) return;
-  if (props.multiple || isReducingMultiple.value) {
-    if (isReducingMultiple.value && !isSelected(normalized)) return;
-    const next = isSelected(normalized)
+  const isAlreadySelected = isSelected(normalized);
+  const usesSelectionList = props.multiple || isReducingMultiple.value;
+  if (usesSelectionList) {
+    if (isReducingMultiple.value && !isAlreadySelected) return;
+    const next = isAlreadySelected
       ? selectedOwners.value.filter((owner) => owner.toLowerCase() !== normalized.toLowerCase())
       : [...selectedOwners.value, normalized];
     emit('update:modelValue', next);
+    query.value = '';
+    void nextTick(() => filterEl.value?.focus());
+    return;
+  }
+  if (props.toggleSelected && isAlreadySelected) {
+    emit('update:modelValue', Array.isArray(props.modelValue) ? [] : '');
     query.value = '';
     void nextTick(() => filterEl.value?.focus());
     return;

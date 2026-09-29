@@ -6,6 +6,7 @@ import { useLibraryStore } from '../library/library';
 import AuditHistoryModal from './AuditHistoryModal.vue';
 import ConfirmModal from '../../shared/components/ConfirmModal.vue';
 import RefreshIcon from '../../shared/components/RefreshIcon.vue';
+import redistributeIcon from '../../shared/assets/redistribute.svg?raw';
 import ColumnVisibilityPicker, {
   type ColumnVisibilityOption,
 } from '../../shared/components/ColumnVisibilityPicker.vue';
@@ -43,7 +44,7 @@ import {
 import { useI18n } from '../../app/i18n/useI18n';
 import { toErrorMessage } from '../../shared/errors';
 import { formatAuditDateTime } from '../../shared/formatAuditDate';
-import { readTextFile, isTauri } from '../../platform/tauri';
+import { readTextFile, isTauri, setAppWindowShadow } from '../../platform/tauri';
 import { importEstimateText } from '../../platform/files/import';
 import { useDocumentsStore } from '../../shared/documents';
 import { useOwnerAssignment } from '../../shared/composables/useOwnerAssignment';
@@ -132,11 +133,13 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('pointerdown', onDocPointerDown);
   document.removeEventListener('fullscreenchange', onFullscreenChange);
+  void setAppWindowShadow(true);
 });
 
 /** Keep the Manager fullscreen control aligned when Escape exits fullscreen. */
 function onFullscreenChange(): void {
   isManagerFullscreen.value = document.fullscreenElement === managerSection.value;
+  void setAppWindowShadow(document.fullscreenElement === null);
 }
 
 /** Toggle fullscreen for the Manager view without changing estimate data. */
@@ -677,12 +680,26 @@ async function onExportFromMenu(
       <div class="toolbar">
         <button
           type="button"
-          class="ghost"
+          class="ghost reset-action"
           :disabled="!estimate.hasClientOverrides"
+          :aria-label="t('client.reset')"
           v-tip="t('client.resetHint')"
           @click="onReset"
         >
-          {{ t('client.reset') }}
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 12a9 9 0 1 0 3-7.7L3 7" />
+            <path d="M3 3v4h4" />
+          </svg>
         </button>
         <button
           type="button"
@@ -825,50 +842,57 @@ async function onExportFromMenu(
           </div>
         </div>
         <div class="summary-actions">
-          <div class="export-menu">
+          <div class="summary-icon-actions">
+            <div class="export-menu">
+              <button
+                type="button"
+                class="ghost export-trigger"
+                :aria-label="t('common.export')"
+                :aria-expanded="managerExportMenuOpen"
+                v-tip="t('common.export')"
+                @click.stop="toggleManagerExportMenu"
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.5" />
+                  <path d="M12 6.5v10m0 0 4-4m-4 4-4-4" />
+                </svg>
+              </button>
+              <div v-if="managerExportMenuOpen" class="menu" role="menu" @pointerdown.stop>
+                <button
+                  type="button"
+                  role="menuitem"
+                  v-tip="t('export.aiHint')"
+                  @click="onExportFromMenu('yaml', 'manager')"
+                >
+                  {{ t('export.ai') }}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  v-tip="t('export.excelHint')"
+                  @click="onExportFromMenu('xlsx', 'manager')"
+                >
+                  {{ t('export.excel') }}
+                </button>
+              </div>
+            </div>
+            <ColumnVisibilityPicker
+              :label="t('common.columnsVisible')"
+              :options="managerColumnPickerOptions"
+              @toggle="onManagerColumnVisibilityChange"
+            />
             <button
               type="button"
-              class="ghost"
-              :aria-expanded="managerExportMenuOpen"
-              @click.stop="toggleManagerExportMenu"
+              class="ghost fullscreen-toggle"
+              :aria-label="isManagerFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+              v-tip="isManagerFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
+              @click.stop="toggleManagerFullscreen"
             >
-              {{ t('common.export') }} ▾
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
+              </svg>
             </button>
-            <div v-if="managerExportMenuOpen" class="menu" role="menu" @pointerdown.stop>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.aiHint')"
-                @click="onExportFromMenu('yaml', 'manager')"
-              >
-                {{ t('export.ai') }}
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.excelHint')"
-                @click="onExportFromMenu('xlsx', 'manager')"
-              >
-                {{ t('export.excel') }}
-              </button>
-            </div>
           </div>
-          <ColumnVisibilityPicker
-            :label="t('common.columnsVisible')"
-            :options="managerColumnPickerOptions"
-            @toggle="onManagerColumnVisibilityChange"
-          />
-          <button
-            type="button"
-            class="ghost fullscreen-toggle"
-            :aria-label="isManagerFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
-            v-tip="isManagerFullscreen ? t('working.exitFullscreen') : t('working.fullscreen')"
-            @click.stop="toggleManagerFullscreen"
-          >
-            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-              <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -1015,6 +1039,7 @@ async function onExportFromMenu(
                   :model-value="line.item.owners"
                   :options="ownerOptions"
                   :multiple="settings.settings.allowMultipleOwners"
+                  toggle-selected
                   :disabled="isSavingOwner"
                   :aria-label="`${t('columns.owner')}: ${line.item.name}`"
                   :placeholder="t('gantt.ownerPlaceholder')"
@@ -1129,12 +1154,7 @@ async function onExportFromMenu(
                   v-tip="t('client.redistributeHint')"
                   @click="onRedistribute(line.item.id)"
                 >
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7L16.3 5.7c.8-1.1 2-1.7 3.3-1.7H22" />
-                    <path d="m18 2 4 2-4 2" />
-                    <path d="M2 6h1.9c1.3 0 2.5.6 3.3 1.7l8.6 11.6c.8 1.1 2 1.7 3.3 1.7H22" />
-                    <path d="m18 22 4-2-4-2" />
-                  </svg>
+                  <span class="redistribute-icon" aria-hidden="true" v-html="redistributeIcon" />
                 </button>
               </td>
             </template>
@@ -1193,39 +1213,46 @@ async function onExportFromMenu(
           </div>
         </div>
         <div class="summary-actions">
-          <div class="export-menu">
-            <button
-              type="button"
-              class="ghost"
-              :aria-expanded="clientExportMenuOpen"
-              @click.stop="toggleClientExportMenu"
-            >
-              {{ t('common.export') }} ▾
-            </button>
-            <div v-if="clientExportMenuOpen" class="menu" role="menu" @pointerdown.stop>
+          <div class="summary-icon-actions">
+            <div class="export-menu">
               <button
                 type="button"
-                role="menuitem"
-                v-tip="t('export.aiHint')"
-                @click="onExportFromMenu('yaml', 'client')"
+                class="ghost export-trigger"
+                :aria-label="t('common.export')"
+                :aria-expanded="clientExportMenuOpen"
+                v-tip="t('common.export')"
+                @click.stop="toggleClientExportMenu"
               >
-                {{ t('export.ai') }}
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.5" />
+                  <path d="M12 6.5v10m0 0 4-4m-4 4-4-4" />
+                </svg>
               </button>
-              <button
-                type="button"
-                role="menuitem"
-                v-tip="t('export.excelHint')"
-                @click="onExportFromMenu('xlsx', 'client')"
-              >
-                {{ t('export.excel') }}
-              </button>
+              <div v-if="clientExportMenuOpen" class="menu" role="menu" @pointerdown.stop>
+                <button
+                  type="button"
+                  role="menuitem"
+                  v-tip="t('export.aiHint')"
+                  @click="onExportFromMenu('yaml', 'client')"
+                >
+                  {{ t('export.ai') }}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  v-tip="t('export.excelHint')"
+                  @click="onExportFromMenu('xlsx', 'client')"
+                >
+                  {{ t('export.excel') }}
+                </button>
+              </div>
             </div>
+            <ColumnVisibilityPicker
+              :label="t('common.columnsVisible')"
+              :options="clientColumnPickerOptions"
+              @toggle="onClientColumnVisibilityChange"
+            />
           </div>
-          <ColumnVisibilityPicker
-            :label="t('common.columnsVisible')"
-            :options="clientColumnPickerOptions"
-            @toggle="onClientColumnVisibilityChange"
-          />
         </div>
       </div>
       <div class="table-shell">
@@ -1532,6 +1559,14 @@ async function onExportFromMenu(
   padding-left: 0;
 }
 
+.reset-action {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  place-items: center;
+}
+
 .dirty {
   color: var(--warn);
   font-size: 0.8rem;
@@ -1820,13 +1855,38 @@ async function onExportFromMenu(
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.75rem 1.25rem;
   margin-left: auto;
+}
+
+.summary-icon-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.25rem;
 }
 
 .export-menu {
   position: relative;
   overflow: visible;
+}
+
+.export-trigger {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.summary-icon-actions :deep(.col-picker),
+.summary-icon-actions .fullscreen-toggle {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  place-items: center;
+  flex-shrink: 0;
 }
 
 .menu {
@@ -2197,6 +2257,18 @@ tr.overridden td {
   width: 1.85rem;
   height: 1.85rem;
   padding: 0;
+}
+
+.redistribute-icon {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+}
+
+.redistribute-icon :deep(svg) {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .notes-input {
