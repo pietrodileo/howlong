@@ -4,6 +4,11 @@ This page lists the user-facing features introduced in each stable release publi
 
 For the complete generated changelog for a release, see the [GitHub Releases page](https://github.com/pietrodileo/howlong/releases).
 
+## v0.9.4
+
+- Manager view tables now scroll vertically in full screen, keeping totals and toolbar controls visible while scrolling through long estimates.
+- Plan/Gantt full-screen date labels have more top spacing, larger text, and stronger contrast.
+
 ## v0.9.3
 
 - Enabled macOS full-screen support for the toolbar controls in Estimate, Manager, and Plan/Gantt views.

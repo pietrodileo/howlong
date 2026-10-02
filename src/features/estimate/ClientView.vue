@@ -1776,6 +1776,7 @@ async function onExportFromMenu(
   min-height: 0;
   margin: 0;
   padding: 0 clamp(0.75rem, 1.5vw, 1.5rem) clamp(0.75rem, 1.5vw, 1.5rem);
+  border: 0;
   overflow: hidden;
   background: var(--page);
 }
@@ -1789,10 +1790,17 @@ async function onExportFromMenu(
 }
 
 .manager-block:fullscreen .presentation-section-body {
+  box-sizing: border-box;
+  /* The details content wrapper does not pass the fullscreen flex height to its children. */
+  height: calc(100vh - clamp(0.75rem, 1.5vw, 1.5rem));
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+.manager-block:fullscreen .summary-row {
+  flex-shrink: 0;
 }
 
 .manager-block:fullscreen .table-shell {
