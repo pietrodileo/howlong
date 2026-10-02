@@ -1,6 +1,6 @@
 # Manuale utente di HowLong?
 
-HowLong? `0.9.3` su Windows, macOS e Linux.
+HowLong? `0.9.4` su Windows, macOS e Linux.
 
 [README del progetto](../../README.md) · [Novità](../WHATS_NEW.md) · [Manuale inglese](GUIDE.en.md) · [Guida di build e rilascio](../BUILD.md)
 
